@@ -59,7 +59,7 @@ export function OfferMiniMap({ offer }: { offer: Offer }) {
             href={osmLink(userPos)}
             target="_blank"
             rel="noreferrer"
-            className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-elevated"
+            className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-elevated"
           >
             <Navigation className="h-3.5 w-3.5" /> ჩემი მდებარეობა
           </a>
