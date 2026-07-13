@@ -21,6 +21,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
+import { Route as AuthenticatedPartnerApplyRouteImport } from './routes/_authenticated/partner-apply'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
@@ -92,6 +93,12 @@ const OfferIdRoute = OfferIdRouteImport.update({
   path: '/offer/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPartnerApplyRoute =
+  AuthenticatedPartnerApplyRouteImport.update({
+    id: '/partner-apply',
+    path: '/partner-apply',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPartnerRoute = AuthenticatedPartnerRouteImport.update({
   id: '/partner',
   path: '/partner',
@@ -166,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/partner': typeof AuthenticatedPartnerRouteWithChildren
+  '/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
@@ -188,6 +196,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders': typeof OrdersIndexRoute
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/partner': typeof AuthenticatedPartnerRouteWithChildren
+  '/_authenticated/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/admin'
     | '/partner'
+    | '/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
     | '/orders/'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/sitemap.xml'
+    | '/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
     | '/orders'
@@ -287,6 +299,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/partner'
+    | '/_authenticated/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
     | '/orders/'
@@ -401,6 +414,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/offer/$id'
       preLoaderRoute: typeof OfferIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/partner-apply': {
+      id: '/_authenticated/partner-apply'
+      path: '/partner-apply'
+      fullPath: '/partner-apply'
+      preLoaderRoute: typeof AuthenticatedPartnerApplyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/partner': {
       id: '/_authenticated/partner'
@@ -521,11 +541,13 @@ const AuthenticatedPartnerRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRouteWithChildren
+  AuthenticatedPartnerApplyRoute: typeof AuthenticatedPartnerApplyRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedPartnerRoute: AuthenticatedPartnerRouteWithChildren,
+  AuthenticatedPartnerApplyRoute: AuthenticatedPartnerApplyRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
