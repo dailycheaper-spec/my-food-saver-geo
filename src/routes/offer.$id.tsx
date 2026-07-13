@@ -4,6 +4,7 @@ import { ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase } from "@/lib/storage";
 import { ReviewSection } from "@/components/ReviewSection";
+import { OfferMiniMap } from "@/components/OfferMiniMap";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: ({ params }) => {
@@ -133,6 +134,8 @@ function OfferPage() {
             ამ პაკეტის ყიდვით გადაარჩენ ~1.2 კგ CO₂-ს
           </div>
         </div>
+
+        <OfferMiniMap offer={offer} />
 
         {/* Method selector */}
         <div className="mt-4 bg-card rounded-2xl shadow-card p-5 border border-border">
