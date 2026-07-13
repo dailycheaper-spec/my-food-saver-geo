@@ -5,18 +5,28 @@ const listeners = new Set<() => void>();
 function emit() { listeners.forEach((l) => l()); }
 function subscribe(cb: () => void) { listeners.add(cb); return () => listeners.delete(cb); }
 
+// Cache stable references so useSyncExternalStore doesn't loop.
+const snapshotCache = new Map<string, { raw: string | null; value: unknown }>();
+
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch { return fallback; }
+  let raw: string | null = null;
+  try { raw = localStorage.getItem(key); } catch { return fallback; }
+  const cached = snapshotCache.get(key);
+  if (cached && cached.raw === raw) return cached.value as T;
+  let value: T;
+  try { value = raw ? (JSON.parse(raw) as T) : fallback; } catch { value = fallback; }
+  snapshotCache.set(key, { raw, value });
+  return value;
 }
 function write<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(key, JSON.stringify(value));
+  const raw = JSON.stringify(value);
+  localStorage.setItem(key, raw);
+  snapshotCache.set(key, { raw, value });
   emit();
 }
+
 
 export function useHydrated() {
   const [h, setH] = useState(false);
