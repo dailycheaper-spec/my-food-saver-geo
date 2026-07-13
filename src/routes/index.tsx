@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift } from "lucide-react";
+import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, type Category } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
@@ -132,7 +132,9 @@ function Home() {
       <section className="mx-auto max-w-2xl px-4 mt-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl font-bold">ახლომდებარე შემოთავაზებები</h2>
-          <span className="text-xs text-muted-foreground">{filtered.length} შედეგი</span>
+          <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full">
+            <MapIcon className="w-3.5 h-3.5" /> რუკაზე ({filtered.length})
+          </Link>
         </div>
 
         {filtered.length === 0 ? (
