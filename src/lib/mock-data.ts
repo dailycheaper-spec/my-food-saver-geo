@@ -27,6 +27,8 @@ export interface Offer {
   itemsLeft: number;
   delivery: boolean;
   deliveryFee: number;
+  lat?: number;
+  lng?: number;
   lat: number;
   lng: number;
 }
