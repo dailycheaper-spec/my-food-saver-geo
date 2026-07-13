@@ -23,6 +23,7 @@ import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
+import { Route as AuthenticatedPartnerStoreRouteImport } from './routes/_authenticated/partner.store'
 import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
@@ -97,6 +98,12 @@ const AuthenticatedPartnerIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
+const AuthenticatedPartnerStoreRoute =
+  AuthenticatedPartnerStoreRouteImport.update({
+    id: '/store',
+    path: '/store',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerScanRoute =
   AuthenticatedPartnerScanRouteImport.update({
     id: '/scan',
@@ -132,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
+  '/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
+  '/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesById {
@@ -169,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
+  '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRouteTypes {
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/partner/offers'
     | '/partner/orders'
     | '/partner/scan'
+    | '/partner/store'
     | '/partner/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/partner/offers'
     | '/partner/orders'
     | '/partner/scan'
+    | '/partner/store'
     | '/partner'
   id:
     | '__root__'
@@ -225,6 +237,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
     | '/_authenticated/partner/scan'
+    | '/_authenticated/partner/store'
     | '/_authenticated/partner/'
   fileRoutesById: FileRoutesById
 }
@@ -343,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerIndexRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/store': {
+      id: '/_authenticated/partner/store'
+      path: '/store'
+      fullPath: '/partner/store'
+      preLoaderRoute: typeof AuthenticatedPartnerStoreRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/scan': {
       id: '/_authenticated/partner/scan'
       path: '/scan'
@@ -371,6 +391,7 @@ interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
   AuthenticatedPartnerScanRoute: typeof AuthenticatedPartnerScanRoute
+  AuthenticatedPartnerStoreRoute: typeof AuthenticatedPartnerStoreRoute
   AuthenticatedPartnerIndexRoute: typeof AuthenticatedPartnerIndexRoute
 }
 
@@ -378,6 +399,7 @@ const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
   AuthenticatedPartnerScanRoute: AuthenticatedPartnerScanRoute,
+  AuthenticatedPartnerStoreRoute: AuthenticatedPartnerStoreRoute,
   AuthenticatedPartnerIndexRoute: AuthenticatedPartnerIndexRoute,
 }
 
