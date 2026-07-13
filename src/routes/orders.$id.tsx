@@ -1,5 +1,6 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } from "lucide-react";
 import { useOrders, updateOrder } from "@/lib/storage";
 import { formatPrice } from "@/lib/mock-data";
@@ -97,8 +98,13 @@ function OrderDetail() {
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">აღების კოდი</div>
           <div className="mt-2 text-3xl font-bold tracking-[0.3em] font-mono">{order.code}</div>
-          <div className="mt-3 inline-block p-3 bg-muted/50 rounded-2xl">
-            <QRPlaceholder code={order.code} />
+          <div className="mt-3 inline-block p-4 bg-white rounded-2xl">
+            <QRCodeSVG
+              value={JSON.stringify({ app: "gemo", orderId: order.id, code: order.code, store: order.storeName })}
+              size={192}
+              level="M"
+              marginSize={0}
+            />
           </div>
           <p className="text-xs text-muted-foreground mt-3">აჩვენე ეს კოდი მაღაზიაში აღების დროს.</p>
         </div>
