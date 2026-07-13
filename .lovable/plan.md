@@ -1,64 +1,95 @@
-# SaveBite — ქართული ვერსია Too Good To Go-ს
 
-პროექტი: მობილურზე მორგებული ვებ-აპლიკაცია, სადაც კაფეები, საცხობები და მაღაზიები ყიდიან გადარჩენილ საკვებს ფასდაკლებით. სრულიად ქართული ინტერფეისი.
+# გემო — სრული პლატფორმა (მომხმარებელი + პარტნიორი + ადმინი)
 
-## ძირითადი ფუნქციები
+პროექტს უკვე აქვს მომხმარებლის მხარე (რუკა, შეთავაზებები, QR, ავტორიზაცია, პროფილი). აქ ვამატებთ **რეალურ backend-ს Supabase-ით**, **პარტნიორის პანელს** და **ადმინის პანელს**, Realtime სინქრონით.
 
-**მომხმარებლისთვის**
-- ახლომდებარე შემოთავაზებების რუკა და სია (მანძილი, ფასი, აღების დრო)
-- საკვების პაკეტის დეტალები: ორიგინალი ფასი, ფასდაკლებული ფასი, აღების ფანჯარა
-- **მიტანის ან ადგილზე აღების არჩევანი** ყოველ შემოთავაზებაზე
-- ფავორიტი მაღაზიები/საცხობები — გამოწერა და პერსონალიზებული სია
-- **გეო-შეტყობინებები**: როცა 1–2 კმ რადიუსში ახალი შემოთავაზება ჩნდება (Browser Notifications + geolocation watch)
-- **"გააჩუქე" ფუნქცია**: თუ ვერ მიხვალ აღებაზე, შეკვეთა შეიძლება გადაეცეს სხვა მომხმარებელს ან ქველმოქმედებას
-- შეკვეთის ისტორია, QR კოდი აღებისთვის
-- ქართული ინტერფეისი (ქართული ფონტი, ლარი, ქართული ლოკაცია)
+## რას ვამატებთ
 
-**მაღაზიისთვის (მოგვიანებით)**
-- პაკეტების დამატება/რედაქტირება
-- შეკვეთების მართვის დაფა
+### 1. მონაცემთა ბაზა (Supabase)
+ცხრილები:
+- `stores` — პარტნიორი მაღაზიები (სახელი, ლოგო, უბანი, კოორდინატები, მიღების საათები, სტატუსი: pending/active/suspended)
+- `store_members` — რომელი user-ია რომელი store-ის პარტნიორი (many-to-many)
+- `offers` — შეთავაზება (store_id, სათაური, აღწერა, ორიგინალი ფასი, ფასდაკლებული, რაოდენობა, კატეგორია, aღების ფანჯარა, delivery/pickup, სურათი, is_active)
+- `orders` — შეკვეთა (user_id, offer_id, store_id, code, qr_payload, status: pending→paid→ready→collected/cancelled/gifted, method, amount, gifted_to)
+- `user_roles` — ცალკე ცხრილი როლებისთვის (`app_role` enum: `admin`, `partner`, `user`) + `has_role()` security-definer function
 
-**გადახდები**
-- ადგილობრივი გადახდები: TBC Pay, BOG (Bank of Georgia) e-commerce, საქართველოს Apple/Google Pay
-- MVP-ისთვის mock გადახდის ეკრანი; რეალური ინტეგრაცია მოგვიანებით ცალკე ეტაპად (საჭიროებს მერჩანტ ანგარიშს)
+RLS ყველა ცხრილზე:
+- მომხმარებელი ხედავს მხოლოდ თავის შეკვეთებს, ყველა `is_active` შეთავაზებას
+- პარტნიორი ხედავს/ცვლის მხოლოდ თავისი store-ის offers/orders-ს (`has_role('partner')` + `store_members`)
+- ადმინი ხედავს ყველაფერს (`has_role('admin')`)
 
-## ეტაპი 1 — ვიზუალური MVP (ეს იტერაცია)
+Realtime ჩართული `offers` და `orders` ცხრილებზე.
 
-1. დიზაინ სისტემა `src/styles.css`-ში: ქართული ტიპოგრაფია (Noto Sans Georgian), მწვანე/ხაკისფერი პალიტრა (გადარჩენა, ბუნება), დათბობილი ტონები.
-2. მარშრუტები:
-   - `/` — მთავარი: ახლომდებარე შემოთავაზებები, ძებნა, ფილტრები
-   - `/offer/$id` — შემოთავაზების დეტალები, აღება/მიტანა, "გააჩუქე" ღილაკი
-   - `/favorites` — ფავორიტი მაღაზიები
-   - `/orders` — ჩემი შეკვეთები + QR კოდი
-   - `/notifications` — გეო-შეტყობინებების პარამეტრები
-   - `/profile` — პროფილი
-3. ქვედა ნავიგაცია (mobile-first): მთავარი / ფავორიტები / შეკვეთები / პროფილი
-4. Mock data ქართული მაღაზიებით (Entrée, Nikala, Puri Guliani, Wissol Market, Carrefour და სხვ.), თბილისის უბნები (ვაკე, საბურთალო, ვერა, ისანი).
-5. Geolocation API + Notification API-ის prompt-ის დემო.
-6. SEO: ქართული title/description, sitemap, robots.
+### 2. მომხმარებლის აპი (არსებული `/`)
+- ცოცხალ Supabase-ის offers-ს ვუერთებთ (mock-data → DB)
+- შეკვეთის შექმნა → `orders` insert → Realtime იღებს განახლებას
+- QR კოდი შეიცავს რეალურ `order.id`-ს, რომელიც პარტნიორის panel-ში სკანირდება
+- notification 1-2 კმ რადიუსში ახალი offer-ის შესახებ Realtime-ის საშუალებით
 
-## ეტაპი 2 — ბექენდი (მოგვიანებით, Cloud-ით)
+### 3. პარტნიორის პანელი — `/partner`
+- `/partner` — dashboard (დღიური სტატისტიკა, აქტიური შეთავაზებები)
+- `/partner/offers` — შეთავაზებების მართვა (CRUD, სურათი, ფასი, რაოდენობა, ვადა)
+- `/partner/orders` — შემოსული შეკვეთები, **Realtime-ით** ცოცხლად ჩნდება ახალი გადახდილი
+- `/partner/scan` — QR სკანერი (BarcodeDetector API + camera) → status=collected
+- `/partner/store` — მაღაზიის პროფილი (მისამართი, საათები, ლოგო)
 
-- ავტორიზაცია (email + Google)
-- ცხრილები: `stores`, `offers`, `orders`, `favorites`, `gifted_orders`, `notification_zones`
-- RLS პოლიტიკები
-- რეალურ დროში შეტყობინებები (Supabase Realtime + geo-radius trigger)
-- გადახდის ინტეგრაცია (TBC/BOG)
+დაცული `/_authenticated/` ქვე-ხე + `has_role('partner')` beforeLoad-ში.
 
-## ეტაპი 3 — მაღაზიის დაფა
+### 4. ადმინის პანელი — `/admin`
+- `/admin` — მთელი პლატფორმის ანალიტიკა (users, orders, GMV, top stores)
+- `/admin/partners` — pending პარტნიორების დამტკიცება, suspend/reactivate
+- `/admin/stores` — ყველა store-ის ცხრილი
+- `/admin/orders` — ყველა შეკვეთა, ფილტრით
+- `/admin/users` — users + როლების მიცემა
 
-- ცალკე role, პაკეტების CRUD, სტატისტიკა.
+დაცული `has_role('admin')`-ით.
+
+### 5. როლის მართვა
+- რეგისტრაციისას default: `user`
+- `/partner/apply` — მომხმარებელი ავსებს ფორმას მაღაზიის შესახებ → `stores` row სტატუსით `pending`
+- ადმინი ამტკიცებს → იქმნება `store_members` row + `user_roles` row სტატუსით `partner`
+
+### 6. Realtime სცენარები
+- პარტნიორის ეკრანზე ცოცხლად ჩნდება ახალი შეკვეთა (`orders` INSERT)
+- მომხმარებელი ხედავს სტატუსის ცვლილებას (`orders` UPDATE) — "დაადასტურა პარტნიორმა"
+- ახლომდებარე უბანში ახალი offer გამოჩენისას push (`offers` INSERT + geo filter კლიენტზე)
+
+### 7. დიზაინი
+თანამედროვე, მინიმალისტური. მომხმარებლის მხარე უკვე გვაქვს (თბილი მწვანე პალიტრა, Noto Sans Georgian). პარტნიორის/ადმინის პანელი — მკვეთრი, ცხრილებით, sidebar-ით, სწრაფი. იგივე დიზაინ-ტოკენებზე.
+
+## ეტაპები (რიგით)
+
+**ეტაპი A — Backend საფუძველი** (ეს ბიჯი)
+1. Migration: enums, `stores`, `offers`, `orders`, `user_roles`, `store_members`, `has_role()`, RLS-ები, GRANT-ები, Realtime publication, სამი test store seed
+2. მომხმარებლის მხარის მიგრაცია mock-data-დან DB-ზე (offers, orders)
+3. QR კოდი რეალურ `order.id`-ს ინახავს
+
+**ეტაპი B — პარტნიორის პანელი**
+1. `/partner/apply` — მაღაზიის განაცხადი
+2. `/_authenticated/partner/*` layout + `has_role('partner')` გეიტი
+3. Offers CRUD, Orders realtime feed, QR სკანერი
+
+**ეტაპი C — ადმინის პანელი**
+1. `/_authenticated/admin/*` layout + `has_role('admin')` გეიტი
+2. Partners approval, Stores/Orders/Users მართვა, ანალიტიკა
+
+**ეტაპი D — Realtime notifications & polish**
+1. Geo-based ახალი offer notifications
+2. Sound alert პარტნიორის ეკრანზე ახალ შეკვეთაზე
+3. Push-friendly manifest (PWA installability)
 
 ## ტექნიკური დეტალები
 
-- Stack: TanStack Start + React 19 + Tailwind v4 (უკვე მოცემული)
-- სახელი: **"გემო" / "SaveBite" / "დარჩი"** — მოკლე ქართული სახელი (გამოვიყენოთ "გემო" — Gemo, ნიშნავს "გემო/გემრიელი")
-- Mobile-first, PWA-მზა
-- ყველა ტექსტი ქართული
-- ფასები ₾-ში
+- **Auth**: მიმდინარე Supabase auth (email+password, Google, Apple, phone) — უცვლელი
+- **RLS**: ყველა ცხრილზე; `has_role()` security-definer function (რეკურსიის თავიდან ასაცილებლად)
+- **Server functions**: `createServerFn` privileged action-ებისთვის (მაგ. admin partner approval), თან `requireSupabaseAuth`-ით
+- **Realtime**: `supabase.channel().on('postgres_changes', ...)` პარტნიორის orders და მომხმარებლის offers ეკრანებზე
+- **QR სკანერი**: browser-native `BarcodeDetector` API სადაც არის, fallback: `@zxing/browser` (მოვამზადებ)
+- **პირველი admin**: მიგრაციაში insert `user_roles(user_id, 'admin')` შენი user_id-სთვის (გავარკვევ ვინ ხარ registered users-ში)
 
-## ამ იტერაციაში მიწოდება
+## რას ვთხოვ დაუყოვნებლივ
 
-მთელი ეტაპი 1 — მთავარი გვერდი, შემოთავაზების დეტალები, ფავორიტები, შეკვეთები, პროფილი, mock data, geo-notifications prompt, ქართული დიზაინ სისტემა. ბექენდი და რეალური გადახდები მომდევნო ეტაპებზე.
+ვიწყებ **ეტაპი A**-ს: მიგრაცია (schema + RLS + seed).
+შემდეგ ეტაპებზე ცალკე ვისაუბრებთ, რომ პროგრესი დამტკიცო.
 
-დავიწყო ეტაპი 1-ის აშენება?
+გავაგრძელო ეტაპი A?
