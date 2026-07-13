@@ -23,6 +23,7 @@ import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
+import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
 
@@ -96,6 +97,12 @@ const AuthenticatedPartnerIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
+const AuthenticatedPartnerScanRoute =
+  AuthenticatedPartnerScanRouteImport.update({
+    id: '/scan',
+    path: '/scan',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerOrdersRoute =
   AuthenticatedPartnerOrdersRouteImport.update({
     id: '/orders',
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/orders/': typeof OrdersIndexRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
+  '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesByTo {
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersIndexRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
+  '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesById {
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/orders/': typeof OrdersIndexRoute
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
+  '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRouteTypes {
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/orders/'
     | '/partner/offers'
     | '/partner/orders'
+    | '/partner/scan'
     | '/partner/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/partner/offers'
     | '/partner/orders'
+    | '/partner/scan'
     | '/partner'
   id:
     | '__root__'
@@ -212,6 +224,7 @@ export interface FileRouteTypes {
     | '/orders/'
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
+    | '/_authenticated/partner/scan'
     | '/_authenticated/partner/'
   fileRoutesById: FileRoutesById
 }
@@ -330,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerIndexRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/scan': {
+      id: '/_authenticated/partner/scan'
+      path: '/scan'
+      fullPath: '/partner/scan'
+      preLoaderRoute: typeof AuthenticatedPartnerScanRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/orders': {
       id: '/_authenticated/partner/orders'
       path: '/orders'
@@ -350,12 +370,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
+  AuthenticatedPartnerScanRoute: typeof AuthenticatedPartnerScanRoute
   AuthenticatedPartnerIndexRoute: typeof AuthenticatedPartnerIndexRoute
 }
 
 const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
+  AuthenticatedPartnerScanRoute: AuthenticatedPartnerScanRoute,
   AuthenticatedPartnerIndexRoute: AuthenticatedPartnerIndexRoute,
 }
 
