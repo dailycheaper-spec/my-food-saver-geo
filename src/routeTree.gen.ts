@@ -23,6 +23,7 @@ import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
+import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -95,6 +96,12 @@ const AuthenticatedPartnerIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
+const AuthenticatedPartnerOrdersRoute =
+  AuthenticatedPartnerOrdersRouteImport.update({
+    id: '/orders',
+    path: '/orders',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerOffersRoute =
   AuthenticatedPartnerOffersRouteImport.update({
     id: '/offers',
@@ -116,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
+  '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesByTo {
@@ -131,6 +139,7 @@ export interface FileRoutesByTo {
   '/orders/$id': typeof OrdersIdRoute
   '/orders': typeof OrdersIndexRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
+  '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesById {
@@ -149,6 +158,7 @@ export interface FileRoutesById {
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
+  '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRouteTypes {
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/orders/'
     | '/partner/offers'
+    | '/partner/orders'
     | '/partner/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/orders'
     | '/partner/offers'
+    | '/partner/orders'
     | '/partner'
   id:
     | '__root__'
@@ -199,6 +211,7 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/orders/'
     | '/_authenticated/partner/offers'
+    | '/_authenticated/partner/orders'
     | '/_authenticated/partner/'
   fileRoutesById: FileRoutesById
 }
@@ -317,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerIndexRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/orders': {
+      id: '/_authenticated/partner/orders'
+      path: '/orders'
+      fullPath: '/partner/orders'
+      preLoaderRoute: typeof AuthenticatedPartnerOrdersRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/offers': {
       id: '/_authenticated/partner/offers'
       path: '/offers'
@@ -329,11 +349,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
+  AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
   AuthenticatedPartnerIndexRoute: typeof AuthenticatedPartnerIndexRoute
 }
 
 const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
+  AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
   AuthenticatedPartnerIndexRoute: AuthenticatedPartnerIndexRoute,
 }
 
