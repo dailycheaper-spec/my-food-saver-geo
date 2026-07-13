@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3 } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 
 export const Route = createFileRoute("/profile")({
@@ -48,7 +48,12 @@ function Profile() {
       </div>
 
       {/* Menu */}
-      <div className="mt-4 bg-card rounded-2xl border border-border shadow-card divide-y divide-border">
+      <div className="mt-4 bg-card rounded-2xl border border-border shadow-card divide-y divide-border overflow-hidden">
+        <Link to="/analytics" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+          <span className="text-muted-foreground"><BarChart3 className="w-4 h-4" /></span>
+          <span className="flex-1">ანალიტიკა და სტატისტიკა</span>
+          <span className="text-muted-foreground">›</span>
+        </Link>
         <Row icon={<Heart className="w-4 h-4" />} label={`ფავორიტები (${favs.length})`} />
         <Row icon={<ShoppingBag className="w-4 h-4" />} label={`შეკვეთების ისტორია (${orders.length})`} />
         <Row icon={<Settings className="w-4 h-4" />} label="პარამეტრები" />

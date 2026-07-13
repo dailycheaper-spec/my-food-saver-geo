@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
+import { AppTracker } from "@/components/AppTracker";
 
 function NotFoundComponent() {
   return (
@@ -106,6 +107,7 @@ function RootComponent() {
         <Outlet />
       </div>
       <BottomNav />
+      <AppTracker />
     </QueryClientProvider>
   );
 }

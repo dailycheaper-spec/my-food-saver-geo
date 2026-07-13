@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf } from "lucide-react";
 import { findOffer, formatPrice } from "@/lib/mock-data";
-import { createOrder, toggleFavorite, useFavorites } from "@/lib/storage";
+import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase } from "@/lib/storage";
+import { ReviewSection } from "@/components/ReviewSection";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: ({ params }) => {
@@ -45,6 +46,8 @@ function OfferPage() {
   const total = offer.price * quantity + deliveryFee;
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
 
+  useEffect(() => { trackOfferView(offer.id); }, [offer.id]);
+
   function handleReserve() {
     const order = createOrder({
       offerId: offer.id,
@@ -59,6 +62,7 @@ function OfferPage() {
       pickupFrom: offer.pickupFrom,
       pickupTo: offer.pickupTo,
     });
+    trackPurchase(offer.storeId, offer.storeName, offer.storeLogo, total);
     navigate({ to: "/orders/$id", params: { id: order.id } });
   }
 
@@ -229,7 +233,9 @@ function OfferPage() {
             >
               დაჯავშნა
             </button>
-          </div>
+        </div>
+
+        <ReviewSection offerId={offer.id} storeId={offer.storeId} />
         </div>
       </div>
     </div>
