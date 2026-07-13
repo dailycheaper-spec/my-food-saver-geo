@@ -41,12 +41,17 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-primary/85 via-primary/70 to-background" />
         </div>
         <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-8 text-primary-foreground">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Logo />
-            <button className="flex items-center gap-1.5 text-sm bg-card/20 backdrop-blur px-3 py-1.5 rounded-full">
-              <MapPin className="w-4 h-4" />
-              თბილისი
-            </button>
+            <div className="flex items-center gap-2">
+              <Link to="/auth" className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft">
+                შესვლა
+              </Link>
+              <button className="flex items-center gap-1.5 text-sm bg-card/20 backdrop-blur px-3 py-1.5 rounded-full">
+                <MapPin className="w-4 h-4" />
+                თბილისი
+              </button>
+            </div>
           </div>
 
           <div className="mt-8">
