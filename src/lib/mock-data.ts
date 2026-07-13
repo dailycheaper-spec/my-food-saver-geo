@@ -27,7 +27,21 @@ export interface Offer {
   itemsLeft: number;
   delivery: boolean;
   deliveryFee: number;
+  lat: number;
+  lng: number;
 }
+
+// approx Tbilisi district centers
+export const DISTRICT_COORDS: Record<string, [number, number]> = {
+  "ვაკე": [41.7095, 44.7663],
+  "საბურთალო": [41.7269, 44.7455],
+  "ვერა": [41.7128, 44.7815],
+  "ისანი": [41.6879, 44.8290],
+  "დიღომი": [41.7855, 44.7570],
+  "მთაწმინდა": [41.6934, 44.7994],
+};
+
+export const TBILISI_CENTER: [number, number] = [41.7151, 44.7873];
 
 export interface Store {
   id: string;
