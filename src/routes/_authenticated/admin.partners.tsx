@@ -72,7 +72,7 @@ function PartnerCard({ store, onChange }: { store: DbStore; onChange: () => void
 
       <div className="mt-3 flex gap-2">
         {store.status === "pending" && (
-          <button onClick={() => act(() => approveStore(store.id, store.owner_id))} disabled={busy}
+          <button onClick={() => act(() => approveStore(store.id, store.owner_id ?? ""))} disabled={busy || !store.owner_id}
             className="flex-1 py-2 rounded-xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1 disabled:opacity-60">
             <Check className="w-3.5 h-3.5" /> დამტკიცება
           </button>
