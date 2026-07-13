@@ -46,6 +46,8 @@ function OfferPage() {
   const total = offer.price * quantity + deliveryFee;
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
 
+  useEffect(() => { trackOfferView(offer.id); }, [offer.id]);
+
   function handleReserve() {
     const order = createOrder({
       offerId: offer.id,
@@ -60,6 +62,7 @@ function OfferPage() {
       pickupFrom: offer.pickupFrom,
       pickupTo: offer.pickupTo,
     });
+    trackPurchase(offer.storeId, offer.storeName, offer.storeLogo, total);
     navigate({ to: "/orders/$id", params: { id: order.id } });
   }
 
