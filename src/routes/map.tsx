@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, MapPin, Navigation } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, type Offer } from "@/lib/mock-data";
-import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -29,78 +28,29 @@ function offerCoords(o: Offer): [number, number] {
   return [base[0] + dx, base[1] + dy];
 }
 
+const MAP_BOUNDS = {
+  north: 41.755,
+  south: 41.665,
+  west: 44.695,
+  east: 44.885,
+};
+
+function toPercent([lat, lng]: [number, number]) {
+  const x = ((lng - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west)) * 100;
+  const y = ((MAP_BOUNDS.north - lat) / (MAP_BOUNDS.north - MAP_BOUNDS.south)) * 100;
+  return {
+    left: `${Math.min(94, Math.max(6, x))}%`,
+    top: `${Math.min(90, Math.max(10, y))}%`,
+  };
+}
+
+function osmLink([lat, lng]: [number, number]) {
+  return `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lng.toFixed(5)}#map=16/${lat.toFixed(5)}/${lng.toFixed(5)}`;
+}
+
 function MapPage() {
-  const [mounted, setMounted] = useState(false);
-  const [MapComp, setMapComp] = useState<null | React.ComponentType<{ userPos: [number, number] | null; selectedId: string | null; onSelect: (id: string) => void }>>(null);
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setMounted(true);
-    (async () => {
-      const [{ MapContainer, TileLayer, Marker, CircleMarker, Popup, useMap }, L] = await Promise.all([
-        import("react-leaflet"),
-        import("leaflet"),
-      ]);
-
-      function Recenter({ pos }: { pos: [number, number] | null }) {
-        const map = useMap();
-        useEffect(() => { if (pos) map.setView(pos, 14); }, [pos, map]);
-        return null;
-      }
-
-      const Comp = ({ userPos, selectedId, onSelect }: { userPos: [number, number] | null; selectedId: string | null; onSelect: (id: string) => void }) => {
-        const center = userPos ?? TBILISI_CENTER;
-        return (
-          <MapContainer center={center} zoom={13} scrollWheelZoom className="h-full w-full">
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
-            />
-            <Recenter pos={userPos} />
-            {userPos && (
-              <CircleMarker center={userPos} radius={9} pathOptions={{ color: "#1e40af", fillColor: "#3b82f6", fillOpacity: 1, weight: 3 }}>
-                <Popup>თქვენ აქ ხართ</Popup>
-              </CircleMarker>
-            )}
-            {OFFERS.map((o) => {
-              const [lat, lng] = offerCoords(o);
-              const discount = Math.round((1 - o.price / o.originalPrice) * 100);
-              const isSel = selectedId === o.id;
-              const icon = L.divIcon({
-                className: "gemo-marker",
-                html: `<div style="transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:4px;background:${isSel ? "#166534" : "#ffffff"};color:${isSel ? "#fff" : "#166534"};padding:4px 8px;border-radius:9999px;border:2px solid #166534;box-shadow:0 4px 10px rgba(0,0,0,.18);font-weight:700;font-size:12px;white-space:nowrap;font-family:system-ui"><span>${o.storeLogo}</span><span>${o.price.toFixed(0)}₾</span><span style="opacity:.7;font-weight:600">-${discount}%</span></div>`,
-                iconSize: [0, 0],
-                iconAnchor: [0, 0],
-              });
-              return (
-                <Marker
-                  key={o.id}
-                  position={[lat, lng]}
-                  icon={icon}
-                  eventHandlers={{ click: () => onSelect(o.id) }}
-                >
-                  <Popup>
-                    <div style={{ minWidth: 180 }}>
-                      <div style={{ fontWeight: 700, marginBottom: 2 }}>{o.storeName}</div>
-                      <div style={{ fontSize: 12, color: "#555" }}>{o.title}</div>
-                      <div style={{ fontSize: 12, marginTop: 4 }}>{o.address} · {o.distanceKm} კმ</div>
-                      <div style={{ marginTop: 6 }}>
-                        <span style={{ textDecoration: "line-through", color: "#888", fontSize: 11, marginRight: 6 }}>{o.originalPrice.toFixed(2)} ₾</span>
-                        <b style={{ color: "#166534" }}>{o.price.toFixed(2)} ₾</b>
-                      </div>
-                      <a href={`/offer/${o.id}`} style={{ display: "inline-block", marginTop: 8, color: "#166534", fontWeight: 700, fontSize: 12 }}>დეტალურად →</a>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
-        );
-      };
-      setMapComp(() => Comp);
-    })();
-  }, []);
 
   const locate = () => {
     if (!navigator.geolocation) return;
@@ -128,11 +78,50 @@ function MapPage() {
       </div>
 
       <div className="flex-1 relative">
-        {mounted && MapComp ? (
-          <MapComp userPos={userPos} selectedId={selectedId} onSelect={setSelectedId} />
-        ) : (
-          <div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკის ჩატვირთვა...</div>
-        )}
+        <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(135deg,hsl(var(--muted)),hsl(var(--background)))]">
+          <iframe
+            title="თბილისის რუკა"
+            src="https://www.openstreetmap.org/export/embed.html?bbox=44.695%2C41.665%2C44.885%2C41.755&layer=mapnik"
+            className="h-full w-full border-0 opacity-70 grayscale-[15%]"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/20 pointer-events-none" />
+        </div>
+
+        <div className="absolute inset-0 z-[500]">
+          {userPos && (
+            <a
+              href={osmLink(userPos)}
+              target="_blank"
+              rel="noreferrer"
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary p-2 text-primary-foreground shadow-elevated ring-4 ring-primary/25"
+              style={toPercent(userPos)}
+              aria-label="ჩემი მდებარეობა რუკაზე"
+            >
+              <Navigation className="h-4 w-4" />
+            </a>
+          )}
+          {OFFERS.map((o) => {
+            const coords = offerCoords(o);
+            const discount = Math.round((1 - o.price / o.originalPrice) * 100);
+            const isSel = selectedId === o.id;
+            return (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => setSelectedId(o.id)}
+                className={`absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-xs font-bold shadow-elevated transition ${
+                  isSel
+                    ? "z-20 border-primary bg-primary text-primary-foreground scale-110"
+                    : "z-10 border-primary bg-card text-primary hover:scale-105"
+                }`}
+                style={toPercent(coords)}
+              >
+                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)}₾ <span className="opacity-70">-{discount}%</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {selected && (
@@ -150,6 +139,15 @@ function MapPage() {
           <Link to="/offer/$id" params={{ id: selected.id }} className="self-center bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold">
             შეძენა
           </Link>
+          <a
+            href={osmLink(offerCoords(selected))}
+            target="_blank"
+            rel="noreferrer"
+            className="self-center border border-border bg-background px-3 py-2 rounded-xl text-xs font-bold"
+            aria-label="გახსნა OpenStreetMap-ზე"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
         </div>
       )}
     </div>
