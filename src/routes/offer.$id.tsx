@@ -233,7 +233,9 @@ function OfferPage() {
             >
               დაჯავშნა
             </button>
-          </div>
+        </div>
+
+        <ReviewSection offerId={offer.id} storeId={offer.storeId} />
         </div>
       </div>
     </div>
