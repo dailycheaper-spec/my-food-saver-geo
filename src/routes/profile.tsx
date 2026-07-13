@@ -79,6 +79,27 @@ function Profile() {
           <span className="flex-1">ანალიტიკა და სტატისტიკა</span>
           <span className="text-muted-foreground">›</span>
         </Link>
+        {user && isPartner && (
+          <Link to="/partner" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-primary"><Store className="w-4 h-4" /></span>
+            <span className="flex-1">პარტნიორის პანელი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
+        {user && !isPartner && !isAdmin && (
+          <Link to="/partner-apply" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-primary"><Store className="w-4 h-4" /></span>
+            <span className="flex-1">გახდი პარტნიორი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
+        {user && isAdmin && (
+          <Link to="/admin" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-destructive"><Shield className="w-4 h-4" /></span>
+            <span className="flex-1">ადმინის პანელი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
         <Row icon={<Heart className="w-4 h-4" />} label={`ფავორიტები (${favs.length})`} />
         <Row icon={<ShoppingBag className="w-4 h-4" />} label={`შეკვეთების ისტორია (${orders.length})`} />
         <Row icon={<Settings className="w-4 h-4" />} label="პარამეტრები" />
