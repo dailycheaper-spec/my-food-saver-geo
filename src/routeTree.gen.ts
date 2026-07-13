@@ -24,6 +24,7 @@ import { Route as OfferIdRouteImport } from './routes/offer.$id'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedPartnerStoreRouteImport } from './routes/_authenticated/partner.store'
 import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
@@ -104,6 +105,11 @@ const AuthenticatedPartnerIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedPartnerStoreRoute =
   AuthenticatedPartnerStoreRouteImport.update({
     id: '/store',
@@ -138,7 +144,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/partner': typeof AuthenticatedPartnerRouteWithChildren
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesByTo {
@@ -158,7 +165,6 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/admin': typeof AuthenticatedAdminRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders': typeof OrdersIndexRoute
@@ -166,6 +172,7 @@ export interface FileRoutesByTo {
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRoutesById {
@@ -179,7 +186,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/partner': typeof AuthenticatedPartnerRouteWithChildren
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
@@ -188,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +218,7 @@ export interface FileRouteTypes {
     | '/partner/orders'
     | '/partner/scan'
     | '/partner/store'
+    | '/admin/'
     | '/partner/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,7 +230,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/sitemap.xml'
-    | '/admin'
     | '/offer/$id'
     | '/orders/$id'
     | '/orders'
@@ -229,6 +237,7 @@ export interface FileRouteTypes {
     | '/partner/orders'
     | '/partner/scan'
     | '/partner/store'
+    | '/admin'
     | '/partner'
   id:
     | '__root__'
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/orders'
     | '/_authenticated/partner/scan'
     | '/_authenticated/partner/store'
+    | '/_authenticated/admin/'
     | '/_authenticated/partner/'
   fileRoutesById: FileRoutesById
 }
@@ -375,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerIndexRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/partner/store': {
       id: '/_authenticated/partner/store'
       path: '/store'
@@ -406,6 +423,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+}
+
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
 interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
@@ -426,12 +454,12 @@ const AuthenticatedPartnerRouteWithChildren =
   AuthenticatedPartnerRoute._addFileChildren(AuthenticatedPartnerRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedPartnerRoute: AuthenticatedPartnerRouteWithChildren,
 }
 
