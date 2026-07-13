@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3 } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
+import { useAuth, signOut } from "@/lib/auth";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "პროფილი — გემო" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
@@ -10,29 +11,52 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const orders = useOrders();
   const favs = useFavorites();
+  const { user, profile, loading } = useAuth();
+  const navigate = useNavigate();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
   const co2 = (saved * 1.2).toFixed(1);
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
 
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name ?? ""}`.trim()
+    : user?.email?.split("@")[0] ?? "სტუმარი";
+  const initial = (profile?.first_name?.[0] ?? user?.email?.[0] ?? "ს").toUpperCase();
+  const emailOrPhone = user?.email ?? user?.phone ?? "";
+
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/" });
+  }
+
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6">
-      {/* Profile header */}
       <div className="bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full gradient-hero grid place-items-center text-primary-foreground text-2xl font-bold">
-            ნ
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              initial
+            )}
           </div>
           <div className="flex-1">
-            <div className="font-display text-xl font-bold">ნინო მ.</div>
-            <div className="text-xs text-muted-foreground">nino@example.ge</div>
-            <div className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-success/10 text-success rounded-full px-2 py-0.5 font-semibold">
-              <Leaf className="w-3 h-3" /> გმირი გადამრჩენი
-            </div>
+            <div className="font-display text-xl font-bold">{displayName}</div>
+            <div className="text-xs text-muted-foreground">{emailOrPhone || "შესვლა არ არის"}</div>
+            {user && (
+              <div className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-success/10 text-success rounded-full px-2 py-0.5 font-semibold">
+                <Leaf className="w-3 h-3" /> გმირი გადამრჩენი
+              </div>
+            )}
           </div>
         </div>
+
+        {!user && !loading && (
+          <Link to="/auth" className="mt-4 w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2">
+            <LogIn className="w-4 h-4" /> შესვლა / რეგისტრაცია
+          </Link>
+        )}
       </div>
 
-      {/* Impact */}
       <div className="mt-4 grid grid-cols-3 gap-2">
         <Stat icon={<ShoppingBag className="w-4 h-4" />} label="პაკეტი" value={String(saved)} />
         <Stat icon={<Leaf className="w-4 h-4" />} label="კგ CO₂" value={co2} />
@@ -47,7 +71,6 @@ function Profile() {
         </p>
       </div>
 
-      {/* Menu */}
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card divide-y divide-border overflow-hidden">
         <Link to="/analytics" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
           <span className="text-muted-foreground"><BarChart3 className="w-4 h-4" /></span>
@@ -58,7 +81,13 @@ function Profile() {
         <Row icon={<ShoppingBag className="w-4 h-4" />} label={`შეკვეთების ისტორია (${orders.length})`} />
         <Row icon={<Settings className="w-4 h-4" />} label="პარამეტრები" />
         <Row icon={<HelpCircle className="w-4 h-4" />} label="დახმარება" />
-        <Row icon={<LogOut className="w-4 h-4 text-destructive" />} label="გასვლა" destructive />
+        {user && (
+          <button onClick={handleSignOut} className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium text-destructive hover:bg-muted/30 transition-colors">
+            <span className="text-destructive"><LogOut className="w-4 h-4" /></span>
+            <span className="flex-1">გასვლა</span>
+            <span className="text-muted-foreground">›</span>
+          </button>
+        )}
       </div>
 
       <p className="mt-6 mb-4 text-center text-[11px] text-muted-foreground">
@@ -78,9 +107,9 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function Row({ icon, label, destructive }: { icon: React.ReactNode; label: string; destructive?: boolean }) {
+function Row({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <button className={`w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors ${destructive ? "text-destructive" : ""}`}>
+    <button className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
       <span className="text-muted-foreground">{icon}</span>
       <span className="flex-1">{label}</span>
       <span className="text-muted-foreground">›</span>

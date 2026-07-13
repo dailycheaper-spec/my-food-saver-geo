@@ -1,5 +1,6 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } from "lucide-react";
 import { useOrders, updateOrder } from "@/lib/storage";
 import { formatPrice } from "@/lib/mock-data";
@@ -97,8 +98,13 @@ function OrderDetail() {
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">აღების კოდი</div>
           <div className="mt-2 text-3xl font-bold tracking-[0.3em] font-mono">{order.code}</div>
-          <div className="mt-3 inline-block p-3 bg-muted/50 rounded-2xl">
-            <QRPlaceholder code={order.code} />
+          <div className="mt-3 inline-block p-4 bg-white rounded-2xl">
+            <QRCodeSVG
+              value={JSON.stringify({ app: "gemo", orderId: order.id, code: order.code, store: order.storeName })}
+              size={192}
+              level="M"
+              marginSize={0}
+            />
           </div>
           <p className="text-xs text-muted-foreground mt-3">აჩვენე ეს კოდი მაღაზიაში აღების დროს.</p>
         </div>
@@ -178,43 +184,6 @@ function OrderDetail() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function QRPlaceholder({ code }: { code: string }) {
-  // Deterministic pseudo-random pattern from code
-  const size = 21;
-  const cells: boolean[] = [];
-  let hash = 0;
-  for (let i = 0; i < code.length; i++) hash = (hash * 31 + code.charCodeAt(i)) >>> 0;
-  for (let i = 0; i < size * size; i++) {
-    hash = (hash * 1103515245 + 12345) >>> 0;
-    cells.push((hash & 1) === 1);
-  }
-  // Fixed corner squares
-  const isCorner = (r: number, c: number) => {
-    const inBox = (r0: number, c0: number) => r >= r0 && r < r0 + 7 && c >= c0 && c < c0 + 7;
-    return inBox(0, 0) || inBox(0, size - 7) || inBox(size - 7, 0);
-  };
-  const cornerFilled = (r: number, c: number) => {
-    const inRing = (r0: number, c0: number) => {
-      const rr = r - r0, cc = c - c0;
-      if (rr < 0 || rr > 6 || cc < 0 || cc > 6) return null;
-      if (rr === 0 || rr === 6 || cc === 0 || cc === 6) return true;
-      if (rr >= 2 && rr <= 4 && cc >= 2 && cc <= 4) return true;
-      return false;
-    };
-    return inRing(0, 0) ?? inRing(0, size - 7) ?? inRing(size - 7, 0) ?? false;
-  };
-
-  return (
-    <div className="grid gap-0" style={{ gridTemplateColumns: `repeat(${size}, 6px)` }}>
-      {Array.from({ length: size * size }).map((_, i) => {
-        const r = Math.floor(i / size), c = i % size;
-        const on = isCorner(r, c) ? cornerFilled(r, c) : cells[i];
-        return <div key={i} className={`w-1.5 h-1.5 ${on ? "bg-foreground" : "bg-transparent"}`} />;
-      })}
     </div>
   );
 }
