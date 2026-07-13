@@ -94,7 +94,7 @@ function MapPage() {
               href={osmLink(userPos)}
               target="_blank"
               rel="noreferrer"
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 p-2 text-white shadow-elevated ring-4 ring-blue-600/25"
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary p-2 text-primary-foreground shadow-elevated ring-4 ring-primary/25"
               style={toPercent(userPos)}
               aria-label="ჩემი მდებარეობა რუკაზე"
             >
