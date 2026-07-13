@@ -94,9 +94,11 @@ function OrderDetail() {
       </div>
 
       {/* QR pickup code */}
-      {order.status === "დაჯავშნილი" && order.method === "აღება" && (
+      {order.status === "დაჯავშნილი" && (
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
-          <div className="text-xs text-muted-foreground uppercase tracking-wide">აღების კოდი</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide">
+            {order.method === "მიტანა" ? "დადასტურების კოდი" : "აღების კოდი"}
+          </div>
           <div className="mt-2 text-3xl font-bold tracking-[0.3em] font-mono">{order.code}</div>
           <div className="mt-3 inline-block p-4 bg-white rounded-2xl">
             <QRCodeSVG
@@ -106,7 +108,11 @@ function OrderDetail() {
               marginSize={0}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-3">აჩვენე ეს კოდი მაღაზიაში აღების დროს.</p>
+          <p className="text-xs text-muted-foreground mt-3">
+            {order.method === "მიტანა"
+              ? "აჩვენე ეს კოდი კურიერს მიღების დროს."
+              : "აჩვენე ეს კოდი მაღაზიაში აღების დროს."}
+          </p>
         </div>
       )}
 
