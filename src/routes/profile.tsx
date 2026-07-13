@@ -14,6 +14,7 @@ function Profile() {
   const favs = useFavorites();
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin, isPartner } = useMyRole();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
   const co2 = (saved * 1.2).toFixed(1);
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
