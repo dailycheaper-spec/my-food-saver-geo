@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift } from "lucide-react";
+import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, type Category } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
