@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn } from "lucide-react";
+import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { useAuth, signOut } from "@/lib/auth";
+import { useMyRole } from "@/lib/db";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "პროფილი — გემო" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
@@ -13,6 +14,7 @@ function Profile() {
   const favs = useFavorites();
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const { isAdmin, isPartner } = useMyRole();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
   const co2 = (saved * 1.2).toFixed(1);
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
@@ -77,6 +79,27 @@ function Profile() {
           <span className="flex-1">ანალიტიკა და სტატისტიკა</span>
           <span className="text-muted-foreground">›</span>
         </Link>
+        {user && isPartner && (
+          <Link to="/partner" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-primary"><Store className="w-4 h-4" /></span>
+            <span className="flex-1">პარტნიორის პანელი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
+        {user && !isPartner && !isAdmin && (
+          <Link to="/partner-apply" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-primary"><Store className="w-4 h-4" /></span>
+            <span className="flex-1">გახდი პარტნიორი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
+        {user && isAdmin && (
+          <Link to="/admin" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+            <span className="text-destructive"><Shield className="w-4 h-4" /></span>
+            <span className="flex-1">ადმინის პანელი</span>
+            <span className="text-muted-foreground">›</span>
+          </Link>
+        )}
         <Row icon={<Heart className="w-4 h-4" />} label={`ფავორიტები (${favs.length})`} />
         <Row icon={<ShoppingBag className="w-4 h-4" />} label={`შეკვეთების ისტორია (${orders.length})`} />
         <Row icon={<Settings className="w-4 h-4" />} label="პარამეტრები" />
