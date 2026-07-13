@@ -42,7 +42,6 @@ function MapPage() {
         import("react-leaflet"),
         import("leaflet"),
       ]);
-      await import("leaflet/dist/leaflet.css");
 
       function Recenter({ pos }: { pos: [number, number] | null }) {
         const map = useMap();
