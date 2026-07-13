@@ -29,8 +29,6 @@ export interface Offer {
   deliveryFee: number;
   lat?: number;
   lng?: number;
-  lat: number;
-  lng: number;
 }
 
 // approx Tbilisi district centers
