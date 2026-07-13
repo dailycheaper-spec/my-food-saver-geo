@@ -5,6 +5,8 @@ const listeners = new Set<() => void>();
 function emit() { listeners.forEach((l) => l()); }
 function subscribe(cb: () => void) { listeners.add(cb); return () => listeners.delete(cb); }
 
+const EMPTY_STRING_LIST: string[] = [];
+
 // Cache stable references so useSyncExternalStore doesn't loop.
 const snapshotCache = new Map<string, { raw: string | null; value: unknown }>();
 
@@ -38,7 +40,7 @@ export function useHydrated() {
 const FAV_KEY = "gemo:favorites";
 export function useFavorites() {
   const hydrated = useHydrated();
-  const value = useSyncExternalStore(subscribe, () => read<string[]>(FAV_KEY, []), () => [] as string[]);
+  const value = useSyncExternalStore(subscribe, () => read<string[]>(FAV_KEY, EMPTY_STRING_LIST), () => EMPTY_STRING_LIST);
   return hydrated ? value : [];
 }
 export function toggleFavorite(storeId: string) {
@@ -71,9 +73,10 @@ export interface Order {
   giftedTo?: string;
 }
 const ORDERS_KEY = "gemo:orders";
+const EMPTY_ORDERS: Order[] = [];
 export function useOrders() {
   const hydrated = useHydrated();
-  const value = useSyncExternalStore(subscribe, () => read<Order[]>(ORDERS_KEY, []), () => [] as Order[]);
+  const value = useSyncExternalStore(subscribe, () => read<Order[]>(ORDERS_KEY, EMPTY_ORDERS), () => EMPTY_ORDERS);
   return hydrated ? value : [];
 }
 export function createOrder(order: Omit<Order, "id" | "createdAt" | "status" | "code">) {
@@ -128,6 +131,7 @@ export interface Review {
   createdAt: number;
 }
 const REVIEWS_KEY = "gemo:reviews";
+const EMPTY_REVIEWS: Review[] = [];
 const SEED_REVIEWS: Review[] = [
   { id: "r-seed-1", offerId: "o1", storeId: "s1", author: "თამარ ლ.", rating: 5, text: "სუპერ იყო! ხაჭაპური ცხელი და გემრიელი. ღირს ყოველი თეთრი.", worthIt: true, wouldBuyAgain: true, createdAt: Date.now() - 86400000 * 2 },
   { id: "r-seed-2", offerId: "o1", storeId: "s1", author: "გიორგი ბ.", rating: 4, text: "კარგი პაკეტი, ცოტა ნაკლები რაოდენობა ეგონა.", worthIt: true, wouldBuyAgain: true, createdAt: Date.now() - 86400000 * 5 },
@@ -143,7 +147,7 @@ function readReviews(): Review[] {
 }
 export function useReviews(offerId?: string) {
   const hydrated = useHydrated();
-  const value = useSyncExternalStore(subscribe, () => readReviews(), () => [] as Review[]);
+  const value = useSyncExternalStore(subscribe, () => readReviews(), () => EMPTY_REVIEWS);
   const list = hydrated ? value : [];
   return offerId ? list.filter((r) => r.offerId === offerId) : list;
 }
