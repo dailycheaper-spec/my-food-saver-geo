@@ -137,7 +137,7 @@ function MapPage() {
 
       {selected && (
         <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated p-3 flex gap-3 border border-border">
-          <img src={selected.image} alt="" width={72} height={72} className="w-18 h-18 rounded-xl object-cover" />
+          <img src={selected.image} alt="" width={72} height={72} className="w-[72px] h-[72px] rounded-xl object-cover" />
           <div className="flex-1 min-w-0">
             <div className="text-xs text-muted-foreground truncate">{selected.storeName} · {selected.district}</div>
             <div className="font-semibold text-sm truncate">{selected.title}</div>
