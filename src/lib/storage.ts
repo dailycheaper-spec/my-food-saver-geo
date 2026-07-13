@@ -141,8 +141,6 @@ const SEED_REVIEWS: Review[] = [
 ];
 function readReviews(): Review[] {
   if (typeof window === "undefined") return SEED_REVIEWS;
-  const raw = localStorage.getItem(REVIEWS_KEY);
-  if (!raw) { write(REVIEWS_KEY, SEED_REVIEWS); return SEED_REVIEWS; }
   return read<Review[]>(REVIEWS_KEY, SEED_REVIEWS);
 }
 export function useReviews(offerId?: string) {
