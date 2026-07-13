@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf } from "lucide-react";
 import { findOffer, formatPrice } from "@/lib/mock-data";
-import { createOrder, toggleFavorite, useFavorites } from "@/lib/storage";
+import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase } from "@/lib/storage";
+import { ReviewSection } from "@/components/ReviewSection";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: ({ params }) => {
