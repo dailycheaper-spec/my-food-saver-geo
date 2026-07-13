@@ -209,7 +209,8 @@ function TabBtn({ active, children, onClick }: { active: boolean; children: Reac
   );
 }
 
-function Field({ icon, value, onChange, ...rest }: { icon: React.ReactNode; value: string; onChange: (v: string) => void } & React.InputHTMLAttributes<HTMLInputElement>) {
+type FieldProps = { icon: React.ReactNode; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value">;
+function Field({ icon, value, onChange, ...rest }: FieldProps) {
   return (
     <div className="relative">
       <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{icon}</div>
