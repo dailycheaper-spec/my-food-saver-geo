@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, MapPin, Navigation } from "lucide-react";
 import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, type Offer } from "@/lib/mock-data";
+import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
