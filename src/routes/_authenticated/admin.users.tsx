@@ -1,68 +1,81 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { useAllCustomers } from "@/lib/admin-db";
+import { formatGel } from "@/lib/db";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({ meta: [{ title: "მომხმარებლები — ადმინი" }] }),
   component: AdminUsers,
 });
 
-type Row = { id: string; first_name: string | null; last_name: string | null; district: string | null; phone: string | null; created_at: string; roles: string[] };
-
 function AdminUsers() {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { rows, loading } = useAllCustomers();
+  const [q, setQ] = useState("");
 
-  useEffect(() => {
-    (async () => {
-      const { data: profiles } = await supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(200);
-      const { data: roles } = await supabase.from("user_roles").select("user_id, role");
-      const roleMap = new Map<string, string[]>();
-      (roles ?? []).forEach((r) => {
-        const list = roleMap.get(r.user_id) ?? [];
-        list.push(r.role);
-        roleMap.set(r.user_id, list);
-      });
-      setRows((profiles ?? []).map((p) => ({ ...p, roles: roleMap.get(p.id) ?? ["user"] })));
-      setLoading(false);
-    })();
-  }, []);
+  const filtered = rows.filter((r) => {
+    if (!q) return true;
+    const s = q.toLowerCase();
+    return (r.first_name ?? "").toLowerCase().includes(s)
+      || (r.last_name ?? "").toLowerCase().includes(s)
+      || (r.phone ?? "").includes(s)
+      || (r.district ?? "").toLowerCase().includes(s);
+  });
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold mb-4">მომხმარებლები</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">მომხმარებლები</h1>
+        <p className="text-sm text-muted-foreground mt-1">{rows.length} რეგისტრირებული</p>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ძებნა სახელით, ტელეფონით, უბნით…"
+          className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+      </div>
+
       {loading ? (
         <p className="text-sm text-muted-foreground">იტვირთება…</p>
       ) : (
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="text-left p-3">სახელი</th>
-                <th className="text-left p-3">უბანი</th>
-                <th className="text-left p-3">ტელეფონი</th>
-                <th className="text-left p-3">როლი</th>
-                <th className="text-left p-3">რეგისტრაცია</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id} className="border-t border-border">
-                  <td className="p-3">{[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}</td>
-                  <td className="p-3">{r.district ?? "—"}</td>
-                  <td className="p-3">{r.phone ?? "—"}</td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      {r.roles.map((role) => (
-                        <span key={role} className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${role === "admin" ? "bg-destructive text-destructive-foreground" : role === "partner" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{role}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="p-3 text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("ka-GE")}</td>
+        <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="text-left p-3 font-semibold">სახელი</th>
+                  <th className="text-left p-3 font-semibold">უბანი</th>
+                  <th className="text-left p-3 font-semibold">ტელეფონი</th>
+                  <th className="text-right p-3 font-semibold">შეკვეთა</th>
+                  <th className="text-right p-3 font-semibold">დახარჯული</th>
+                  <th className="text-right p-3 font-semibold">დაზოგილი</th>
+                  <th className="text-left p-3 font-semibold">როლი</th>
+                  <th className="text-left p-3 font-semibold">რეგისტრაცია</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((r) => (
+                  <tr key={r.id} className="border-t border-border hover:bg-muted/30">
+                    <td className="p-3 font-medium">{[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}</td>
+                    <td className="p-3">{r.district ?? "—"}</td>
+                    <td className="p-3">{r.phone ?? "—"}</td>
+                    <td className="p-3 text-right">{r.order_count}</td>
+                    <td className="p-3 text-right">{formatGel(r.total_spent)}</td>
+                    <td className="p-3 text-right text-success font-semibold">{formatGel(r.money_saved)}</td>
+                    <td className="p-3">
+                      <div className="flex gap-1 flex-wrap">
+                        {r.roles.map((role) => (
+                          <span key={role} className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${role === "admin" ? "bg-destructive text-destructive-foreground" : role === "partner" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{role}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">{new Date(r.created_at).toLocaleDateString("ka-GE")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">არაფერი მოიძებნა.</p>}
         </div>
       )}
     </div>
