@@ -7,6 +7,9 @@ import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — გემო" }, { name: "robots", content: "noindex" }] }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+  }),
   component: AuthPage,
 });
 
@@ -14,6 +17,7 @@ type Mode = "signin" | "signup" | "phone";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,9 +31,9 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/" });
+      if (data.session) navigateToRedirect(navigate, redirect);
     });
-  }, [navigate]);
+  }, [navigate, redirect]);
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +42,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
-    navigate({ to: "/" });
+    navigateToRedirect(navigate, redirect);
   }
 
   async function handleEmailSignUp(e: React.FormEvent) {
@@ -61,6 +65,7 @@ function AuthPage() {
   async function handleOAuth(provider: "google" | "apple") {
     setLoading(true);
     setMsg(null);
+    if (redirect) sessionStorage.setItem("auth_redirect", redirect);
     const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
     if (result.error) {
       setLoading(false);
@@ -68,7 +73,7 @@ function AuthPage() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/" });
+    navigateToRedirect(navigate, redirect);
   }
 
   async function handleSendOtp(e: React.FormEvent) {
@@ -89,7 +94,7 @@ function AuthPage() {
     const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
-    navigate({ to: "/" });
+    navigateToRedirect(navigate, redirect);
   }
 
   return (
@@ -199,6 +204,24 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+function getSafeRedirect(redirect?: string): string {
+  const stored = typeof window !== "undefined" ? sessionStorage.getItem("auth_redirect") : null;
+  const target = redirect || stored || "/";
+  try {
+    const url = new URL(target, window.location.origin);
+    if (url.origin !== window.location.origin) return "/";
+    return `${url.pathname}${url.search}${url.hash}` || "/";
+  } catch {
+    return target.startsWith("/") && !target.startsWith("//") ? target : "/";
+  }
+}
+
+function navigateToRedirect(navigate: ReturnType<typeof useNavigate>, redirect?: string) {
+  const target = getSafeRedirect(redirect);
+  if (typeof window !== "undefined") sessionStorage.removeItem("auth_redirect");
+  navigate({ to: target });
 }
 
 function TabBtn({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
