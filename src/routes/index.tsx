@@ -4,6 +4,7 @@ import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon } from "lucide-rea
 import { CATEGORIES, DISTRICTS, OFFERS, type Category } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/auth";
 import heroImage from "@/assets/hero-bakery.jpg";
 
 export const Route = createFileRoute("/")({
@@ -21,6 +22,7 @@ function Home() {
   const [district, setDistrict] = useState("ყველა უბანი");
   const [q, setQ] = useState("");
   const [onlyDelivery, setOnlyDelivery] = useState(false);
+  const { user } = useAuth();
 
   const filtered = useMemo(() => {
     return OFFERS.filter((o) => {
@@ -44,8 +46,8 @@ function Home() {
           <div className="flex items-center justify-between gap-2">
             <Logo />
             <div className="flex items-center gap-2">
-              <Link to="/auth" className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft">
-                შესვლა
+              <Link to={user ? "/profile" : "/auth"} className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft">
+                {user ? "პროფილი" : "შესვლა"}
               </Link>
               <button className="flex items-center gap-1.5 text-sm bg-card/20 backdrop-blur px-3 py-1.5 rounded-full">
                 <MapPin className="w-4 h-4" />
