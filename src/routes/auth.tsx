@@ -31,13 +31,15 @@ function AuthPage() {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.auth.getSession().then(({ data }) => {
-      if (!cancelled && data.session) navigateToRedirect(navigate, redirect);
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled && data.user) navigateToRedirect(navigate, redirect);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (!cancelled && session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        navigateToRedirect(navigate, redirect);
+        waitForUser().then((user) => {
+          if (!cancelled && user) navigateToRedirect(navigate, redirect);
+        });
       }
     });
 
@@ -89,9 +91,9 @@ function AuthPage() {
       return;
     }
 
-    const session = await waitForSession();
+    const user = await waitForUser();
     setLoading(false);
-    if (session) {
+    if (user) {
       navigateToRedirect(navigate, redirect);
     } else {
       setMsg({ type: "ok", text: "შესვლა დასრულდა. გთხოვთ, დაელოდოთ გადამისამართებას…" });
@@ -246,10 +248,10 @@ function navigateToRedirect(navigate: ReturnType<typeof useNavigate>, redirect?:
   navigate({ to: target, replace: true });
 }
 
-async function waitForSession() {
+async function waitForUser() {
   for (let i = 0; i < 12; i += 1) {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) return data.session;
+    const { data } = await supabase.auth.getUser();
+    if (data.user) return data.user;
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return null;
