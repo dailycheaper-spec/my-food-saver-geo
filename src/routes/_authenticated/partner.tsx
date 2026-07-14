@@ -5,9 +5,14 @@ import { useMyRole, useMyStores, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner")({
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) throw redirect({ to: "/auth" });
+    if (userError || !userData.user) {
+      throw redirect({
+        to: "/auth",
+        search: { redirect: location.href },
+      });
+    }
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", userData.user.id);
     const roles = (data ?? []).map((r) => r.role);
     if (!roles.includes("partner") && !roles.includes("admin")) {
