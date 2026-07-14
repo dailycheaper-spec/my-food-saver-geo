@@ -30,9 +30,23 @@ function AuthPage() {
   const [msg, setMsg] = useState<{ type: "err" | "ok"; text: string } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigateToRedirect(navigate, redirect);
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!cancelled && data.user) navigateToRedirect(navigate, redirect);
     });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!cancelled && session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        waitForUser().then((user) => {
+          if (!cancelled && user) navigateToRedirect(navigate, redirect);
+        });
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [navigate, redirect]);
 
   const redirectTarget = getSafeRedirect(redirect);
@@ -68,15 +82,21 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
-    const callbackUrl = new URL("/auth", window.location.origin);
-    callbackUrl.searchParams.set("redirect", redirectTarget);
     const { error } = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: callbackUrl.toString(),
+      redirect_uri: `${window.location.origin}/auth`,
     });
     if (error) {
       setLoading(false);
       setMsg({ type: "err", text: `შესვლა ${provider}-ით ვერ მოხერხდა` });
       return;
+    }
+
+    const user = await waitForUser();
+    setLoading(false);
+    if (user) {
+      navigateToRedirect(navigate, redirect);
+    } else {
+      setMsg({ type: "ok", text: "შესვლა დასრულდა. გთხოვთ, დაელოდოთ გადამისამართებას…" });
     }
   }
 
@@ -225,7 +245,16 @@ function getSafeRedirect(redirect?: string): string {
 function navigateToRedirect(navigate: ReturnType<typeof useNavigate>, redirect?: string) {
   const target = getSafeRedirect(redirect);
   if (typeof window !== "undefined") sessionStorage.removeItem("auth_redirect");
-  navigate({ to: target });
+  navigate({ to: target, replace: true });
+}
+
+async function waitForUser() {
+  for (let i = 0; i < 12; i += 1) {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) return data.user;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return null;
 }
 
 function TabBtn({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {

@@ -1,35 +1,28 @@
-import { createFileRoute, Outlet, Link, redirect, useRouterState, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useMyRole, useMyStores, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner")({
-  beforeLoad: async ({ location }) => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData.user) {
-      throw redirect({
-        to: "/auth",
-        search: { redirect: location.href },
-      });
-    }
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", userData.user.id);
-    const roles = (data ?? []).map((r) => r.role);
-    if (!roles.includes("partner") && !roles.includes("admin")) {
-      throw redirect({ to: "/partner-apply" });
-    }
-  },
   component: PartnerLayout,
 });
 
 function PartnerLayout() {
   const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
-  const { role } = useMyRole();
+  const { role, loading: roleLoading, isAdmin, isPartner } = useMyRole();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
   const [notifOpen, setNotifOpen] = useState(false);
+  const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
+
+  useEffect(() => {
+    if (!roleLoading && !loading && !hasPartnerAccess) {
+      navigate({ to: "/partner-apply", replace: true });
+    }
+  }, [hasPartnerAccess, loading, navigate, roleLoading]);
 
   // Global realtime notification for new orders on this store
   useEffect(() => {
@@ -54,6 +47,29 @@ function PartnerLayout() {
     { to: "/partner/orders", label: "შეკვეთები", icon: ShoppingBag, badge: newCount },
     { to: "/partner/stats", label: "სტატისტიკა", icon: BarChart3 },
   ];
+
+  if (roleLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
+        <div className="text-center">
+          <div className="text-4xl mb-3">🥗</div>
+          <div className="font-display text-xl font-bold">პარტნიორის პანელი იტვირთება…</div>
+          <p className="text-sm text-muted-foreground mt-1">ვამოწმებთ თქვენს ანგარიშს.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasPartnerAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
+        <div className="text-center">
+          <div className="text-4xl mb-3">🏪</div>
+          <div className="font-display text-xl font-bold">გადაგიყვანთ განაცხადზე…</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-24 md:pb-0">
