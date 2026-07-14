@@ -71,7 +71,7 @@ function AdminLayout() {
           {NAV.map((n) => {
             const active = n.exact ? path === n.to : path.startsWith(n.to);
             return (
-              <Link key={n.to} to={n.to}
+              <Link key={n.to} to={n.to as any}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium transition-colors ${
                   active ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/70 hover:bg-muted"
                 }`}>
@@ -119,7 +119,7 @@ function AdminLayout() {
               {NAV.map((n) => {
                 const active = n.exact ? path === n.to : path.startsWith(n.to);
                 return (
-                  <Link key={n.to} to={n.to}
+                  <Link key={n.to} to={n.to as any}
                     className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium ${active ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
                     <n.icon className="w-4 h-4" /> {n.label}
                   </Link>
