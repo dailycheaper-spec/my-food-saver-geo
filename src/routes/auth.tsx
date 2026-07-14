@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, Lock, Phone, User as UserIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/auth")({
@@ -66,14 +65,15 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     if (redirect) sessionStorage.setItem("auth_redirect", redirect);
-    const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: window.location.origin });
-    if (result.error) {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: window.location.origin },
+    });
+    if (error) {
       setLoading(false);
       setMsg({ type: "err", text: `შესვლა ${provider}-ით ვერ მოხერხდა` });
       return;
     }
-    if (result.redirected) return;
-    navigateToRedirect(navigate, redirect);
   }
 
   async function handleSendOtp(e: React.FormEvent) {
