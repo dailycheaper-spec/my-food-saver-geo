@@ -66,6 +66,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
 }
 
 function OrderCard({ order, showActions }: { order: OrderWithRelations; showActions?: boolean }) {
+  const [showQr, setShowQr] = useState(false);
   async function markReady() { await updateOrderStatus(order.id, "ready"); }
   async function markCollected() { await updateOrderStatus(order.id, "collected"); }
 
