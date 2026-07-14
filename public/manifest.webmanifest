@@ -1,0 +1,18 @@
+{
+  "name": "გემო — გადაარჩინე საკვები",
+  "short_name": "გემო",
+  "description": "აღმოაჩინე ფასდაკლებული საკვები ახლომდებარე მაღაზიებში და საცხობებში.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#3d7a4a",
+  "lang": "ka",
+  "categories": ["food", "shopping", "lifestyle"],
+  "icons": [
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/apple-touch-icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
