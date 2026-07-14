@@ -22,7 +22,8 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
-const NAV = [
+type NavItem = { to: string; label: string; icon: React.ElementType; exact?: boolean };
+const NAV: NavItem[] = [
   { to: "/admin", label: "მთავარი", icon: LayoutDashboard, exact: true },
   { to: "/admin/partners", label: "პარტნიორები", icon: Store },
   { to: "/admin/offers", label: "შემოთავაზებები", icon: Package },
@@ -31,7 +32,7 @@ const NAV = [
   { to: "/admin/users", label: "მომხმარებლები", icon: Users },
   { to: "/admin/stats", label: "სტატისტიკა", icon: BarChart3 },
   { to: "/admin/settings", label: "პარამეტრები", icon: Settings },
-] as const;
+];
 
 function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
