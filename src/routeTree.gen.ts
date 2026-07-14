@@ -37,8 +37,12 @@ import { Route as AuthenticatedPartnerNewRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPartnerBalanceRouteImport } from './routes/_authenticated/partner.balance'
 import { Route as AuthenticatedPartnerAiRouteImport } from './routes/_authenticated/partner.ai'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminStatsRouteImport } from './routes/_authenticated/admin.stats'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin.partners'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
+import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -189,6 +193,23 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminStatsRoute = AuthenticatedAdminStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminSettingsRoute =
+  AuthenticatedAdminSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPaymentsRoute =
+  AuthenticatedAdminPaymentsRouteImport.update({
+    id: '/payments',
+    path: '/payments',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminPartnersRoute =
   AuthenticatedAdminPartnersRouteImport.update({
     id: '/partners',
@@ -199,6 +220,12 @@ const AuthenticatedAdminOrdersRoute =
   AuthenticatedAdminOrdersRouteImport.update({
     id: '/orders',
     path: '/orders',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminOffersRoute =
+  AuthenticatedAdminOffersRouteImport.update({
+    id: '/offers',
+    path: '/offers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
@@ -217,8 +244,12 @@ export interface FileRoutesByFullPath {
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/stats': typeof AuthenticatedAdminStatsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
@@ -246,8 +277,12 @@ export interface FileRoutesByTo {
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders': typeof OrdersIndexRoute
+  '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
+  '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/admin/stats': typeof AuthenticatedAdminStatsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
@@ -279,8 +314,12 @@ export interface FileRoutesById {
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
+  '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
+  '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/_authenticated/admin/stats': typeof AuthenticatedAdminStatsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/_authenticated/partner/balance': typeof AuthenticatedPartnerBalanceRoute
@@ -312,8 +351,12 @@ export interface FileRouteTypes {
     | '/offer/$id'
     | '/orders/$id'
     | '/orders/'
+    | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
+    | '/admin/payments'
+    | '/admin/settings'
+    | '/admin/stats'
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
@@ -341,8 +384,12 @@ export interface FileRouteTypes {
     | '/offer/$id'
     | '/orders/$id'
     | '/orders'
+    | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
+    | '/admin/payments'
+    | '/admin/settings'
+    | '/admin/stats'
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
@@ -373,8 +420,12 @@ export interface FileRouteTypes {
     | '/offer/$id'
     | '/orders/$id'
     | '/orders/'
+    | '/_authenticated/admin/offers'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/partners'
+    | '/_authenticated/admin/payments'
+    | '/_authenticated/admin/settings'
+    | '/_authenticated/admin/stats'
     | '/_authenticated/admin/users'
     | '/_authenticated/partner/ai'
     | '/_authenticated/partner/balance'
@@ -603,6 +654,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/stats': {
+      id: '/_authenticated/admin/stats'
+      path: '/stats'
+      fullPath: '/admin/stats'
+      preLoaderRoute: typeof AuthenticatedAdminStatsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/settings': {
+      id: '/_authenticated/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/payments': {
+      id: '/_authenticated/admin/payments'
+      path: '/payments'
+      fullPath: '/admin/payments'
+      preLoaderRoute: typeof AuthenticatedAdminPaymentsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/partners': {
       id: '/_authenticated/admin/partners'
       path: '/partners'
@@ -617,19 +689,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrdersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/offers': {
+      id: '/_authenticated/admin/offers'
+      path: '/offers'
+      fullPath: '/admin/offers'
+      preLoaderRoute: typeof AuthenticatedAdminOffersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminOffersRoute: typeof AuthenticatedAdminOffersRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
+  AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
+  AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedAdminStatsRoute: typeof AuthenticatedAdminStatsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminOffersRoute: AuthenticatedAdminOffersRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
+  AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
+  AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedAdminStatsRoute: AuthenticatedAdminStatsRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
