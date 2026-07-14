@@ -16,12 +16,13 @@ function PartnerLayout() {
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
   const [notifOpen, setNotifOpen] = useState(false);
+  const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
 
   useEffect(() => {
-    if (!roleLoading && !isAdmin && !isPartner) {
+    if (!roleLoading && !loading && !hasPartnerAccess) {
       navigate({ to: "/partner-apply", replace: true });
     }
-  }, [isAdmin, isPartner, navigate, roleLoading]);
+  }, [hasPartnerAccess, loading, navigate, roleLoading]);
 
   // Global realtime notification for new orders on this store
   useEffect(() => {
@@ -47,7 +48,7 @@ function PartnerLayout() {
     { to: "/partner/stats", label: "სტატისტიკა", icon: BarChart3 },
   ];
 
-  if (roleLoading) {
+  if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="text-center">
@@ -59,7 +60,7 @@ function PartnerLayout() {
     );
   }
 
-  if (!isAdmin && !isPartner) {
+  if (!hasPartnerAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="text-center">
