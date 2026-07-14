@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { CheckCircle2, Truck, ShoppingBag, Bell } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { useMyStores, useStoreOrders, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 
 export const Route = createFileRoute("/_authenticated/partner/orders")({
@@ -65,6 +66,7 @@ function Section({ title, count, children }: { title: string; count: number; chi
 }
 
 function OrderCard({ order, showActions }: { order: OrderWithRelations; showActions?: boolean }) {
+  const [showQr, setShowQr] = useState(false);
   async function markReady() { await updateOrderStatus(order.id, "ready"); }
   async function markCollected() { await updateOrderStatus(order.id, "collected"); }
 
@@ -90,16 +92,33 @@ function OrderCard({ order, showActions }: { order: OrderWithRelations; showActi
         {new Date(order.created_at).toLocaleString("ka-GE", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
       </div>
       {showActions && (
-        <div className="mt-3 flex gap-2">
-          {order.status === "paid" && (
-            <button onClick={markReady} className="flex-1 py-2 rounded-xl bg-warm text-warm-foreground text-xs font-semibold">
-              მზადაა აღებისთვის
+        <>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={() => setShowQr((v) => !v)}
+              className="flex-1 py-2 rounded-xl bg-muted text-xs font-semibold flex items-center justify-center gap-1"
+            ><QrCode className="w-3.5 h-3.5" /> {showQr ? "დამალვა" : "QR ჩვენება"}</button>
+            {order.status === "paid" && (
+              <button onClick={markReady} className="flex-1 py-2 rounded-xl bg-warm text-warm-foreground text-xs font-semibold">
+                მზადაა
+              </button>
+            )}
+          </div>
+          <div className="mt-2 flex gap-2">
+            <button onClick={markCollected} className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> გაცემულია
             </button>
+            <button onClick={() => { if (confirm("ნამდვილად გავაუქმო?")) updateOrderStatus(order.id, "cancelled"); }} className="px-3 py-2 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center gap-1">
+              <XCircle className="w-3.5 h-3.5" /> გაუქმება
+            </button>
+          </div>
+          {showQr && (
+            <div className="mt-3 p-3 bg-white rounded-xl grid place-items-center">
+              <QRCodeSVG value={order.code} size={140} level="M" />
+              <div className="mt-2 font-mono text-xs text-muted-foreground">#{order.code}</div>
+            </div>
           )}
-          <button onClick={markCollected} className="flex-1 py-2 rounded-xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> გაცემულია
-          </button>
-        </div>
+        </>
       )}
     </div>
   );

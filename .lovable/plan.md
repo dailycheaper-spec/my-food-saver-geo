@@ -1,95 +1,83 @@
 
-# გემო — სრული პლატფორმა (მომხმარებელი + პარტნიორი + ადმინი)
+# SaveBite Partner Dashboard
 
-პროექტს უკვე აქვს მომხმარებლის მხარე (რუკა, შეთავაზებები, QR, ავტორიზაცია, პროფილი). აქ ვამატებთ **რეალურ backend-ს Supabase-ით**, **პარტნიორის პანელს** და **ადმინის პანელს**, Realtime სინქრონით.
+მოდერნიზაცია პარტნიორის პანელისა Apple-inspired დიზაინით, ძალიან მარტივი ინტერფეისით ნებისმიერი თანამშრომლისთვის. ყველა ცვლილება realtime-ში, refresh-ის გარეშე.
 
-## რას ვამატებთ
+## Architecture
 
-### 1. მონაცემთა ბაზა (Supabase)
-ცხრილები:
-- `stores` — პარტნიორი მაღაზიები (სახელი, ლოგო, უბანი, კოორდინატები, მიღების საათები, სტატუსი: pending/active/suspended)
-- `store_members` — რომელი user-ია რომელი store-ის პარტნიორი (many-to-many)
-- `offers` — შეთავაზება (store_id, სათაური, აღწერა, ორიგინალი ფასი, ფასდაკლებული, რაოდენობა, კატეგორია, aღების ფანჯარა, delivery/pickup, სურათი, is_active)
-- `orders` — შეკვეთა (user_id, offer_id, store_id, code, qr_payload, status: pending→paid→ready→collected/cancelled/gifted, method, amount, gifted_to)
-- `user_roles` — ცალკე ცხრილი როლებისთვის (`app_role` enum: `admin`, `partner`, `user`) + `has_role()` security-definer function
+- **Route root:** `/partner` (უკვე არსებული `_authenticated/partner.tsx` გადავანაწილოთ layout-ად `<Outlet />` + child routes)
+- **Layout:** ქვედა tab bar მობილურზე, გვერდითი nav დესქტოპზე
+- **Backend:** Supabase (auth/db/realtime), FastAPI Backend-ის ნაცვლად ვინარჩუნებთ Supabase-ს (Lovable Cloud-ის ბუნებრივი stack). FastAPI-ს ცალკე გაშვება არ არის საჭირო — ყველა ლოგიკა server functions + Supabase-ით.
 
-RLS ყველა ცხრილზე:
-- მომხმარებელი ხედავს მხოლოდ თავის შეკვეთებს, ყველა `is_active` შეთავაზებას
-- პარტნიორი ხედავს/ცვლის მხოლოდ თავისი store-ის offers/orders-ს (`has_role('partner')` + `store_members`)
-- ადმინი ხედავს ყველაფერს (`has_role('admin')`)
+## Routes
 
-Realtime ჩართული `offers` და `orders` ცხრილებზე.
+```
+/partner              → Home (4 დიდი ღილაკი)
+/partner/new          → New Offer (სრული ფორმა)
+/partner/quick        → Quick Offer (saved products)
+/partner/ai           → AI Mode (ტექსტი/ხმა → auto-fill)
+/partner/offers       → Active Offers
+/partner/orders       → Orders (realtime)
+/partner/stats        → Statistics
+/partner/balance      → Balance/Earnings
+/partner/profile      → Business Profile
+```
 
-### 2. მომხმარებლის აპი (არსებული `/`)
-- ცოცხალ Supabase-ის offers-ს ვუერთებთ (mock-data → DB)
-- შეკვეთის შექმნა → `orders` insert → Realtime იღებს განახლებას
-- QR კოდი შეიცავს რეალურ `order.id`-ს, რომელიც პარტნიორის panel-ში სკანირდება
-- notification 1-2 კმ რადიუსში ახალი offer-ის შესახებ Realtime-ის საშუალებით
+## Database additions
 
-### 3. პარტნიორის პანელი — `/partner`
-- `/partner` — dashboard (დღიური სტატისტიკა, აქტიური შეთავაზებები)
-- `/partner/offers` — შეთავაზებების მართვა (CRUD, სურათი, ფასი, რაოდენობა, ვადა)
-- `/partner/orders` — შემოსული შეკვეთები, **Realtime-ით** ცოცხლად ჩნდება ახალი გადახდილი
-- `/partner/scan` — QR სკანერი (BarcodeDetector API + camera) → status=collected
-- `/partner/store` — მაღაზიის პროფილი (მისამართი, საათები, ლოგო)
+- `saved_products` (partner-ის შენახული პროდუქტები Quick Offer-ისთვის): store_id, name, category, default_price, photo_url, active
+- `payouts` (გადახდები): store_id, amount, status, paid_at
+- `offers` ცხრილს დავამატებთ `photo_url` თუ არ არსებობს
+- Realtime enable: `orders`, `offers`, `saved_products`
 
-დაცული `/_authenticated/` ქვე-ხე + `has_role('partner')` beforeLoad-ში.
+## Features per screen
 
-### 4. ადმინის პანელი — `/admin`
-- `/admin` — მთელი პლატფორმის ანალიტიკა (users, orders, GMV, top stores)
-- `/admin/partners` — pending პარტნიორების დამტკიცება, suspend/reactivate
-- `/admin/stores` — ყველა store-ის ცხრილი
-- `/admin/orders` — ყველა შეკვეთა, ფილტრით
-- `/admin/users` — users + როლების მიცემა
+**Home:** 4 gradient card ღილაკი (glass morphism, დიდი icons, haptic-ready)
 
-დაცული `has_role('admin')`-ით.
+**New Offer:** სრული ფორმა photo upload-ით (Supabase Storage bucket `offer-photos`)
 
-### 5. როლის მართვა
-- რეგისტრაციისას default: `user`
-- `/partner/apply` — მომხმარებელი ავსებს ფორმას მაღაზიის შესახებ → `stores` row სტატუსით `pending`
-- ადმინი ამტკიცებს → იქმნება `store_members` row + `user_roles` row სტატუსით `partner`
+**Quick Offer:** grid saved products-ის; tap → quantity + discount % + Publish (3 tap-ში)
 
-### 6. Realtime სცენარები
-- პარტნიორის ეკრანზე ცოცხლად ჩნდება ახალი შეკვეთა (`orders` INSERT)
-- მომხმარებელი ხედავს სტატუსის ცვლილებას (`orders` UPDATE) — "დაადასტურა პარტნიორმა"
-- ახლომდებარე უბანში ახალი offer გამოჩენისას push (`offers` INSERT + geo filter კლიენტზე)
+**AI Mode:** Lovable AI Gateway (`google/gemini-2.5-flash`) სტრუქტურირებული output-ით → JSON offer draft; Speech-to-text `openai/gpt-4o-mini-transcribe` ხმისთვის
 
-### 7. დიზაინი
-თანამედროვე, მინიმალისტური. მომხმარებლის მხარე უკვე გვაქვს (თბილი მწვანე პალიტრა, Noto Sans Georgian). პარტნიორის/ადმინის პანელი — მკვეთრი, ცხრილებით, sidebar-ით, სწრაფი. იგივე დიზაინ-ტოკენებზე.
+**Active Offers:** realtime cards, inline +/- quantity, edit modal, finish button
 
-## ეტაპები (რიგით)
+**Orders:** მხოლოდ `paid` სტატუსი, realtime insert alerts (ხმა + toast), QR display, Mark Picked Up → `fulfilled`
 
-**ეტაპი A — Backend საფუძველი** (ეს ბიჯი)
-1. Migration: enums, `stores`, `offers`, `orders`, `user_roles`, `store_members`, `has_role()`, RLS-ები, GRANT-ები, Realtime publication, სამი test store seed
-2. მომხმარებლის მხარის მიგრაცია mock-data-დან DB-ზე (offers, orders)
-3. QR კოდი რეალურ `order.id`-ს ინახავს
+**Balance:** aggregate SQL views today/week/pending/last payout, 10% platform commission
 
-**ეტაპი B — პარტნიორის პანელი**
-1. `/partner/apply` — მაღაზიის განაცხადი
-2. `/_authenticated/partner/*` layout + `has_role('partner')` გეიტი
-3. Offers CRUD, Orders realtime feed, QR სკანერი
+**Statistics:** today orders/revenue, top product, kg saved (assume 0.4kg per offer)
 
-**ეტაპი C — ადმინის პანელი**
-1. `/_authenticated/admin/*` layout + `has_role('admin')` გეიტი
-2. Partners approval, Stores/Orders/Users მართვა, ანალიტიკა
+**Profile:** stores CRUD + working_hours JSON + delivery toggle
 
-**ეტაპი D — Realtime notifications & polish**
-1. Geo-based ახალი offer notifications
-2. Sound alert პარტნიორის ეკრანზე ახალ შეკვეთაზე
-3. Push-friendly manifest (PWA installability)
+**Notifications:** ერთი realtime channel `__root`-ში, Web Notification API + in-app toast + badge
 
-## ტექნიკური დეტალები
+## Design system
 
-- **Auth**: მიმდინარე Supabase auth (email+password, Google, Apple, phone) — უცვლელი
-- **RLS**: ყველა ცხრილზე; `has_role()` security-definer function (რეკურსიის თავიდან ასაცილებლად)
-- **Server functions**: `createServerFn` privileged action-ებისთვის (მაგ. admin partner approval), თან `requireSupabaseAuth`-ით
-- **Realtime**: `supabase.channel().on('postgres_changes', ...)` პარტნიორის orders და მომხმარებლის offers ეკრანებზე
-- **QR სკანერი**: browser-native `BarcodeDetector` API სადაც არის, fallback: `@zxing/browser` (მოვამზადებ)
-- **პირველი admin**: მიგრაციაში insert `user_roles(user_id, 'admin')` შენი user_id-სთვის (გავარკვევ ვინ ხარ registered users-ში)
+- Apple-inspired: SF-like typography (Noto Sans Georgian + Inter fallback), დიდი radius (`--radius: 1.25rem`), soft shadows, subtle gradients
+- ერთი primary color: warm green `oklch(0.65 0.18 145)` (food-saving)
+- Semantic tokens `src/styles.css`-ში, dark mode support
+- ყველა ღილაკი მინიმუმ 56px სიმაღლის (touch-friendly)
+- Max 3 taps rule: Home → Quick → Publish
 
-## რას ვთხოვ დაუყოვნებლივ
+## Technical details
 
-ვიწყებ **ეტაპი A**-ს: მიგრაცია (schema + RLS + seed).
-შემდეგ ეტაპებზე ცალკე ვისაუბრებთ, რომ პროგრესი დამტკიცო.
+- Login უკვე არსებობს `/auth`-ზე (Email+Password, Google, Phone OTP). დავამატებთ direct Phone OTP tab-ს პარტნიორის მთავარი login-ისთვის.
+- FastAPI Backend-ის ნაცვლად ვიყენებთ TanStack `createServerFn` + Supabase (იგივე შედეგი, ერთ სტეკში). თუ FastAPI აუცილებელია, ცალკე repo-დ სჭირდება deploy — არ არის ამ პროექტში.
 
-გავაგრძელო ეტაპი A?
+## Deliverables
+
+1. Migration: `saved_products`, `payouts`, storage bucket, realtime publications, offers.photo_url
+2. Partner layout ქვედა tab bar + top header
+3. 9 route (home, new, quick, ai, offers, orders, stats, balance, profile)
+4. AI parse server function
+5. Realtime notification system
+6. Design tokens update
+
+## Out of scope
+
+- FastAPI ცალკე backend (Supabase-ით ვცვლით)
+- ხმოვანი recording UI-ის სრული polish (basic ჩავრთავთ)
+- Real payout integration (mock/UI only)
+
+დავიწყო შესრულება?
