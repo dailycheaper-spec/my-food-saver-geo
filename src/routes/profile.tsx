@@ -14,7 +14,7 @@ function Profile() {
   const favs = useFavorites();
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin, isPartner } = useMyRole();
+  const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
   const co2 = (saved * 1.2).toFixed(1);
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
@@ -79,21 +79,26 @@ function Profile() {
           <span className="flex-1">ანალიტიკა და სტატისტიკა</span>
           <span className="text-muted-foreground">›</span>
         </Link>
-        {user && isPartner && (
+        {user && rolesLoading && (
+          <div className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium text-muted-foreground">
+            <span className="flex-1">უფლებები იტვირთება...</span>
+          </div>
+        )}
+        {user && !rolesLoading && (isPartner || isAdmin) && (
           <Link to="/partner" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-primary"><Store className="w-4 h-4" /></span>
             <span className="flex-1">პარტნიორის პანელი</span>
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
-        {user && !isPartner && !isAdmin && (
+        {user && !rolesLoading && !isPartner && !isAdmin && (
           <Link to="/partner-apply" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-primary"><Store className="w-4 h-4" /></span>
             <span className="flex-1">გახდი პარტნიორი</span>
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
-        {user && isAdmin && (
+        {user && !rolesLoading && isAdmin && (
           <Link to="/admin" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-destructive"><Shield className="w-4 h-4" /></span>
             <span className="flex-1">ადმინის პანელი</span>
