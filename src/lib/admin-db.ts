@@ -48,27 +48,25 @@ export function useAllPayouts() {
   const [payouts, setPayouts] = useState<(DbPayout & { store_name?: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
+  async function load() {
+    const { data } = await supabase
+      .from("payouts")
+      .select("*, store:stores(name)")
+      .order("created_at", { ascending: false });
+    if (data) setPayouts(data.map((p: any) => ({ ...p, store_name: p.store?.name })));
+    setLoading(false);
+  }
+
   useEffect(() => {
-    let alive = true;
-    async function load() {
-      const { data } = await supabase
-        .from("payouts")
-        .select("*, store:stores(name)")
-        .order("created_at", { ascending: false });
-      if (alive && data) {
-        setPayouts(data.map((p: any) => ({ ...p, store_name: p.store?.name })));
-      }
-      if (alive) setLoading(false);
-    }
     load();
     const channel = supabase
       .channel("admin-payouts")
       .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, () => load())
       .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
-  return { payouts, loading };
+  return { payouts, loading, reload: load };
 }
 
 export async function markPayoutPaid(id: string) {
