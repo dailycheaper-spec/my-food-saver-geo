@@ -4,7 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
-    const { data } = await supabase.from("user_roles").select("role").eq("role", "admin").maybeSingle();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) throw redirect({ to: "/auth" });
+
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
     if (!data) throw redirect({ to: "/" });
   },
   component: AdminLayout,

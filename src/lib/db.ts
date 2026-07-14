@@ -124,7 +124,10 @@ export function useMyRole() {
     async function load() {
       const { data: sess } = await supabase.auth.getSession();
       if (!sess.session) { if (alive) { setRoles([]); setRole(null); setLoading(false); } return; }
-      const { data } = await supabase.from("user_roles").select("role");
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", sess.session.user.id);
       const list = (data ?? []).map((r) => r.role as AppRole);
       if (!alive) return;
       setRoles(list);
