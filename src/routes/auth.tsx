@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, Lock, Phone, User as UserIcon, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 
 export const Route = createFileRoute("/auth")({
@@ -34,6 +35,8 @@ function AuthPage() {
     });
   }, [navigate, redirect]);
 
+  const redirectTarget = getSafeRedirect(redirect);
+
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -64,10 +67,11 @@ function AuthPage() {
   async function handleOAuth(provider: "google" | "apple") {
     setLoading(true);
     setMsg(null);
-    if (redirect) sessionStorage.setItem("auth_redirect", redirect);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: window.location.origin },
+    sessionStorage.setItem("auth_redirect", redirectTarget);
+    const callbackUrl = new URL("/auth", window.location.origin);
+    callbackUrl.searchParams.set("redirect", redirectTarget);
+    const { error } = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: callbackUrl.toString(),
     });
     if (error) {
       setLoading(false);
