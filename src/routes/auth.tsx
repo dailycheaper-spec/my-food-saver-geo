@@ -4,6 +4,7 @@ import { Mail, Lock, Phone, User as UserIcon, ArrowLeft, Loader2 } from "lucide-
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
+import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — გემო" }, { name: "robots", content: "noindex" }] }),
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/auth")({
 type Mode = "signin" | "signup" | "phone";
 
 function AuthPage() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
   const [mode, setMode] = useState<Mode>("signin");
@@ -126,25 +128,28 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 px-4 py-8">
       <div className="mx-auto max-w-md">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground mb-6">
-          <ArrowLeft className="w-4 h-4" /> უკან
-        </Link>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+            <ArrowLeft className="w-4 h-4" /> {t("back")}
+          </Link>
+          <LanguageSwitcher />
+        </div>
 
         <div className="flex justify-center mb-6"><Logo /></div>
 
         <div className="bg-card rounded-3xl border border-border shadow-elevated p-6">
           <h1 className="font-display text-2xl font-bold text-center">
-            {mode === "signup" ? "რეგისტრაცია" : mode === "phone" ? "შესვლა ტელეფონით" : "შესვლა"}
+            {mode === "signup" ? t("signup") : mode === "phone" ? t("signInPhone") : t("signIn")}
           </h1>
           <p className="text-sm text-muted-foreground text-center mt-1">
-            {mode === "signup" ? "შექმენი ანგარიში და დაიწყე დაზოგვა" : "მოგესალმებით უკან!"}
+            {mode === "signup" ? t("signupText") : t("welcomeBack")}
           </p>
 
           {/* Mode tabs */}
           <div className="mt-5 grid grid-cols-3 gap-1 bg-muted/40 p-1 rounded-xl text-xs font-semibold">
-            <TabBtn active={mode === "signin"} onClick={() => { setMode("signin"); setMsg(null); }}>შესვლა</TabBtn>
-            <TabBtn active={mode === "signup"} onClick={() => { setMode("signup"); setMsg(null); }}>რეგისტრაცია</TabBtn>
-            <TabBtn active={mode === "phone"} onClick={() => { setMode("phone"); setMsg(null); }}>ტელეფონი</TabBtn>
+            <TabBtn active={mode === "signin"} onClick={() => { setMode("signin"); setMsg(null); }}>{t("signIn")}</TabBtn>
+            <TabBtn active={mode === "signup"} onClick={() => { setMode("signup"); setMsg(null); }}>{t("signup")}</TabBtn>
+            <TabBtn active={mode === "phone"} onClick={() => { setMode("phone"); setMsg(null); }}>{t("phoneTab")}</TabBtn>
           </div>
 
           {msg && (
@@ -158,19 +163,19 @@ function AuthPage() {
             <form onSubmit={mode === "signup" ? handleEmailSignUp : handleEmailSignIn} className="mt-5 space-y-3">
               {mode === "signup" && (
                 <div className="grid grid-cols-2 gap-2">
-                  <Field icon={<UserIcon className="w-4 h-4" />} placeholder="სახელი" value={firstName} onChange={setFirstName} required />
-                  <Field icon={<UserIcon className="w-4 h-4" />} placeholder="გვარი" value={lastName} onChange={setLastName} required />
+                  <Field icon={<UserIcon className="w-4 h-4" />} placeholder={t("firstName")} value={firstName} onChange={setFirstName} required />
+                  <Field icon={<UserIcon className="w-4 h-4" />} placeholder={t("lastName")} value={lastName} onChange={setLastName} required />
                 </div>
               )}
-              <Field icon={<Mail className="w-4 h-4" />} type="email" placeholder="ელფოსტა" value={email} onChange={setEmail} required />
-              <Field icon={<Lock className="w-4 h-4" />} type="password" placeholder="პაროლი (მინ. 6 სიმბოლო)" value={password} onChange={setPassword} required minLength={6} />
+              <Field icon={<Mail className="w-4 h-4" />} type="email" placeholder={t("email")} value={email} onChange={setEmail} required />
+              <Field icon={<Lock className="w-4 h-4" />} type="password" placeholder={t("password")} value={password} onChange={setPassword} required minLength={6} />
               <button
                 type="submit"
                 disabled={loading}
                 className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-soft disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {mode === "signup" ? "რეგისტრაცია" : "შესვლა"}
+                {mode === "signup" ? t("signup") : t("signIn")}
               </button>
             </form>
           )}
@@ -201,7 +206,7 @@ function AuthPage() {
           {/* Divider */}
           <div className="my-5 flex items-center gap-3">
             <div className="flex-1 h-px bg-border" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">ან</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("or")}</span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
@@ -212,19 +217,19 @@ function AuthPage() {
               disabled={loading}
               className="w-full py-3 rounded-xl bg-card border-2 border-border font-semibold text-sm flex items-center justify-center gap-2 hover:bg-muted/30 disabled:opacity-60"
             >
-              <GoogleIcon /> გაგრძელება Google-ით
+              <GoogleIcon /> {t("continueGoogle")}
             </button>
             <button
               onClick={() => handleOAuth("apple")}
               disabled={loading}
               className="w-full py-3 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              <AppleIcon /> გაგრძელება Apple-ით
+              <AppleIcon /> {t("continueApple")}
             </button>
           </div>
 
           <p className="mt-5 text-[10px] text-center text-muted-foreground">
-            გაგრძელებით ეთანხმები გემოს წესებსა და კონფიდენციალურობის პოლიტიკას.
+            {t("terms")}
           </p>
         </div>
       </div>

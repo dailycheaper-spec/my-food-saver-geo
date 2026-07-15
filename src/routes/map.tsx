@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, type Offer } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -49,6 +50,7 @@ function osmLink([lat, lng]: [number, number]) {
 }
 
 function MapPage() {
+  const { t } = useI18n();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -70,9 +72,9 @@ function MapPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="pointer-events-auto bg-card shadow-elevated rounded-full px-4 py-2 text-sm font-semibold flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-primary" /> რუკის ხედი · {OFFERS.length} შემოთავაზება
+          <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {OFFERS.length} {t("offers")}
         </div>
-        <button onClick={locate} className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center" aria-label="ჩემი მდებარეობა">
+        <button onClick={locate} className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center" aria-label={t("myLocation")}>
           <Navigation className="w-5 h-5" />
         </button>
       </div>
@@ -96,7 +98,7 @@ function MapPage() {
               rel="noreferrer"
               className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary p-2 text-primary-foreground shadow-elevated ring-4 ring-primary/25"
               style={toPercent(userPos)}
-              aria-label="ჩემი მდებარეობა რუკაზე"
+              aria-label={t("myLocation")}
             >
               <Navigation className="h-4 w-4" />
             </a>
@@ -130,14 +132,14 @@ function MapPage() {
           <div className="flex-1 min-w-0">
             <div className="text-xs text-muted-foreground truncate">{selected.storeName} · {selected.district}</div>
             <div className="font-semibold text-sm truncate">{selected.title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">📍 {selected.distanceKm} კმ · აღება {selected.pickupFrom}–{selected.pickupTo}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">📍 {selected.distanceKm} კმ · {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}</div>
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs text-muted-foreground line-through">{formatPrice(selected.originalPrice)}</span>
               <span className="text-base font-bold text-primary">{formatPrice(selected.price)}</span>
             </div>
           </div>
           <Link to="/offer/$id" params={{ id: selected.id }} className="self-center bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold">
-            შეძენა
+            {t("buy")}
           </Link>
           <a
             href={osmLink(offerCoords(selected))}

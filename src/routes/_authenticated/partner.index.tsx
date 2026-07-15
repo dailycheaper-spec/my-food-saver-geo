@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, Store as StoreIcon } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/")({
   head: () => ({ meta: [{ title: "პარტნიორის დაფა — SaveBite" }] }),
@@ -9,6 +10,7 @@ export const Route = createFileRoute("/_authenticated/partner/")({
 });
 
 function PartnerHome() {
+  const { t } = useI18n();
   const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
@@ -31,9 +33,9 @@ function PartnerHome() {
     return (
       <div className="bg-card rounded-3xl border border-border p-8 text-center max-w-md mx-auto mt-8">
         <div className="text-5xl mb-3">🏪</div>
-        <h2 className="font-display text-xl font-bold">მაღაზია ჯერ არ გაქვს</h2>
-        <p className="text-sm text-muted-foreground mt-2">შეავსე პარტნიორის განაცხადი, დაელოდე დამტკიცებას.</p>
-        <Link to="/partner-apply" className="inline-block mt-5 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold">განაცხადის შევსება</Link>
+          <h2 className="font-display text-xl font-bold">{t("noStore")}</h2>
+          <p className="text-sm text-muted-foreground mt-2">{t("noStoreText")}</p>
+        <Link to="/partner-apply" className="inline-block mt-5 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold">{t("apply")}</Link>
       </div>
     );
   }
@@ -43,13 +45,13 @@ function PartnerHome() {
       {/* Greeting */}
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider">გამარჯობა</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("hello")}</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate flex items-center gap-2">
             <span>{store.logo ?? "🏪"}</span> {store.name}
           </h1>
         </div>
         <div className="shrink-0 text-right hidden sm:block">
-          <div className="text-xs text-muted-foreground">დღეს</div>
+          <div className="text-xs text-muted-foreground">{t("today")}</div>
           <div className="font-bold text-primary text-lg">{formatGel(stats.revenue)}</div>
         </div>
       </div>
@@ -59,50 +61,50 @@ function PartnerHome() {
         <BigTile
           to="/partner/new"
           icon={<PlusCircle className="w-9 h-9" />}
-          title="ახალი შეთავაზება"
-          subtitle="სრული ფორმა"
+          title={t("newOffer")}
+          subtitle={t("fullForm")}
           gradient="from-primary via-primary to-primary/70"
         />
         <BigTile
           to="/partner/offers"
           icon={<PackageOpen className="w-9 h-9" />}
-          title="აქტიური"
-          subtitle={`${stats.active} შეთავაზება`}
+          title={t("active")}
+          subtitle={`${stats.active} ${t("offers")}`}
           gradient="from-blue-500 via-blue-500 to-blue-400"
         />
         <BigTile
           to="/partner/orders"
           icon={<ShoppingBag className="w-9 h-9" />}
-          title="შეკვეთები"
-          subtitle={`${stats.pending} დასამუშავებელი`}
+          title={t("navOrders")}
+          subtitle={`${stats.pending}`}
           gradient="from-orange-500 via-orange-500 to-amber-400"
           badge={stats.pending}
         />
         <BigTile
           to="/partner/stats"
           icon={<BarChart3 className="w-9 h-9" />}
-          title="სტატისტიკა"
-          subtitle="დღიური"
+          title={t("stats")}
+          subtitle={t("daily")}
           gradient="from-purple-500 via-purple-500 to-fuchsia-400"
         />
       </div>
 
       {/* Quick shortcuts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Shortcut to="/partner/quick" icon={<Zap className="w-4 h-4" />} label="Quick Offer" />
-        <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label="AI Mode" />
-        <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label="ბალანსი" />
-        <Shortcut to="/partner/profile" icon={<StoreIcon className="w-4 h-4" />} label="პროფილი" />
+        <Shortcut to="/partner/quick" icon={<Zap className="w-4 h-4" />} label={t("quickOffer")} />
+        <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label={t("aiMode")} />
+        <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />
+        <Shortcut to="/partner/profile" icon={<StoreIcon className="w-4 h-4" />} label={t("profile")} />
       </div>
 
       {/* Recent orders */}
       <div className="bg-card/70 backdrop-blur rounded-2xl border border-border/60 p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">ბოლო შეკვეთები</h3>
-          <Link to="/partner/orders" className="text-xs text-primary font-medium">ყველა →</Link>
+          <h3 className="font-semibold">{t("recentOrders")}</h3>
+          <Link to="/partner/orders" className="text-xs text-primary font-medium">{t("all")} →</Link>
         </div>
         {orders.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">ჯერ არ გაქვს შეკვეთა.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t("noPartnerOrders")}</p>
         ) : (
           <div className="space-y-1">
             {orders.slice(0, 4).map((o) => (

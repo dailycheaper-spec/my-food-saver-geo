@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { supabase } from "@/integrations/supabase/client";
+import { I18nProvider } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -62,15 +63,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "გემო" },
-      { title: "გემო — გადაარჩინე საკვები ფასდაკლებით ახლომდებარე მაღაზიებში" },
+      { title: "გემო — დავზოგოთ საკვები ფასდაკლებით" },
       { name: "description", content: "აღმოაჩინე დღის დარჩენილი გემრიელი პაკეტები ვაკეში, საბურთალოზე, ვერაზე და მთელ თბილისში. მიტანა ან ადგილზე აღება." },
       { name: "author", content: "გემო" },
-      { property: "og:title", content: "გემო — გადაარჩინე საკვები ფასდაკლებით ახლომდებარე მაღაზიებში" },
+      { property: "og:title", content: "გემო — დავზოგოთ საკვები ფასდაკლებით" },
       { property: "og:description", content: "აღმოაჩინე დღის დარჩენილი გემრიელი პაკეტები ვაკეში, საბურთალოზე, ვერაზე და მთელ თბილისში. მიტანა ან ადგილზე აღება." },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "ka_GE" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "გემო — გადაარჩინე საკვები ფასდაკლებით ახლომდებარე მაღაზიებში" },
+      { name: "twitter:title", content: "გემო — დავზოგოთ საკვები ფასდაკლებით" },
       { name: "twitter:description", content: "აღმოაჩინე დღის დარჩენილი გემრიელი პაკეტები ვაკეში, საბურთალოზე, ვერაზე და მთელ თბილისში. მიტანა ან ადგილზე აღება." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
@@ -123,11 +124,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen pb-20">
-        <Outlet />
-      </div>
-      <BottomNav />
-      <AppTracker />
+      <I18nProvider>
+        <div className="min-h-screen pb-20">
+          <Outlet />
+        </div>
+        <BottomNav />
+        <AppTracker />
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

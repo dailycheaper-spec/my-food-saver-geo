@@ -3,12 +3,14 @@ import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell } from "lucide-
 import { useEffect, useState } from "react";
 import { useMyRole, useMyStores, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner")({
   component: PartnerLayout,
 });
 
 function PartnerLayout() {
+  const { t } = useI18n();
   const { stores, loading, error: storesError } = useMyStores();
   const store = stores[0] ?? null;
   const { role, loading: roleLoading, error: roleError, isAdmin, isPartner } = useMyRole();
@@ -28,7 +30,7 @@ function PartnerLayout() {
   useEffect(() => {
     if (newCount > 0 && "Notification" in window) {
       if (Notification.permission === "granted") {
-        new Notification("ახალი შეკვეთა 🛒", { body: "შემოვიდა ახალი შეკვეთა SaveBite-ზე" });
+        new Notification(t("newOrder"), { body: t("newOrderBody") });
       }
       try {
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -42,10 +44,10 @@ function PartnerLayout() {
   }, [newCount]);
 
   const nav = [
-    { to: "/partner", label: "მთავარი", icon: Home, exact: true },
-    { to: "/partner/offers", label: "შეთავაზებები", icon: PackageOpen },
-    { to: "/partner/orders", label: "შეკვეთები", icon: ShoppingBag, badge: newCount },
-    { to: "/partner/stats", label: "სტატისტიკა", icon: BarChart3 },
+    { to: "/partner", label: t("navHome"), icon: Home, exact: true },
+    { to: "/partner/offers", label: t("offers"), icon: PackageOpen },
+    { to: "/partner/orders", label: t("navOrders"), icon: ShoppingBag, badge: newCount },
+    { to: "/partner/stats", label: t("stats"), icon: BarChart3 },
   ];
 
   if (roleLoading || loading) {
@@ -53,8 +55,8 @@ function PartnerLayout() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="text-center">
           <div className="text-4xl mb-3">🥗</div>
-          <div className="font-display text-xl font-bold">პარტნიორის პანელი იტვირთება…</div>
-          <p className="text-sm text-muted-foreground mt-1">ვამოწმებთ თქვენს ანგარიშს.</p>
+          <div className="font-display text-xl font-bold">{t("loadingPartner")}</div>
+          <p className="text-sm text-muted-foreground mt-1">{t("checkingAccount")}</p>
         </div>
       </div>
     );
@@ -65,10 +67,10 @@ function PartnerLayout() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="max-w-md text-center">
           <div className="text-4xl mb-3">⚠️</div>
-          <div className="font-display text-xl font-bold">პარტნიორის პანელი ვერ ჩაიტვირთა</div>
+          <div className="font-display text-xl font-bold">{t("partnerError")}</div>
           <p className="text-sm text-muted-foreground mt-1">{roleError || storesError}</p>
           <button onClick={() => window.location.reload()} className="mt-4 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold">
-            თავიდან ცდა
+            {t("tryAgain")}
           </button>
         </div>
       </div>
@@ -80,7 +82,7 @@ function PartnerLayout() {
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="text-center">
           <div className="text-4xl mb-3">🏪</div>
-          <div className="font-display text-xl font-bold">გადაგიყვანთ განაცხადზე…</div>
+          <div className="font-display text-xl font-bold">{t("redirectingApply")}</div>
         </div>
       </div>
     );
@@ -93,9 +95,9 @@ function PartnerLayout() {
         <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
           <Link to="/partner" className="flex items-center gap-2">
             <span className="text-xl">🥗</span>
-            <span className="font-display font-bold text-lg">SaveBite</span>
+            <span className="font-display font-bold text-lg">{t("brand")}</span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
-              {role === "admin" ? "ადმინი" : "პარტნიორი"}
+              {role === "admin" ? t("admin") : t("partner")}
             </span>
           </Link>
           <div className="flex items-center gap-1">
@@ -109,8 +111,9 @@ function PartnerLayout() {
                 <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">{newCount}</span>
               )}
             </button>
+            <LanguageSwitcher compact />
             <Link to="/partner/profile" className="p-2 rounded-full hover:bg-muted/50 text-xs font-medium hidden sm:block">
-              {!loading && store ? `${store.logo ?? "🏪"} ${store.name}` : "პროფილი"}
+              {!loading && store ? `${store.logo ?? "🏪"} ${store.name}` : t("profile")}
             </Link>
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/" }); }}
@@ -170,11 +173,11 @@ function PartnerLayout() {
       {notifOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setNotifOpen(false)}>
           <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 shadow-elevated" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold mb-3">შეტყობინებები</h3>
+            <h3 className="font-display text-lg font-bold mb-3">{t("notificationsTitle")}</h3>
             <p className="text-sm text-muted-foreground">
-              რეალურ დროში მიიღებ ცნობებს ახალ შეკვეთებზე, გადახდებზე და შეთავაზების ვადის გასვლაზე.
+              {t("realtimeNotifsBody")}
             </p>
-            <button onClick={() => setNotifOpen(false)} className="mt-4 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold">დახურვა</button>
+            <button onClick={() => setNotifOpen(false)} className="mt-4 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold">{t("close")}</button>
           </div>
         </div>
       )}
