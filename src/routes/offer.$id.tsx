@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf } from "lucide-react";
-import { findOffer, formatPrice } from "@/lib/mock-data";
+import { findOffer, formatPrice, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase } from "@/lib/storage";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
@@ -34,8 +34,10 @@ export const Route = createFileRoute("/offer/$id")({
 });
 
 function OfferPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { offer } = Route.useLoaderData();
+  const offerText = getOfferText(offer, language);
+  const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
   const favs = useFavorites();
   const isFav = favs.includes(offer.storeId);
@@ -72,7 +74,7 @@ function OfferPage() {
   return (
     <div>
       <div className="relative aspect-[4/3] bg-muted">
-        <img src={offer.image} alt={offer.title} width={1200} height={900} className="w-full h-full object-cover" />
+        <img src={offer.image} alt={offerText.title} width={1200} height={900} className="w-full h-full object-cover" />
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/40 to-transparent" />
         <button
           onClick={() => history.back()}
@@ -97,17 +99,17 @@ function OfferPage() {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center text-2xl">{offer.storeLogo}</div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold">{offer.storeName}</div>
+              <div className="font-semibold">{storeName}</div>
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <span className="flex items-center gap-1"><Star className="w-3 h-3 fill-accent text-accent" /> {offer.rating}</span>
                 <span>•</span>
-                <span>{offer.category}</span>
+                <span>{getCategoryLabel(offer.category, language)}</span>
               </div>
             </div>
           </div>
 
-          <h1 className="mt-4 text-xl font-display font-bold">{offer.title}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">{offer.description}</p>
+          <h1 className="mt-4 text-xl font-display font-bold">{offerText.title}</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">{offerText.description}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
             <div className="bg-muted/50 rounded-xl p-3">
@@ -121,14 +123,14 @@ function OfferPage() {
               <div className="text-xs text-muted-foreground">{t("address")}</div>
               <div className="font-semibold flex items-center gap-1 mt-0.5">
                 <MapPin className="w-4 h-4 text-primary" />
-                {offer.distanceKm} კმ
+                {offer.distanceKm} {t("km")}
               </div>
             </div>
           </div>
 
           <div className="mt-3 text-sm">
             <div className="text-xs text-muted-foreground">{t("address")}</div>
-            <div className="font-medium">{offer.address}, {offer.district}</div>
+            <div className="font-medium">{offer.address}, {getDistrictLabel(offer.district, language)}</div>
           </div>
 
           <div className="mt-4 flex items-center gap-2 text-xs text-success bg-success/10 rounded-lg p-2.5">
@@ -202,7 +204,7 @@ function OfferPage() {
               { id: "TBC", label: "TBC Pay", icon: "🏦" },
               { id: "BOG", label: "BOG e-commerce", icon: "🏛️" },
               { id: "APPLE", label: "Apple / Google Pay", icon: "📱" },
-              { id: "COD", label: "ადგილზე გადახდა", icon: "💵" },
+              { id: "COD", label: t("payAtPickup"), icon: "💵" },
             ].map((p) => (
               <button
                 key={p.id}

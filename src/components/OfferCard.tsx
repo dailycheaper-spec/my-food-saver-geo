@@ -1,15 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { Clock, MapPin, Star, Heart, Truck } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
-import { formatPrice } from "@/lib/mock-data";
+import { formatPrice, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 
 export function OfferCard({ offer }: { offer: Offer }) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const favs = useFavorites();
   const isFav = favs.includes(offer.storeId);
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
+  const offerText = getOfferText(offer, language);
+  const storeName = getStoreName(offer, language);
 
   return (
     <Link
@@ -20,7 +22,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <img
           src={offer.image}
-          alt={offer.title}
+          alt={offerText.title}
           loading="lazy"
           width={800}
           height={600}
@@ -48,13 +50,13 @@ export function OfferCard({ offer }: { offer: Offer }) {
             {offer.storeLogo}
           </div>
           <div className="flex-1 min-w-0 text-card-foreground bg-card/90 rounded-lg px-2 py-1">
-            <div className="text-xs font-semibold truncate">{offer.storeName}</div>
+            <div className="text-xs font-semibold truncate">{storeName}</div>
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-2.5">
-        <h3 className="font-semibold text-[15px] leading-snug line-clamp-2">{offer.title}</h3>
+        <h3 className="font-semibold text-[15px] leading-snug line-clamp-2">{offerText.title}</h3>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
@@ -64,7 +66,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
           </span>
           <span className="flex items-center gap-1">
             <MapPin className="w-3.5 h-3.5" />
-            {offer.distanceKm} კმ
+            {offer.distanceKm} {t("km")}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
-import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, type Offer } from "@/lib/mock-data";
+import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/map")({
@@ -50,7 +50,7 @@ function osmLink([lat, lng]: [number, number]) {
 }
 
 function MapPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -130,9 +130,9 @@ function MapPage() {
         <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated p-3 flex gap-3 border border-border">
           <img src={selected.image} alt="" width={72} height={72} className="w-[72px] h-[72px] rounded-xl object-cover" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-muted-foreground truncate">{selected.storeName} · {selected.district}</div>
-            <div className="font-semibold text-sm truncate">{selected.title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">📍 {selected.distanceKm} კმ · {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}</div>
+            <div className="text-xs text-muted-foreground truncate">{getStoreName(selected, language)} · {getDistrictLabel(selected.district, language)}</div>
+            <div className="font-semibold text-sm truncate">{getOfferText(selected, language).title}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">📍 {selected.distanceKm} {t("km")} · {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}</div>
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs text-muted-foreground line-through">{formatPrice(selected.originalPrice)}</span>
               <span className="text-base font-bold text-primary">{formatPrice(selected.price)}</span>
