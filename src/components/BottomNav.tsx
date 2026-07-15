@@ -11,6 +11,10 @@ const items = [
 
 export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname.startsWith("/auth") || pathname.startsWith("/partner") || pathname.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg supports-[backdrop-filter]:bg-card/80 pb-[env(safe-area-inset-bottom)]">
       <ul className="mx-auto max-w-2xl grid grid-cols-5">
