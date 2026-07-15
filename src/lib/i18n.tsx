@@ -7,7 +7,7 @@ const STORAGE_KEY = "cheaper-language";
 const labels: Record<Language, Record<string, string>> = {
   ka: {
     brand: "Cheaper",
-    currency: "CURRENCY_PLACEHOLDER",
+    currency: "₾",
     tagline: "დავზოგოთ მეტი",
     location: "თბილისი",
     admin: "ადმინი",
@@ -232,7 +232,7 @@ const labels: Record<Language, Record<string, string>> = {
   },
   en: {
     brand: "Cheaper",
-    currency: "CURRENCY_PLACEHOLDER",
+    currency: "GEL",
     tagline: "Spend less",
     location: "Tbilisi",
     admin: "Admin",
@@ -457,7 +457,7 @@ const labels: Record<Language, Record<string, string>> = {
   },
   ru: {
     brand: "Cheaper",
-    currency: "CURRENCY_PLACEHOLDER",
+    currency: "лари",
     tagline: "Экономим больше",
     location: "Тбилиси",
     admin: "Админ",
