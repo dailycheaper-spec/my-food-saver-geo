@@ -119,7 +119,7 @@ function MapPage() {
                 }`}
                 style={toPercent(coords)}
               >
-                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)}₾ <span className="opacity-70">-{discount}%</span>
+                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)} {t("currency")} <span className="opacity-70">-{discount}%</span>
               </button>
             );
           })}
