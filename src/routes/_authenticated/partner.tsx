@@ -62,7 +62,9 @@ function PartnerLayout() {
     );
   }
 
-  if (roleError || storesError) {
+  const blockingAccessError = (roleError || storesError) && !hasPartnerAccess;
+
+  if (blockingAccessError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="max-w-md text-center">
