@@ -12,8 +12,8 @@ import heroImage from "@/assets/hero-bakery-clean.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cheaper — დავზოგოთ საკვები ფასდაკლებით" },
-      { name: "description", content: "აღმოაჩინე დღის დარჩენილი გემრიელი პაკეტები ვაკეში, საბურთალოზე, ვერაზე და მთელ თბილისში. მიტანა ან ადგილზე აღება." },
+      { title: "Cheaper — იაფად, 50%+ ფასდაკლებით" },
+      { name: "description", content: "იყიდე ხაჭაპური, სუში, ხილი, ცომეული და მარკეტის კალათები 50%-ზე მეტი ფასდაკლებით — ვაკე, საბურთალო, ვერა და მთელი თბილისი." },
     ],
   }),
   component: Home,
