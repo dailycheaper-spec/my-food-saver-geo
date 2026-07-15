@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/quick")({
-  head: () => ({ meta: [{ title: "Quick Offer — გემო" }] }),
+  head: () => ({ meta: [{ title: "Quick Offer — Cheaper" }] }),
   component: QuickOfferPage,
 });
 

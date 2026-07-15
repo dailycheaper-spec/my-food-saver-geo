@@ -73,7 +73,7 @@ function AdminLayout() {
           <Link to="/" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-2xl bg-primary text-primary-foreground grid place-items-center font-display font-bold">გ</div>
             <div>
-              <div className="font-display font-bold text-lg leading-none">გემო</div>
+              <div className="font-display font-bold text-lg leading-none">Cheaper</div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1"><Shield className="w-3 h-3" /> ადმინი</div>
             </div>
           </Link>
@@ -110,7 +110,7 @@ function AdminLayout() {
           <button onClick={() => setMobileOpen(true)} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-display font-bold">გემო · ადმინი</div>
+          <div className="font-display font-bold">Cheaper · ადმინი</div>
           <button onClick={toggleTheme} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>

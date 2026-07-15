@@ -5,7 +5,7 @@ import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/")({
-  head: () => ({ meta: [{ title: "პარტნიორის დაფა — გემო" }] }),
+  head: () => ({ meta: [{ title: "პარტნიორის დაფა — Cheaper" }] }),
   component: PartnerHome,
 });
 

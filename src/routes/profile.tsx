@@ -6,7 +6,7 @@ import { useMyRole } from "@/lib/db";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "პროფილი — გემო" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
+  head: () => ({ meta: [{ title: "პროფილი — Cheaper" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
   component: Profile,
 });
 
@@ -65,7 +65,7 @@ function Profile() {
       <div className="mt-4 grid grid-cols-3 gap-2">
         <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("packages")} value={String(saved)} />
         <Stat icon={<Leaf className="w-4 h-4" />} label="კგ CO₂" value={co2} />
-        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)}₾`} />
+        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)} ${t("currency")}`} />
       </div>
 
       <div className="mt-4 rounded-2xl bg-warm text-warm-foreground p-5">

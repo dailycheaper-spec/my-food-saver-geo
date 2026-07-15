@@ -5,7 +5,7 @@ import { toggleFavorite, useFavorites } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 
 export const Route = createFileRoute("/favorites")({
-  head: () => ({ meta: [{ title: "ფავორიტები — გემო" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),
+  head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),
   component: Favorites,
 });
 

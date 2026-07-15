@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/map")({
   head: () => ({
     meta: [
-      { title: "რუკა — ახლომდებარე შემოთავაზებები | გემო" },
+      { title: "რუკა — ახლომდებარე შემოთავაზებები | Cheaper" },
       { name: "description", content: "იხილე შემოთავაზებები რუკაზე, გაიგე ზუსტი მდებარეობა და მანძილი." },
     ],
   }),
@@ -119,7 +119,7 @@ function MapPage() {
                 }`}
                 style={toPercent(coords)}
               >
-                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)}₾ <span className="opacity-70">-{discount}%</span>
+                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)} {t("currency")} <span className="opacity-70">-{discount}%</span>
               </button>
             );
           })}

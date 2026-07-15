@@ -5,7 +5,7 @@ import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner/store")({
-  head: () => ({ meta: [{ title: "მაღაზია — გემო" }] }),
+  head: () => ({ meta: [{ title: "მაღაზია — Cheaper" }] }),
   component: StoreSettings,
 });
 

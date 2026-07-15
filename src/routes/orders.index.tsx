@@ -5,7 +5,7 @@ import { formatPrice } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/orders/")({
-  head: () => ({ meta: [{ title: "ჩემი შეკვეთები — გემო" }, { name: "description", content: "შენი დაჯავშნილი და მიღებული პაკეტები." }] }),
+  head: () => ({ meta: [{ title: "ჩემი შეკვეთები — Cheaper" }, { name: "description", content: "შენი დაჯავშნილი და მიღებული პაკეტები." }] }),
   component: Orders,
 });
 

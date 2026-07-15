@@ -233,7 +233,9 @@ const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description
 };
 
 export function formatPrice(n: number) {
-  return `${n.toFixed(2)} ₾`;
+  const lang = typeof window !== "undefined" ? (window.localStorage.getItem("cheaper-language") || "ka") : "ka";
+  const sym = lang === "en" ? "GEL" : lang === "ru" ? "лари" : "₾";
+  return `${n.toFixed(2)} ${sym}`;
 }
 
 export function getCategoryLabel(id: Category | "ყველა", language: UiLanguage) {

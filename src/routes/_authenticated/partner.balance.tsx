@@ -6,7 +6,7 @@ import { PLATFORM_COMMISSION, usePayouts } from "@/lib/partner-db";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/balance")({
-  head: () => ({ meta: [{ title: "ბალანსი — გემო" }] }),
+  head: () => ({ meta: [{ title: "ბალანსი — Cheaper" }] }),
   component: BalancePage,
 });
 
