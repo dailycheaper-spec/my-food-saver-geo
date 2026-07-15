@@ -301,7 +301,7 @@ const labels: Record<Language, Record<string, string>> = {
     searchPlaceholder: "Search shop, dish, or district...",
     surprisePack: "Surprise bag",
     giftFeature: "Gift order",
-    ecoChoice: "Eco choice",
+    ecoChoice: "50%+ off",
     allDistricts: "All districts",
     deliveryOnly: "Delivery only",
     nearbyOffers: "Nearby offers",
