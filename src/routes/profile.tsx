@@ -65,7 +65,7 @@ function Profile() {
       <div className="mt-4 grid grid-cols-3 gap-2">
         <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("packages")} value={String(saved)} />
         <Stat icon={<Leaf className="w-4 h-4" />} label="კგ CO₂" value={co2} />
-        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)}₾`} />
+        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)} ${t("currency")}`} />
       </div>
 
       <div className="mt-4 rounded-2xl bg-warm text-warm-foreground p-5">
