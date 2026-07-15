@@ -9,9 +9,9 @@ export const Route = createFileRoute("/_authenticated/partner")({
 });
 
 function PartnerLayout() {
-  const { stores, loading } = useMyStores();
+  const { stores, loading, error: storesError } = useMyStores();
   const store = stores[0] ?? null;
-  const { role, loading: roleLoading, isAdmin, isPartner } = useMyRole();
+  const { role, loading: roleLoading, error: roleError, isAdmin, isPartner } = useMyRole();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
@@ -55,6 +55,21 @@ function PartnerLayout() {
           <div className="text-4xl mb-3">🥗</div>
           <div className="font-display text-xl font-bold">პარტნიორის პანელი იტვირთება…</div>
           <p className="text-sm text-muted-foreground mt-1">ვამოწმებთ თქვენს ანგარიშს.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (roleError || storesError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
+        <div className="max-w-md text-center">
+          <div className="text-4xl mb-3">⚠️</div>
+          <div className="font-display text-xl font-bold">პარტნიორის პანელი ვერ ჩაიტვირთა</div>
+          <p className="text-sm text-muted-foreground mt-1">{roleError || storesError}</p>
+          <button onClick={() => window.location.reload()} className="mt-4 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold">
+            თავიდან ცდა
+          </button>
         </div>
       </div>
     );

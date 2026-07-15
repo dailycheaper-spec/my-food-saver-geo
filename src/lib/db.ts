@@ -10,6 +10,18 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
 
+async function getCurrentUserId(): Promise<string | null> {
+  for (let i = 0; i < 8; i += 1) {
+    const { data } = await supabase.auth.getSession();
+    const id = data.session?.user.id;
+    if (id) return id;
+    await new Promise((resolve) => setTimeout(resolve, 125));
+  }
+
+  const { data } = await supabase.auth.getUser();
+  return data.user?.id ?? null;
+}
+
 // ────── OFFERS ──────
 export function useLiveOffers() {
   const [offers, setOffers] = useState<OfferWithStore[]>([]);
@@ -118,18 +130,30 @@ export function useMyRole() {
   const [role, setRole] = useState<AppRole | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     async function load() {
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) { if (alive) { setRoles([]); setRole(null); setLoading(false); } return; }
-      const { data } = await supabase
+      setLoading(true);
+      const uid = await getCurrentUserId();
+      if (!uid) { if (alive) { setRoles([]); setRole(null); setError(null); setLoading(false); } return; }
+      const { data, error: queryError } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", sess.session.user.id);
+        .eq("user_id", uid);
+      if (queryError) {
+        if (alive) {
+          setError(queryError.message);
+          setRoles([]);
+          setRole(null);
+          setLoading(false);
+        }
+        return;
+      }
       const list = (data ?? []).map((r) => r.role as AppRole);
       if (!alive) return;
+      setError(null);
       setRoles(list);
       setRole(list.includes("admin") ? "admin" : list.includes("partner") ? "partner" : "user");
       setLoading(false);
@@ -139,20 +163,22 @@ export function useMyRole() {
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
 
-  return { role, roles, loading, isAdmin: roles.includes("admin"), isPartner: roles.includes("partner") };
+  return { role, roles, loading, error, isAdmin: roles.includes("admin"), isPartner: roles.includes("partner") };
 }
 
 // ────── STORES ──────
 export async function fetchMyStores(): Promise<DbStore[]> {
-  const { data: sess } = await supabase.auth.getSession();
-  const uid = sess.session?.user.id;
+  const uid = await getCurrentUserId();
   if (!uid) return [];
-  const { data: owned } = await supabase.from("stores").select("*").eq("owner_id", uid);
-  const { data: memberOf } = await supabase.from("store_members").select("store_id").eq("user_id", uid);
+  const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", uid);
+  if (ownedError) throw ownedError;
+  const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", uid);
+  if (memberError) throw memberError;
   const memberIds = (memberOf ?? []).map((m) => m.store_id);
   let extra: DbStore[] = [];
   if (memberIds.length) {
-    const { data } = await supabase.from("stores").select("*").in("id", memberIds);
+    const { data, error } = await supabase.from("stores").select("*").in("id", memberIds);
+    if (error) throw error;
     extra = data ?? [];
   }
   const map = new Map<string, DbStore>();
@@ -163,12 +189,20 @@ export async function fetchMyStores(): Promise<DbStore[]> {
 export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    fetchMyStores().then((s) => { if (alive) { setStores(s); setLoading(false); } });
-    return () => { alive = false; };
+    const load = () => {
+      setLoading(true);
+      fetchMyStores()
+        .then((s) => { if (alive) { setStores(s); setError(null); setLoading(false); } })
+        .catch((e) => { if (alive) { setStores([]); setError(e instanceof Error ? e.message : String(e)); setLoading(false); } });
+    };
+    load();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
-  return { stores, loading, reload: () => fetchMyStores().then(setStores) };
+  return { stores, loading, error, reload: () => fetchMyStores().then(setStores) };
 }
 
 export function useStoreOffers(storeId: string | null) {

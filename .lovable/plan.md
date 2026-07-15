@@ -1,83 +1,32 @@
+## What I found
+- The live `/partner` URL is opening the login screen, not a 404 or blank page.
+- The database shows `geoinstrumenti@gmail.com` already has `admin`, `partner`, and `user` roles.
+- The active store exists: `ორი ნაბიჯი`, status `active`, with owner membership.
+- The main backend problem is still visible: public table grants are missing in the grants query, and the store-owner/user-role triggers are missing. This can make role/store checks unreliable and breaks future partner onboarding.
 
-# SaveBite Partner Dashboard
+## Plan
+1. Fix backend access rules
+   - Add/restore table grants for authenticated users and service role on the core tables: roles, stores, store members, offers, orders, profiles.
+   - Keep anonymous access limited only where public browsing needs it.
+   - Restore triggers that automatically create profiles/default roles and automatically make a new store owner a partner/store member.
 
-მოდერნიზაცია პარტნიორის პანელისა Apple-inspired დიზაინით, ძალიან მარტივი ინტერფეისით ნებისმიერი თანამშრომლისთვის. ყველა ცვლილება realtime-ში, refresh-ის გარეშე.
+2. Make `/partner` harder to get stuck on login
+   - Keep the protected route, but make the auth redirect flow safer.
+   - Preserve the intended destination `/partner` through Google/Apple/email login.
+   - After login, wait until the session is confirmed before redirecting.
 
-## Architecture
+3. Improve partner loading checks
+   - Update role/store hooks so they wait for auth readiness before returning “no access”.
+   - Surface actual query errors instead of silently showing empty state.
+   - Prevent false redirects to `/partner-apply` while role/store data is still loading.
 
-- **Route root:** `/partner` (უკვე არსებული `_authenticated/partner.tsx` გადავანაწილოთ layout-ად `<Outlet />` + child routes)
-- **Layout:** ქვედა tab bar მობილურზე, გვერდითი nav დესქტოპზე
-- **Backend:** Supabase (auth/db/realtime), FastAPI Backend-ის ნაცვლად ვინარჩუნებთ Supabase-ს (Lovable Cloud-ის ბუნებრივი stack). FastAPI-ს ცალკე გაშვება არ არის საჭირო — ყველა ლოგიკა server functions + Supabase-ით.
+4. Verify fully before reporting back
+   - Test published `/partner` response.
+   - Test preview login/session flow where available.
+   - Confirm backend roles, store status, table grants, policies, and triggers.
+   - Confirm the partner dashboard route can render the partner shell and product-add actions after an authenticated session.
 
-## Routes
-
-```
-/partner              → Home (4 დიდი ღილაკი)
-/partner/new          → New Offer (სრული ფორმა)
-/partner/quick        → Quick Offer (saved products)
-/partner/ai           → AI Mode (ტექსტი/ხმა → auto-fill)
-/partner/offers       → Active Offers
-/partner/orders       → Orders (realtime)
-/partner/stats        → Statistics
-/partner/balance      → Balance/Earnings
-/partner/profile      → Business Profile
-```
-
-## Database additions
-
-- `saved_products` (partner-ის შენახული პროდუქტები Quick Offer-ისთვის): store_id, name, category, default_price, photo_url, active
-- `payouts` (გადახდები): store_id, amount, status, paid_at
-- `offers` ცხრილს დავამატებთ `photo_url` თუ არ არსებობს
-- Realtime enable: `orders`, `offers`, `saved_products`
-
-## Features per screen
-
-**Home:** 4 gradient card ღილაკი (glass morphism, დიდი icons, haptic-ready)
-
-**New Offer:** სრული ფორმა photo upload-ით (Supabase Storage bucket `offer-photos`)
-
-**Quick Offer:** grid saved products-ის; tap → quantity + discount % + Publish (3 tap-ში)
-
-**AI Mode:** Lovable AI Gateway (`google/gemini-2.5-flash`) სტრუქტურირებული output-ით → JSON offer draft; Speech-to-text `openai/gpt-4o-mini-transcribe` ხმისთვის
-
-**Active Offers:** realtime cards, inline +/- quantity, edit modal, finish button
-
-**Orders:** მხოლოდ `paid` სტატუსი, realtime insert alerts (ხმა + toast), QR display, Mark Picked Up → `fulfilled`
-
-**Balance:** aggregate SQL views today/week/pending/last payout, 10% platform commission
-
-**Statistics:** today orders/revenue, top product, kg saved (assume 0.4kg per offer)
-
-**Profile:** stores CRUD + working_hours JSON + delivery toggle
-
-**Notifications:** ერთი realtime channel `__root`-ში, Web Notification API + in-app toast + badge
-
-## Design system
-
-- Apple-inspired: SF-like typography (Noto Sans Georgian + Inter fallback), დიდი radius (`--radius: 1.25rem`), soft shadows, subtle gradients
-- ერთი primary color: warm green `oklch(0.65 0.18 145)` (food-saving)
-- Semantic tokens `src/styles.css`-ში, dark mode support
-- ყველა ღილაკი მინიმუმ 56px სიმაღლის (touch-friendly)
-- Max 3 taps rule: Home → Quick → Publish
-
-## Technical details
-
-- Login უკვე არსებობს `/auth`-ზე (Email+Password, Google, Phone OTP). დავამატებთ direct Phone OTP tab-ს პარტნიორის მთავარი login-ისთვის.
-- FastAPI Backend-ის ნაცვლად ვიყენებთ TanStack `createServerFn` + Supabase (იგივე შედეგი, ერთ სტეკში). თუ FastAPI აუცილებელია, ცალკე repo-დ სჭირდება deploy — არ არის ამ პროექტში.
-
-## Deliverables
-
-1. Migration: `saved_products`, `payouts`, storage bucket, realtime publications, offers.photo_url
-2. Partner layout ქვედა tab bar + top header
-3. 9 route (home, new, quick, ai, offers, orders, stats, balance, profile)
-4. AI parse server function
-5. Realtime notification system
-6. Design tokens update
-
-## Out of scope
-
-- FastAPI ცალკე backend (Supabase-ით ვცვლით)
-- ხმოვანი recording UI-ის სრული polish (basic ჩავრთავთ)
-- Real payout integration (mock/UI only)
-
-დავიწყო შესრულება?
+## Technical notes
+- I will use Lovable Cloud migrations for database grants/triggers.
+- I will not change the visible dashboard design unless required for the access fix.
+- The expected final result is: after signing in with `geoinstrumenti@gmail.com`, `/partner` opens the partner dashboard, and the store can add discounted products from the partner panel.

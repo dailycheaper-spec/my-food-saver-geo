@@ -55,9 +55,11 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
+    sessionStorage.setItem("auth_redirect", redirectTarget);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    await waitForUser();
     navigateToRedirect(navigate, redirect);
   }
 
@@ -250,8 +252,11 @@ function navigateToRedirect(navigate: ReturnType<typeof useNavigate>, redirect?:
 
 async function waitForUser() {
   for (let i = 0; i < 12; i += 1) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) return data.user;
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) return data.user;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return null;
