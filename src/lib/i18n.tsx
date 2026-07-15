@@ -7,7 +7,7 @@ const STORAGE_KEY = "cheaper-language";
 const labels: Record<Language, Record<string, string>> = {
   ka: {
     brand: "Cheaper",
-    currency: "₾",
+    currency: "ლარი",
     tagline: "დავზოგოთ მეტი",
     location: "თბილისი",
     admin: "ადმინი",
@@ -175,7 +175,7 @@ const labels: Record<Language, Record<string, string>> = {
     runAi: "AI-ს გაშვება",
     aiResult: "AI-ს შედეგი",
     name: "სახელი",
-    discountedPrice: "ფასდაკლებული (₾)",
+    discountedPrice: "ფასდაკლებული (ლარი)",
     pickupEnd: "აღების ბოლო",
     originalPrice: "ორიგინალი (₾)",
     creating: "იქმნება…",
