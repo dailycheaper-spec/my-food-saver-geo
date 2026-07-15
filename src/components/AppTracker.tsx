@@ -32,7 +32,7 @@ export function AppTracker() {
       const first = relevant[0];
       try {
         new Notification(`🎉 ${t("newOffer")}`, {
-          body: `${first.storeName}: ${first.title} — ${first.price} ₾`,
+          body: `${first.storeName}: ${first.title} — ${first.price} ${t("currency")}`,
           tag: `cheaper-new-${first.id}`,
           icon: "/favicon.ico",
         });
