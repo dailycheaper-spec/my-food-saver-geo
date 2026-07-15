@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, type Category } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
   const [district, setDistrict] = useState("ყველა უბანი");
   const [q, setQ] = useState("");
@@ -33,10 +33,12 @@ function Home() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (onlyDelivery && !o.delivery) return false;
-      if (q && !`${o.title} ${o.storeName} ${o.description}`.toLowerCase().includes(q.toLowerCase())) return false;
+      const offerText = getOfferText(o, language);
+      const storeName = getStoreName(o, language);
+      if (q && !`${offerText.title} ${storeName} ${offerText.description}`.toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [cat, district, q, onlyDelivery]);
+  }, [cat, district, q, onlyDelivery, language]);
 
   return (
     <div>
@@ -125,7 +127,7 @@ function Home() {
                   : "bg-card text-foreground border border-border hover:border-primary/40"
               }`}
             >
-              <span>{c.icon}</span> {categoryLabel(c.id, t)}
+              <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
             </button>
           ))}
         </div>
@@ -137,7 +139,7 @@ function Home() {
             onChange={(e) => setDistrict(e.target.value)}
             className="text-xs bg-card border border-border rounded-full px-3 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
           >
-            {DISTRICTS.map((d) => <option key={d}>{d}</option>)}
+            {DISTRICTS.map((d) => <option key={d} value={d}>{getDistrictLabel(d, language)}</option>)}
           </select>
           <button
             onClick={() => setOnlyDelivery((v) => !v)}
@@ -183,14 +185,3 @@ function Home() {
   );
 }
 
-function categoryLabel(id: Category | "ყველა", t: (key: string) => string) {
-  const map: Record<Category | "ყველა", string> = {
-    "ყველა": t("all"),
-    "საცხობი": t("surprisePack").includes("Surprise") ? "Bakery" : t("surprisePack").includes("Сюрприз") ? "Пекарня" : "საცხობი",
-    "რესტორანი": t("language") === "Language" ? "Restaurant" : t("language") === "Язык" ? "Ресторан" : "რესტორანი",
-    "სუპერმარკეტი": t("language") === "Language" ? "Market" : t("language") === "Язык" ? "Маркет" : "მარკეტი",
-    "კაფე": t("language") === "Language" ? "Cafe" : t("language") === "Язык" ? "Кафе" : "კაფე",
-    "სუში": t("language") === "Language" ? "Sushi" : t("language") === "Язык" ? "Суши" : "სუში",
-  };
-  return map[id];
-}
