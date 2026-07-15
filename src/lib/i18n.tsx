@@ -107,7 +107,7 @@ const labels: Record<Language, Record<string, string>> = {
     apply: "განაცხადის შევსება",
     noPartnerOrders: "ჯერ არ გაქვს შეკვეთა.",
     becomePartner: "გახდი Cheaperს პარტნიორი",
-    partnerApplyText: "გაყიდე დღის დარჩენილი საკვები, შეამცირე ნარჩენი და მოიზიდე ახალი მომხმარებელი.",
+    partnerApplyText: "შესთავაზე შენი პროდუქტი 50%+ ფასდაკლებით, გაზარდე გაყიდვები და მოიზიდე ახალი მომხმარებელი.",
     storeName: "მაღაზიის სახელი *",
     logoEmoji: "ლოგო (ემოჯი)",
     district: "უბანი *",
