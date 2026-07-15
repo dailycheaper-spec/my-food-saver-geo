@@ -3,13 +3,15 @@ import { useEffect, useRef, useState } from "react";
 import { Camera, CheckCircle2, XCircle, Hash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { updateOrderStatus, useMyStores, formatGel } from "@/lib/db";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/scan")({
-  head: () => ({ meta: [{ title: "QR სკანერი — Cheaper" }] }),
+  head: () => ({ meta: [{ title: "QR Scanner — Cheaper" }] }),
   component: ScanPage,
 });
 
 function ScanPage() {
+  const { t } = useI18n();
   const { stores } = useMyStores();
   const store = stores[0] ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -35,7 +37,7 @@ function ScanPage() {
           try {
             const codes = await detector.detect(videoRef.current);
             if (codes.length > 0) {
-              stream.getTracks().forEach((t) => t.stop());
+              stream.getTracks().forEach((tr) => tr.stop());
               setScanning(false);
               await handleCode(codes[0].rawValue);
               return;
@@ -45,9 +47,9 @@ function ScanPage() {
         };
         tick();
       }
-    } catch (e) {
+    } catch {
       setScanning(false);
-      setResult({ ok: false, msg: "კამერასთან წვდომა ვერ მოხერხდა. გამოიყენე კოდის შეყვანა ხელით." });
+      setResult({ ok: false, msg: t("cameraAccessError") });
     }
   }
 
@@ -65,33 +67,33 @@ function ScanPage() {
     const { data } = isUuid ? await query.eq("id", orderCode).maybeSingle() : await query.eq("code", orderCode).maybeSingle();
 
     if (!data) {
-      setResult({ ok: false, msg: `შეკვეთა ვერ მოიძებნა (${orderCode})` });
+      setResult({ ok: false, msg: `${t("orderNotFoundCode")} (${orderCode})` });
       return;
     }
     if (data.status === "collected") {
-      setResult({ ok: false, msg: `შეკვეთა #${data.code} უკვე გაცემულია.` });
+      setResult({ ok: false, msg: `#${data.code} — ${t("alreadyCollected")}.` });
       return;
     }
     if (data.status === "cancelled" || data.status === "gifted") {
-      setResult({ ok: false, msg: `შეკვეთა #${data.code} — სტატუსი: ${data.status}` });
+      setResult({ ok: false, msg: `#${data.code} — ${t("statusLbl")}: ${data.status}` });
       return;
     }
     await updateOrderStatus(data.id, "collected");
-    setResult({ ok: true, msg: "შეკვეთა წარმატებით გაცემულია!", order: { code: data.code, amount: Number(data.amount), title: (data.offer as { title?: string } | null)?.title ?? "" } });
+    setResult({ ok: true, msg: t("successGiven"), order: { code: data.code, amount: Number(data.amount), title: (data.offer as { title?: string } | null)?.title ?? "" } });
     setCode("");
   }
 
   useEffect(() => () => {
     if (videoRef.current?.srcObject) {
-      (videoRef.current.srcObject as MediaStream).getTracks().forEach((t) => t.stop());
+      (videoRef.current.srcObject as MediaStream).getTracks().forEach((tr) => tr.stop());
     }
   }, []);
 
-  if (!store) return <div className="text-center py-12 text-muted-foreground">ჯერ არ გაქვს დამტკიცებული მაღაზია.</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="font-display text-2xl font-bold mb-4">QR სკანერი</h1>
+      <h1 className="font-display text-2xl font-bold mb-4">{t("qrScannerTitle")}</h1>
 
       <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="aspect-square bg-black grid place-items-center relative">
@@ -100,7 +102,7 @@ function ScanPage() {
           ) : (
             <div className="text-center text-white/60">
               <Camera className="w-12 h-12 mx-auto opacity-40" />
-              <p className="text-sm mt-2">დააჭირე „კამერის ჩართვას"</p>
+              <p className="text-sm mt-2">{t("tapStartCamera")}</p>
             </div>
           )}
           {scanning && (
@@ -113,14 +115,14 @@ function ScanPage() {
             disabled={scanning}
             className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            <Camera className="w-4 h-4" /> {scanning ? "სკანირება…" : "კამერის ჩართვა"}
+            <Camera className="w-4 h-4" /> {scanning ? t("scanningLbl") : t("startCamera")}
           </button>
         </div>
       </div>
 
       <div className="mt-4 bg-card rounded-2xl border border-border p-4">
         <div className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-          <Hash className="w-3 h-3" /> ან შეიყვანე კოდი ხელით
+          <Hash className="w-3 h-3" /> {t("orEnterCode")}
         </div>
         <div className="flex gap-2">
           <input
@@ -130,7 +132,7 @@ function ScanPage() {
             className="flex-1 px-3 py-2.5 rounded-xl bg-muted/40 border border-border font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
           <button onClick={() => handleCode(code)} disabled={!code} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
-            ვალიდაცია
+            {t("validate")}
           </button>
         </div>
       </div>
@@ -143,9 +145,9 @@ function ScanPage() {
           </div>
           {result.order && (
             <div className="mt-3 text-sm space-y-0.5">
-              <div>კოდი: <span className="font-mono font-bold">#{result.order.code}</span></div>
-              <div>პროდუქტი: {result.order.title}</div>
-              <div>თანხა: {formatGel(result.order.amount)}</div>
+              <div>{t("codeLbl")}: <span className="font-mono font-bold">#{result.order.code}</span></div>
+              <div>{t("productLbl")}: {result.order.title}</div>
+              <div>{t("amountLbl")}: {formatGel(result.order.amount)}</div>
             </div>
           )}
         </div>

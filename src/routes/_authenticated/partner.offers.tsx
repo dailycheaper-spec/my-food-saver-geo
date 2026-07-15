@@ -4,29 +4,31 @@ import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } fr
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
-  head: () => ({ meta: [{ title: "შეთავაზებები — Cheaper" }] }),
+  head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
   component: OffersPage,
 });
 
 function OffersPage() {
+  const { t } = useI18n();
   const { stores } = useMyStores();
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const [editing, setEditing] = useState<DbOffer | null>(null);
   const [creating, setCreating] = useState(false);
 
-  if (!store) return <div className="text-center py-12 text-muted-foreground">ჯერ არ გაქვს დამტკიცებული მაღაზია.</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h1 className="font-display text-2xl font-bold">აქტიური შეთავაზებები</h1>
+        <h1 className="font-display text-2xl font-bold">{t("activeOffers")}</h1>
         <div className="flex gap-2">
-          <Link to="/partner/quick" className="px-3 py-2 bg-muted rounded-xl text-sm font-medium">⚡ Quick</Link>
+          <Link to="/partner/quick" className="px-3 py-2 bg-muted rounded-xl text-sm font-medium">⚡ {t("quickOffer")}</Link>
           <Link to="/partner/new" className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-semibold text-sm shadow-soft">
-            <Plus className="w-4 h-4" /> ახალი
+            <Plus className="w-4 h-4" /> {t("newShort")}
           </Link>
         </div>
       </div>
@@ -34,7 +36,7 @@ function OffersPage() {
       {offers.length === 0 ? (
         <div className="bg-card rounded-2xl border border-border p-8 text-center">
           <div className="text-4xl mb-3">📦</div>
-          <p className="text-sm text-muted-foreground">ჯერ არ გაქვს შეთავაზება. დაამატე პირველი!</p>
+          <p className="text-sm text-muted-foreground">{t("noOffersYet")}</p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -56,12 +58,13 @@ function OffersPage() {
 }
 
 function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
+  const { t } = useI18n();
   const remaining = offer.quantity_available - offer.quantity_sold;
   async function toggle() {
     await supabase.from("offers").update({ is_active: !offer.is_active }).eq("id", offer.id);
   }
   async function del() {
-    if (!confirm("დარწმუნებული ხარ?")) return;
+    if (!confirm(t("sureDelete"))) return;
     await supabase.from("offers").delete().eq("id", offer.id);
   }
   return (
@@ -83,14 +86,13 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
           </div>
         </div>
         <div className="flex flex-col gap-0.5">
-          <button onClick={toggle} title="ჩართვა/გამორთვა" className="p-0.5">
+          <button onClick={toggle} className="p-0.5">
             {offer.is_active ? <ToggleRight className="w-6 h-6 text-primary" /> : <ToggleLeft className="w-6 h-6 text-muted-foreground" />}
           </button>
           <button onClick={onEdit} className="p-1"><Edit2 className="w-4 h-4 text-muted-foreground" /></button>
         </div>
       </div>
 
-      {/* Quantity controls */}
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={() => bumpOfferQty(offer.id, offer.quantity_available, -1)}
@@ -99,7 +101,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
         ><Minus className="w-4 h-4" /></button>
         <div className="flex-1 text-center">
           <div className="text-2xl font-bold">{remaining}</div>
-          <div className="text-[10px] text-muted-foreground uppercase">დარჩა / {offer.quantity_available}</div>
+          <div className="text-[10px] text-muted-foreground uppercase">{t("remaining")} / {offer.quantity_available}</div>
         </div>
         <button
           onClick={() => bumpOfferQty(offer.id, offer.quantity_available, 1)}
@@ -111,11 +113,11 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
         <button
           onClick={() => finishOffer(offer.id)}
           className="flex-1 py-2 rounded-xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1"
-        ><StopCircle className="w-3.5 h-3.5" /> დასრულება</button>
+        ><StopCircle className="w-3.5 h-3.5" /> {t("endOffer")}</button>
         <button
           onClick={del}
           className="px-3 py-2 rounded-xl bg-muted text-muted-foreground"
-          aria-label="წაშლა"
+          aria-label={t("delete")}
         ><Trash2 className="w-4 h-4" /></button>
       </div>
     </div>
@@ -123,6 +125,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 }
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
+  const { t } = useI18n();
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     description: offer?.description ?? "",
@@ -168,30 +171,30 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
         className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 shadow-elevated max-h-[90vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display text-xl font-bold">{offer ? "რედაქტირება" : "ახალი შეთავაზება"}</h3>
+          <h3 className="font-display text-xl font-bold">{offer ? t("editOffer") : t("newOffer")}</h3>
           <button type="button" onClick={onClose}><X className="w-5 h-5" /></button>
         </div>
 
         <div className="space-y-3">
-          <Input label="სათაური" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
-          <Input label="აღწერა" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
+          <Input label={t("titleLbl")} value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
+          <Input label={t("descLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="ორიგინალი ფასი (ლარი)" type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
-            <Input label="ფასდაკლებული (ლარი)" type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
+            <Input label={t("origPriceLbl")} type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
+            <Input label={t("discPriceLbl")} type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
           </div>
-          <Input label="რაოდენობა" type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
+          <Input label={t("qtyLbl")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="აღების დაწყება" type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
-            <Input label="აღების დასრულება" type="time" value={form.pickup_to} onChange={(v) => setForm({ ...form, pickup_to: v })} />
+            <Input label={t("pickupStartLbl")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
+            <Input label={t("pickupEndLbl")} type="time" value={form.pickup_to} onChange={(v) => setForm({ ...form, pickup_to: v })} />
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.delivery_available} onChange={(e) => setForm({ ...form, delivery_available: e.target.checked })} />
-            მიტანაც შესაძლებელია
+            {t("deliveryOption")}
           </label>
         </div>
 
         <button type="submit" disabled={saving} className="mt-5 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
-          {saving ? "ინახება…" : offer ? "შენახვა" : "შექმნა"}
+          {saving ? t("savingProgress") : offer ? t("save") : t("createBtn")}
         </button>
       </form>
     </div>
