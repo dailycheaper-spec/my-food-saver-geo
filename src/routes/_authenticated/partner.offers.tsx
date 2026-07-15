@@ -176,8 +176,8 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
           <Input label="სათაური" value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
           <Input label="აღწერა" value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div className="grid grid-cols-2 gap-3">
-            <Input label="ორიგინალი ფასი (₾)" type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
-            <Input label="ფასდაკლებული (₾)" type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
+            <Input label="ორიგინალი ფასი (ლარი)" type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
+            <Input label="ფასდაკლებული (ლარი)" type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
           </div>
           <Input label="რაოდენობა" type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
           <div className="grid grid-cols-2 gap-3">
