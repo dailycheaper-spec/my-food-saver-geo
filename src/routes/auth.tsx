@@ -55,9 +55,11 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     setMsg(null);
+    sessionStorage.setItem("auth_redirect", redirectTarget);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    await waitForUser();
     navigateToRedirect(navigate, redirect);
   }
 
@@ -82,8 +84,10 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
+    const callback = new URL("/auth", window.location.origin);
+    callback.searchParams.set("redirect", redirectTarget);
     const { error } = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: `${window.location.origin}/auth`,
+      redirect_uri: callback.toString(),
     });
     if (error) {
       setLoading(false);
