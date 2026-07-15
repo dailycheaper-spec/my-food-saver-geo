@@ -400,7 +400,7 @@ const labels: Record<Language, Record<string, string>> = {
     runAi: "Run AI",
     aiResult: "AI result",
     name: "Name",
-    discountedPrice: "Discounted (₾)",
+    discountedPrice: "Discounted (GEL)",
     pickupEnd: "Pickup end",
     originalPrice: "Original (₾)",
     creating: "Creating…",
