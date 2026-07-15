@@ -234,7 +234,7 @@ const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description
 
 export function formatPrice(n: number) {
   const lang = typeof window !== "undefined" ? (window.localStorage.getItem("cheaper-language") || "ka") : "ka";
-  const sym = lang === "en" ? "GEL" : lang === "ru" ? "лари" : "₾";
+  const sym = lang === "en" ? "GEL" : lang === "ru" ? "лари" : "ლარი";
   return `${n.toFixed(2)} ${sym}`;
 }
 
