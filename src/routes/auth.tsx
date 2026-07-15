@@ -79,7 +79,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
-    setMsg({ type: "ok", text: "წარმატებით დარეგისტრირდი! გადაამოწმე ელფოსტა." });
+    setMsg({ type: "ok", text: t("signupSuccess") });
   }
 
   async function handleOAuth(provider: "google" | "apple") {
@@ -91,7 +91,7 @@ function AuthPage() {
     });
     if (error) {
       setLoading(false);
-      setMsg({ type: "err", text: `შესვლა ${provider}-ით ვერ მოხერხდა` });
+      setMsg({ type: "err", text: `${t("oauthFailed")} (${provider})` });
       return;
     }
 
@@ -100,7 +100,7 @@ function AuthPage() {
     if (user) {
       navigateToRedirect(navigate, redirect);
     } else {
-      setMsg({ type: "ok", text: "შესვლა დასრულდა. გთხოვთ, დაელოდოთ გადამისამართებას…" });
+      setMsg({ type: "ok", text: t("signInComplete") });
     }
   }
 
@@ -112,7 +112,7 @@ function AuthPage() {
     setLoading(false);
     if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
     setOtpSent(true);
-    setMsg({ type: "ok", text: "კოდი გამოგზავნილია SMS-ით" });
+    setMsg({ type: "ok", text: t("smsSent") });
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
