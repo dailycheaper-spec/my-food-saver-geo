@@ -581,7 +581,7 @@ const labels: Record<Language, Record<string, string>> = {
     searchPlaceholder: "Ищи магазин, блюдо или район...",
     surprisePack: "Сюрприз-пакет",
     giftFeature: "Подарить заказ",
-    ecoChoice: "Эко-выбор",
+    ecoChoice: "Скидка 50%+",
     allDistricts: "Все районы",
     deliveryOnly: "Только доставка",
     nearbyOffers: "Предложения рядом",
