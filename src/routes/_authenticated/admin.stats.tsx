@@ -90,7 +90,7 @@ function AdminStats() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <Kpi icon={TrendingUp} label="შემოსავალი" value={formatGel(revenue)} tint="success" />
         <Kpi icon={Package} label="შეკვეთა" value={filtered.length.toString()} tint="primary" />
-        <Kpi icon={Leaf} label="გადარჩენილი (კგ)" value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Leaf} label="დაზოგილი (კგ)" value={kgSaved.toFixed(1)} tint="success" />
         <Kpi icon={Users} label="აქტიური კლიენტი" value={new Set(filtered.map((o) => o.user_id)).size.toString()} tint="warm" />
       </div>
 

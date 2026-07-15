@@ -4,13 +4,15 @@ import { ArrowLeft, Plus, Trash2, Zap } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { useSavedProducts, upsertSavedProduct, deleteSavedProduct, type SavedProduct } from "@/lib/partner-db";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/quick")({
-  head: () => ({ meta: [{ title: "Quick Offer — SaveBite" }] }),
+  head: () => ({ meta: [{ title: "Quick Offer — გემო" }] }),
   component: QuickOfferPage,
 });
 
 function QuickOfferPage() {
+  const { t } = useI18n();
   const { stores } = useMyStores();
   const store = stores[0] ?? null;
   const { items } = useSavedProducts(store?.id ?? null);
@@ -18,25 +20,25 @@ function QuickOfferPage() {
   const [addOpen, setAddOpen] = useState(false);
   const navigate = useNavigate();
 
-  if (!store) return <div className="text-center py-12 text-muted-foreground">ჯერ არ გაქვს დამტკიცებული მაღაზია.</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
     <div className="max-w-2xl mx-auto">
       <button onClick={() => navigate({ to: "/partner" })} className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-        <ArrowLeft className="w-4 h-4" /> უკან
+        <ArrowLeft className="w-4 h-4" /> {t("back")}
       </button>
 
       <div className="flex items-center justify-between mb-2">
-        <h1 className="font-display text-2xl font-bold flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> Quick Offer</h1>
+        <h1 className="font-display text-2xl font-bold flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> {t("quickOffer")}</h1>
         <button onClick={() => setAddOpen(true)} className="p-2 rounded-full bg-primary/10 text-primary"><Plus className="w-5 h-5" /></button>
       </div>
-      <p className="text-sm text-muted-foreground mb-5">აირჩიე შენახული პროდუქტი და 3 შეხებაში გამოაქვეყნე</p>
+      <p className="text-sm text-muted-foreground mb-5">{t("quickIntro")}</p>
 
       {items.length === 0 ? (
         <div className="bg-card rounded-3xl border border-border p-8 text-center">
           <div className="text-4xl mb-3">⚡</div>
-          <p className="text-sm text-muted-foreground">ჯერ არ გაქვს შენახული პროდუქტი. დაამატე პირველი!</p>
-          <button onClick={() => setAddOpen(true)} className="mt-4 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold">დამატება</button>
+          <p className="text-sm text-muted-foreground">{t("noSavedProducts")}</p>
+          <button onClick={() => setAddOpen(true)} className="mt-4 px-5 py-2.5 bg-primary text-primary-foreground rounded-full text-sm font-semibold">{t("add")}</button>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -53,7 +55,7 @@ function QuickOfferPage() {
               )}
               <div className="font-semibold text-sm truncate">{p.name}</div>
               <div className="text-xs text-muted-foreground">{Number(p.default_original_price).toFixed(0)} ₾ · {Number(p.default_discounted_price).toFixed(0)} ₾</div>
-              <button onClick={(e) => { e.stopPropagation(); if (confirm("წავშალო?")) deleteSavedProduct(p.id); }} className="mt-1 text-[11px] text-destructive/70 flex items-center gap-1"><Trash2 className="w-3 h-3" />წაშლა</button>
+              <button onClick={(e) => { e.stopPropagation(); if (confirm(t("deleteConfirm"))) deleteSavedProduct(p.id); }} className="mt-1 text-[11px] text-destructive/70 flex items-center gap-1"><Trash2 className="w-3 h-3" />{t("delete")}</button>
             </button>
           ))}
         </div>
@@ -66,6 +68,7 @@ function QuickOfferPage() {
 }
 
 function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string; product: SavedProduct; onClose: () => void; onDone: () => void }) {
+  const { t } = useI18n();
   const orig = Number(product.default_original_price);
   const [qty, setQty] = useState(5);
   const [discount, setDiscount] = useState(60);
@@ -99,12 +102,12 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
         <div className="text-center mb-4">
           {product.image_url && <img src={product.image_url} className="w-20 h-20 rounded-2xl object-cover mx-auto mb-2" alt={product.name} />}
           <h3 className="font-display text-xl font-bold">{product.name}</h3>
-          <div className="text-sm text-muted-foreground">ორიგინალი: {orig.toFixed(2)} ₾</div>
+          <div className="text-sm text-muted-foreground">{t("original")}: {orig.toFixed(2)} ₾</div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-1"><span>რაოდენობა</span><span className="font-bold">{qty}</span></div>
+            <div className="flex justify-between text-sm mb-1"><span>{t("quantity")}</span><span className="font-bold">{qty}</span></div>
             <div className="flex items-center gap-3">
               <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-12 h-12 rounded-full bg-muted text-xl">−</button>
               <input type="range" min={1} max={50} value={qty} onChange={(e) => setQty(Number(e.target.value))} className="flex-1" />
@@ -113,14 +116,14 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
           </div>
 
           <div>
-            <div className="flex justify-between text-sm mb-1"><span>ფასდაკლება</span><span className="font-bold">{discount}%</span></div>
+            <div className="flex justify-between text-sm mb-1"><span>{t("discount")}</span><span className="font-bold">{discount}%</span></div>
             <input type="range" min={10} max={90} step={5} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full" />
             <div className="text-center mt-2 font-bold text-2xl text-primary">{discounted.toFixed(2)} ₾</div>
           </div>
         </div>
 
         <button onClick={publish} disabled={saving} className="mt-6 w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-lg disabled:opacity-50">
-          {saving ? "…" : "🚀 გამოქვეყნება"}
+          {saving ? "…" : `🚀 ${t("publish")}`}
         </button>
       </div>
     </div>
@@ -128,6 +131,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
 }
 
 function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () => void }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [price, setPrice] = useState("15");
   const [discounted, setDiscounted] = useState("6");
@@ -153,16 +157,16 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
   return (
     <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={onClose}>
       <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6" onClick={(e) => e.stopPropagation()}>
-        <h3 className="font-display text-xl font-bold mb-4">ახალი პროდუქტი</h3>
+        <h3 className="font-display text-xl font-bold mb-4">{t("newProduct")}</h3>
         <div className="space-y-3">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="სახელი (მაგ. პიცა)" className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
-          <input value={image_url} onChange={(e) => setImg(e.target.value)} placeholder="ფოტოს URL (არასავალდებულო)" className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("productNamePlaceholder")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+          <input value={image_url} onChange={(e) => setImg(e.target.value)} placeholder={t("optionalPhotoUrl")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
           <div className="grid grid-cols-2 gap-2">
-            <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" placeholder="ორიგინალი" className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
-            <input value={discounted} onChange={(e) => setDiscounted(e.target.value)} type="number" placeholder="ფასდაკლებული" className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+            <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" placeholder={t("original")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+            <input value={discounted} onChange={(e) => setDiscounted(e.target.value)} type="number" placeholder={t("discountedPrice")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
           </div>
         </div>
-        <button onClick={save} disabled={saving || !name.trim()} className="mt-5 w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold disabled:opacity-50">შენახვა</button>
+        <button onClick={save} disabled={saving || !name.trim()} className="mt-5 w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold disabled:opacity-50">{t("save")}</button>
       </div>
     </div>
   );

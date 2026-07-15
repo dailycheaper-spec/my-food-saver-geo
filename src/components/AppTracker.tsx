@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { OFFERS } from "@/lib/mock-data";
 import { trackVisit, getSeenOffers, markOffersSeen, useNotifSettings } from "@/lib/storage";
+import { useI18n } from "@/lib/i18n";
 
 // Fires once on mount: tracks a visit, and notifies user about offers they haven't seen yet.
 export function AppTracker() {
+  const { t } = useI18n();
   const notifs = useNotifSettings();
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export function AppTracker() {
     if (notifs.enabled && relevant.length > 0 && typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
       const first = relevant[0];
       try {
-        new Notification("🎉 ახალი შემოთავაზება გემოზე!", {
+        new Notification(`🎉 ${t("newOffer")}`, {
           body: `${first.storeName}: ${first.title} — ${first.price} ₾`,
           tag: `gemo-new-${first.id}`,
           icon: "/favicon.ico",

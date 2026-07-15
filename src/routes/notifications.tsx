@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Bell, MapPin, Check } from "lucide-react";
 import { CATEGORIES } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [{ title: "შეტყობინებები — გემო" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
@@ -10,6 +11,7 @@ export const Route = createFileRoute("/notifications")({
 });
 
 function Notifications() {
+  const { t } = useI18n();
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -56,9 +58,9 @@ function Notifications() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6">
-      <h1 className="font-display text-2xl font-bold">შეტყობინებები</h1>
+      <h1 className="font-display text-2xl font-bold">{t("notificationsTitle")}</h1>
       <p className="text-sm text-muted-foreground mt-1">
-        მიიღე შეტყობინება, როცა 1–2 კმ რადიუსში ახალი შემოთავაზება გამოჩნდება.
+        {t("notificationsText")}
       </p>
 
       {/* Permission card */}
@@ -68,17 +70,17 @@ function Notifications() {
             <Bell className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1">
-            <div className="font-semibold">Push შეტყობინებები</div>
+            <div className="font-semibold">{t("pushNotifications")}</div>
             <div className="text-xs text-muted-foreground">
-              {permission === "granted" ? "✓ ჩართულია" :
-               permission === "denied" ? "უარყოფილია — ჩართე ბრაუზერის პარამეტრებში" :
-               permission === "unsupported" ? "ბრაუზერს არ აქვს მხარდაჭერა" :
-               "ჩართე შეტყობინებების მისაღებად"}
+              {permission === "granted" ? t("enabled") :
+               permission === "denied" ? t("denied") :
+               permission === "unsupported" ? t("unsupported") :
+               t("enableNotifs")}
             </div>
           </div>
           {permission !== "granted" && permission !== "unsupported" && (
             <button onClick={requestNotif} className="px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold">
-              ჩართვა
+              {t("enable")}
             </button>
           )}
           {permission === "granted" && <Check className="w-5 h-5 text-success" />}
@@ -92,13 +94,13 @@ function Notifications() {
             <MapPin className="w-6 h-6 text-accent-foreground" />
           </div>
           <div className="flex-1">
-            <div className="font-semibold">მდებარეობა</div>
+            <div className="font-semibold">{t("address")}</div>
             <div className="text-xs text-muted-foreground">
               {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : "ვერ ვხედავ შენს ლოკაციას"}
             </div>
           </div>
           <button onClick={requestLocation} className="px-4 py-2 rounded-full bg-card border border-border text-sm font-semibold">
-            {location ? "განახლება" : "ჩართვა"}
+            {location ? t("refresh") : t("enable")}
           </button>
         </div>
       </div>
@@ -106,7 +108,7 @@ function Notifications() {
       {/* Radius */}
       <div className="mt-3 bg-card rounded-2xl p-5 border border-border shadow-card">
         <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold">რადიუსი</div>
+          <div className="font-semibold">{t("radius")}</div>
           <div className="text-sm font-bold text-primary">{settings.radiusKm} კმ</div>
         </div>
         <input
@@ -122,7 +124,7 @@ function Notifications() {
 
       {/* Categories */}
       <div className="mt-3 bg-card rounded-2xl p-5 border border-border shadow-card">
-        <div className="font-semibold mb-3">კატეგორიები</div>
+        <div className="font-semibold mb-3">{t("categories")}</div>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.filter((c) => c.id !== "ყველა").map((c) => {
             const on = settings.categories.includes(c.id);
@@ -139,19 +141,19 @@ function Notifications() {
             );
           })}
         </div>
-        <p className="text-xs text-muted-foreground mt-3">ცარიელი — მიიღე ყველა კატეგორია.</p>
+        <p className="text-xs text-muted-foreground mt-3">{t("emptyMeansAll")}</p>
       </div>
 
       {/* Demo */}
       <div className="mt-3 bg-warm text-warm-foreground rounded-2xl p-5">
-        <div className="font-semibold">გამოსცადე</div>
-        <p className="text-xs opacity-80 mt-1">ნახე, როგორ გამოიყურება შეტყობინება.</p>
+        <div className="font-semibold">{t("test")}</div>
+        <p className="text-xs opacity-80 mt-1">{t("testText")}</p>
         <button onClick={triggerDemo} className="mt-3 px-4 py-2 rounded-full bg-warm-foreground text-warm text-sm font-semibold">
-          გამოგზავნა
+          {t("send")}
         </button>
         {demo && (
           <div className="mt-3 bg-card rounded-xl p-3 border border-border shadow-soft animate-in fade-in slide-in-from-bottom-2 text-foreground">
-            <div className="text-xs text-muted-foreground">გემო • ახლა</div>
+            <div className="text-xs text-muted-foreground">{t("brand")} • {t("now")}</div>
             <div className="whitespace-pre-line text-sm font-medium mt-1">{demo}</div>
           </div>
         )}

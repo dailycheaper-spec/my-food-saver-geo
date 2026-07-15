@@ -3,13 +3,15 @@ import { useMemo } from "react";
 import { ArrowLeft, TrendingUp, ShoppingBag, Leaf, Trophy } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { KG_PER_OFFER } from "@/lib/partner-db";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/stats")({
-  head: () => ({ meta: [{ title: "სტატისტიკა — SaveBite" }] }),
+  head: () => ({ meta: [{ title: "სტატისტიკა — გემო" }] }),
   component: StatsPage,
 });
 
 function StatsPage() {
+  const { t } = useI18n();
   const { stores } = useMyStores();
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
@@ -31,26 +33,26 @@ function StatsPage() {
     return { todayCount: todayPaid.length, revenue, top, saved, totalSold: paid.length, activeOffers: offers.filter((x) => x.is_active).length };
   }, [orders, offers]);
 
-  if (!store) return <div className="text-center py-12 text-muted-foreground">ჯერ არ გაქვს დამტკიცებული მაღაზია.</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
     <div className="max-w-3xl mx-auto">
       <button onClick={() => navigate({ to: "/partner" })} className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-        <ArrowLeft className="w-4 h-4" /> უკან
+        <ArrowLeft className="w-4 h-4" /> {t("back")}
       </button>
-      <h1 className="font-display text-2xl font-bold mb-5">სტატისტიკა</h1>
+      <h1 className="font-display text-2xl font-bold mb-5">{t("stats")}</h1>
 
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <Kpi color="from-primary to-primary/70" icon={<ShoppingBag className="w-5 h-5" />} label="დღეს შეკვეთა" value={String(s.todayCount)} />
-        <Kpi color="from-orange-500 to-amber-400" icon={<TrendingUp className="w-5 h-5" />} label="დღეს გამომუშავებული" value={formatGel(s.revenue)} />
-        <Kpi color="from-blue-500 to-cyan-400" icon={<Trophy className="w-5 h-5" />} label="სულ გაყიდული" value={String(s.totalSold)} />
-        <Kpi color="from-emerald-500 to-teal-400" icon={<Leaf className="w-5 h-5" />} label="დაზოგილი საკვები" value={`${s.saved.toFixed(1)} კგ`} />
+        <Kpi color="from-primary to-primary/70" icon={<ShoppingBag className="w-5 h-5" />} label={t("todayOrders")} value={String(s.todayCount)} />
+        <Kpi color="from-orange-500 to-amber-400" icon={<TrendingUp className="w-5 h-5" />} label={t("todayRevenue")} value={formatGel(s.revenue)} />
+        <Kpi color="from-blue-500 to-cyan-400" icon={<Trophy className="w-5 h-5" />} label={t("totalSold")} value={String(s.totalSold)} />
+        <Kpi color="from-emerald-500 to-teal-400" icon={<Leaf className="w-5 h-5" />} label={t("foodSaved")} value={`${s.saved.toFixed(1)} კგ`} />
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5">
-        <h3 className="font-semibold mb-3 flex items-center gap-2"><Trophy className="w-4 h-4 text-primary" /> ყველაზე გაყიდვადი</h3>
+        <h3 className="font-semibold mb-3 flex items-center gap-2"><Trophy className="w-4 h-4 text-primary" /> {t("topSelling")}</h3>
         {s.top.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">ჯერ არ არის მონაცემები.</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t("noData")}</p>
         ) : (
           <div className="space-y-2">
             {s.top.map(([title, count], i) => (

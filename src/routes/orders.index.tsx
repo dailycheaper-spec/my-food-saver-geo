@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ShoppingBag, Clock, Gift, Truck } from "lucide-react";
 import { useOrders } from "@/lib/storage";
 import { formatPrice } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({ meta: [{ title: "ჩემი შეკვეთები — გემო" }, { name: "description", content: "შენი დაჯავშნილი და მიღებული პაკეტები." }] }),
@@ -9,17 +10,18 @@ export const Route = createFileRoute("/orders/")({
 });
 
 function Orders() {
+  const { t } = useI18n();
   const orders = useOrders();
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6">
-      <h1 className="font-display text-2xl font-bold">ჩემი შეკვეთები</h1>
+      <h1 className="font-display text-2xl font-bold">{t("myOrders")}</h1>
 
       {orders.length === 0 ? (
         <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-border">
           <ShoppingBag className="w-10 h-10 mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mt-3">შეკვეთები არ გაქვს.</p>
-          <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">იყიდე პირველი პაკეტი</Link>
+          <p className="text-sm text-muted-foreground mt-3">{t("noOrders")}</p>
+          <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">{t("firstPack")}</Link>
         </div>
       ) : (
         <div className="mt-5 space-y-3">

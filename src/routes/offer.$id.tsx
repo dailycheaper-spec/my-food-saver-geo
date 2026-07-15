@@ -5,6 +5,7 @@ import { findOffer, formatPrice } from "@/lib/mock-data";
 import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase } from "@/lib/storage";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: ({ params }) => {
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/offer/$id")({
 });
 
 function OfferPage() {
+  const { t } = useI18n();
   const { offer } = Route.useLoaderData();
   const navigate = useNavigate();
   const favs = useFavorites();
@@ -109,14 +111,14 @@ function OfferPage() {
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
             <div className="bg-muted/50 rounded-xl p-3">
-              <div className="text-xs text-muted-foreground">აღების დრო</div>
+          <div className="text-xs text-muted-foreground">{t("pickupTime")}</div>
               <div className="font-semibold flex items-center gap-1 mt-0.5">
                 <Clock className="w-4 h-4 text-primary" />
                 {offer.pickupFrom}–{offer.pickupTo}
               </div>
             </div>
             <div className="bg-muted/50 rounded-xl p-3">
-              <div className="text-xs text-muted-foreground">მდებარეობა</div>
+              <div className="text-xs text-muted-foreground">{t("address")}</div>
               <div className="font-semibold flex items-center gap-1 mt-0.5">
                 <MapPin className="w-4 h-4 text-primary" />
                 {offer.distanceKm} კმ
@@ -125,13 +127,13 @@ function OfferPage() {
           </div>
 
           <div className="mt-3 text-sm">
-            <div className="text-xs text-muted-foreground">მისამართი</div>
+            <div className="text-xs text-muted-foreground">{t("address")}</div>
             <div className="font-medium">{offer.address}, {offer.district}</div>
           </div>
 
           <div className="mt-4 flex items-center gap-2 text-xs text-success bg-success/10 rounded-lg p-2.5">
             <Leaf className="w-4 h-4" />
-            ამ პაკეტის ყიდვით გადაარჩენ ~1.2 კგ CO₂-ს
+            {t("impactLine")}
           </div>
         </div>
 
@@ -139,7 +141,7 @@ function OfferPage() {
 
         {/* Method selector */}
         <div className="mt-4 bg-card rounded-2xl shadow-card p-5 border border-border">
-          <div className="font-semibold mb-3">როგორ მიიღებ?</div>
+          <div className="font-semibold mb-3">{t("howReceive")}</div>
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => setMethod("აღება")}
@@ -148,8 +150,8 @@ function OfferPage() {
               }`}
             >
               <ShoppingBag className="w-5 h-5 text-primary" />
-              <div className="text-sm font-semibold mt-1">ადგილზე აღება</div>
-              <div className="text-xs text-muted-foreground">უფასო</div>
+              <div className="text-sm font-semibold mt-1">{t("pickupInStore")}</div>
+              <div className="text-xs text-muted-foreground">{t("free")}</div>
             </button>
             <button
               disabled={!offer.delivery}
@@ -159,9 +161,9 @@ function OfferPage() {
               }`}
             >
               <Truck className="w-5 h-5 text-primary" />
-              <div className="text-sm font-semibold mt-1">მიტანა</div>
+              <div className="text-sm font-semibold mt-1">{t("delivery")}</div>
               <div className="text-xs text-muted-foreground">
-                {offer.delivery ? `+${formatPrice(offer.deliveryFee)}` : "მიუწვდომელი"}
+                {offer.delivery ? `+${formatPrice(offer.deliveryFee)}` : t("unavailable")}
               </div>
             </button>
           </div>
@@ -170,13 +172,13 @@ function OfferPage() {
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="მიტანის მისამართი..."
+              placeholder={t("deliveryAddress")}
               className="mt-3 w-full px-3 py-2.5 rounded-xl bg-muted/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
             />
           )}
 
           <div className="mt-4">
-            <div className="text-sm font-semibold mb-2">რაოდენობა</div>
+            <div className="text-sm font-semibold mb-2">{t("quantity")}</div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -187,14 +189,14 @@ function OfferPage() {
                 onClick={() => setQuantity((q) => Math.min(offer.itemsLeft, q + 1))}
                 className="w-9 h-9 rounded-full border border-border grid place-items-center"
               >+</button>
-              <span className="text-xs text-muted-foreground ml-2">დარჩა {offer.itemsLeft}</span>
+              <span className="text-xs text-muted-foreground ml-2">{t("left")} {offer.itemsLeft}</span>
             </div>
           </div>
         </div>
 
         {/* Payment */}
         <div className="mt-4 bg-card rounded-2xl shadow-card p-5 border border-border">
-          <div className="font-semibold mb-3">გადახდის მეთოდი</div>
+          <div className="font-semibold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
               { id: "TBC", label: "TBC Pay", icon: "🏦" },
@@ -215,7 +217,7 @@ function OfferPage() {
             ))}
           </div>
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Shield className="w-3.5 h-3.5" /> უსაფრთხო გადახდა SSL დაცვით
+            <Shield className="w-3.5 h-3.5" /> {t("safePayment")}
           </div>
         </div>
 
@@ -223,10 +225,10 @@ function OfferPage() {
         <div className="mt-4 bg-card rounded-2xl shadow-card p-5 border border-border mb-6">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <div className="text-xs text-muted-foreground">ჯამი</div>
+              <div className="text-xs text-muted-foreground">{t("total")}</div>
               <div className="text-2xl font-bold text-primary">{formatPrice(total)}</div>
               <div className="text-xs text-muted-foreground line-through">
-                ნაცვლად {formatPrice(offer.originalPrice * quantity + deliveryFee)}
+                {t("insteadOf")} {formatPrice(offer.originalPrice * quantity + deliveryFee)}
               </div>
             </div>
             <button
@@ -234,7 +236,7 @@ function OfferPage() {
               disabled={method === "მიტანა" && address.length < 3}
               className="px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold shadow-soft hover:opacity-90 disabled:opacity-50"
             >
-              დაჯავშნა
+              {t("reserve")}
             </button>
         </div>
 

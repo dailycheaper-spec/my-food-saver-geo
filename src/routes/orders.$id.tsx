@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } from "lucide-react";
 import { useOrders, updateOrder } from "@/lib/storage";
 import { formatPrice } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "შეკვეთა — გემო" }, { name: "robots", content: "noindex" }] }),
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/orders/$id")({
 });
 
 function OrderDetail() {
+  const { t } = useI18n();
   const { id } = Route.useParams();
   const orders = useOrders();
   const order = orders.find((o) => o.id === id);
@@ -22,8 +24,8 @@ function OrderDetail() {
   if (!order) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">შეკვეთა ვერ მოიძებნა.</p>
-        <Link to="/orders" className="text-primary underline text-sm mt-2 inline-block">ჩემი შეკვეთები</Link>
+        <p className="text-muted-foreground">{t("orderNotFound")}</p>
+        <Link to="/orders" className="text-primary underline text-sm mt-2 inline-block">{t("myOrders")}</Link>
       </div>
     );
   }
@@ -47,7 +49,7 @@ function OrderDetail() {
         <button onClick={() => history.back()} className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-display text-xl font-bold">შეკვეთა #{order.code}</h1>
+        <h1 className="font-display text-xl font-bold">{t("order")} #{order.code}</h1>
       </div>
 
       <div className="bg-card rounded-2xl border border-border shadow-card p-5">
@@ -65,7 +67,7 @@ function OrderDetail() {
         <div className="mt-4 text-sm space-y-2">
           <div className="flex items-center gap-2">
             {order.method === "მიტანა" ? <Truck className="w-4 h-4 text-primary" /> : <ShoppingBag className="w-4 h-4 text-primary" />}
-            <span className="font-medium">{order.method}</span>
+            <span className="font-medium">{order.method === "მიტანა" ? t("delivery") : t("pickupInStore")}</span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
             <Clock className="w-4 h-4" /> {order.pickupFrom}–{order.pickupTo}
@@ -87,7 +89,7 @@ function OrderDetail() {
           {order.status === "დაჯავშნილი" && <CheckCircle2 className="w-4 h-4" />}
           {order.status === "გაჩუქებული" && <Gift className="w-4 h-4" />}
           <span>
-            სტატუსი: {order.status}
+            {t("status")}: {statusLabel(order.status, t)}
             {order.giftedTo && ` — ${order.giftedTo}-ს`}
           </span>
         </div>
@@ -97,7 +99,7 @@ function OrderDetail() {
       {order.status === "დაჯავშნილი" && (
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">
-            {order.method === "მიტანა" ? "დადასტურების კოდი" : "აღების კოდი"}
+            {order.method === "მიტანა" ? t("confirmationCode") : t("pickupCode")}
           </div>
           <div className="mt-2 text-3xl font-bold tracking-[0.3em] font-mono">{order.code}</div>
           <div className="mt-3 inline-block p-4 bg-white rounded-2xl">
@@ -110,8 +112,8 @@ function OrderDetail() {
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             {order.method === "მიტანა"
-              ? "აჩვენე ეს კოდი კურიერს მიღების დროს."
-              : "აჩვენე ეს კოდი მაღაზიაში აღების დროს."}
+              ? t("courierCodeText")
+              : t("storeCodeText")}
           </p>
         </div>
       )}
@@ -123,13 +125,13 @@ function OrderDetail() {
             onClick={() => setShowGift(true)}
             className="p-4 rounded-2xl bg-accent text-accent-foreground font-semibold shadow-soft flex items-center justify-center gap-2"
           >
-            <Gift className="w-4 h-4" /> გააჩუქე
+            <Gift className="w-4 h-4" /> {t("gift")}
           </button>
           <button
             onClick={handleCancel}
             className="p-4 rounded-2xl bg-card border border-border text-destructive font-semibold flex items-center justify-center gap-2"
           >
-            <X className="w-4 h-4" /> გაუქმება
+            <X className="w-4 h-4" /> {t("cancel")}
           </button>
         </div>
       )}
@@ -139,7 +141,7 @@ function OrderDetail() {
           onClick={() => updateOrder(order.id, { status: "მიღებული" })}
           className="mt-3 w-full p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold"
         >
-          მიღებულად მონიშვნა
+          {t("markReceived")}
         </button>
       )}
 
@@ -148,10 +150,10 @@ function OrderDetail() {
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setShowGift(false)}>
           <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-xl font-bold">გააჩუქე შეკვეთა</h3>
+              <h3 className="font-display text-xl font-bold">{t("giftOrder")}</h3>
               <button onClick={() => setShowGift(false)}><X className="w-5 h-5" /></button>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">ვერ მიხვალ აღებაზე? გადაეცი შენი პაკეტი მეგობარს ან ქველმოქმედებას.</p>
+            <p className="text-sm text-muted-foreground mt-1">{t("giftOrderHelp")}</p>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
@@ -159,15 +161,15 @@ function OrderDetail() {
                 className={`p-3 rounded-xl border-2 text-left ${giftMode === "friend" ? "border-primary bg-primary/5" : "border-border"}`}
               >
                 <div className="text-lg">👤</div>
-                <div className="text-sm font-semibold mt-1">მეგობარს</div>
-                <div className="text-xs text-muted-foreground">გაუზიარე კოდი</div>
+                <div className="text-sm font-semibold mt-1">{t("friend")}</div>
+                <div className="text-xs text-muted-foreground">{t("shareCode")}</div>
               </button>
               <button
                 onClick={() => setGiftMode("charity")}
                 className={`p-3 rounded-xl border-2 text-left ${giftMode === "charity" ? "border-primary bg-primary/5" : "border-border"}`}
               >
                 <div className="text-lg">❤️</div>
-                <div className="text-sm font-semibold mt-1">ქველმოქმედებას</div>
+                <div className="text-sm font-semibold mt-1">{t("charity")}</div>
                 <div className="text-xs text-muted-foreground">„მოწყალე“</div>
               </button>
             </div>
@@ -176,7 +178,7 @@ function OrderDetail() {
               <input
                 value={giftName}
                 onChange={(e) => setGiftName(e.target.value)}
-                placeholder="მეგობრის სახელი ან ტელეფონი"
+                placeholder={t("friendPlaceholder")}
                 className="mt-3 w-full px-3 py-2.5 rounded-xl bg-muted/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
               />
             )}
@@ -185,11 +187,19 @@ function OrderDetail() {
               onClick={handleGift}
               className="mt-4 w-full p-3.5 rounded-2xl bg-primary text-primary-foreground font-semibold"
             >
-              დადასტურება
+              {t("confirm")}
             </button>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function statusLabel(status: string, t: (key: string) => string) {
+  if (status === "დაჯავშნილი") return t("booked");
+  if (status === "მიღებული") return t("received");
+  if (status === "გაჩუქებული") return t("gifted");
+  if (status === "გაუქმებული") return t("cancelled");
+  return status;
 }

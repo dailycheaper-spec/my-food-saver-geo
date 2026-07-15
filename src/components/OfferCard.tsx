@@ -3,8 +3,10 @@ import { Clock, MapPin, Star, Heart, Truck } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
 import { formatPrice } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites } from "@/lib/storage";
+import { useI18n } from "@/lib/i18n";
 
 export function OfferCard({ offer }: { offer: Offer }) {
+  const { t } = useI18n();
   const favs = useFavorites();
   const isFav = favs.includes(offer.storeId);
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
@@ -30,7 +32,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
           </span>
           {offer.delivery && (
             <span className="px-2.5 py-1 rounded-full bg-card/90 text-foreground text-xs font-medium flex items-center gap-1">
-              <Truck className="w-3 h-3" /> მიტანა
+              <Truck className="w-3 h-3" /> {t("delivery")}
             </span>
           )}
         </div>
@@ -76,7 +78,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
             <div className="text-lg font-bold text-primary">{formatPrice(offer.price)}</div>
           </div>
           <div className="text-xs text-muted-foreground">
-            დარჩა <span className="font-semibold text-foreground">{offer.itemsLeft}</span>
+            {t("left")} <span className="font-semibold text-foreground">{offer.itemsLeft}</span>
           </div>
         </div>
       </div>

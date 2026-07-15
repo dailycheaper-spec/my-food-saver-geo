@@ -50,7 +50,7 @@ function AdminOverview() {
         <Kpi icon={ShoppingBag} label="დღევანდელი შეკვეთა" value={today.length.toString()} tint="primary" />
         <Kpi icon={TrendingUp} label="დღევანდელი შემოსავალი" value={formatGel(todayRevenue)} tint="success" />
         <Kpi icon={Percent} label={`კომისია (${settings.commissionPct}%)`} value={formatGel(commission)} tint="warm" />
-        <Kpi icon={Leaf} label="გადარჩენილი (კგ)" value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Leaf} label="დაზოგილი (კგ)" value={kgSaved.toFixed(1)} tint="success" />
         <Kpi icon={Store} label="აქტიური პარტნიორები" value={activeStores.toString()} tint="primary" />
         <Kpi icon={Radio} label="ონლაინ მომხმარებელი" value={online.toString()} tint="warm" />
         <Kpi icon={Users} label="სულ შეკვეთა" value={totalOrders.toString()} tint="muted" />
