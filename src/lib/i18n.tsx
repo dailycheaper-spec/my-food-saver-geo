@@ -347,7 +347,7 @@ const labels: Record<Language, Record<string, string>> = {
     backHome: "Back home",
     pickupTime: "Pickup time",
     address: "Address",
-    impactLine: "Buying this bag reduces about 1.2 kg CO₂",
+    impactLine: "You save 50%+ on this bag — cheap and delicious",
     howReceive: "How will you receive it?",
     pickupInStore: "Pickup",
     free: "Free",
