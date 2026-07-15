@@ -84,10 +84,8 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
-    const callback = new URL("/auth", window.location.origin);
-    callback.searchParams.set("redirect", redirectTarget);
     const { error } = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: callback.toString(),
+      redirect_uri: `${window.location.origin}/auth`,
     });
     if (error) {
       setLoading(false);
@@ -254,8 +252,11 @@ function navigateToRedirect(navigate: ReturnType<typeof useNavigate>, redirect?:
 
 async function waitForUser() {
   for (let i = 0; i < 12; i += 1) {
-    const { data } = await supabase.auth.getUser();
-    if (data.user) return data.user;
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) return data.user;
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return null;

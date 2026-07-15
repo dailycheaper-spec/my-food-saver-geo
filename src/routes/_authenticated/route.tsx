@@ -17,14 +17,27 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 async function waitForUser() {
-  let lastError: unknown = null;
-  for (let i = 0; i < 10; i += 1) {
-    const result = await supabase.auth.getUser();
-    if (result.data.user || result.error) return result;
-    lastError = result.error;
-    await new Promise((resolve) => setTimeout(resolve, 150));
+  let lastResult = await supabase.auth.getUser();
+
+  for (let i = 0; i < 15; i += 1) {
+    if (lastResult.data.user) return lastResult;
+
+    const sessionResult = await supabase.auth.getSession();
+    if (sessionResult.data.session?.user) {
+      lastResult = await supabase.auth.getUser();
+      if (lastResult.data.user || !isMissingSessionError(lastResult.error)) return lastResult;
+    } else if (lastResult.error && !isMissingSessionError(lastResult.error)) {
+      return lastResult;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    lastResult = await supabase.auth.getUser();
   }
-  const result = await supabase.auth.getUser();
-  if (result.error) return result;
-  return lastError instanceof Error ? { ...result, error: lastError } : result;
+
+  return lastResult;
+}
+
+function isMissingSessionError(error: unknown) {
+  if (!error || typeof error !== "object" || !("message" in error)) return false;
+  return String(error.message).toLowerCase().includes("session");
 }

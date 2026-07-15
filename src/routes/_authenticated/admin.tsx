@@ -9,7 +9,7 @@ import { loadTheme, saveTheme } from "@/lib/admin-settings";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await waitForUser();
     if (userError || !userData.user) throw redirect({ to: "/auth" });
     const { data } = await supabase
       .from("user_roles")
@@ -21,6 +21,17 @@ export const Route = createFileRoute("/_authenticated/admin")({
   },
   component: AdminLayout,
 });
+
+async function waitForUser() {
+  let lastResult = await supabase.auth.getUser();
+  for (let i = 0; i < 15; i += 1) {
+    if (lastResult.data.user) return lastResult;
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) lastResult = await supabase.auth.getUser();
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  return lastResult;
+}
 
 type NavItem = { to: string; label: string; icon: React.ElementType; exact?: boolean };
 const NAV: NavItem[] = [
