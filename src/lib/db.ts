@@ -314,8 +314,13 @@ export async function reactivateStore(storeId: string) {
 }
 
 // ────── FORMATTING HELPERS ──────
+export function currencyLabel(): string {
+  if (typeof window === "undefined") return "₾";
+  const lang = window.localStorage.getItem("cheaper-language") || "ka";
+  return lang === "en" ? "GEL" : lang === "ru" ? "лари" : "₾";
+}
 export function formatGel(n: number): string {
-  return `${n.toFixed(2)} ₾`;
+  return `${n.toFixed(2)} ${currencyLabel()}`;
 }
 
 export function timeShort(t: string): string {
