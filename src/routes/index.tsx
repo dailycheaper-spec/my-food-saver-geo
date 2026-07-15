@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon } from "lucide-react";
+import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, type Category } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
+import { useMyRole } from "@/lib/db";
 import heroImage from "@/assets/hero-bakery.jpg";
 
 export const Route = createFileRoute("/")({
@@ -23,6 +24,7 @@ function Home() {
   const [q, setQ] = useState("");
   const [onlyDelivery, setOnlyDelivery] = useState(false);
   const { user } = useAuth();
+  const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
 
   const filtered = useMemo(() => {
     return OFFERS.filter((o) => {
@@ -46,6 +48,16 @@ function Home() {
           <div className="flex items-center justify-between gap-2">
             <Logo />
             <div className="flex items-center gap-2">
+              {user && !rolesLoading && isAdmin && (
+                <Link to="/admin" className="text-sm bg-destructive text-destructive-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft inline-flex items-center gap-1">
+                  <Shield className="w-3.5 h-3.5" /> ადმინი
+                </Link>
+              )}
+              {user && !rolesLoading && !isAdmin && isPartner && (
+                <Link to="/partner" className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft inline-flex items-center gap-1">
+                  <Store className="w-3.5 h-3.5" /> პარტნიორი
+                </Link>
+              )}
               <Link to={user ? "/profile" : "/auth"} className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft">
                 {user ? "პროფილი" : "შესვლა"}
               </Link>
