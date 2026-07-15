@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield } from "lucide-react";
+import { Percent, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
@@ -18,7 +18,7 @@ function Profile() {
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
-  const co2 = (saved * 1.2).toFixed(1);
+  const savedPct = "50%+";
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
 
   const displayName = profile?.first_name
@@ -49,7 +49,7 @@ function Profile() {
             <div className="text-xs text-muted-foreground">{emailOrPhone || t("notSignedIn")}</div>
             {user && (
               <div className="mt-1 inline-flex items-center gap-1 text-[10px] uppercase tracking-wider bg-success/10 text-success rounded-full px-2 py-0.5 font-semibold">
-                <Leaf className="w-3 h-3" /> {t("smartSaver")}
+                <Sparkles className="w-3 h-3" /> {t("smartSaver")}
               </div>
             )}
           </div>
@@ -64,7 +64,7 @@ function Profile() {
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("packages")} value={String(saved)} />
-        <Stat icon={<Leaf className="w-4 h-4" />} label="კგ CO₂" value={co2} />
+        <Stat icon={<Percent className="w-4 h-4" />} label={t("saved")} value={savedPct} />
         <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)} ${t("currency")}`} />
       </div>
 

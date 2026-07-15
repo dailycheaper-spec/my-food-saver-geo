@@ -141,7 +141,7 @@ export const OFFERS: Offer[] = [
     id: "o7", storeId: "s7", storeName: "კულა კაფე", storeLogo: "☕",
     category: "კაფე",
     title: "დილის კაფე + ორცხობილა",
-    description: "დღის დარჩენილი ცომეული და კაფე ან ჩაი.",
+    description: "ცხელი ცომეული და კაფე ან ჩაი 50%+ ფასდაკლებით.",
     image: bagBakery,
     originalPrice: 18, price: 6,
     pickupFrom: "11:00", pickupTo: "12:30",
@@ -226,9 +226,9 @@ const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description
     ru: { title: "Пакет грузинской кухни", description: "Хинкали, хачапури, салат — лучшее за день из ресторана." },
   },
   o7: {
-    ka: { title: "დილის კაფე + ორცხობილა", description: "დღის დარჩენილი ცომეული და კაფე ან ჩაი." },
-    en: { title: "Morning coffee + cookies", description: "Remaining pastries of the day with coffee or tea." },
-    ru: { title: "Утренний кофе + печенье", description: "Оставшаяся выпечка дня с кофе или чаем." },
+    ka: { title: "დილის კაფე + ორცხობილა", description: "ცხელი ცომეული და კაფე ან ჩაი 50%+ ფასდაკლებით." },
+    en: { title: "Morning coffee + cookies", description: "Fresh pastries plus coffee or tea, 50%+ off." },
+    ru: { title: "Утренний кофе + печенье", description: "Свежая выпечка и кофе или чай со скидкой 50%+." },
   },
 };
 
