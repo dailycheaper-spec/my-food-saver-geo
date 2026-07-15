@@ -667,7 +667,7 @@ const labels: Record<Language, Record<string, string>> = {
     apply: "Заполнить заявку",
     noPartnerOrders: "Заказов пока нет.",
     becomePartner: "Стать партнёром Cheaper",
-    partnerApplyText: "Продавай еду конца дня, уменьши потери и привлекай новых клиентов.",
+    partnerApplyText: "Предлагай продукты со скидкой 50%+, увеличивай продажи и привлекай новых клиентов.",
     storeName: "Название магазина *",
     logoEmoji: "Лого (эмодзи)",
     district: "Район *",
