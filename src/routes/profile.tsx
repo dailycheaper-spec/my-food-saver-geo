@@ -18,7 +18,7 @@ function Profile() {
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
-  const co2 = (saved * 1.2).toFixed(1);
+  const savedPct = "50%+";
   const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
 
   const displayName = profile?.first_name
