@@ -54,7 +54,7 @@ function QuickOfferPage() {
                 <div className="w-full h-20 rounded-xl mb-2 bg-muted grid place-items-center text-2xl">🍽</div>
               )}
               <div className="font-semibold text-sm truncate">{p.name}</div>
-              <div className="text-xs text-muted-foreground">{Number(p.default_original_price).toFixed(0)} ₾ · {Number(p.default_discounted_price).toFixed(0)} ₾</div>
+              <div className="text-xs text-muted-foreground">{Number(p.default_original_price).toFixed(0)} ლარი · {Number(p.default_discounted_price).toFixed(0)} ლარი</div>
               <button onClick={(e) => { e.stopPropagation(); if (confirm(t("deleteConfirm"))) deleteSavedProduct(p.id); }} className="mt-1 text-[11px] text-destructive/70 flex items-center gap-1"><Trash2 className="w-3 h-3" />{t("delete")}</button>
             </button>
           ))}
@@ -102,7 +102,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
         <div className="text-center mb-4">
           {product.image_url && <img src={product.image_url} className="w-20 h-20 rounded-2xl object-cover mx-auto mb-2" alt={product.name} />}
           <h3 className="font-display text-xl font-bold">{product.name}</h3>
-          <div className="text-sm text-muted-foreground">{t("original")}: {orig.toFixed(2)} ₾</div>
+          <div className="text-sm text-muted-foreground">{t("original")}: {orig.toFixed(2)} ლარი</div>
         </div>
 
         <div className="space-y-4">
@@ -118,7 +118,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
           <div>
             <div className="flex justify-between text-sm mb-1"><span>{t("discount")}</span><span className="font-bold">{discount}%</span></div>
             <input type="range" min={10} max={90} step={5} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full" />
-            <div className="text-center mt-2 font-bold text-2xl text-primary">{discounted.toFixed(2)} ₾</div>
+            <div className="text-center mt-2 font-bold text-2xl text-primary">{discounted.toFixed(2)} ლარი</div>
           </div>
         </div>
 

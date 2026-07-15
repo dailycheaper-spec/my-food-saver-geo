@@ -161,7 +161,7 @@ export function useRealtimeActivity(orders: OrderWithRelations[], offers: OfferW
       ...orders.slice(0, 20).map((o) => ({
         id: `o-${o.id}`,
         kind: "order" as const,
-        text: `ახალი შეკვეთა #${o.code} • ${o.store?.name ?? "—"} • ${Number(o.amount).toFixed(2)} ₾`,
+        text: `ახალი შეკვეთა #${o.code} • ${o.store?.name ?? "—"} • ${Number(o.amount).toFixed(2)} ლარი`,
         time: o.created_at,
       })),
       ...offers.slice(0, 10).map((o) => ({

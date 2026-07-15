@@ -40,7 +40,7 @@ function Notifications() {
 
   function triggerDemo() {
     const title = "🥖 ახალი პაკეტი 1.2 კმ-ში";
-    const body = "პური გულიანი — სიურპრიზ პაკეტი 10₾-ად";
+    const body = "პური გულიანი — სიურპრიზ პაკეტი 10ლარი-ად";
     if (permission === "granted") {
       new Notification(title, { body, icon: "/favicon.ico" });
     }
