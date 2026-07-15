@@ -33,7 +33,7 @@ export function AppTracker() {
       try {
         new Notification(`🎉 ${t("newOffer")}`, {
           body: `${first.storeName}: ${first.title} — ${first.price} ₾`,
-          tag: `gemo-new-${first.id}`,
+          tag: `cheaper-new-${first.id}`,
           icon: "/favicon.ico",
         });
       } catch { /* browser blocked */ }

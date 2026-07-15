@@ -16,13 +16,13 @@ export const Route = createFileRoute("/offer/$id")({
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.offer.title} — ${loaderData.offer.storeName} | გემო` },
+          { title: `${loaderData.offer.title} — ${loaderData.offer.storeName} | Cheaper` },
           { name: "description", content: loaderData.offer.description },
-          { property: "og:title", content: `${loaderData.offer.title} — გემო` },
+          { property: "og:title", content: `${loaderData.offer.title} — Cheaper` },
           { property: "og:description", content: loaderData.offer.description },
           { property: "og:image", content: loaderData.offer.image },
         ]
-      : [{ title: "შემოთავაზება — გემო" }, { name: "robots", content: "noindex" }],
+      : [{ title: "შემოთავაზება — Cheaper" }, { name: "robots", content: "noindex" }],
   }),
   component: OfferPage,
   notFoundComponent: () => (

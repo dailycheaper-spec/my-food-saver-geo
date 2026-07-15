@@ -6,7 +6,7 @@ import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
-  head: () => ({ meta: [{ title: "შეთავაზებები — გემო" }] }),
+  head: () => ({ meta: [{ title: "შეთავაზებები — Cheaper" }] }),
   component: OffersPage,
 });
 

@@ -5,7 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useMyStores, useStoreOrders, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 
 export const Route = createFileRoute("/_authenticated/partner/orders")({
-  head: () => ({ meta: [{ title: "შეკვეთები — გემო" }] }),
+  head: () => ({ meta: [{ title: "შეკვეთები — Cheaper" }] }),
   component: PartnerOrders,
 });
 

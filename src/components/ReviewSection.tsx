@@ -67,7 +67,7 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
             className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
           <div>
-            <div className="text-xs text-muted-foreground mb-1">გემო და ხარისხი</div>
+            <div className="text-xs text-muted-foreground mb-1">Cheaper და ხარისხი</div>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} type="button" onClick={() => setRating(n)}>

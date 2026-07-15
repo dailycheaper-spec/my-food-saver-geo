@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/orders/$id")({
-  head: () => ({ meta: [{ title: "შეკვეთა — გემო" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "შეკვეთა — Cheaper" }, { name: "robots", content: "noindex" }] }),
   component: OrderDetail,
 });
 

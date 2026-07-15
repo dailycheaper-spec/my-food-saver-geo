@@ -7,7 +7,7 @@ import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner-apply")({
-  head: () => ({ meta: [{ title: "გახდი პარტნიორი — გემო" }] }),
+  head: () => ({ meta: [{ title: "გახდი პარტნიორი — Cheaper" }] }),
   component: PartnerApply,
 });
 

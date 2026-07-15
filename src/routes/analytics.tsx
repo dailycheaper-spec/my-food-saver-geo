@@ -6,7 +6,7 @@ import { OFFERS, formatPrice } from "@/lib/mock-data";
 export const Route = createFileRoute("/analytics")({
   head: () => ({
     meta: [
-      { title: "ანალიტიკა — გემო" },
+      { title: "ანალიტიკა — Cheaper" },
       { name: "description", content: "პლატფორმის სტატისტიკა: ვიზიტები, შეკვეთები და ტოპ მაღაზიები." },
       { name: "robots", content: "noindex" },
     ],

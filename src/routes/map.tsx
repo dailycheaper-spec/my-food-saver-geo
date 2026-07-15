@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/map")({
   head: () => ({
     meta: [
-      { title: "რუკა — ახლომდებარე შემოთავაზებები | გემო" },
+      { title: "რუკა — ახლომდებარე შემოთავაზებები | Cheaper" },
       { name: "description", content: "იხილე შემოთავაზებები რუკაზე, გაიგე ზუსტი მდებარეობა და მანძილი." },
     ],
   }),

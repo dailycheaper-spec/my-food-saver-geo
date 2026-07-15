@@ -12,7 +12,7 @@ import heroImage from "@/assets/hero-bakery-clean.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "გემო — დავზოგოთ საკვები ფასდაკლებით" },
+      { title: "Cheaper — დავზოგოთ საკვები ფასდაკლებით" },
       { name: "description", content: "აღმოაჩინე დღის დარჩენილი გემრიელი პაკეტები ვაკეში, საბურთალოზე, ვერაზე და მთელ თბილისში. მიტანა ან ადგილზე აღება." },
     ],
   }),

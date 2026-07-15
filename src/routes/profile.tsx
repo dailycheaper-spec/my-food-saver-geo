@@ -6,7 +6,7 @@ import { useMyRole } from "@/lib/db";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "პროფილი — გემო" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
+  head: () => ({ meta: [{ title: "პროფილი — Cheaper" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
   component: Profile,
 });
 

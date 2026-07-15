@@ -6,7 +6,7 @@ import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/notifications")({
-  head: () => ({ meta: [{ title: "შეტყობინებები — გემო" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
+  head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
   component: Notifications,
 });
 

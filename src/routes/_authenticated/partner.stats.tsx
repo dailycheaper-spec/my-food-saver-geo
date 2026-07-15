@@ -6,7 +6,7 @@ import { KG_PER_OFFER } from "@/lib/partner-db";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/stats")({
-  head: () => ({ meta: [{ title: "სტატისტიკა — გემო" }] }),
+  head: () => ({ meta: [{ title: "სტატისტიკა — Cheaper" }] }),
   component: StatsPage,
 });
 

@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/ai")({
-  head: () => ({ meta: [{ title: "AI Mode — გემო" }] }),
+  head: () => ({ meta: [{ title: "AI Mode — Cheaper" }] }),
   component: AiOfferPage,
 });
 

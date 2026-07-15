@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { updateOrderStatus, useMyStores, formatGel } from "@/lib/db";
 
 export const Route = createFileRoute("/_authenticated/partner/scan")({
-  head: () => ({ meta: [{ title: "QR სკანერი — გემო" }] }),
+  head: () => ({ meta: [{ title: "QR სკანერი — Cheaper" }] }),
   component: ScanPage,
 });
 
