@@ -141,7 +141,7 @@ export const OFFERS: Offer[] = [
     id: "o7", storeId: "s7", storeName: "კულა კაფე", storeLogo: "☕",
     category: "კაფე",
     title: "დილის კაფე + ორცხობილა",
-    description: "დღის დარჩენილი ცომეული და კაფე ან ჩაი.",
+    description: "ცხელი ცომეული და კაფე ან ჩაი 50%+ ფასდაკლებით.",
     image: bagBakery,
     originalPrice: 18, price: 6,
     pickupFrom: "11:00", pickupTo: "12:30",
