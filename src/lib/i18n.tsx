@@ -434,7 +434,7 @@ const labels: Record<Language, Record<string, string>> = {
     todayOrders: "Orders today",
     todayRevenue: "Revenue today",
     totalSold: "Total sold",
-    foodSaved: "Food saved",
+    foodSaved: "Customer savings",
     topSelling: "Top selling",
     noData: "No data yet.",
     withdrawableBalance: "Withdrawable balance",
