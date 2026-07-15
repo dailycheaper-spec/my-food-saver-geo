@@ -387,7 +387,7 @@ const labels: Record<Language, Record<string, string>> = {
     apply: "Apply now",
     noPartnerOrders: "No orders yet.",
     becomePartner: "Become a Cheaper partner",
-    partnerApplyText: "Sell end-of-day food, reduce waste, and attract new customers.",
+    partnerApplyText: "Offer your products at 50%+ off, boost sales, and attract new customers.",
     storeName: "Store name *",
     logoEmoji: "Logo (emoji)",
     district: "District *",
