@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Leaf, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield } from "lucide-react";
+import { Percent, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
