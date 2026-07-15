@@ -154,7 +154,7 @@ const labels: Record<Language, Record<string, string>> = {
     todayOrders: "დღეს შეკვეთა",
     todayRevenue: "დღეს გამომუშავებული",
     totalSold: "სულ გაყიდული",
-    foodSaved: "დაზოგილი საკვები",
+    foodSaved: "მომხმარებელთა დანაზოგი",
     topSelling: "ყველაზე გაყიდვადი",
     noData: "ჯერ არ არის მონაცემები.",
     withdrawableBalance: "გამოსატანი ბალანსი",
