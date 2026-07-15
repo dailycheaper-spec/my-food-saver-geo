@@ -177,7 +177,7 @@ const labels: Record<Language, Record<string, string>> = {
     name: "სახელი",
     discountedPrice: "ფასდაკლებული (ლარი)",
     pickupEnd: "აღების ბოლო",
-    originalPrice: "ორიგინალი (₾)",
+    originalPrice: "ორიგინალი (ლარი)",
     creating: "იქმნება…",
     approvePublish: "დამტკიცება და გამოქვეყნება",
     publish: "გამოქვეყნება",
