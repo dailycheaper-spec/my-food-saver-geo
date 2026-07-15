@@ -315,9 +315,9 @@ export async function reactivateStore(storeId: string) {
 
 // ────── FORMATTING HELPERS ──────
 export function currencyLabel(): string {
-  if (typeof window === "undefined") return "₾";
+  if (typeof window === "undefined") return "ლარი";
   const lang = window.localStorage.getItem("cheaper-language") || "ka";
-  return lang === "en" ? "GEL" : lang === "ru" ? "лари" : "₾";
+  return lang === "en" ? "GEL" : lang === "ru" ? "лари" : "ლარი";
 }
 export function formatGel(n: number): string {
   return `${n.toFixed(2)} ${currencyLabel()}`;
