@@ -21,7 +21,7 @@ const labels: Record<Language, Record<string, string>> = {
     searchPlaceholder: "ეძებე მაღაზია, კერძი ან უბანი...",
     surprisePack: "სიურპრიზ პაკეტი",
     giftFeature: "„გააჩუქე“ ფუნქცია",
-    ecoChoice: "ეკო-მიდგომა",
+    ecoChoice: "50%+ ფასდაკლება",
     allDistricts: "ყველა უბანი",
     deliveryOnly: "მხოლოდ მიტანით",
     nearbyOffers: "ახლომდებარე შემოთავაზებები",
