@@ -171,15 +171,17 @@ export async function fetchMyStores(): Promise<DbStore[]> {
   const uid = await getCurrentUserId();
   if (!uid) return [];
   const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", uid);
-  if (ownedError) throw ownedError;
   const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", uid);
-  if (memberError) throw memberError;
+
+  if (ownedError && memberError) {
+    throw ownedError;
+  }
+
   const memberIds = (memberOf ?? []).map((m) => m.store_id);
   let extra: DbStore[] = [];
   if (memberIds.length) {
     const { data, error } = await supabase.from("stores").select("*").in("id", memberIds);
-    if (error) throw error;
-    extra = data ?? [];
+    if (!error) extra = data ?? [];
   }
   const map = new Map<string, DbStore>();
   [...(owned ?? []), ...extra].forEach((s) => map.set(s.id, s));
