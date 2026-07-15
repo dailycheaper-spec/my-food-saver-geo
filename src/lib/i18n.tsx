@@ -67,7 +67,7 @@ const labels: Record<Language, Record<string, string>> = {
     backHome: "მთავარზე დაბრუნება",
     pickupTime: "აღების დრო",
     address: "მისამართი",
-    impactLine: "ამ პაკეტის ყიდვით შეამცირებ ~1.2 კგ CO₂-ს",
+    impactLine: "ამ პაკეტზე დაზოგავ 50%-ზე მეტს — იაფად და გემრიელად",
     howReceive: "როგორ მიიღებ?",
     pickupInStore: "ადგილზე აღება",
     free: "უფასო",
