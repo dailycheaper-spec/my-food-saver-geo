@@ -627,7 +627,7 @@ const labels: Record<Language, Record<string, string>> = {
     backHome: "На главную",
     pickupTime: "Время самовывоза",
     address: "Адрес",
-    impactLine: "Покупка этого пакета снижает около 1.2 кг CO₂",
+    impactLine: "На этом пакете экономишь более 50% — дешево и вкусно",
     howReceive: "Как получить?",
     pickupInStore: "Самовывоз",
     free: "Бесплатно",
