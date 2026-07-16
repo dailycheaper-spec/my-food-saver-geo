@@ -102,7 +102,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
         <div className="text-center mb-4">
           {product.image_url && <img src={product.image_url} className="w-20 h-20 rounded-2xl object-cover mx-auto mb-2" alt={product.name} />}
           <h3 className="font-display text-xl font-bold">{product.name}</h3>
-          <div className="text-sm text-muted-foreground">{t("original")}: {orig.toFixed(2)} ლარი</div>
+          <div className="text-sm text-muted-foreground">{t("original")}: {orig.toFixed(2)} {t("currency")}</div>
         </div>
 
         <div className="space-y-4">
