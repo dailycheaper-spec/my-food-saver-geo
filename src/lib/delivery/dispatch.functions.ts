@@ -79,7 +79,7 @@ export const dispatchDelivery = createServerFn({ method: "POST" })
             estimated_delivery_at: result.estimatedDeliveryAt,
             courier_name: result.courierName,
             courier_phone: result.courierPhone,
-            provider_payload: result.payload ?? null,
+            provider_payload: (result.payload ?? null) as never,
           })
           .select()
           .single();
@@ -111,7 +111,13 @@ export const updateDeliveryStatus = createServerFn({ method: "POST" })
     courierPhone?: string;
   }) => input)
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
+    const patch: {
+      status: typeof data.status;
+      courier_name?: string;
+      courier_phone?: string;
+      picked_up_at?: string;
+      delivered_at?: string;
+    } = { status: data.status };
     if (data.courierName) patch.courier_name = data.courierName;
     if (data.courierPhone) patch.courier_phone = data.courierPhone;
     if (data.status === "picked_up") patch.picked_up_at = new Date().toISOString();
