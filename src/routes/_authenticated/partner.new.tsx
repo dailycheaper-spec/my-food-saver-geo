@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, Image as ImageIcon, Sparkles, Camera, Upload, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateOfferImage } from "@/lib/ai-image.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -25,6 +27,10 @@ function NewOfferPage() {
   const store = stores[0] ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [generatingImg, setGeneratingImg] = useState(false);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const generateImg = useServerFn(generateOfferImage);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -37,6 +43,27 @@ function NewOfferPage() {
     image_url: "",
     delivery_available: false,
   });
+
+  async function handleAiGenerate() {
+    const prompt = form.title.trim() || form.description.trim();
+    if (!prompt) { alert(t("productName")); return; }
+    setGeneratingImg(true);
+    try {
+      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
+      setForm((f) => ({ ...f, image_url: r.dataUrl }));
+    } catch (e: any) {
+      alert("AI: " + e.message);
+    }
+    setGeneratingImg(false);
+  }
+
+  function handleFile(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm((f) => ({ ...f, image_url: String(reader.result) }));
+    reader.readAsDataURL(file);
+  }
+
 
   async function publish(e: React.FormEvent) {
     e.preventDefault();
@@ -74,20 +101,50 @@ function NewOfferPage() {
 
       <form onSubmit={publish} className="space-y-4">
         <div>
-          <Label>{t("photoUrl")}</Label>
+          <Label>{t("photo")}</Label>
+          {form.image_url && (
+            <img src={form.image_url} alt="preview" className="mb-2 w-full h-48 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = "none")} />
+          )}
+          <div className="grid grid-cols-3 gap-2 mb-2">
+            <button
+              type="button"
+              onClick={handleAiGenerate}
+              disabled={generatingImg}
+              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
+            >
+              {generatingImg ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              {generatingImg ? t("generating") : t("generateWithAi")}
+            </button>
+            <button
+              type="button"
+              onClick={() => cameraRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+            >
+              <Camera className="w-5 h-5" />
+              {t("takePhoto")}
+            </button>
+            <button
+              type="button"
+              onClick={() => uploadRef.current?.click()}
+              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+            >
+              <Upload className="w-5 h-5" />
+              {t("uploadPhoto")}
+            </button>
+          </div>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+          <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
           <div className="relative">
             <ImageIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
-              value={form.image_url}
+              value={form.image_url.startsWith("data:") ? "" : form.image_url}
               onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-              placeholder="https://..."
-              className="w-full pl-9 pr-3 py-3 rounded-2xl bg-muted/40 border border-border text-sm"
+              placeholder={t("orPasteUrl")}
+              className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-muted/40 border border-border text-sm"
             />
           </div>
-          {form.image_url && (
-            <img src={form.image_url} alt="preview" className="mt-2 w-full h-40 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = "none")} />
-          )}
         </div>
+
 
         <Field label={t("productName")} value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
 
