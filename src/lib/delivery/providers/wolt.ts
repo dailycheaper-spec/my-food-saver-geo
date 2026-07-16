@@ -6,7 +6,7 @@ export const woltProvider: DeliveryProvider = {
   id: "wolt",
   label: "Wolt Drive",
   configured: Boolean(process.env.WOLT_API_KEY),
-  async createDelivery(input) {
+  async createDelivery(_input) {
     if (!process.env.WOLT_API_KEY) throw new Error("Wolt Drive is not configured yet");
     // TODO: POST https://daas-public-api.wolt.com/v2/venues/{merchantId}/deliveries
     // with pickup/dropoff/customer, using Bearer WOLT_API_KEY.
@@ -22,8 +22,6 @@ export const woltProvider: DeliveryProvider = {
     // TODO: verify HMAC in the route handler, then map payload → status.
     const p = payload as { id?: string; status?: string };
     if (!p?.id) return null;
-    const map: Record<string, DeliveryProvider["id"] extends string ? string : never> = {};
-    void map;
     return { providerDeliveryId: p.id, update: { status: "pending" } };
   },
 };
