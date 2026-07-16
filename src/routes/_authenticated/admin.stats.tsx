@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { TrendingUp, Store, Package, Users, Leaf } from "lucide-react";
-import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
+import { useAllOrders, useAllStores, formatGel, currencyLabel } from "@/lib/db";
 import { useAllOffers } from "@/lib/admin-db";
 
 export const Route = createFileRoute("/_authenticated/admin/stats")({
