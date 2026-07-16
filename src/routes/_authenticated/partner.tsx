@@ -153,7 +153,7 @@ function PartnerLayout() {
 
       {/* Mobile bottom tab bar */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/90 backdrop-blur-xl border-t border-border/40 pb-safe">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {nav.map((n) => {
             const active = n.exact ? path === n.to : path.startsWith(n.to);
             return (
