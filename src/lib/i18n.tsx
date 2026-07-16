@@ -866,6 +866,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem(STORAGE_KEY, language);
+    // notify non-React readers (formatGel/currencyLabel) that language changed
+    window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
   }, [language]);
 
   const value = useMemo<I18nContextValue>(() => ({
