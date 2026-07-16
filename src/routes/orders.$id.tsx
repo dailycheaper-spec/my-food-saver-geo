@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } f
 import { useOrders, updateOrder } from "@/lib/storage";
 import { formatPrice } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
+import { DeliveryTracker } from "@/components/DeliveryTracker";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "შეკვეთა — Cheaper" }, { name: "robots", content: "noindex" }] }),
@@ -94,6 +95,14 @@ function OrderDetail() {
           </span>
         </div>
       </div>
+
+      {/* Live delivery tracker (renders only if a deliveries row exists for this order) */}
+      {order.method === "მიტანა" && (
+        <div className="mt-4">
+          <DeliveryTracker orderId={order.id} />
+        </div>
+      )}
+
 
       {/* QR pickup code */}
       {order.status === "დაჯავშნილი" && (
