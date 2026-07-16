@@ -54,7 +54,7 @@ function QuickOfferPage() {
                 <div className="w-full h-20 rounded-xl mb-2 bg-muted grid place-items-center text-2xl">🍽</div>
               )}
               <div className="font-semibold text-sm truncate">{p.name}</div>
-              <div className="text-xs text-muted-foreground">{Number(p.default_original_price).toFixed(0)} ლარი · {Number(p.default_discounted_price).toFixed(0)} ლარი</div>
+              <div className="text-xs text-muted-foreground">{Number(p.default_original_price).toFixed(0)} {t("currency")} · {Number(p.default_discounted_price).toFixed(0)} {t("currency")}</div>
               <button onClick={(e) => { e.stopPropagation(); if (confirm(t("deleteConfirm"))) deleteSavedProduct(p.id); }} className="mt-1 text-[11px] text-destructive/70 flex items-center gap-1"><Trash2 className="w-3 h-3" />{t("delete")}</button>
             </button>
           ))}
