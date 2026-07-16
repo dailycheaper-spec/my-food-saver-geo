@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import type { OfferWithStore, OrderWithRelations } from "@/lib/db";
+import { currencyLabel, type OfferWithStore, type OrderWithRelations } from "@/lib/db";
 
 export type DbPayout = Database["public"]["Tables"]["payouts"]["Row"];
 export type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
