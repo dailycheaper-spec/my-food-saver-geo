@@ -14,6 +14,108 @@ export type Database = {
   }
   public: {
     Tables: {
+      deliveries: {
+        Row: {
+          courier_lat: number | null
+          courier_lng: number | null
+          courier_name: string | null
+          courier_phone: string | null
+          created_at: string
+          delivered_at: string | null
+          dropoff_address: string | null
+          dropoff_lat: number | null
+          dropoff_lng: number | null
+          estimated_delivery_at: string | null
+          estimated_pickup_at: string | null
+          fee: number
+          id: string
+          notes: string | null
+          order_id: string
+          paid_by: Database["public"]["Enums"]["delivery_fee_payer"]
+          picked_up_at: string | null
+          pickup_address: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          provider: Database["public"]["Enums"]["delivery_provider"]
+          provider_delivery_id: string | null
+          provider_payload: Json | null
+          status: Database["public"]["Enums"]["delivery_status"]
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          courier_lat?: number | null
+          courier_lng?: number | null
+          courier_name?: string | null
+          courier_phone?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dropoff_address?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          estimated_delivery_at?: string | null
+          estimated_pickup_at?: string | null
+          fee?: number
+          id?: string
+          notes?: string | null
+          order_id: string
+          paid_by?: Database["public"]["Enums"]["delivery_fee_payer"]
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          provider?: Database["public"]["Enums"]["delivery_provider"]
+          provider_delivery_id?: string | null
+          provider_payload?: Json | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          courier_lat?: number | null
+          courier_lng?: number | null
+          courier_name?: string | null
+          courier_phone?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          dropoff_address?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          estimated_delivery_at?: string | null
+          estimated_pickup_at?: string | null
+          fee?: number
+          id?: string
+          notes?: string | null
+          order_id?: string
+          paid_by?: Database["public"]["Enums"]["delivery_fee_payer"]
+          picked_up_at?: string | null
+          pickup_address?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          provider?: Database["public"]["Enums"]["delivery_provider"]
+          provider_delivery_id?: string | null
+          provider_payload?: Json | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           available_date: string
@@ -92,6 +194,9 @@ export type Database = {
           collected_at: string | null
           created_at: string
           delivery_address: string | null
+          delivery_id: string | null
+          delivery_lat: number | null
+          delivery_lng: number | null
           gifted_to: string | null
           id: string
           method: Database["public"]["Enums"]["order_method"]
@@ -108,6 +213,9 @@ export type Database = {
           collected_at?: string | null
           created_at?: string
           delivery_address?: string | null
+          delivery_id?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
@@ -124,6 +232,9 @@ export type Database = {
           collected_at?: string | null
           created_at?: string
           delivery_address?: string | null
+          delivery_id?: string | null
+          delivery_lat?: number | null
+          delivery_lng?: number | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
@@ -135,6 +246,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_offer_id_fkey"
             columns: ["offer_id"]
@@ -306,12 +424,18 @@ export type Database = {
           address: string | null
           category: string
           created_at: string
+          delivery_enabled: boolean
+          delivery_fee_base: number
+          delivery_fee_per_km: number
+          delivery_providers: string[]
+          delivery_radius_km: number
           description: string | null
           district: string | null
           id: string
           lat: number | null
           lng: number | null
           logo: string | null
+          min_order_for_delivery: number
           name: string
           owner_id: string | null
           phone: string | null
@@ -322,12 +446,18 @@ export type Database = {
           address?: string | null
           category?: string
           created_at?: string
+          delivery_enabled?: boolean
+          delivery_fee_base?: number
+          delivery_fee_per_km?: number
+          delivery_providers?: string[]
+          delivery_radius_km?: number
           description?: string | null
           district?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
           logo?: string | null
+          min_order_for_delivery?: number
           name: string
           owner_id?: string | null
           phone?: string | null
@@ -338,12 +468,18 @@ export type Database = {
           address?: string | null
           category?: string
           created_at?: string
+          delivery_enabled?: boolean
+          delivery_fee_base?: number
+          delivery_fee_per_km?: number
+          delivery_providers?: string[]
+          delivery_radius_km?: number
           description?: string | null
           district?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
           logo?: string | null
+          min_order_for_delivery?: number
           name?: string
           owner_id?: string | null
           phone?: string | null
@@ -392,6 +528,23 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "partner" | "user"
+      delivery_fee_payer: "customer" | "store" | "cheaper"
+      delivery_provider:
+        | "in_house"
+        | "cheaper_fleet"
+        | "wolt"
+        | "bolt"
+        | "glovo"
+        | "manual"
+        | "external_generic"
+      delivery_status:
+        | "pending"
+        | "assigned"
+        | "picked_up"
+        | "on_the_way"
+        | "delivered"
+        | "failed"
+        | "cancelled"
       order_method: "pickup" | "delivery"
       order_status:
         | "pending"
@@ -529,6 +682,25 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "partner", "user"],
+      delivery_fee_payer: ["customer", "store", "cheaper"],
+      delivery_provider: [
+        "in_house",
+        "cheaper_fleet",
+        "wolt",
+        "bolt",
+        "glovo",
+        "manual",
+        "external_generic",
+      ],
+      delivery_status: [
+        "pending",
+        "assigned",
+        "picked_up",
+        "on_the_way",
+        "delivered",
+        "failed",
+        "cancelled",
+      ],
       order_method: ["pickup", "delivery"],
       order_status: [
         "pending",
