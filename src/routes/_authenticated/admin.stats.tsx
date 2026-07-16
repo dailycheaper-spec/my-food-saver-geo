@@ -101,7 +101,7 @@ function AdminStats() {
           {buckets.map(([date, value]) => (
             <div key={date} className="flex-1 flex flex-col items-center gap-1 group">
               <div className="text-[10px] font-mono text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                {value.toFixed(0)}ლარი
+                {value.toFixed(0)} {currencyLabel()}
               </div>
               <div className="w-full bg-primary/80 hover:bg-primary rounded-t-lg transition-colors"
                 style={{ height: `${(value / maxBucket) * 100}%`, minHeight: value > 0 ? "4px" : "0" }} />
