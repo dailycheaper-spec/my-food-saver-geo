@@ -118,7 +118,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
           <div>
             <div className="flex justify-between text-sm mb-1"><span>{t("discount")}</span><span className="font-bold">{discount}%</span></div>
             <input type="range" min={10} max={90} step={5} value={discount} onChange={(e) => setDiscount(Number(e.target.value))} className="w-full" />
-            <div className="text-center mt-2 font-bold text-2xl text-primary">{discounted.toFixed(2)} ლარი</div>
+            <div className="text-center mt-2 font-bold text-2xl text-primary">{discounted.toFixed(2)} {t("currency")}</div>
           </div>
         </div>
 
