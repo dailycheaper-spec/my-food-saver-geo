@@ -123,7 +123,7 @@ function PartnerDelivery() {
       )}
 
       <button onClick={save} disabled={saving} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-50">
-        {saving ? t("saving") : saved ? `✓ ${t("saved")}` : t("save")}
+        {saving ? t("saving") : saved ? `✓ ${t("saveDone")}` : t("save")}
       </button>
     </div>
   );
