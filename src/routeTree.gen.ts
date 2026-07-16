@@ -34,6 +34,7 @@ import { Route as AuthenticatedPartnerProfileRouteImport } from './routes/_authe
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
 import { Route as AuthenticatedPartnerNewRouteImport } from './routes/_authenticated/partner.new'
+import { Route as AuthenticatedPartnerDeliveryRouteImport } from './routes/_authenticated/partner.delivery'
 import { Route as AuthenticatedPartnerBalanceRouteImport } from './routes/_authenticated/partner.balance'
 import { Route as AuthenticatedPartnerAiRouteImport } from './routes/_authenticated/partner.ai'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -43,6 +44,9 @@ import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin.partners'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
+import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
+import { Route as ApiPublicDeliveryGlovoRouteImport } from './routes/api/public/delivery/glovo'
+import { Route as ApiPublicDeliveryBoltRouteImport } from './routes/api/public/delivery/bolt'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -177,6 +181,12 @@ const AuthenticatedPartnerNewRoute = AuthenticatedPartnerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AuthenticatedPartnerRoute,
 } as any)
+const AuthenticatedPartnerDeliveryRoute =
+  AuthenticatedPartnerDeliveryRouteImport.update({
+    id: '/delivery',
+    path: '/delivery',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerBalanceRoute =
   AuthenticatedPartnerBalanceRouteImport.update({
     id: '/balance',
@@ -228,6 +238,21 @@ const AuthenticatedAdminOffersRoute =
     path: '/offers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicDeliveryWoltRoute = ApiPublicDeliveryWoltRouteImport.update({
+  id: '/api/public/delivery/wolt',
+  path: '/api/public/delivery/wolt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDeliveryGlovoRoute = ApiPublicDeliveryGlovoRouteImport.update({
+  id: '/api/public/delivery/glovo',
+  path: '/api/public/delivery/glovo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDeliveryBoltRoute = ApiPublicDeliveryBoltRouteImport.update({
+  id: '/api/public/delivery/bolt',
+  path: '/api/public/delivery/bolt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -253,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -263,6 +289,9 @@ export interface FileRoutesByFullPath {
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
+  '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
+  '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
+  '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -286,6 +315,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -296,6 +326,9 @@ export interface FileRoutesByTo {
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
+  '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
+  '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
+  '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -323,6 +356,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/_authenticated/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/_authenticated/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/_authenticated/partner/new': typeof AuthenticatedPartnerNewRoute
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -333,6 +367,9 @@ export interface FileRoutesById {
   '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
+  '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
+  '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
+  '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -360,6 +397,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
+    | '/partner/delivery'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -370,6 +408,9 @@ export interface FileRouteTypes {
     | '/partner/store'
     | '/admin/'
     | '/partner/'
+    | '/api/public/delivery/bolt'
+    | '/api/public/delivery/glovo'
+    | '/api/public/delivery/wolt'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -393,6 +434,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
+    | '/partner/delivery'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -403,6 +445,9 @@ export interface FileRouteTypes {
     | '/partner/store'
     | '/admin'
     | '/partner'
+    | '/api/public/delivery/bolt'
+    | '/api/public/delivery/glovo'
+    | '/api/public/delivery/wolt'
   id:
     | '__root__'
     | '/'
@@ -429,6 +474,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/partner/ai'
     | '/_authenticated/partner/balance'
+    | '/_authenticated/partner/delivery'
     | '/_authenticated/partner/new'
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
@@ -439,6 +485,9 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/store'
     | '/_authenticated/admin/'
     | '/_authenticated/partner/'
+    | '/api/public/delivery/bolt'
+    | '/api/public/delivery/glovo'
+    | '/api/public/delivery/wolt'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -454,6 +503,9 @@ export interface RootRouteChildren {
   OfferIdRoute: typeof OfferIdRoute
   OrdersIdRoute: typeof OrdersIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
+  ApiPublicDeliveryBoltRoute: typeof ApiPublicDeliveryBoltRoute
+  ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
+  ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -633,6 +685,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerNewRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/delivery': {
+      id: '/_authenticated/partner/delivery'
+      path: '/delivery'
+      fullPath: '/partner/delivery'
+      preLoaderRoute: typeof AuthenticatedPartnerDeliveryRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/balance': {
       id: '/_authenticated/partner/balance'
       path: '/balance'
@@ -696,6 +755,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOffersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/delivery/wolt': {
+      id: '/api/public/delivery/wolt'
+      path: '/api/public/delivery/wolt'
+      fullPath: '/api/public/delivery/wolt'
+      preLoaderRoute: typeof ApiPublicDeliveryWoltRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/delivery/glovo': {
+      id: '/api/public/delivery/glovo'
+      path: '/api/public/delivery/glovo'
+      fullPath: '/api/public/delivery/glovo'
+      preLoaderRoute: typeof ApiPublicDeliveryGlovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/delivery/bolt': {
+      id: '/api/public/delivery/bolt'
+      path: '/api/public/delivery/bolt'
+      fullPath: '/api/public/delivery/bolt'
+      preLoaderRoute: typeof ApiPublicDeliveryBoltRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -727,6 +807,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerAiRoute: typeof AuthenticatedPartnerAiRoute
   AuthenticatedPartnerBalanceRoute: typeof AuthenticatedPartnerBalanceRoute
+  AuthenticatedPartnerDeliveryRoute: typeof AuthenticatedPartnerDeliveryRoute
   AuthenticatedPartnerNewRoute: typeof AuthenticatedPartnerNewRoute
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
@@ -741,6 +822,7 @@ interface AuthenticatedPartnerRouteChildren {
 const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerAiRoute: AuthenticatedPartnerAiRoute,
   AuthenticatedPartnerBalanceRoute: AuthenticatedPartnerBalanceRoute,
+  AuthenticatedPartnerDeliveryRoute: AuthenticatedPartnerDeliveryRoute,
   AuthenticatedPartnerNewRoute: AuthenticatedPartnerNewRoute,
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
@@ -783,6 +865,9 @@ const rootRouteChildren: RootRouteChildren = {
   OfferIdRoute: OfferIdRoute,
   OrdersIdRoute: OrdersIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
+  ApiPublicDeliveryBoltRoute: ApiPublicDeliveryBoltRoute,
+  ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
+  ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
