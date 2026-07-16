@@ -6,8 +6,6 @@ import { generateOfferImage } from "@/lib/ai-image.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
-import { supabase } from "@/integrations/supabase/client";
-import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
