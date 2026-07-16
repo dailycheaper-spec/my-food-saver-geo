@@ -27,6 +27,10 @@ function NewOfferPage() {
   const store = stores[0] ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [generatingImg, setGeneratingImg] = useState(false);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const uploadRef = useRef<HTMLInputElement>(null);
+  const generateImg = useServerFn(generateOfferImage);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -39,6 +43,27 @@ function NewOfferPage() {
     image_url: "",
     delivery_available: false,
   });
+
+  async function handleAiGenerate() {
+    const prompt = form.title.trim() || form.description.trim();
+    if (!prompt) { alert(t("productName")); return; }
+    setGeneratingImg(true);
+    try {
+      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
+      setForm((f) => ({ ...f, image_url: r.dataUrl }));
+    } catch (e: any) {
+      alert("AI: " + e.message);
+    }
+    setGeneratingImg(false);
+  }
+
+  function handleFile(file: File | undefined) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setForm((f) => ({ ...f, image_url: String(reader.result) }));
+    reader.readAsDataURL(file);
+  }
+
 
   async function publish(e: React.FormEvent) {
     e.preventDefault();
