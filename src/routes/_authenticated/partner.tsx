@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell } from "lucide-react";
+import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useMyRole, useMyStores, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +47,7 @@ function PartnerLayout() {
     { to: "/partner", label: t("navHome"), icon: Home, exact: true },
     { to: "/partner/offers", label: t("offers"), icon: PackageOpen },
     { to: "/partner/orders", label: t("navOrders"), icon: ShoppingBag, badge: newCount },
+    { to: "/partner/delivery", label: t("navDelivery"), icon: Truck },
     { to: "/partner/stats", label: t("stats"), icon: BarChart3 },
   ];
 
