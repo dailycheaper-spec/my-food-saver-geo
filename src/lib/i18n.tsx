@@ -957,13 +957,22 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.lang = language;
     window.localStorage.setItem(STORAGE_KEY, language);
-    // notify non-React readers (formatGel/currencyLabel) that language changed
     window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
   }, [language]);
 
+  const setLanguage = (l: Language) => {
+    // write localStorage synchronously so formatGel/currencyLabel pick up
+    // the new currency on the same render as the language change.
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, l);
+      window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: l }));
+    }
+    setLanguageState(l);
+  };
+
   const value = useMemo<I18nContextValue>(() => ({
     language,
-    setLanguage: setLanguageState,
+    setLanguage,
     t: (key: string) => labels[language][key] ?? labels.ka[key] ?? key,
   }), [language]);
 
