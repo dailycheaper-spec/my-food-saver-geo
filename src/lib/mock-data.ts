@@ -127,7 +127,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "18:30", pickupTo: "20:30",
     district: "ისანი", address: "ქეთევან წამებულის გამზ. 44",
     distanceKm: 3.4, rating: 4.9, reviewCount: 421, itemsLeft: 5,
-    delivery: true, deliveryFee: 4,
+    delivery: true, deliveryFee: 4, isSurprise: true,
   },
   {
     id: "o6", storeId: "s3", storeName: "მაჭახელა", storeLogo: "🧀",
