@@ -77,6 +77,11 @@ export function OfferCard({ offer }: { offer: Offer }) {
               <Flame className="w-3 h-3" /> {t("badgeAlmostGone")}
             </span>
           )}
+          {offer.isSurprise && !soldOut && (
+            <span className="px-2 py-1 rounded-full bg-fuchsia-500 text-white text-[10px] font-bold flex items-center gap-1">
+              <Gift className="w-3 h-3" /> {t("badgeSurprise")}
+            </span>
+          )}
         </div>
 
         {/* right badges */}
