@@ -1,15 +1,15 @@
 import type { Language } from "@/lib/i18n";
 
 export const COMPANY = {
-  nameKa: "შ.პ.ს. „გეოინსტრუმენტი“",
-  nameEn: "LLC Geoinstrumenti",
-  nameRu: "ООО «Геоинструменти»",
-  id: "404489665",
+  nameKa: "შ.პ.ს. „გეოკუბი“",
+  nameEn: "LLC Geokubi",
+  nameRu: "ООО «Геокуби»",
+  id: "404715947",
   addressKa: "ვასილ ბარნოვის 71, თბილისი, საქართველო, 0179",
   addressEn: "71 Vasil Barnovi Str., Tbilisi, Georgia, 0179",
   addressRu: "ул. Василия Барнови 71, Тбилиси, Грузия, 0179",
   phone: "+995 599 161 187",
-  email: "geoinstrumenti@gmail.com",
+  email: "dailycheaper@gmail.com",
 };
 
 type Section = { title: string; body: string };
