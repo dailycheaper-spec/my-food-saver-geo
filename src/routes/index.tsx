@@ -44,12 +44,6 @@ function Home() {
   }, [cat, district, q, onlyDelivery, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
-  const bestToday = useMemo(() => {
-    return [...filtered]
-      .sort((a, b) => (1 - a.price / a.originalPrice) - (1 - b.price / b.originalPrice))
-      .reverse()
-      .slice(0, 6);
-  }, [filtered]);
   const dailyDiscovery = useMemo(() => {
     if (filtered.length === 0) return null;
     const day = new Date().toISOString().slice(0, 10);
