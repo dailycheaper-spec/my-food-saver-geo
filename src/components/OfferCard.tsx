@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star } from "lucide-react";
+import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star, Gift } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
 import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
