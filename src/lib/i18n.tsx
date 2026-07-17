@@ -1061,24 +1061,45 @@ export function useI18n() {
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage, t } = useI18n();
-  const options: { value: Language; label: string }[] = [
-    { value: "ka", label: "ქარ" },
-    { value: "en", label: "EN" },
-    { value: "ru", label: "RU" },
+  const options: { value: Language; label: string; flag: string }[] = [
+    { value: "ka", label: "ქარ", flag: "🇬🇪" },
+    { value: "en", label: "EN", flag: "🇬🇧" },
+    { value: "ru", label: "RU", flag: "🇷🇺" },
   ];
 
   return (
-    <div className={`inline-flex items-center rounded-full bg-card/90 p-0.5 shadow-soft ${compact ? "text-[10px]" : "text-xs"}`} aria-label={t("language")}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => setLanguage(option.value)}
-          className={`rounded-full px-2 py-1 font-semibold transition-colors ${language === option.value ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-muted"}`}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div
+      role="group"
+      aria-label={t("language")}
+      className="inline-flex items-center rounded-full border border-border bg-card p-0.5 shadow-soft gap-0.5"
+    >
+      {options.map((option) => {
+        const active = language === option.value;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setLanguage(option.value)}
+            aria-pressed={active}
+            aria-label={option.label}
+            title={option.label}
+            className={`inline-flex items-center justify-center rounded-full font-bold leading-none transition-colors ${
+              compact
+                ? "min-w-[34px] h-8 px-2 text-[11px]"
+                : "min-w-[42px] h-9 px-2.5 text-xs"
+            } ${
+              active
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-foreground hover:bg-muted"
+            }`}
+          >
+            <span aria-hidden="true" className="text-[15px] leading-none">
+              {option.flag}
+            </span>
+            <span className="ml-1 hidden min-[400px]:inline">{option.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
