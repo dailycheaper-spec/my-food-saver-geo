@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store, Compass, Flame, Utensils, Shuffle } from "lucide-react";
+import { MapPin, Search, Leaf, Map as MapIcon, Shield, Store, Compass, Utensils, Shuffle } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
@@ -44,12 +44,6 @@ function Home() {
   }, [cat, district, q, onlyDelivery, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
-  const bestToday = useMemo(() => {
-    return [...filtered]
-      .sort((a, b) => (1 - a.price / a.originalPrice) - (1 - b.price / b.originalPrice))
-      .reverse()
-      .slice(0, 6);
-  }, [filtered]);
   const dailyDiscovery = useMemo(() => {
     if (filtered.length === 0) return null;
     const day = new Date().toISOString().slice(0, 10);
@@ -138,21 +132,6 @@ function Home() {
         </div>
       </header>
 
-      {/* Feature strip */}
-      <section className="mx-auto max-w-2xl px-4 -mt-4 relative z-10">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: Sparkles, label: t("surprisePack") },
-            { icon: Gift, label: t("giftFeature") },
-            { icon: Leaf, label: t("ecoChoice") },
-          ].map(({ icon: I, label }) => (
-            <div key={label} className="bg-card rounded-xl p-3 shadow-soft text-center">
-              <I className="w-5 h-5 mx-auto text-primary" />
-              <div className="text-[11px] font-medium mt-1">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Categories */}
       <section className="mx-auto max-w-2xl px-4 mt-6">
@@ -237,21 +216,9 @@ function Home() {
         </section>
       )}
 
-      {/* Today's Best Deals */}
-      {bestToday.length > 0 && (
-        <section className="mx-auto max-w-2xl px-4 mt-8">
-          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
-            <Flame className="w-5 h-5 text-red-500" /> {t("sectionBestToday")}
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {bestToday.map((o) => <OfferCard key={o.id} offer={o} />)}
-          </div>
-        </section>
-      )}
-
-      {/* Daily Discovery */}
+      {/* Today's Discovery */}
       {dailyDiscovery && (
-        <section className="mx-auto max-w-2xl px-4 mt-8">
+        <section className="mx-auto max-w-2xl px-4 mt-8 mb-8">
           <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
             <Compass className="w-5 h-5 text-accent-foreground" /> {t("sectionDaily")}
           </h2>
@@ -260,17 +227,6 @@ function Home() {
           </div>
         </section>
       )}
-
-      <section className="mx-auto max-w-2xl px-4 mt-8 mb-8">
-        <div className="rounded-2xl bg-warm text-warm-foreground p-5 flex items-center gap-4">
-          <div className="text-3xl">🎁</div>
-          <div className="flex-1">
-            <div className="font-semibold">{t("cantPickup")}</div>
-            <p className="text-xs opacity-80">{t("giftOrderText")}</p>
-          </div>
-          <Link to="/orders" className="text-xs font-semibold underline">{t("view")}</Link>
-        </div>
-      </section>
     </div>
   );
 }
