@@ -51,7 +51,16 @@ function OfferPage() {
   const total = offer.price * quantity + deliveryFee;
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
 
-  useEffect(() => { trackOfferView(offer.id); }, [offer.id]);
+  useEffect(() => {
+    trackOfferView(offer.id);
+    try {
+      const KEY = "cheaper:recent-views";
+      const raw = localStorage.getItem(KEY);
+      const list: string[] = raw ? JSON.parse(raw) : [];
+      const next = [offer.id, ...list.filter((x) => x !== offer.id)].slice(0, 10);
+      localStorage.setItem(KEY, JSON.stringify(next));
+    } catch {}
+  }, [offer.id]);
 
   function handleReserve() {
     const order = createOrder({

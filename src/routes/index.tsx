@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { MapPin, Search, Leaf, Map as MapIcon, Shield, Store, Compass, Utensils, Shuffle } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category } from "@/lib/mock-data";
-import { useFavorites, isTrustedPartner } from "@/lib/storage";
+import { useMemo, useState, useEffect } from "react";
+import {
+  MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
+  ChevronRight, Clock, Utensils,
+} from "lucide-react";
+import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category } from "@/lib/mock-data";
+import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
@@ -20,169 +23,353 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+const RECENT_VIEW_KEY = "cheaper:recent-views";
+
 function Home() {
   const { t, language } = useI18n();
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
   const [district, setDistrict] = useState("ყველა უბანი");
   const [q, setQ] = useState("");
-  const [onlyDelivery, setOnlyDelivery] = useState(false);
   const { user } = useAuth();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
-  const [surpriseSeed, setSurpriseSeed] = useState(0);
+  const hydrated = useHydrated();
+
+  const [recentIds, setRecentIds] = useState<string[]>([]);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RECENT_VIEW_KEY);
+      if (raw) setRecentIds(JSON.parse(raw));
+    } catch {}
+  }, []);
 
   const filtered = useMemo(() => {
     return OFFERS.filter((o) => {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
-      if (onlyDelivery && !o.delivery) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [cat, district, q, onlyDelivery, language]);
-
+  }, [cat, district, q, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
-  const dailyDiscovery = useMemo(() => {
-    if (filtered.length === 0) return null;
-    const day = new Date().toISOString().slice(0, 10);
-    let hash = 0;
-    for (let i = 0; i < day.length; i++) hash = (hash * 31 + day.charCodeAt(i)) >>> 0;
-    return filtered[hash % filtered.length];
-  }, [filtered]);
 
-  // Dinner Tonight: nearby offers with pickup window still active tonight,
-  // preferring trusted partners + favorite stores + meal categories.
-  const dinnerPicks = useMemo(() => {
+  const flashDeals = useMemo(() => {
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    const scored = OFFERS.map((o) => {
-      const [h, m] = o.pickupTo.split(":").map(Number);
-      const endMin = h * 60 + m;
-      if (endMin < nowMin) return null; // already ended
-      let score = 100 - o.distanceKm * 10;
-      if (isTrustedPartner(o.storeId)) score += 25;
-      if (favs.includes(o.storeId)) score += 20;
-      if (o.category === "რესტორანი" || o.category === "სუში" || o.category === "საცხობი") score += 10;
-      score += Math.random() * 8; // small jitter
-      return { o, score };
-    }).filter(Boolean) as { o: typeof OFFERS[number]; score: number }[];
-    scored.sort((a, b) => b.score - a.score);
-    void surpriseSeed; // re-shuffle when user clicks Surprise Me
-    return scored.slice(0, 3).map((s) => s.o);
-  }, [favs, surpriseSeed]);
+    return OFFERS
+      .map((o) => {
+        const [h, m] = o.pickupTo.split(":").map(Number);
+        const endMin = h * 60 + m;
+        return { o, mins: endMin - nowMin };
+      })
+      .filter((x) => x.mins > 0 && x.mins <= 180)
+      .sort((a, b) => a.mins - b.mins)
+      .slice(0, 6)
+      .map((x) => x.o);
+  }, []);
 
+  const featured = useMemo(
+    () => OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6),
+    [],
+  );
+
+  const newOffers = useMemo(() => {
+    return [...OFFERS]
+      .filter((o) => o.createdAt)
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+      .slice(0, 6);
+  }, []);
+
+  const recommended = useMemo(() => {
+    if (!hydrated) return OFFERS.slice(0, 4);
+    if (favs.length === 0) return OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
+    return OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
+  }, [favs, hydrated]);
+
+  const recentlyViewed = useMemo(() => {
+    if (recentIds.length === 0) return [];
+    return recentIds
+      .map((id) => OFFERS.find((o) => o.id === id))
+      .filter(Boolean) as typeof OFFERS;
+  }, [recentIds]);
+
+  const nearbyPartners = useMemo(() => STORES.slice(0, 8), []);
+
+  // ---------- Localized labels ----------
+  const L = {
+    hi: language === "en" ? "Hi" : language === "ru" ? "Привет" : "გამარჯობა",
+    deliverTo: language === "en" ? "Deliver to" : language === "ru" ? "Доставка в" : "მიტანა",
+    categoriesTitle: language === "en" ? "Categories" : language === "ru" ? "Категории" : "კატეგორიები",
+    featured: language === "en" ? "Featured" : language === "ru" ? "Рекомендуемые" : "რჩეული",
+    flash: language === "en" ? "Flash deals" : language === "ru" ? "Горячие скидки" : "ცხელი ფასდაკლებები",
+    endingSoon: language === "en" ? "Ending soon — grab it now" : language === "ru" ? "Скоро закончатся" : "ვადა ეწურება",
+    nearbyPartners: language === "en" ? "Nearby partners" : language === "ru" ? "Партнёры рядом" : "ახლომდებარე პარტნიორები",
+    newSection: language === "en" ? "New on Cheaper" : language === "ru" ? "Новое на Cheaper" : "ახალი Cheaper-ზე",
+    recommended: language === "en" ? "For you" : language === "ru" ? "Для вас" : "შენთვის",
+    recentlyViewed: language === "en" ? "Recently viewed" : language === "ru" ? "Недавно просмотренные" : "ბოლოს ნანახი",
+    allNearby: language === "en" ? "All nearby offers" : language === "ru" ? "Все предложения рядом" : "ყველა შემოთავაზება",
+    seeAll: language === "en" ? "See all" : language === "ru" ? "Все" : "ყველა",
+    searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა",
+    promoTitle: language === "en" ? "Save up to 70%" : language === "ru" ? "Скидки до 70%" : "70%-მდე ფასდაკლება",
+    promoText: language === "en" ? "Fresh food from your favorite spots" : language === "ru" ? "Свежая еда из любимых мест" : "სუფთა საკვები საყვარელი ადგილებიდან",
+    orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : "შეუკვეთე",
+  };
+
+  const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
   return (
-    <div>
-      {/* Hero */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={heroImage} alt="" width={1600} height={1000} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/85 via-primary/70 to-background" />
-        </div>
-        <div className="relative mx-auto max-w-2xl px-4 pt-6 pb-8 text-primary-foreground">
-          <div className="flex items-center justify-between gap-2">
-            <Logo />
-            <div className="flex items-center gap-2">
-              {user && !rolesLoading && isAdmin && (
-                <Link to="/admin" className="text-sm bg-destructive text-destructive-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft inline-flex items-center gap-1">
-                  <Shield className="w-3.5 h-3.5" /> {t("admin")}
-                </Link>
-              )}
-              {user && !rolesLoading && !isAdmin && isPartner && (
-                <Link to="/partner" className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft inline-flex items-center gap-1">
-                  <Store className="w-3.5 h-3.5" /> {t("partner")}
-                </Link>
-              )}
-              <Link to={user ? "/profile" : "/auth"} className="text-sm bg-accent text-accent-foreground font-semibold px-3 py-1.5 rounded-full shadow-soft">
-                {user ? t("profile") : t("signIn")}
+    <div className="pb-4">
+      {/* -------- Top bar (sticky, mobile-first) -------- */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60 pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto max-w-2xl px-4 py-2.5 flex items-center gap-2">
+          <button className="flex items-center gap-1.5 min-w-0 group active:scale-95 transition-transform">
+            <div className="w-9 h-9 rounded-full bg-primary/10 grid place-items-center shrink-0">
+              <MapPin className="w-4 h-4 text-primary" />
+            </div>
+            <div className="min-w-0 text-left">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+                {L.deliverTo}
+              </div>
+              <div className="text-sm font-bold truncate leading-tight">{t("location")}</div>
+            </div>
+          </button>
+
+          <div className="ml-auto flex items-center gap-1.5 shrink-0">
+            <LanguageSwitcher compact />
+            <Link
+              to="/notifications"
+              aria-label={t("navNotifications")}
+              className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center active:scale-95 transition-transform"
+            >
+              <Bell className="w-[18px] h-[18px]" />
+            </Link>
+            {user && !rolesLoading && isAdmin && (
+              <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1">
+                <Shield className="w-3.5 h-3.5" /> {t("admin")}
               </Link>
-              <LanguageSwitcher compact />
-              <button className="flex items-center gap-1.5 text-sm bg-card/20 backdrop-blur px-3 py-1.5 rounded-full">
-                <MapPin className="w-4 h-4" />
-                {t("location")}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/20 backdrop-blur text-xs font-medium mb-3">
-              <Leaf className="w-3.5 h-3.5" /> {t("heroBadge")}
-            </div>
-            <h1 className="text-3xl font-display font-bold leading-tight">
-              {t("heroTitle")}<br/>
-              <span className="text-accent">{t("heroDiscount")}</span>
-            </h1>
-            <p className="mt-2 text-sm text-primary-foreground/90 max-w-md">
-              {t("heroText")}
-            </p>
-          </div>
-
-          <div className="mt-6 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-card text-foreground placeholder:text-muted-foreground shadow-elevated focus:outline-none focus:ring-2 focus:ring-primary-glow text-sm"
-            />
+            )}
+            {user && !rolesLoading && !isAdmin && isPartner && (
+              <Link to="/partner" className="h-10 px-3 rounded-full bg-accent text-accent-foreground font-semibold text-xs inline-flex items-center gap-1">
+                <Store className="w-3.5 h-3.5" /> {t("partner")}
+              </Link>
+            )}
           </div>
         </div>
-      </header>
+      </div>
 
+      {/* -------- Greeting + Search -------- */}
+      <section className="mx-auto max-w-2xl px-4 pt-4">
+        <h1 className="font-display text-[26px] leading-[1.15] font-bold tracking-tight">
+          {L.hi}{firstName ? `, ${firstName}` : ""} 👋
+          <br />
+          <span className="text-muted-foreground text-[20px]">{t("heroTitle")}</span>
+        </h1>
 
-      {/* Categories */}
-      <section className="mx-auto max-w-2xl px-4 mt-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-          {CATEGORIES.map((c) => (
+        <Link
+          to="/search"
+          className="mt-4 flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-secondary hover:bg-muted transition-colors active:scale-[0.99]"
+        >
+          <Search className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+          <span className="text-sm text-muted-foreground flex-1 truncate">{t("searchPlaceholder")}</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-semibold">
+            {L.searchOnPage}
+          </span>
+        </Link>
+      </section>
+
+      {/* -------- Categories (large, native-feel tiles) -------- */}
+      <section className="mx-auto max-w-2xl mt-5">
+        <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-hide snap-x snap-mandatory">
+          {CATEGORIES.map((c) => {
+            const active = cat === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCat(c.id)}
+                className={`snap-start shrink-0 flex flex-col items-center justify-center gap-1.5 w-[76px] h-[86px] rounded-2xl transition-all active:scale-95 ${
+                  active
+                    ? "bg-primary text-primary-foreground shadow-elevated"
+                    : "bg-card border border-border text-foreground"
+                }`}
+              >
+                <span className="text-2xl">{c.icon}</span>
+                <span className="text-[11px] font-bold tracking-tight">
+                  {getCategoryLabel(c.id, language)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* -------- Promo banner -------- */}
+      <section className="mx-auto max-w-2xl px-4 mt-5">
+        <div className="relative overflow-hidden rounded-3xl shadow-elevated">
+          <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/40" />
+          <div className="relative p-5 text-primary-foreground">
+            <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
+              <Sparkles className="w-3 h-3" /> {t("heroBadge")}
+            </div>
+            <h2 className="font-display text-2xl font-bold mt-2 leading-tight">
+              {L.promoTitle}
+            </h2>
+            <p className="text-sm text-primary-foreground/90 mt-1 max-w-[80%]">
+              {L.promoText}
+            </p>
+            <Link
+              to="/search"
+              className="mt-3 inline-flex items-center gap-1.5 bg-card text-foreground text-sm font-bold px-4 py-2 rounded-full active:scale-95 transition-transform"
+            >
+              {L.orderNow} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* -------- Flash deals -------- */}
+      {flashDeals.length > 0 && (
+        <SectionHeader
+          title={L.flash}
+          subtitle={L.endingSoon}
+          icon={<Zap className="w-[18px] h-[18px] text-amber-500" />}
+          seeAllTo="/search"
+          seeAllLabel={L.seeAll}
+        >
+          <HScroll>
+            {flashDeals.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
+
+      {/* -------- Featured (trusted) -------- */}
+      {featured.length > 0 && (
+        <SectionHeader
+          title={L.featured}
+          icon={<Shield className="w-[18px] h-[18px] text-primary" />}
+          seeAllTo="/search"
+          seeAllLabel={L.seeAll}
+        >
+          <HScroll>
+            {featured.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
+
+      {/* -------- Nearby partners (stores) -------- */}
+      <SectionHeader
+        title={L.nearbyPartners}
+        icon={<Store className="w-[18px] h-[18px] text-primary" />}
+      >
+        <HScroll>
+          {nearbyPartners.map((s) => (
+            <Link
+              key={s.id}
+              to="/search"
+              className="snap-start shrink-0 w-[120px] flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:shadow-card transition-all active:scale-95"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-secondary grid place-items-center text-3xl">
+                {s.logo}
+              </div>
+              <div className="text-center w-full">
+                <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
+                <div className="text-[10px] text-muted-foreground truncate">
+                  ⭐ {s.rating} · {getDistrictLabel(s.district, language)}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </HScroll>
+      </SectionHeader>
+
+      {/* -------- New offers -------- */}
+      {newOffers.length > 0 && (
+        <SectionHeader
+          title={L.newSection}
+          icon={<Sparkles className="w-[18px] h-[18px] text-emerald-500" />}
+          seeAllTo="/search"
+          seeAllLabel={L.seeAll}
+        >
+          <HScroll>
+            {newOffers.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
+
+      {/* -------- Recommended -------- */}
+      {recommended.length > 0 && (
+        <SectionHeader
+          title={L.recommended}
+          icon={<Utensils className="w-[18px] h-[18px] text-accent-foreground" />}
+        >
+          <HScroll>
+            {recommended.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
+
+      {/* -------- Recently viewed -------- */}
+      {recentlyViewed.length > 0 && (
+        <SectionHeader
+          title={L.recentlyViewed}
+          icon={<Clock className="w-[18px] h-[18px] text-muted-foreground" />}
+        >
+          <HScroll>
+            {recentlyViewed.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
+
+      {/* -------- All nearby (full grid) + district filter -------- */}
+      <section className="mx-auto max-w-2xl px-4 mt-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg font-bold flex items-center gap-2">
+            <MapPin className="w-[18px] h-[18px] text-primary" /> {L.allNearby}
+          </h2>
+          <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full active:scale-95 transition-transform">
+            <MapIcon className="w-3.5 h-3.5" /> {t("onMap")}
+          </Link>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 mb-3 scrollbar-hide">
+          {DISTRICTS.map((d) => (
             <button
-              key={c.id}
-              onClick={() => setCat(c.id)}
-              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                cat === c.id
-                  ? "bg-primary text-primary-foreground shadow-soft"
-                  : "bg-card text-foreground border border-border hover:border-primary/40"
+              key={d}
+              onClick={() => setDistrict(d)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
+                district === d
+                  ? "bg-foreground text-background"
+                  : "bg-card border border-border text-foreground"
               }`}
             >
-              <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
+              {getDistrictLabel(d, language)}
             </button>
           ))}
         </div>
 
-        {/* filter row */}
-        <div className="mt-3 flex items-center gap-2">
-          <select
-            value={district}
-            onChange={(e) => setDistrict(e.target.value)}
-            className="text-xs bg-card border border-border rounded-full px-3 py-1.5 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
-          >
-            {DISTRICTS.map((d) => <option key={d} value={d}>{getDistrictLabel(d, language)}</option>)}
-          </select>
-          <button
-            onClick={() => setOnlyDelivery((v) => !v)}
-            className={`text-xs px-3 py-1.5 rounded-full font-medium border transition-colors ${
-              onlyDelivery ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
-            }`}
-          >
-            🚚 {t("deliveryOnly")}
-          </button>
-        </div>
-      </section>
-
-      {/* Deals Near You */}
-      <section className="mx-auto max-w-2xl px-4 mt-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-primary" /> {t("sectionDealsNear")}
-          </h2>
-          <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full">
-            <MapIcon className="w-3.5 h-3.5" /> {t("onMap")} ({filtered.length})
-          </Link>
-        </div>
-
         {nearby.length === 0 ? (
-          <div className="text-center py-14 bg-card rounded-2xl border border-border">
+          <div className="text-center py-14 bg-card rounded-3xl border border-border">
             <div className="text-4xl mb-2">🥲</div>
             <p className="text-sm text-muted-foreground">{t("noResults")}</p>
           </div>
@@ -193,46 +380,12 @@ function Home() {
         )}
       </section>
 
-      {/* Dinner Tonight */}
-      {dinnerPicks.length > 0 && (
-        <section className="mx-auto max-w-2xl px-4 mt-8">
-          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-accent/20 to-transparent border border-border p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display text-lg font-bold flex items-center gap-2">
-                <Utensils className="w-5 h-5 text-primary" /> {t("dinnerTonight")}
-              </h2>
-              <button
-                onClick={() => setSurpriseSeed((n) => n + 1)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft active:scale-95 transition-transform"
-              >
-                <Shuffle className="w-3.5 h-3.5" /> ✨ {t("surpriseMe")}
-              </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {dinnerPicks.map((o) => <OfferCard key={o.id} offer={o} />)}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Today's Discovery */}
-      {dailyDiscovery && (
-        <section className="mx-auto max-w-2xl px-4 mt-8 mb-8">
-          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
-            <Compass className="w-5 h-5 text-accent-foreground" /> {t("sectionDaily")}
-          </h2>
-          <div className="grid grid-cols-1">
-            <OfferCard offer={dailyDiscovery} />
-          </div>
-        </section>
-      )}
-
-      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center">
+      {/* -------- Footer -------- */}
+      <footer className="mx-auto max-w-2xl px-4 pt-10 pb-4 text-center">
         <div className="flex justify-center mb-4">
           <Logo />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-
           <Link to="/about" className="text-xs text-muted-foreground underline underline-offset-4">
             {language === "en" ? "About" : language === "ru" ? "О нас" : "ჩვენს შესახებ"}
           </Link>
@@ -254,3 +407,45 @@ function Home() {
   );
 }
 
+function SectionHeader({
+  title, subtitle, icon, seeAllTo, seeAllLabel, children,
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+  seeAllTo?: "/search" | "/map";
+  seeAllLabel?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="mx-auto max-w-2xl mt-7">
+      <div className="flex items-end justify-between px-4 mb-3">
+        <div className="min-w-0">
+          <h2 className="font-display text-lg font-bold flex items-center gap-2">
+            {icon} {title}
+          </h2>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>
+          )}
+        </div>
+        {seeAllTo && (
+          <Link
+            to={seeAllTo}
+            className="shrink-0 text-xs font-semibold text-primary flex items-center gap-0.5 active:scale-95 transition-transform"
+          >
+            {seeAllLabel} <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function HScroll({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-hide snap-x snap-mandatory">
+      {children}
+    </div>
+  );
+}

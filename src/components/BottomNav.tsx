@@ -1,49 +1,71 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Heart, ShoppingBag, User, Bell } from "lucide-react";
+import { Home, Search, Heart, ShoppingBag, User } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-const items = [
-  { to: "/", label: "მთავარი", icon: Home },
-  { to: "/favorites", label: "ფავორიტები", icon: Heart },
-  { to: "/orders", label: "შეკვეთები", icon: ShoppingBag },
-  { to: "/notifications", label: "შეტყობინებები", icon: Bell },
-  { to: "/profile", label: "პროფილი", icon: User },
-] as const;
+type Item = {
+  to: "/" | "/search" | "/orders" | "/favorites" | "/profile";
+  key: "home" | "search" | "orders" | "favs" | "profile";
+  icon: typeof Home;
+};
+
+const items: Item[] = [
+  { to: "/", key: "home", icon: Home },
+  { to: "/search", key: "search", icon: Search },
+  { to: "/orders", key: "orders", icon: ShoppingBag },
+  { to: "/favorites", key: "favs", icon: Heart },
+  { to: "/profile", key: "profile", icon: User },
+];
 
 export function BottomNav() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname.startsWith("/auth") || pathname.startsWith("/partner") || pathname.startsWith("/admin")) {
     return null;
   }
 
+  const label = (k: Item["key"]) => {
+    if (k === "home") return t("navHome");
+    if (k === "orders") return t("navOrders");
+    if (k === "favs") return t("navFavorites");
+    if (k === "profile") return t("navProfile");
+    return language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა";
+  };
+
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg supports-[backdrop-filter]:bg-card/80 pb-[env(safe-area-inset-bottom)]">
-      <ul className="mx-auto max-w-2xl grid grid-cols-5">
-        {items.map(({ to, label, icon: Icon }) => {
-          const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
-          const translated = {
-            მთავარი: t("navHome"),
-            ფავორიტები: t("navFavorites"),
-            შეკვეთები: t("navOrders"),
-            შეტყობინებები: t("navNotifications"),
-            პროფილი: t("navProfile"),
-          }[label];
-          return (
-            <li key={to}>
-              <Link
-                to={to}
-                className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors ${
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${active ? "fill-primary/10" : ""}`} strokeWidth={active ? 2.4 : 1.8} />
-                <span>{translated}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+    <nav
+      className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]"
+      aria-label="primary"
+    >
+      <div className="mx-auto max-w-2xl px-3 pb-2">
+        <ul className="grid grid-cols-5 rounded-3xl bg-card/95 backdrop-blur-xl border border-border shadow-elevated overflow-hidden">
+          {items.map(({ to, key, icon: Icon }) => {
+            const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+            return (
+              <li key={to}>
+                <Link
+                  to={to}
+                  className="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] active:scale-95 transition-transform"
+                >
+                  <span
+                    className={`grid place-items-center h-9 w-9 rounded-2xl transition-all ${
+                      active ? "bg-primary text-primary-foreground shadow-soft" : "text-muted-foreground"
+                    }`}
+                  >
+                    <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2.6 : 2} />
+                  </span>
+                  <span
+                    className={`text-[10px] font-semibold tracking-tight ${
+                      active ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  >
+                    {label(key)}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </nav>
   );
 }
