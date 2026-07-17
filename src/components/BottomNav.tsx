@@ -34,22 +34,26 @@ export function BottomNav() {
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]"
-      aria-label="primary"
+      aria-label={language === "en" ? "Primary navigation" : language === "ru" ? "Основная навигация" : "მთავარი ნავიგაცია"}
     >
       <div className="mx-auto max-w-2xl px-3 pb-2">
         <ul className="grid grid-cols-5 rounded-3xl bg-card/95 backdrop-blur-xl border border-border shadow-elevated overflow-hidden">
           {items.map(({ to, key, icon: Icon }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
+            const l = label(key);
             return (
               <li key={to}>
                 <Link
                   to={to}
-                  className="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[56px] active:scale-95 transition-transform"
+                  aria-label={l}
+                  aria-current={active ? "page" : undefined}
+                  className="relative flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-11 tap-target press focus-visible:outline-none rounded-2xl"
                 >
                   <span
-                    className={`grid place-items-center h-9 w-9 rounded-2xl transition-all ${
+                    className={`grid place-items-center h-9 w-9 rounded-2xl transition-all duration-200 ${
                       active ? "bg-primary text-primary-foreground shadow-soft" : "text-muted-foreground"
                     }`}
+                    aria-hidden="true"
                   >
                     <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2.6 : 2} />
                   </span>
@@ -58,7 +62,7 @@ export function BottomNav() {
                       active ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
-                    {label(key)}
+                    {l}
                   </span>
                 </Link>
               </li>
