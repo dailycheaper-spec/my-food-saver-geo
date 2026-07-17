@@ -18,14 +18,17 @@ import { I18nProvider } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 animate-fade-in">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">გვერდი ვერ მოიძებნა</h2>
+        <h2 className="mt-4 text-xl font-semibold">გვერდი ვერ მოიძებნა · Page not found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           გვერდი, რომელსაც ეძებთ, არ არსებობს ან გადატანილია.
         </p>
-        <a href="/" className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+        <a
+          href="/"
+          className="mt-6 inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft press hover:opacity-95"
+        >
           მთავარზე დაბრუნება
         </a>
       </div>
@@ -37,15 +40,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4 animate-fade-in" role="alert">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">გვერდი ვერ ჩაიტვირთა</h1>
         <p className="mt-2 text-sm text-muted-foreground">რაღაც შეცდომაა. სცადეთ თავიდან.</p>
         <div className="mt-6 flex justify-center gap-2">
-          <button onClick={() => { router.invalidate(); reset(); }} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <button
+            onClick={() => { router.invalidate(); reset(); }}
+            className="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground press hover:opacity-95"
+          >
             თავიდან ცდა
           </button>
-          <a href="/" className="rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+          <a
+            href="/"
+            className="rounded-2xl border border-input px-5 py-2.5 text-sm font-semibold hover:bg-accent hover:text-accent-foreground press"
+          >
             მთავარი
           </a>
         </div>
@@ -126,9 +135,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <div className="min-h-screen pb-24">
+        <a
+          href="#content"
+          className="sr-only-focusable text-sm font-semibold"
+        >
+          Skip to content
+        </a>
+        <main id="content" className="min-h-dvh pb-24">
           <Outlet />
-        </div>
+        </main>
         <BottomNav />
         <AppTracker />
         <PwaInstall />
