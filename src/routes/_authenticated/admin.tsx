@@ -107,14 +107,17 @@ function AdminLayout() {
 
       {/* Mobile header */}
       <header className="lg:hidden sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border">
-        <div className="px-4 h-14 flex items-center justify-between">
-          <button onClick={() => setMobileOpen(true)} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+        <div className="px-4 h-14 flex items-center justify-between gap-2">
+          <button onClick={() => setMobileOpen(true)} aria-label="Menu" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-display font-bold">Cheaper · ადმინი</div>
-          <button onClick={toggleTheme} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <div className="font-display font-bold truncate">Cheaper · ადმინი</div>
+          <div className="flex items-center gap-1.5">
+            <CitySelector variant="pill" />
+            <button onClick={toggleTheme} aria-label="Theme" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </header>
 
