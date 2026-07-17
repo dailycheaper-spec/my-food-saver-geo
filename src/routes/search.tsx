@@ -217,7 +217,3 @@ function SearchPage() {
   );
 }
 
-/* hide scrollbars for horizontal chips */
-declare global {
-  interface CSSStyleDeclaration { scrollbarWidth?: string; }
-}
