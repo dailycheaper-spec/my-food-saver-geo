@@ -5,6 +5,7 @@ import {
   Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CitySelector } from "@/components/CitySelector";
 import { loadTheme, saveTheme } from "@/lib/admin-settings";
 
 export const Route = createFileRoute("/_authenticated/admin")({
