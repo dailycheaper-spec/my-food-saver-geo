@@ -94,6 +94,28 @@ function PartnerHome() {
         </div>
       </div>
 
+      {/* Today's Summary */}
+      <div className="rounded-3xl bg-gradient-to-br from-primary/10 via-accent/10 to-transparent border border-border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" /> {t("todaySummary")}
+          </h3>
+          <button
+            onClick={duplicateYesterday}
+            disabled={dupBusy}
+            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft disabled:opacity-50 active:scale-95 transition-transform"
+          >
+            <Copy className="w-3.5 h-3.5" /> {t("duplicateYesterday")}
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <SumCell label={t("productsSold")} value={String(stats.soldToday)} />
+          <SumCell label={t("revenue")} value={formatGel(stats.revenue)} />
+          <SumCell label={t("ordersLbl")} value={String(stats.todayCount)} />
+        </div>
+        {dupMsg && <div className="mt-3 text-xs text-center text-primary font-medium">{dupMsg}</div>}
+      </div>
+
       {/* 4 huge action tiles */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <BigTile
