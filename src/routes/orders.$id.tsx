@@ -154,6 +154,8 @@ function OrderDetail() {
         </button>
       )}
 
+      {order.status === "მიღებული" && <PostPurchaseVote orderId={order.id} offerId={order.offerId} />}
+
       {/* Gift dialog */}
       {showGift && (
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setShowGift(false)}>
