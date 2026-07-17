@@ -139,7 +139,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "22:00", pickupTo: "23:00",
     district: "ვერა", address: "კოსტავას ქ. 32",
     distanceKm: 2.1, rating: 4.6, reviewCount: 512, itemsLeft: 1,
-    delivery: true, deliveryFee: 5,
+    delivery: true, deliveryFee: 5, isSurprise: true,
   },
   {
     id: "o7", storeId: "s7", storeName: "კულა კაფე", storeLogo: "☕",
