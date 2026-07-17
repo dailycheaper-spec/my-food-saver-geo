@@ -79,7 +79,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "18:00", pickupTo: "20:00",
     district: "ვაკე", address: "ჭავჭავაძის გამზ. 24",
     distanceKm: 0.8, rating: 4.8, reviewCount: 342, itemsLeft: 4,
-    delivery: true, deliveryFee: 3, createdAt: NOW - 2 * 60 * 1000, // 2 min ago → NEW
+    delivery: true, deliveryFee: 3, createdAt: NOW - 2 * 60 * 1000, isSurprise: true, // 2 min ago → NEW
   },
   {
     id: "o2", storeId: "s2", storeName: "ენტრე", storeLogo: "🥐",
