@@ -219,3 +219,12 @@ function Shortcut({ to, icon, label }: { to: string; icon: React.ReactNode; labe
     </Link>
   );
 }
+
+function SumCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-card rounded-2xl border border-border/60 p-3 text-center">
+      <div className="text-lg font-bold text-primary">{value}</div>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+    </div>
+  );
+}
