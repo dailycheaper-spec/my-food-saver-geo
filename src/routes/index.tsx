@@ -39,10 +39,8 @@ function Home() {
       if (q && !offerMatchesQuery(o, q)) return false;
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-
-      return true;
-    }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, onlyDelivery, language]);
+
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
   const dailyDiscovery = useMemo(() => {
