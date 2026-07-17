@@ -28,6 +28,8 @@ function Home() {
   const [onlyDelivery, setOnlyDelivery] = useState(false);
   const { user } = useAuth();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
+  const favs = useFavorites();
+  const [surpriseSeed, setSurpriseSeed] = useState(0);
 
   const filtered = useMemo(() => {
     return OFFERS.filter((o) => {
@@ -40,6 +42,43 @@ function Home() {
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, onlyDelivery, language]);
+
+  const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
+  const bestToday = useMemo(() => {
+    return [...filtered]
+      .sort((a, b) => (1 - a.price / a.originalPrice) - (1 - b.price / b.originalPrice))
+      .reverse()
+      .slice(0, 6);
+  }, [filtered]);
+  const dailyDiscovery = useMemo(() => {
+    if (filtered.length === 0) return null;
+    const day = new Date().toISOString().slice(0, 10);
+    let hash = 0;
+    for (let i = 0; i < day.length; i++) hash = (hash * 31 + day.charCodeAt(i)) >>> 0;
+    return filtered[hash % filtered.length];
+  }, [filtered]);
+
+  // Dinner Tonight: nearby offers with pickup window still active tonight,
+  // preferring trusted partners + favorite stores + meal categories.
+  const dinnerPicks = useMemo(() => {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const scored = OFFERS.map((o) => {
+      const [h, m] = o.pickupTo.split(":").map(Number);
+      const endMin = h * 60 + m;
+      if (endMin < nowMin) return null; // already ended
+      let score = 100 - o.distanceKm * 10;
+      if (isTrustedPartner(o.storeId)) score += 25;
+      if (favs.includes(o.storeId)) score += 20;
+      if (o.category === "რესტორანი" || o.category === "სუში" || o.category === "საცხობი") score += 10;
+      score += Math.random() * 8; // small jitter
+      return { o, score };
+    }).filter(Boolean) as { o: typeof OFFERS[number]; score: number }[];
+    scored.sort((a, b) => b.score - a.score);
+    void surpriseSeed; // re-shuffle when user clicks Surprise Me
+    return scored.slice(0, 3).map((s) => s.o);
+  }, [favs, surpriseSeed]);
+
 
   return (
     <div>
