@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star } from "lucide-react";
+import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star, Gift } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
 import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
@@ -75,6 +75,11 @@ export function OfferCard({ offer }: { offer: Offer }) {
           {almostGone && !soldOut && (
             <span className="px-2 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center gap-1">
               <Flame className="w-3 h-3" /> {t("badgeAlmostGone")}
+            </span>
+          )}
+          {offer.isSurprise && !soldOut && (
+            <span className="px-2 py-1 rounded-full bg-fuchsia-500 text-white text-[10px] font-bold flex items-center gap-1">
+              <Gift className="w-3 h-3" /> {t("badgeSurprise")}
             </span>
           )}
         </div>

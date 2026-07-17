@@ -30,6 +30,7 @@ export interface Offer {
   lat?: number;
   lng?: number;
   createdAt?: number; // epoch ms — used for NEW badge
+  isSurprise?: boolean; // mystery bag — contents revealed at pickup
 }
 
 // approx Tbilisi district centers
@@ -78,7 +79,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "18:00", pickupTo: "20:00",
     district: "ვაკე", address: "ჭავჭავაძის გამზ. 24",
     distanceKm: 0.8, rating: 4.8, reviewCount: 342, itemsLeft: 4,
-    delivery: true, deliveryFee: 3, createdAt: NOW - 2 * 60 * 1000, // 2 min ago → NEW
+    delivery: true, deliveryFee: 3, createdAt: NOW - 2 * 60 * 1000, isSurprise: true, // 2 min ago → NEW
   },
   {
     id: "o2", storeId: "s2", storeName: "ენტრე", storeLogo: "🥐",
@@ -90,7 +91,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "19:00", pickupTo: "21:00",
     district: "საბურთალო", address: "ვაჟა-ფშაველას გამზ. 71",
     distanceKm: 1.2, rating: 4.7, reviewCount: 218, itemsLeft: 2,
-    delivery: true, deliveryFee: 4,
+    delivery: true, deliveryFee: 4, isSurprise: true,
   },
   {
     id: "o3", storeId: "s6", storeName: "ტოკიო სუში", storeLogo: "🍣",
@@ -126,7 +127,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "18:30", pickupTo: "20:30",
     district: "ისანი", address: "ქეთევან წამებულის გამზ. 44",
     distanceKm: 3.4, rating: 4.9, reviewCount: 421, itemsLeft: 5,
-    delivery: true, deliveryFee: 4,
+    delivery: true, deliveryFee: 4, isSurprise: true,
   },
   {
     id: "o6", storeId: "s3", storeName: "მაჭახელა", storeLogo: "🧀",
@@ -138,7 +139,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "22:00", pickupTo: "23:00",
     district: "ვერა", address: "კოსტავას ქ. 32",
     distanceKm: 2.1, rating: 4.6, reviewCount: 512, itemsLeft: 1,
-    delivery: true, deliveryFee: 5,
+    delivery: true, deliveryFee: 5, isSurprise: true,
   },
   {
     id: "o7", storeId: "s7", storeName: "კულა კაფე", storeLogo: "☕",
