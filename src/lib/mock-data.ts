@@ -296,3 +296,92 @@ export function findOffer(id: string) {
 export function findStore(id: string) {
   return STORES.find((s) => s.id === id);
 }
+
+// -------- Offer detail helpers (allergens / ingredients / pickup instructions) --------
+
+type Localized = Record<UiLanguage, string>;
+
+const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
+  "საცხობი": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+  ],
+  "რესტორანი": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+  ],
+  "სუპერმარკეტი": [],
+  "კაფე": [
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+  ],
+  "სუში": [
+    { ka: "თევზი", en: "Fish", ru: "Рыба" },
+    { ka: "სოია", en: "Soy", ru: "Соя" },
+    { ka: "მოლუსკები", en: "Shellfish", ru: "Моллюски" },
+  ],
+};
+
+const INGREDIENTS_BY_OFFER: Record<string, Localized[]> = {
+  o1: [
+    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури" },
+    { ka: "ლობიანი", en: "Lobiani", ru: "Лобиани" },
+    { ka: "დღის პური", en: "Fresh bread", ru: "Свежий хлеб" },
+  ],
+  o2: [
+    { ka: "კრუასანი", en: "Croissant", ru: "Круассан" },
+    { ka: "ბაგეტი", en: "Baguette", ru: "Багет" },
+    { ka: "ტკბილი ცომეული", en: "Sweet pastry", ru: "Сладкая выпечка" },
+  ],
+  o3: [
+    { ka: "ორაგული", en: "Salmon", ru: "Лосось" },
+    { ka: "ტუნა", en: "Tuna", ru: "Тунец" },
+    { ka: "ავოკადო", en: "Avocado", ru: "Авокадо" },
+    { ka: "ბრინჯი", en: "Rice", ru: "Рис" },
+  ],
+  o4: [
+    { ka: "სეზონური ხილი", en: "Seasonal fruit", ru: "Сезонные фрукты" },
+    { ka: "სეზონური ბოსტნეული", en: "Seasonal vegetables", ru: "Сезонные овощи" },
+  ],
+  o5: [
+    { ka: "ჩურჩხელა", en: "Churchkhela", ru: "Чурчхела" },
+    { ka: "ფელამუში", en: "Pelamushi", ru: "Пеламуши" },
+    { ka: "გოზინაყი", en: "Gozinaki", ru: "Гозинаки" },
+  ],
+  o6: [
+    { ka: "ხინკალი", en: "Khinkali", ru: "Хинкали" },
+    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури" },
+    { ka: "სალათი", en: "Salad", ru: "Салат" },
+  ],
+  o7: [
+    { ka: "ყავა ან ჩაი", en: "Coffee or tea", ru: "Кофе или чай" },
+    { ka: "ცომეული", en: "Pastry", ru: "Выпечка" },
+  ],
+};
+
+export function getAllergens(offer: Offer, language: UiLanguage): string[] {
+  return (ALLERGENS_BY_CATEGORY[offer.category] ?? []).map((l) => l[language]);
+}
+
+export function getIngredients(offer: Offer, language: UiLanguage): string[] {
+  return (INGREDIENTS_BY_OFFER[offer.id] ?? []).map((l) => l[language]);
+}
+
+export function getPickupInstructions(offer: Offer, language: UiLanguage): string {
+  const store = getStoreName(offer, language);
+  if (language === "en") {
+    return `Show your QR code at the counter of ${store} between ${offer.pickupFrom} and ${offer.pickupTo}. Please arrive on time — bags are prepared just before pickup.`;
+  }
+  if (language === "ru") {
+    return `Покажите QR-код на кассе ${store} с ${offer.pickupFrom} до ${offer.pickupTo}. Приходите вовремя — пакет готовится непосредственно перед выдачей.`;
+  }
+  return `მიუტანე QR კოდი ${store}-ის კასაზე ${offer.pickupFrom}–${offer.pickupTo}. მოვედი დროულად — პაკეტი მზადდება აღების წინ.`;
+}
+
+export function getSimilarOffers(offer: Offer, limit = 4): Offer[] {
+  return OFFERS
+    .filter((o) => o.id !== offer.id && o.category === offer.category)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, limit);
+}
