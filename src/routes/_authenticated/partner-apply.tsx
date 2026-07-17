@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { CITIES, cityLabel, type City } from "@/lib/city";
 
 export const Route = createFileRoute("/_authenticated/partner-apply")({
   head: () => ({ meta: [{ title: "გახდი პარტნიორი — Cheaper" }] }),
