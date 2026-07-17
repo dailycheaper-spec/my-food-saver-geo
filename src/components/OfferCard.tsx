@@ -23,15 +23,17 @@ export function OfferCard({ offer }: { offer: Offer }) {
 
   // Ticker so badges (NEW / Ending Soon) refresh over time
   const [tick, setTick] = useState(0);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setTick((x) => x + 1), 30_000);
     return () => clearInterval(id);
   }, []);
 
   const ageMin = offer.createdAt ? (Date.now() - offer.createdAt) / 60000 : Infinity;
-  const isNew = ageMin <= 10;
+  const isNew = mounted && ageMin <= 10;
   const minsLeft = minutesUntil(offer.pickupTo);
-  const endingSoon = minsLeft > 0 && minsLeft <= 60;
+  const endingSoon = mounted && minsLeft > 0 && minsLeft <= 60;
   const almostGone = offer.itemsLeft <= 3 && offer.itemsLeft > 0;
   const trusted = isTrustedPartner(offer.storeId);
   // reference tick so useEffect refresh triggers re-render
