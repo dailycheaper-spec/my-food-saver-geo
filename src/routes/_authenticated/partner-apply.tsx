@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/partner-apply")({
 });
 
 function PartnerApply() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", logo: "🏪", district: "ვაკე", address: "", phone: "", description: "" });
