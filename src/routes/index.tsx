@@ -36,9 +36,10 @@ function Home() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (onlyDelivery && !o.delivery) return false;
-      const offerText = getOfferText(o, language);
-      const storeName = getStoreName(o, language);
-      if (q && !`${offerText.title} ${storeName} ${offerText.description}`.toLowerCase().includes(q.toLowerCase())) return false;
+      if (q && !offerMatchesQuery(o, q)) return false;
+      return true;
+    }).sort((a, b) => a.distanceKm - b.distanceKm);
+
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, onlyDelivery, language]);
