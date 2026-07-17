@@ -15,6 +15,7 @@ import { AppTracker } from "@/components/AppTracker";
 import { PwaInstall } from "@/components/PwaInstall";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
+import { CityProvider } from "@/lib/city";
 
 function NotFoundComponent() {
   return (
