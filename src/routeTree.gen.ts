@@ -23,6 +23,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as StoreIdRouteImport } from './routes/store.$id'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
 import { Route as AuthenticatedPartnerApplyRouteImport } from './routes/_authenticated/partner-apply'
@@ -119,6 +120,11 @@ const IndexRoute = IndexRouteImport.update({
 const OrdersIndexRoute = OrdersIndexRouteImport.update({
   id: '/orders/',
   path: '/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoreIdRoute = StoreIdRouteImport.update({
+  id: '/store/$id',
+  path: '/store/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -337,6 +344,7 @@ export interface FileRoutesByTo {
   '/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/store/$id': typeof StoreIdRoute
   '/orders': typeof OrdersIndexRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -382,6 +390,7 @@ export interface FileRoutesById {
   '/_authenticated/partner-apply': typeof AuthenticatedPartnerApplyRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -427,6 +436,7 @@ export interface FileRouteTypes {
     | '/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
+    | '/store/$id'
     | '/orders/'
     | '/admin/offers'
     | '/admin/orders'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
+    | '/store/$id'
     | '/orders'
     | '/admin/offers'
     | '/admin/orders'
@@ -512,6 +523,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner-apply'
     | '/offer/$id'
     | '/orders/$id'
+    | '/store/$id'
     | '/orders/'
     | '/_authenticated/admin/offers'
     | '/_authenticated/admin/orders'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   OfferIdRoute: typeof OfferIdRoute
   OrdersIdRoute: typeof OrdersIdRoute
+  StoreIdRoute: typeof StoreIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ApiPublicDeliveryBoltRoute: typeof ApiPublicDeliveryBoltRoute
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
@@ -658,6 +671,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders/'
       preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/store/$id': {
+      id: '/store/$id'
+      path: '/store/$id'
+      fullPath: '/store/$id'
+      preLoaderRoute: typeof StoreIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/orders/$id': {
@@ -948,6 +968,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   OfferIdRoute: OfferIdRoute,
   OrdersIdRoute: OrdersIdRoute,
+  StoreIdRoute: StoreIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ApiPublicDeliveryBoltRoute: ApiPublicDeliveryBoltRoute,
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,

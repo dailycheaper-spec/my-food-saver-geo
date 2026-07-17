@@ -201,7 +201,11 @@ function OfferPage() {
       <div className="mx-auto max-w-2xl px-4 -mt-6 relative space-y-4">
         {/* ---- Store header + title + meta ---- */}
         <div className="bg-card rounded-3xl shadow-elevated p-5 border border-border">
-          <div className="flex items-center gap-3">
+          <Link
+            to="/store/$id"
+            params={{ id: offer.storeId }}
+            className="flex items-center gap-3 -m-1 p-1 rounded-2xl hover:bg-secondary/50 transition-colors"
+          >
             <div className="w-12 h-12 rounded-2xl gradient-warm grid place-items-center text-2xl shrink-0">{offer.storeLogo}</div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1 min-w-0">
@@ -214,7 +218,8 @@ function OfferPage() {
                 <span className="px-1.5 py-0.5 rounded-full bg-secondary text-[10px] font-semibold uppercase">{getCategoryLabel(offer.category, language)}</span>
               </div>
             </div>
-          </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+          </Link>
 
           <h1 className="mt-4 text-[22px] leading-tight font-display font-bold">{offerText.title}</h1>
 

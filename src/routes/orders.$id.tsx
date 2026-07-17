@@ -6,6 +6,7 @@ import { useOrders, updateOrder, addPartnerVote, useHasVotedOrder } from "@/lib/
 import { formatPrice, findOffer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
+import { OrderProgress } from "@/components/OrderProgress";
 
 export const Route = createFileRoute("/orders/$id")({
   head: () => ({ meta: [{ title: "შეკვეთა — Cheaper" }, { name: "robots", content: "noindex" }] }),
@@ -95,6 +96,13 @@ function OrderDetail() {
           </span>
         </div>
       </div>
+
+      {/* 6-stage progress tracker */}
+      <div className="mt-4">
+        <OrderProgress order={order} />
+      </div>
+
+
 
       {/* Live delivery tracker (renders only if a deliveries row exists for this order) */}
       {order.method === "მიტანა" && (
