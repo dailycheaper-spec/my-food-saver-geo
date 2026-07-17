@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { MapPin, Search, Leaf, Map as MapIcon, Shield, Store, Compass, Utensils, Shuffle } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
