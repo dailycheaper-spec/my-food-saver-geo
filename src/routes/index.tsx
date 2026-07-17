@@ -138,21 +138,6 @@ function Home() {
         </div>
       </header>
 
-      {/* Feature strip */}
-      <section className="mx-auto max-w-2xl px-4 -mt-4 relative z-10">
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { icon: Sparkles, label: t("surprisePack") },
-            { icon: Gift, label: t("giftFeature") },
-            { icon: Leaf, label: t("ecoChoice") },
-          ].map(({ icon: I, label }) => (
-            <div key={label} className="bg-card rounded-xl p-3 shadow-soft text-center">
-              <I className="w-5 h-5 mx-auto text-primary" />
-              <div className="text-[11px] font-medium mt-1">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Categories */}
       <section className="mx-auto max-w-2xl px-4 mt-6">
