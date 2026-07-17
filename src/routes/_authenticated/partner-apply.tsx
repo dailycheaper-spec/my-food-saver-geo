@@ -60,6 +60,16 @@ function PartnerApply() {
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
 
         <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">
+            {language === "en" ? "City" : language === "ru" ? "Город" : "ქალაქი"}
+          </span>
+          <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+            {CITIES.map((c) => <option key={c} value={c}>{cityLabel(c, language)}</option>)}
+          </select>
+        </label>
+
+        <label className="block">
           <span className="text-xs font-medium text-muted-foreground">{t("district")}</span>
           <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
