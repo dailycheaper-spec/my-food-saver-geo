@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { MapPin, Search, Leaf, Map as MapIcon, Shield, Store, Compass, Utensils, Shuffle } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
@@ -36,12 +36,11 @@ function Home() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (onlyDelivery && !o.delivery) return false;
-      const offerText = getOfferText(o, language);
-      const storeName = getStoreName(o, language);
-      if (q && !`${offerText.title} ${storeName} ${offerText.description}`.toLowerCase().includes(q.toLowerCase())) return false;
+      if (q && !offerMatchesQuery(o, q)) return false;
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, onlyDelivery, language]);
+
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
   const dailyDiscovery = useMemo(() => {

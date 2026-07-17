@@ -259,6 +259,36 @@ export function getOfferText(offer: Offer, language: UiLanguage) {
   return OFFER_TEXT[offer.id]?.[language] ?? { title: offer.title, description: offer.description };
 }
 
+// Multi-language keyword tags per offer — used by search so typing a food
+// name in any language (ka/en/ru) matches related offers.
+const OFFER_KEYWORDS: Record<string, string[]> = {
+  o1: ["ხაჭაპური","ლობიანი","პური","საცხობი","ცომეული","khachapuri","lobiani","bread","bakery","хачапури","лобиани","хлеб","пекарня","выпечка"],
+  o2: ["კრუასანი","ბაგეტი","ტკბილეული","საცხობი","ცომეული","croissant","baguette","pastry","bakery","круассан","багет","выпечка","пекарня","сладости"],
+  o3: ["სუში","როლი","იაპონური","sushi","roll","japanese","суши","роллы","японская"],
+  o4: ["ხილი","ბოსტნეული","კალათა","ვეგან","fruit","vegetable","produce","basket","vegan","фрукты","овощи","корзина","веган"],
+  o5: ["ტკბილეული","დესერტი","ჩურჩხელა","ფელამუში","გოზინაყი","dessert","sweets","churchkhela","gozinaki","десерт","сладости","чурчхела","пеламуши","гозинаки"],
+  o6: ["ხინკალი","ხაჭაპური","ქართული","რესტორანი","სალათი","khinkali","khachapuri","georgian","restaurant","salad","хинкали","хачапури","грузинская","ресторан","салат"],
+  o7: ["კაფე","ყავა","ჩაი","ორცხობილა","ცომეული","coffee","tea","cookies","cafe","pastry","кафе","кофе","чай","печенье","выпечка"],
+};
+
+export function offerMatchesQuery(offer: Offer, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const langs: UiLanguage[] = ["ka", "en", "ru"];
+  const parts: string[] = [];
+  for (const l of langs) {
+    const t = OFFER_TEXT[offer.id]?.[l];
+    if (t) parts.push(t.title, t.description);
+    const sn = STORE_LABELS[offer.storeId]?.[l];
+    if (sn) parts.push(sn);
+    parts.push(CATEGORY_LABELS[offer.category]?.[l] ?? "");
+  }
+  parts.push(offer.title, offer.description, offer.storeName, offer.category);
+  parts.push(...(OFFER_KEYWORDS[offer.id] ?? []));
+  return parts.join(" \n ").toLowerCase().includes(q);
+}
+
+
 export function findOffer(id: string) {
   return OFFERS.find((o) => o.id === id);
 }
