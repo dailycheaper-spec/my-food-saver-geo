@@ -8,6 +8,7 @@ import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLab
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
+import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
