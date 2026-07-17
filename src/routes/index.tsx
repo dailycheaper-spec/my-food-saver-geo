@@ -192,27 +192,77 @@ function Home() {
         </div>
       </section>
 
-      {/* Offers grid */}
+      {/* Deals Near You */}
       <section className="mx-auto max-w-2xl px-4 mt-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold">{t("nearbyOffers")}</h2>
+          <h2 className="font-display text-xl font-bold flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-primary" /> {t("sectionDealsNear")}
+          </h2>
           <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full">
             <MapIcon className="w-3.5 h-3.5" /> {t("onMap")} ({filtered.length})
           </Link>
         </div>
 
-        {filtered.length === 0 ? (
+        {nearby.length === 0 ? (
           <div className="text-center py-14 bg-card rounded-2xl border border-border">
             <div className="text-4xl mb-2">🥲</div>
             <p className="text-sm text-muted-foreground">{t("noResults")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {filtered.map((o) => <OfferCard key={o.id} offer={o} />)}
+            {nearby.map((o) => <OfferCard key={o.id} offer={o} />)}
           </div>
         )}
+      </section>
 
-        <div className="mt-8 rounded-2xl bg-warm text-warm-foreground p-5 flex items-center gap-4">
+      {/* Dinner Tonight */}
+      {dinnerPicks.length > 0 && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-accent/20 to-transparent border border-border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                <Utensils className="w-5 h-5 text-primary" /> {t("dinnerTonight")}
+              </h2>
+              <button
+                onClick={() => setSurpriseSeed((n) => n + 1)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft active:scale-95 transition-transform"
+              >
+                <Shuffle className="w-3.5 h-3.5" /> ✨ {t("surpriseMe")}
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {dinnerPicks.map((o) => <OfferCard key={o.id} offer={o} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Today's Best Deals */}
+      {bestToday.length > 0 && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
+            <Flame className="w-5 h-5 text-red-500" /> {t("sectionBestToday")}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {bestToday.map((o) => <OfferCard key={o.id} offer={o} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Daily Discovery */}
+      {dailyDiscovery && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
+            <Compass className="w-5 h-5 text-accent-foreground" /> {t("sectionDaily")}
+          </h2>
+          <div className="grid grid-cols-1">
+            <OfferCard offer={dailyDiscovery} />
+          </div>
+        </section>
+      )}
+
+      <section className="mx-auto max-w-2xl px-4 mt-8 mb-8">
+        <div className="rounded-2xl bg-warm text-warm-foreground p-5 flex items-center gap-4">
           <div className="text-3xl">🎁</div>
           <div className="flex-1">
             <div className="font-semibold">{t("cantPickup")}</div>
