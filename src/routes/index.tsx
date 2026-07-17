@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store } from "lucide-react";
+import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store, Compass, Flame, Utensils, Shuffle } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
+import { useFavorites, isTrustedPartner } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
+import { Logo } from "@/components/Logo";
+import { useAuth } from "@/lib/auth";
+import { useMyRole } from "@/lib/db";
+import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
