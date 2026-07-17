@@ -29,6 +29,7 @@ export interface Offer {
   deliveryFee: number;
   lat?: number;
   lng?: number;
+  createdAt?: number; // epoch ms — used for NEW badge
 }
 
 // approx Tbilisi district centers
@@ -64,6 +65,8 @@ export const STORES: Store[] = [
   { id: "s8", name: "აგრო-ჰაბი", logo: "🥦", category: "სუპერმარკეტი", district: "ვაკე", rating: 4.5, followers: 980 },
 ];
 
+const NOW = typeof window !== "undefined" ? Date.now() : 0;
+
 export const OFFERS: Offer[] = [
   {
     id: "o1", storeId: "s1", storeName: "პური გულიანი", storeLogo: "🥖",
@@ -75,7 +78,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "18:00", pickupTo: "20:00",
     district: "ვაკე", address: "ჭავჭავაძის გამზ. 24",
     distanceKm: 0.8, rating: 4.8, reviewCount: 342, itemsLeft: 4,
-    delivery: true, deliveryFee: 3,
+    delivery: true, deliveryFee: 3, createdAt: NOW - 2 * 60 * 1000, // 2 min ago → NEW
   },
   {
     id: "o2", storeId: "s2", storeName: "ენტრე", storeLogo: "🥐",

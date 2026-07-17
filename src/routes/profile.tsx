@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Percent, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles } from "lucide-react";
+import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
+import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
@@ -17,9 +18,13 @@ function Profile() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
-  const saved = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? 1 : 0), 0);
-  const savedPct = "50%+";
-  const gel = orders.reduce((s, o) => s + (o.status !== "გაუქმებული" ? o.price : 0), 0);
+  const completed = orders.filter((o) => o.status !== "გაუქმებული").length;
+  const moneySaved = orders.reduce((s, o) => {
+    if (o.status === "გაუქმებული") return s;
+    const off = findOffer(o.offerId);
+    const diff = off ? Math.max(0, off.originalPrice - o.price) : 0;
+    return s + diff * (o.quantity || 1);
+  }, 0);
 
   const displayName = profile?.first_name
     ? `${profile.first_name} ${profile.last_name ?? ""}`.trim()
@@ -63,9 +68,9 @@ function Profile() {
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("packages")} value={String(saved)} />
-        <Stat icon={<Percent className="w-4 h-4" />} label={t("saved")} value={savedPct} />
-        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)} ${t("currency")}`} />
+        <Stat icon={<PiggyBank className="w-4 h-4" />} label={t("moneySaved")} value={formatPrice(moneySaved)} />
+        <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("ordersCompleted")} value={String(completed)} />
+        <Stat icon={<Heart className="w-4 h-4" />} label={t("favoriteStoresLbl")} value={String(favs.length)} />
       </div>
 
       <div className="mt-4 rounded-2xl bg-warm text-warm-foreground p-5">

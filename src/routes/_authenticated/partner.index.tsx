@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, Store as StoreIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/")({
@@ -15,15 +16,52 @@ function PartnerHome() {
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const { orders } = useStoreOrders(store?.id ?? null);
+  const [dupMsg, setDupMsg] = useState<string | null>(null);
+  const [dupBusy, setDupBusy] = useState(false);
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
     const todaysOrders = orders.filter((o) => new Date(o.created_at).toDateString() === today && (o.status === "paid" || o.status === "ready" || o.status === "collected"));
+    const soldToday = todaysOrders.reduce((s, o) => s + Number((o as { quantity?: number }).quantity ?? 1), 0);
     const revenue = todaysOrders.reduce((s, o) => s + Number(o.amount), 0);
     const active = offers.filter((o) => o.is_active && o.quantity_sold < o.quantity_available).length;
     const pending = orders.filter((o) => o.status === "paid" || o.status === "ready").length;
-    return { revenue, active, pending, todayCount: todaysOrders.length };
+    return { revenue, active, pending, todayCount: todaysOrders.length, soldToday };
   }, [orders, offers]);
+
+  async function duplicateYesterday() {
+    if (!store) return;
+    setDupBusy(true);
+    setDupMsg(null);
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const y = yesterday.toDateString();
+    const last = offers.find((o) => new Date(o.created_at).toDateString() === y);
+    if (!last) {
+      setDupMsg(t("noYesterdayOffer"));
+      setDupBusy(false);
+      setTimeout(() => setDupMsg(null), 2500);
+      return;
+    }
+    const payload = {
+      store_id: store.id,
+      title: last.title,
+      description: last.description,
+      category: last.category,
+      original_price: last.original_price,
+      discounted_price: last.discounted_price,
+      quantity_available: last.quantity_available,
+      pickup_from: last.pickup_from,
+      pickup_to: last.pickup_to,
+      delivery_available: last.delivery_available,
+      image_url: last.image_url,
+      is_active: true,
+    };
+    const { error } = await supabase.from("offers").insert(payload);
+    setDupBusy(false);
+    setDupMsg(error ? error.message : t("duplicated"));
+    setTimeout(() => setDupMsg(null), 2500);
+  }
+
 
   if (loading) {
     return <div className="text-center py-16 text-muted-foreground">იტვირთება…</div>;
@@ -54,6 +92,28 @@ function PartnerHome() {
           <div className="text-xs text-muted-foreground">{t("today")}</div>
           <div className="font-bold text-primary text-lg">{formatGel(stats.revenue)}</div>
         </div>
+      </div>
+
+      {/* Today's Summary */}
+      <div className="rounded-3xl bg-gradient-to-br from-primary/10 via-accent/10 to-transparent border border-border p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" /> {t("todaySummary")}
+          </h3>
+          <button
+            onClick={duplicateYesterday}
+            disabled={dupBusy}
+            className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft disabled:opacity-50 active:scale-95 transition-transform"
+          >
+            <Copy className="w-3.5 h-3.5" /> {t("duplicateYesterday")}
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <SumCell label={t("productsSold")} value={String(stats.soldToday)} />
+          <SumCell label={t("revenue")} value={formatGel(stats.revenue)} />
+          <SumCell label={t("ordersLbl")} value={String(stats.todayCount)} />
+        </div>
+        {dupMsg && <div className="mt-3 text-xs text-center text-primary font-medium">{dupMsg}</div>}
       </div>
 
       {/* 4 huge action tiles */}
@@ -157,5 +217,14 @@ function Shortcut({ to, icon, label }: { to: string; icon: React.ReactNode; labe
       <span className="w-8 h-8 rounded-full bg-primary/10 text-primary grid place-items-center">{icon}</span>
       {label}
     </Link>
+  );
+}
+
+function SumCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-card rounded-2xl border border-border/60 p-3 text-center">
+      <div className="text-lg font-bold text-primary">{value}</div>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
+    </div>
   );
 }

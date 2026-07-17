@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store } from "lucide-react";
+import { MapPin, Search, Sparkles, Leaf, Gift, Map as MapIcon, Shield, Store, Compass, Flame, Utensils, Shuffle } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName, type Category } from "@/lib/mock-data";
+import { useFavorites, isTrustedPartner } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth";
@@ -27,6 +28,8 @@ function Home() {
   const [onlyDelivery, setOnlyDelivery] = useState(false);
   const { user } = useAuth();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
+  const favs = useFavorites();
+  const [surpriseSeed, setSurpriseSeed] = useState(0);
 
   const filtered = useMemo(() => {
     return OFFERS.filter((o) => {
@@ -39,6 +42,43 @@ function Home() {
       return true;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, onlyDelivery, language]);
+
+  const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
+  const bestToday = useMemo(() => {
+    return [...filtered]
+      .sort((a, b) => (1 - a.price / a.originalPrice) - (1 - b.price / b.originalPrice))
+      .reverse()
+      .slice(0, 6);
+  }, [filtered]);
+  const dailyDiscovery = useMemo(() => {
+    if (filtered.length === 0) return null;
+    const day = new Date().toISOString().slice(0, 10);
+    let hash = 0;
+    for (let i = 0; i < day.length; i++) hash = (hash * 31 + day.charCodeAt(i)) >>> 0;
+    return filtered[hash % filtered.length];
+  }, [filtered]);
+
+  // Dinner Tonight: nearby offers with pickup window still active tonight,
+  // preferring trusted partners + favorite stores + meal categories.
+  const dinnerPicks = useMemo(() => {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const scored = OFFERS.map((o) => {
+      const [h, m] = o.pickupTo.split(":").map(Number);
+      const endMin = h * 60 + m;
+      if (endMin < nowMin) return null; // already ended
+      let score = 100 - o.distanceKm * 10;
+      if (isTrustedPartner(o.storeId)) score += 25;
+      if (favs.includes(o.storeId)) score += 20;
+      if (o.category === "რესტორანი" || o.category === "სუში" || o.category === "საცხობი") score += 10;
+      score += Math.random() * 8; // small jitter
+      return { o, score };
+    }).filter(Boolean) as { o: typeof OFFERS[number]; score: number }[];
+    scored.sort((a, b) => b.score - a.score);
+    void surpriseSeed; // re-shuffle when user clicks Surprise Me
+    return scored.slice(0, 3).map((s) => s.o);
+  }, [favs, surpriseSeed]);
+
 
   return (
     <div>
@@ -152,27 +192,77 @@ function Home() {
         </div>
       </section>
 
-      {/* Offers grid */}
+      {/* Deals Near You */}
       <section className="mx-auto max-w-2xl px-4 mt-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold">{t("nearbyOffers")}</h2>
+          <h2 className="font-display text-xl font-bold flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-primary" /> {t("sectionDealsNear")}
+          </h2>
           <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full">
             <MapIcon className="w-3.5 h-3.5" /> {t("onMap")} ({filtered.length})
           </Link>
         </div>
 
-        {filtered.length === 0 ? (
+        {nearby.length === 0 ? (
           <div className="text-center py-14 bg-card rounded-2xl border border-border">
             <div className="text-4xl mb-2">🥲</div>
             <p className="text-sm text-muted-foreground">{t("noResults")}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {filtered.map((o) => <OfferCard key={o.id} offer={o} />)}
+            {nearby.map((o) => <OfferCard key={o.id} offer={o} />)}
           </div>
         )}
+      </section>
 
-        <div className="mt-8 rounded-2xl bg-warm text-warm-foreground p-5 flex items-center gap-4">
+      {/* Dinner Tonight */}
+      {dinnerPicks.length > 0 && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-accent/20 to-transparent border border-border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                <Utensils className="w-5 h-5 text-primary" /> {t("dinnerTonight")}
+              </h2>
+              <button
+                onClick={() => setSurpriseSeed((n) => n + 1)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft active:scale-95 transition-transform"
+              >
+                <Shuffle className="w-3.5 h-3.5" /> ✨ {t("surpriseMe")}
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {dinnerPicks.map((o) => <OfferCard key={o.id} offer={o} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Today's Best Deals */}
+      {bestToday.length > 0 && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
+            <Flame className="w-5 h-5 text-red-500" /> {t("sectionBestToday")}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {bestToday.map((o) => <OfferCard key={o.id} offer={o} />)}
+          </div>
+        </section>
+      )}
+
+      {/* Daily Discovery */}
+      {dailyDiscovery && (
+        <section className="mx-auto max-w-2xl px-4 mt-8">
+          <h2 className="font-display text-xl font-bold flex items-center gap-2 mb-3">
+            <Compass className="w-5 h-5 text-accent-foreground" /> {t("sectionDaily")}
+          </h2>
+          <div className="grid grid-cols-1">
+            <OfferCard offer={dailyDiscovery} />
+          </div>
+        </section>
+      )}
+
+      <section className="mx-auto max-w-2xl px-4 mt-8 mb-8">
+        <div className="rounded-2xl bg-warm text-warm-foreground p-5 flex items-center gap-4">
           <div className="text-3xl">🎁</div>
           <div className="flex-1">
             <div className="font-semibold">{t("cantPickup")}</div>
