@@ -16,7 +16,7 @@ function PartnerApply() {
   const { t, language } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", logo: "🏪", district: "ვაკე", address: "", phone: "", description: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; description: string }>({ name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
