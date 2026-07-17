@@ -8,7 +8,30 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const IOS_HINT_KEY = "cheaper.iosInstallHintDismissed";
-const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed";
+const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v2";
+
+function hasAndroidInstallDismissed() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(ANDROID_HINT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function dismissAndroidInstallForSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(ANDROID_HINT_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
+
+function isMobileBrowser() {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
 
 function isIosSafari() {
   if (typeof navigator === "undefined") return false;
@@ -32,6 +55,8 @@ const COPY = {
     install: "აპლიკაციის ინსტალაცია",
     installNow: "დაინსტალირება",
     later: "მოგვიანებით",
+    androidBody: "თუ ფანჯარა არ გაიხსნა, Chrome-ში გახსენი მენიუ ⋮ და აირჩიე Install app / Add to Home Screen.",
+    gotIt: "გასაგებია",
     iosTitle: "დაამატე Cheaper მთავარ ეკრანზე",
     iosBody: 'დააჭირე გაზიარებას ⬆︎ Safari-ში და აირჩიე "მთავარ ეკრანზე დამატება".',
     updateTitle: "ხელმისაწვდომია განახლება",
@@ -43,6 +68,8 @@ const COPY = {
     install: "Install App",
     installNow: "Install",
     later: "Later",
+    androidBody: "If the install window does not open, use Chrome menu ⋮ and choose Install app / Add to Home Screen.",
+    gotIt: "Got it",
     iosTitle: "Add Cheaper to your Home Screen",
     iosBody: 'Tap the Share icon ⬆︎ in Safari, then choose "Add to Home Screen".',
     updateTitle: "Update available",
@@ -54,6 +81,8 @@ const COPY = {
     install: "Установить приложение",
     installNow: "Установить",
     later: "Позже",
+    androidBody: "Если окно установки не открылось, откройте меню Chrome ⋮ и выберите Install app / Add to Home Screen.",
+    gotIt: "Понятно",
     iosTitle: "Добавьте Cheaper на главный экран",
     iosBody: 'Нажмите «Поделиться» ⬆︎ в Safari и выберите «На экран «Домой»».',
     updateTitle: "Доступно обновление",
@@ -67,6 +96,7 @@ export function PwaInstall() {
   const { language } = useI18n();
   const t = COPY[(language as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showMobileFallback, setShowMobileFallback] = useState(false);
   const [showIos, setShowIos] = useState(false);
   const [update, setUpdate] = useState<null | (() => void)>(null);
 
@@ -76,18 +106,29 @@ export function PwaInstall() {
     const onBIP = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
+      setShowMobileFallback(false);
     };
     window.addEventListener("beforeinstallprompt", onBIP);
+
+    const fallbackTimer = window.setTimeout(() => {
+      if (!isIosSafari() && isMobileBrowser() && !hasAndroidInstallDismissed()) {
+        setShowMobileFallback(true);
+      }
+    }, 1800);
 
     if (isIosSafari() && !localStorage.getItem(IOS_HINT_KEY)) {
       const t = setTimeout(() => setShowIos(true), 3000);
       return () => {
         window.removeEventListener("beforeinstallprompt", onBIP);
+        clearTimeout(fallbackTimer);
         clearTimeout(t);
       };
     }
 
-    return () => window.removeEventListener("beforeinstallprompt", onBIP);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBIP);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -105,8 +146,9 @@ export function PwaInstall() {
   };
 
   const dismissAndroid = () => {
-    localStorage.setItem(ANDROID_HINT_KEY, "1");
+    dismissAndroidInstallForSession();
     setDeferred(null);
+    setShowMobileFallback(false);
   };
   const dismissIos = () => {
     localStorage.setItem(IOS_HINT_KEY, "1");
@@ -114,9 +156,9 @@ export function PwaInstall() {
   };
 
   const showAndroid =
-    deferred &&
+    (deferred || showMobileFallback) &&
     typeof window !== "undefined" &&
-    !localStorage.getItem(ANDROID_HINT_KEY);
+    !hasAndroidInstallDismissed();
 
   return (
     <>
@@ -140,7 +182,9 @@ export function PwaInstall() {
           <img src="/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
           <div className="flex-1 text-sm">
             <div className="font-semibold">{t.install}</div>
-            <div className="text-muted-foreground text-xs">Cheaper</div>
+            <div className="text-muted-foreground text-xs leading-relaxed">
+              {deferred ? "Cheaper" : t.androidBody}
+            </div>
           </div>
           <button
             onClick={dismissAndroid}
@@ -148,12 +192,21 @@ export function PwaInstall() {
           >
             {t.later}
           </button>
-          <button
-            onClick={doInstall}
-            className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-          >
-            {t.installNow}
-          </button>
+          {deferred ? (
+            <button
+              onClick={doInstall}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              {t.installNow}
+            </button>
+          ) : (
+            <button
+              onClick={dismissAndroid}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              {t.gotIt}
+            </button>
+          )}
         </div>
       )}
 
