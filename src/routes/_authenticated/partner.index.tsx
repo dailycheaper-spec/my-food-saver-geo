@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, Store as StoreIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/")({
