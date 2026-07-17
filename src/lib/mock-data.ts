@@ -30,6 +30,7 @@ export interface Offer {
   lat?: number;
   lng?: number;
   createdAt?: number; // epoch ms — used for NEW badge
+  isSurprise?: boolean; // mystery bag — contents revealed at pickup
 }
 
 // approx Tbilisi district centers
