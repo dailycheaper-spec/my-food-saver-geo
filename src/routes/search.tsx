@@ -1,10 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, useRef } from "react";
-import { Search as SearchIcon, X, SlidersHorizontal, MapPin } from "lucide-react";
 import {
-  CATEGORIES, DISTRICTS, OFFERS,
-  getCategoryLabel, getDistrictLabel, offerMatchesQuery,
-  type Category,
+  Search as SearchIcon, X, SlidersHorizontal, MapPin, Store as StoreIcon,
+  Utensils, Tag, Star, Clock, Percent, Navigation, RotateCcw,
+} from "lucide-react";
+import {
+  CATEGORIES, DISTRICTS, OFFERS, STORES,
+  getCategoryLabel, getDistrictLabel, getStoreName, getOfferText,
+  offerMatchesQuery, formatPrice,
+  type Category, type Offer,
 } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
@@ -21,6 +25,40 @@ export const Route = createFileRoute("/search")({
 
 const RECENT_KEY = "cheaper:recent-searches";
 
+type Diet = "vegetarian" | "vegan" | "glutenFree" | "halal";
+
+const DIET_KEYWORDS: Record<Diet, string[]> = {
+  vegetarian: ["ვეგეტარიან", "vegetarian", "вегетариан", "ბოსტნეული", "ხილი", "produce", "salad", "სალათი"],
+  vegan: ["ვეგან", "vegan", "веган", "ხილი", "produce", "fruit"],
+  glutenFree: ["გლუტენის გარეშე", "gluten free", "gluten-free", "без глютена", "ბრინჯი", "rice"],
+  halal: ["ჰალალ", "halal", "халяль"],
+};
+
+function offerMatchesDiet(o: Offer, diet: Diet): boolean {
+  const hay = `${o.title} ${o.description} ${o.category}`.toLowerCase();
+  return DIET_KEYWORDS[diet].some((kw) => hay.includes(kw.toLowerCase()));
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function nowMinutes(): number {
+  const d = new Date();
+  return d.getHours() * 60 + d.getMinutes();
+}
+
+function isOpenNow(o: Offer): boolean {
+  const from = timeToMinutes(o.pickupFrom);
+  const to = timeToMinutes(o.pickupTo);
+  const n = nowMinutes();
+  return n >= from && n <= to;
+}
+
+const SORTS = ["distance", "price", "discount", "rating"] as const;
+type Sort = typeof SORTS[number];
+
 function SearchPage() {
   const { t, language } = useI18n();
   const [q, setQ] = useState("");
@@ -29,6 +67,16 @@ function SearchPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [recent, setRecent] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // filters
+  const [maxDistance, setMaxDistance] = useState(10); // km
+  const [maxPrice, setMaxPrice] = useState(50); // GEL
+  const [minDiscount, setMinDiscount] = useState(0); // %
+  const [minRating, setMinRating] = useState(0);
+  const [openNow, setOpenNow] = useState(false);
+  const [pickupBefore, setPickupBefore] = useState<string>(""); // HH:MM
+  const [diets, setDiets] = useState<Set<Diet>>(new Set());
+  const [sort, setSort] = useState<Sort>("distance");
 
   useEffect(() => {
     try {
@@ -51,14 +99,78 @@ function SearchPage() {
     try { localStorage.removeItem(RECENT_KEY); } catch {}
   };
 
+  const resetFilters = () => {
+    setCat("ყველა"); setDistrict("ყველა უბანი");
+    setMaxDistance(10); setMaxPrice(50); setMinDiscount(0);
+    setMinRating(0); setOpenNow(false); setPickupBefore("");
+    setDiets(new Set()); setSort("distance");
+  };
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (cat !== "ყველა") n++;
+    if (district !== "ყველა უბანი") n++;
+    if (maxDistance < 10) n++;
+    if (maxPrice < 50) n++;
+    if (minDiscount > 0) n++;
+    if (minRating > 0) n++;
+    if (openNow) n++;
+    if (pickupBefore) n++;
+    n += diets.size;
+    return n;
+  }, [cat, district, maxDistance, maxPrice, minDiscount, minRating, openNow, pickupBefore, diets]);
+
   const filtered = useMemo(() => {
-    return OFFERS.filter((o) => {
+    const result = OFFERS.filter((o) => {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
+      if (o.distanceKm > maxDistance) return false;
+      if (o.price > maxPrice) return false;
+      const discount = Math.round((1 - o.price / o.originalPrice) * 100);
+      if (discount < minDiscount) return false;
+      if (o.rating < minRating) return false;
+      if (openNow && !isOpenNow(o)) return false;
+      if (pickupBefore && timeToMinutes(o.pickupFrom) > timeToMinutes(pickupBefore)) return false;
+      for (const d of diets) if (!offerMatchesDiet(o, d)) return false;
       return true;
-    }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [cat, district, q]);
+    });
+
+    result.sort((a, b) => {
+      switch (sort) {
+        case "price": return a.price - b.price;
+        case "rating": return b.rating - a.rating;
+        case "discount": {
+          const da = 1 - a.price / a.originalPrice;
+          const db = 1 - b.price / b.originalPrice;
+          return db - da;
+        }
+        default: return a.distanceKm - b.distanceKm;
+      }
+    });
+    return result;
+  }, [cat, district, q, maxDistance, maxPrice, minDiscount, minRating, openNow, pickupBefore, diets, sort]);
+
+  // Instant suggestions
+  const suggestions = useMemo(() => {
+    if (!q || q.length < 1) return null;
+    const query = q.toLowerCase();
+    const partners = STORES.filter((s) =>
+      getStoreName(s, language).toLowerCase().includes(query) || s.name.toLowerCase().includes(query)
+    ).slice(0, 3);
+    const foods = OFFERS.filter((o) => {
+      const { title } = getOfferText(o, language);
+      return title.toLowerCase().includes(query) || o.title.toLowerCase().includes(query);
+    }).slice(0, 4);
+    const cats = CATEGORIES.filter((c) =>
+      c.id !== "ყველა" && getCategoryLabel(c.id, language).toLowerCase().includes(query)
+    ).slice(0, 3);
+    const districts = DISTRICTS.filter((d) =>
+      d !== "ყველა უბანი" && getDistrictLabel(d, language).toLowerCase().includes(query)
+    ).slice(0, 3);
+    if (!partners.length && !foods.length && !cats.length && !districts.length) return null;
+    return { partners, foods, cats, districts };
+  }, [q, language]);
 
   const trendingTerms = language === "en"
     ? ["Khachapuri", "Sushi", "Bakery", "Coffee", "Fruits"]
@@ -66,12 +178,49 @@ function SearchPage() {
       ? ["Хачапури", "Суши", "Пекарня", "Кофе", "Фрукты"]
       : ["ხაჭაპური", "სუში", "საცხობი", "ყავა", "ხილი"];
 
-  const searchLabel = language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა";
-  const recentLabel = language === "en" ? "Recent" : language === "ru" ? "Недавние" : "ბოლო ძებნები";
-  const trendingLabel = language === "en" ? "Popular" : language === "ru" ? "Популярное" : "პოპულარული";
-  const resultsLabel = language === "en" ? "results" : language === "ru" ? "результатов" : "შედეგი";
-  const clearLabel = language === "en" ? "Clear" : language === "ru" ? "Очистить" : "გასუფთავება";
-  const filtersLabel = language === "en" ? "Filters" : language === "ru" ? "Фильтры" : "ფილტრები";
+  const L = (ka: string, en: string, ru: string) =>
+    language === "en" ? en : language === "ru" ? ru : ka;
+
+  const recentLabel = L("ბოლო ძებნები", "Recent", "Недавние");
+  const trendingLabel = L("პოპულარული", "Popular", "Популярное");
+  const resultsLabel = L("შედეგი", "results", "результатов");
+  const clearLabel = L("გასუფთავება", "Clear", "Очистить");
+  const filtersLabel = L("ფილტრები", "Filters", "Фильтры");
+  const partnersLabel = L("პარტნიორები", "Partners", "Партнёры");
+  const foodsLabel = L("კერძები", "Dishes", "Блюда");
+  const catsLabel = L("კატეგორიები", "Categories", "Категории");
+  const locLabel = L("მდებარეობა", "Location", "Локация");
+  const distanceLabel = L("მანძილი", "Distance", "Расстояние");
+  const priceLabel = L("ფასი", "Price", "Цена");
+  const discountLabel = L("ფასდაკლება", "Discount", "Скидка");
+  const ratingLabel = L("რეიტინგი", "Rating", "Рейтинг");
+  const openNowLabel = L("ღიაა ახლა", "Open now", "Открыто сейчас");
+  const pickupLabel = L("აღება მდე", "Pickup by", "Забрать до");
+  const dietLabel = L("დიეტა", "Dietary", "Диета");
+  const sortLabel = L("დალაგება", "Sort", "Сорт.");
+  const resetLabel = L("გადატვირთვა", "Reset", "Сброс");
+
+  const sortNames: Record<Sort, string> = {
+    distance: L("ახლოს", "Nearest", "Ближе"),
+    price: L("ფასი", "Price", "Цена"),
+    discount: L("ფასდაკლება", "Discount", "Скидка"),
+    rating: L("რეიტინგი", "Rating", "Рейтинг"),
+  };
+
+  const dietNames: Record<Diet, string> = {
+    vegetarian: L("ვეგეტარიანული", "Vegetarian", "Вегетарианское"),
+    vegan: L("ვეგანური", "Vegan", "Веган"),
+    glutenFree: L("გლუტენის გარეშე", "Gluten-free", "Без глютена"),
+    halal: L("ჰალალი", "Halal", "Халяль"),
+  };
+
+  const toggleDiet = (d: Diet) => {
+    const next = new Set(diets);
+    next.has(d) ? next.delete(d) : next.add(d);
+    setDiets(next);
+  };
+
+  const showSuggestions = q.length > 0 && suggestions;
 
   return (
     <div className="min-h-screen">
@@ -103,48 +252,160 @@ function SearchPage() {
             </div>
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className={`h-12 w-12 shrink-0 grid place-items-center rounded-2xl border transition-colors ${
-                showFilters || cat !== "ყველა" || district !== "ყველა უბანი"
+              className={`relative h-12 w-12 shrink-0 grid place-items-center rounded-2xl border transition-colors ${
+                showFilters || activeFilterCount > 0
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-card border-border"
               }`}
               aria-label={filtersLabel}
             >
               <SlidersHorizontal className="w-[18px] h-[18px]" />
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">
+                  {activeFilterCount}
+                </span>
+              )}
             </button>
           </div>
 
+          {/* Sort chips (when there's a query or filters) */}
+          {(q || activeFilterCount > 0) && !showFilters && (
+            <div className="mt-3 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
+              {SORTS.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSort(s)}
+                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    sort === s ? "bg-foreground text-background" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  {sortNames[s]}
+                </button>
+              ))}
+            </div>
+          )}
+
           {showFilters && (
-            <div className="mt-3 space-y-3 animate-fade-in">
-              <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
-                {CATEGORIES.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCat(c.id)}
-                    className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
-                      cat === c.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-foreground"
-                    }`}
-                  >
-                    <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
-                  </button>
-                ))}
+            <div className="mt-3 space-y-4 animate-fade-in">
+              {/* Categories */}
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground mb-1.5">{catsLabel}</div>
+                <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
+                  {CATEGORIES.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setCat(c.id)}
+                      className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
+                        cat === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
-                {DISTRICTS.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setDistrict(d)}
-                    className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all ${
-                      district === d
-                        ? "bg-foreground text-background"
-                        : "bg-card border border-border text-foreground"
-                    }`}
-                  >
-                    <MapPin className="w-3 h-3" /> {getDistrictLabel(d, language)}
-                  </button>
-                ))}
+
+              {/* Districts */}
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground mb-1.5">{locLabel}</div>
+                <div className="flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
+                  {DISTRICTS.map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => setDistrict(d)}
+                      className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all ${
+                        district === d ? "bg-foreground text-background" : "bg-card border border-border text-foreground"
+                      }`}
+                    >
+                      <MapPin className="w-3 h-3" /> {getDistrictLabel(d, language)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sliders */}
+              <div className="grid grid-cols-1 gap-3 bg-card rounded-2xl border border-border p-3">
+                <SliderRow
+                  icon={<Navigation className="w-3.5 h-3.5" />}
+                  label={distanceLabel}
+                  value={`${maxDistance} km`}
+                  min={1} max={10} step={0.5}
+                  v={maxDistance} onChange={setMaxDistance}
+                />
+                <SliderRow
+                  icon={<Tag className="w-3.5 h-3.5" />}
+                  label={priceLabel}
+                  value={`≤ ${formatPrice(maxPrice)}`}
+                  min={5} max={50} step={1}
+                  v={maxPrice} onChange={setMaxPrice}
+                />
+                <SliderRow
+                  icon={<Percent className="w-3.5 h-3.5" />}
+                  label={discountLabel}
+                  value={`≥ ${minDiscount}%`}
+                  min={0} max={80} step={5}
+                  v={minDiscount} onChange={setMinDiscount}
+                />
+                <SliderRow
+                  icon={<Star className="w-3.5 h-3.5" />}
+                  label={ratingLabel}
+                  value={`≥ ${minRating.toFixed(1)}★`}
+                  min={0} max={5} step={0.5}
+                  v={minRating} onChange={setMinRating}
+                />
+              </div>
+
+              {/* Open now + pickup */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => setOpenNow((v) => !v)}
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
+                    openNow ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" /> {openNowLabel}
+                </button>
+                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-semibold">
+                  <Clock className="w-3.5 h-3.5" /> {pickupLabel}
+                  <input
+                    type="time"
+                    value={pickupBefore}
+                    onChange={(e) => setPickupBefore(e.target.value)}
+                    className="bg-transparent outline-none text-foreground w-[70px]"
+                  />
+                  {pickupBefore && (
+                    <button onClick={() => setPickupBefore("")} aria-label="clear time">
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </label>
+              </div>
+
+              {/* Diet */}
+              <div>
+                <div className="text-[11px] font-bold uppercase text-muted-foreground mb-1.5">{dietLabel}</div>
+                <div className="flex gap-2 flex-wrap">
+                  {(Object.keys(dietNames) as Diet[]).map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => toggleDiet(d)}
+                      className={`px-3.5 py-2 rounded-full text-xs font-semibold transition-all ${
+                        diets.has(d) ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                      }`}
+                    >
+                      {dietNames[d]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={resetFilters}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> {resetLabel}
+                </button>
               </div>
             </div>
           )}
@@ -152,6 +413,85 @@ function SearchPage() {
       </div>
 
       <div className="mx-auto max-w-2xl px-4 pt-4 pb-6">
+        {/* Instant suggestions */}
+        {showSuggestions && (
+          <div className="mb-4 bg-card border border-border rounded-2xl overflow-hidden animate-fade-in">
+            {suggestions.partners.length > 0 && (
+              <SuggestGroup label={partnersLabel} icon={<StoreIcon className="w-3.5 h-3.5" />}>
+                {suggestions.partners.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
+                  >
+                    <span className="text-xl">{s.logo}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{getStoreName(s, language)}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {getCategoryLabel(s.category, language)} · {getDistrictLabel(s.district, language)}
+                      </div>
+                    </div>
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <span className="text-xs font-semibold">{s.rating}</span>
+                  </button>
+                ))}
+              </SuggestGroup>
+            )}
+            {suggestions.foods.length > 0 && (
+              <SuggestGroup label={foodsLabel} icon={<Utensils className="w-3.5 h-3.5" />}>
+                {suggestions.foods.map((o) => {
+                  const { title } = getOfferText(o, language);
+                  return (
+                    <Link
+                      key={o.id}
+                      to="/offer/$id"
+                      params={{ id: o.id }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
+                    >
+                      <img src={o.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold truncate">{title}</div>
+                        <div className="text-[11px] text-muted-foreground truncate">
+                          {getStoreName(o, language)} · {o.distanceKm} km
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold text-primary">{formatPrice(o.price)}</span>
+                    </Link>
+                  );
+                })}
+              </SuggestGroup>
+            )}
+            {suggestions.cats.length > 0 && (
+              <SuggestGroup label={catsLabel} icon={<Tag className="w-3.5 h-3.5" />}>
+                {suggestions.cats.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => { setCat(c.id); setQ(""); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
+                  >
+                    <span className="text-xl">{c.icon}</span>
+                    <span className="text-sm font-semibold">{getCategoryLabel(c.id, language)}</span>
+                  </button>
+                ))}
+              </SuggestGroup>
+            )}
+            {suggestions.districts.length > 0 && (
+              <SuggestGroup label={locLabel} icon={<MapPin className="w-3.5 h-3.5" />}>
+                {suggestions.districts.map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => { setDistrict(d); setQ(""); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
+                  >
+                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold">{getDistrictLabel(d, language)}</span>
+                  </button>
+                ))}
+              </SuggestGroup>
+            )}
+          </div>
+        )}
+
         {!q && (
           <>
             {recent.length > 0 && (
@@ -176,16 +516,37 @@ function SearchPage() {
               </section>
             )}
 
-            <section>
+            <section className="mb-6">
               <h2 className="text-sm font-bold mb-3">🔥 {trendingLabel}</h2>
               <div className="flex flex-wrap gap-2">
-                {trendingTerms.map((t) => (
+                {trendingTerms.map((term) => (
                   <button
-                    key={t}
-                    onClick={() => { setQ(t); saveRecent(t); }}
+                    key={term}
+                    onClick={() => { setQ(term); saveRecent(term); }}
                     className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/15 active:scale-95 transition-all"
                   >
-                    {t}
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-bold mb-3">{partnersLabel}</h2>
+              <div className="grid grid-cols-2 gap-2">
+                {STORES.slice(0, 6).map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
+                    className="flex items-center gap-2 p-3 bg-card border border-border rounded-2xl text-left hover:bg-secondary transition-colors"
+                  >
+                    <span className="text-2xl">{s.logo}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
+                      <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" /> {s.rating}
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -193,12 +554,17 @@ function SearchPage() {
           </>
         )}
 
-        {q && (
+        {(q || activeFilterCount > 0) && (
           <>
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
                 <span className="font-bold text-foreground">{filtered.length}</span> {resultsLabel}
               </p>
+              {activeFilterCount > 0 && (
+                <button onClick={resetFilters} className="text-xs font-semibold text-primary flex items-center gap-1">
+                  <RotateCcw className="w-3 h-3" /> {resetLabel}
+                </button>
+              )}
             </div>
             {filtered.length === 0 ? (
               <div className="text-center py-16 bg-card rounded-3xl border border-border">
@@ -217,3 +583,35 @@ function SearchPage() {
   );
 }
 
+function SuggestGroup({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="border-b last:border-b-0 border-border">
+      <div className="flex items-center gap-1.5 px-4 pt-2.5 pb-1 text-[10px] font-bold uppercase text-muted-foreground">
+        {icon} {label}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SliderRow({
+  icon, label, value, min, max, step, v, onChange,
+}: {
+  icon: React.ReactNode; label: string; value: string;
+  min: number; max: number; step: number; v: number; onChange: (n: number) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-1.5 text-xs font-semibold">{icon} {label}</div>
+        <span className="text-xs font-bold text-primary">{value}</span>
+      </div>
+      <input
+        type="range"
+        min={min} max={max} step={step} value={v}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-primary"
+      />
+    </div>
+  );
+}
