@@ -16,15 +16,52 @@ function PartnerHome() {
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const { orders } = useStoreOrders(store?.id ?? null);
+  const [dupMsg, setDupMsg] = useState<string | null>(null);
+  const [dupBusy, setDupBusy] = useState(false);
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
     const todaysOrders = orders.filter((o) => new Date(o.created_at).toDateString() === today && (o.status === "paid" || o.status === "ready" || o.status === "collected"));
+    const soldToday = todaysOrders.reduce((s, o) => s + Number((o as { quantity?: number }).quantity ?? 1), 0);
     const revenue = todaysOrders.reduce((s, o) => s + Number(o.amount), 0);
     const active = offers.filter((o) => o.is_active && o.quantity_sold < o.quantity_available).length;
     const pending = orders.filter((o) => o.status === "paid" || o.status === "ready").length;
-    return { revenue, active, pending, todayCount: todaysOrders.length };
+    return { revenue, active, pending, todayCount: todaysOrders.length, soldToday };
   }, [orders, offers]);
+
+  async function duplicateYesterday() {
+    if (!store) return;
+    setDupBusy(true);
+    setDupMsg(null);
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const y = yesterday.toDateString();
+    const last = offers.find((o) => new Date(o.created_at).toDateString() === y);
+    if (!last) {
+      setDupMsg(t("noYesterdayOffer"));
+      setDupBusy(false);
+      setTimeout(() => setDupMsg(null), 2500);
+      return;
+    }
+    const payload = {
+      store_id: store.id,
+      title: last.title,
+      description: last.description,
+      category: last.category,
+      original_price: last.original_price,
+      discounted_price: last.discounted_price,
+      quantity_available: last.quantity_available,
+      pickup_from: last.pickup_from,
+      pickup_to: last.pickup_to,
+      delivery_available: last.delivery_available,
+      image_url: last.image_url,
+      is_active: true,
+    };
+    const { error } = await supabase.from("offers").insert(payload);
+    setDupBusy(false);
+    setDupMsg(error ? error.message : t("duplicated"));
+    setTimeout(() => setDupMsg(null), 2500);
+  }
+
 
   if (loading) {
     return <div className="text-center py-16 text-muted-foreground">იტვირთება…</div>;
