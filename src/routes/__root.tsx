@@ -15,6 +15,7 @@ import { AppTracker } from "@/components/AppTracker";
 import { PwaInstall } from "@/components/PwaInstall";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
+import { CityProvider } from "@/lib/city";
 
 function NotFoundComponent() {
   return (
@@ -135,18 +136,20 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <a
-          href="#content"
-          className="sr-only-focusable text-sm font-semibold"
-        >
-          Skip to content
-        </a>
-        <main id="content" className="min-h-dvh pb-24">
-          <Outlet />
-        </main>
-        <BottomNav />
-        <AppTracker />
-        <PwaInstall />
+        <CityProvider>
+          <a
+            href="#content"
+            className="sr-only-focusable text-sm font-semibold"
+          >
+            Skip to content
+          </a>
+          <main id="content" className="min-h-dvh pb-24">
+            <Outlet />
+          </main>
+          <BottomNav />
+          <AppTracker />
+          <PwaInstall />
+        </CityProvider>
       </I18nProvider>
     </QueryClientProvider>
   );

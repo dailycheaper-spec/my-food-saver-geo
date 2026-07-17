@@ -5,6 +5,7 @@ import {
   Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CitySelector } from "@/components/CitySelector";
 import { loadTheme, saveTheme } from "@/lib/admin-settings";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -92,6 +93,7 @@ function AdminLayout() {
           })}
         </nav>
         <div className="p-3 border-t border-border space-y-1">
+          <div className="px-1 pb-1"><CitySelector variant="block" /></div>
           <button onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-foreground/70 hover:bg-muted">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -106,14 +108,17 @@ function AdminLayout() {
 
       {/* Mobile header */}
       <header className="lg:hidden sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border">
-        <div className="px-4 h-14 flex items-center justify-between">
-          <button onClick={() => setMobileOpen(true)} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+        <div className="px-4 h-14 flex items-center justify-between gap-2">
+          <button onClick={() => setMobileOpen(true)} aria-label="Menu" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-display font-bold">Cheaper · ადმინი</div>
-          <button onClick={toggleTheme} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
-            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <div className="font-display font-bold truncate">Cheaper · ადმინი</div>
+          <div className="flex items-center gap-1.5">
+            <CitySelector variant="pill" />
+            <button onClick={toggleTheme} aria-label="Theme" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </header>
 

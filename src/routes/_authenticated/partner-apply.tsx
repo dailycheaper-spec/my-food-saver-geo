@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { CITIES, cityLabel, type City } from "@/lib/city";
 
 export const Route = createFileRoute("/_authenticated/partner-apply")({
   head: () => ({ meta: [{ title: "გახდი პარტნიორი — Cheaper" }] }),
@@ -12,10 +13,10 @@ export const Route = createFileRoute("/_authenticated/partner-apply")({
 });
 
 function PartnerApply() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", logo: "🏪", district: "ვაკე", address: "", phone: "", description: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; description: string }>({ name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -57,6 +58,16 @@ function PartnerApply() {
       <form onSubmit={submit} className="bg-card rounded-2xl border border-border p-5 space-y-3">
         <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">
+            {language === "en" ? "City" : language === "ru" ? "Город" : "ქალაქი"}
+          </span>
+          <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+            {CITIES.map((c) => <option key={c} value={c}>{cityLabel(c, language)}</option>)}
+          </select>
+        </label>
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">{t("district")}</span>

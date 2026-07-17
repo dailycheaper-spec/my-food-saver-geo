@@ -423,6 +423,7 @@ export type Database = {
         Row: {
           address: string | null
           category: string
+          city: string
           created_at: string
           delivery_enabled: boolean
           delivery_fee_base: number
@@ -445,6 +446,7 @@ export type Database = {
         Insert: {
           address?: string | null
           category?: string
+          city?: string
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee_base?: number
@@ -467,6 +469,7 @@ export type Database = {
         Update: {
           address?: string | null
           category?: string
+          city?: string
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee_base?: number
