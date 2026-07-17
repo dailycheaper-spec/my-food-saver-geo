@@ -65,6 +65,8 @@ export const STORES: Store[] = [
   { id: "s8", name: "აგრო-ჰაბი", logo: "🥦", category: "სუპერმარკეტი", district: "ვაკე", rating: 4.5, followers: 980 },
 ];
 
+const NOW = typeof window !== "undefined" ? Date.now() : 0;
+
 export const OFFERS: Offer[] = [
   {
     id: "o1", storeId: "s1", storeName: "პური გულიანი", storeLogo: "🥖",
