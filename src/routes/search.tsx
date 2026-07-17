@@ -335,7 +335,7 @@ function SearchPage() {
                 <SliderRow
                   icon={<Tag className="w-3.5 h-3.5" />}
                   label={priceLabel}
-                  value={`≤ ${formatPrice(maxPrice, language)}`}
+                  value={`≤ ${formatPrice(maxPrice)}`}
                   min={5} max={50} step={1}
                   v={maxPrice} onChange={setMaxPrice}
                 />
@@ -455,7 +455,7 @@ function SearchPage() {
                           {getStoreName(o, language)} · {o.distanceKm} km
                         </div>
                       </div>
-                      <span className="text-sm font-bold text-primary">{formatPrice(o.price, language)}</span>
+                      <span className="text-sm font-bold text-primary">{formatPrice(o.price)}</span>
                     </Link>
                   );
                 })}
