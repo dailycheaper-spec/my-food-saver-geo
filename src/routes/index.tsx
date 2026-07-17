@@ -228,13 +228,21 @@ function Home() {
         </section>
       )}
 
-      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center flex items-center justify-center gap-4">
-        <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
-          კონფიდენციალობის პოლიტიკა
-        </Link>
-        <Link to="/terms" className="text-xs text-muted-foreground underline underline-offset-4">
-          წესები და პირობები
-        </Link>
+      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <Link to="/about" className="text-xs text-muted-foreground underline underline-offset-4">
+            {language === "en" ? "About" : language === "ru" ? "О нас" : "ჩვენს შესახებ"}
+          </Link>
+          <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
+            {language === "en" ? "Privacy Policy" : language === "ru" ? "Конфиденциальность" : "კონფიდენციალურობა"}
+          </Link>
+          <Link to="/terms" className="text-xs text-muted-foreground underline underline-offset-4">
+            {language === "en" ? "Terms" : language === "ru" ? "Условия" : "წესები და პირობები"}
+          </Link>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-3">
+          {language === "en" ? "Address" : language === "ru" ? "Адрес" : "მისამართი"}: {language === "en" ? "71 Vasil Barnovi Str., Tbilisi, Georgia, 0179" : language === "ru" ? "ул. Василия Барнови 71, Тбилиси, Грузия, 0179" : "ვასილ ბარნოვის 71, თბილისი, საქართველო, 0179"} · {language === "en" ? "Phone" : language === "ru" ? "Тел" : "ტელ"}: +995 599 161 187
+        </p>
       </footer>
     </div>
   );
