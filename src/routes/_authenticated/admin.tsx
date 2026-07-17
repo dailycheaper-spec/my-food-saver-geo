@@ -93,6 +93,7 @@ function AdminLayout() {
           })}
         </nav>
         <div className="p-3 border-t border-border space-y-1">
+          <div className="px-1 pb-1"><CitySelector variant="block" /></div>
           <button onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-foreground/70 hover:bg-muted">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
