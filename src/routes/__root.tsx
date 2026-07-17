@@ -136,18 +136,20 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <a
-          href="#content"
-          className="sr-only-focusable text-sm font-semibold"
-        >
-          Skip to content
-        </a>
-        <main id="content" className="min-h-dvh pb-24">
-          <Outlet />
-        </main>
-        <BottomNav />
-        <AppTracker />
-        <PwaInstall />
+        <CityProvider>
+          <a
+            href="#content"
+            className="sr-only-focusable text-sm font-semibold"
+          >
+            Skip to content
+          </a>
+          <main id="content" className="min-h-dvh pb-24">
+            <Outlet />
+          </main>
+          <BottomNav />
+          <AppTracker />
+          <PwaInstall />
+        </CityProvider>
       </I18nProvider>
     </QueryClientProvider>
   );
