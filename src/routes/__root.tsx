@@ -131,6 +131,7 @@ function RootComponent() {
         </div>
         <BottomNav />
         <AppTracker />
+        <PwaInstall />
       </I18nProvider>
     </QueryClientProvider>
   );
