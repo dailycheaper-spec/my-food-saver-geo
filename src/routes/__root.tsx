@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
+import { PwaInstall } from "@/components/PwaInstall";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
 
@@ -130,6 +131,7 @@ function RootComponent() {
         </div>
         <BottomNav />
         <AppTracker />
+        <PwaInstall />
       </I18nProvider>
     </QueryClientProvider>
   );
