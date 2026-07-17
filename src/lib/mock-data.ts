@@ -29,6 +29,7 @@ export interface Offer {
   deliveryFee: number;
   lat?: number;
   lng?: number;
+  createdAt?: number; // epoch ms — used for NEW badge
 }
 
 // approx Tbilisi district centers
