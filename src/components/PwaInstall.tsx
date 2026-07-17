@@ -8,7 +8,25 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const IOS_HINT_KEY = "cheaper.iosInstallHintDismissed";
-const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed";
+const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v2";
+
+function hasAndroidInstallDismissed() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(ANDROID_HINT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function dismissAndroidInstallForSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(ANDROID_HINT_KEY, "1");
+  } catch {
+    /* noop */
+  }
+}
 
 function isMobileBrowser() {
   if (typeof navigator === "undefined") return false;
@@ -93,7 +111,7 @@ export function PwaInstall() {
     window.addEventListener("beforeinstallprompt", onBIP);
 
     const fallbackTimer = window.setTimeout(() => {
-      if (!isIosSafari() && isMobileBrowser() && !localStorage.getItem(ANDROID_HINT_KEY)) {
+      if (!isIosSafari() && isMobileBrowser() && !hasAndroidInstallDismissed()) {
         setShowMobileFallback(true);
       }
     }, 1800);
@@ -128,7 +146,7 @@ export function PwaInstall() {
   };
 
   const dismissAndroid = () => {
-    localStorage.setItem(ANDROID_HINT_KEY, "1");
+    dismissAndroidInstallForSession();
     setDeferred(null);
     setShowMobileFallback(false);
   };
@@ -140,7 +158,7 @@ export function PwaInstall() {
   const showAndroid =
     (deferred || showMobileFallback) &&
     typeof window !== "undefined" &&
-    !localStorage.getItem(ANDROID_HINT_KEY);
+    !hasAndroidInstallDismissed();
 
   return (
     <>
