@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Percent, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles } from "lucide-react";
+import { Percent, ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
+import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
