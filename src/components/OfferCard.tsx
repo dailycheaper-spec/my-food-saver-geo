@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck } from "lucide-react";
+import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
-import { formatPrice, getOfferText, getStoreName } from "@/lib/mock-data";
+import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 
@@ -39,11 +39,13 @@ export function OfferCard({ offer }: { offer: Offer }) {
   // reference tick so useEffect refresh triggers re-render
   void tick;
 
+  const soldOut = offer.itemsLeft <= 0;
+
   return (
     <Link
       to="/offer/$id"
       params={{ id: offer.id }}
-      className="group block rounded-2xl overflow-hidden bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-border/60"
+      className="group block rounded-3xl overflow-hidden bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-border/60 active:scale-[0.99]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
         <img
@@ -52,46 +54,61 @@ export function OfferCard({ offer }: { offer: Offer }) {
           loading="lazy"
           width={800}
           height={600}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${soldOut ? "grayscale opacity-70" : ""}`}
         />
+
+        {/* left badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[75%]">
           <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
             -{discount}%
           </span>
-          {isNew && (
+          {isNew && !soldOut && (
             <span className="px-2 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center gap-1">
               <Sparkles className="w-3 h-3" /> {t("badgeNew")}
             </span>
           )}
-          {endingSoon && (
+          {endingSoon && !soldOut && (
             <span className="px-2 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1">
               <TimerReset className="w-3 h-3" /> {t("badgeEndingSoon")}
             </span>
           )}
-          {almostGone && (
+          {almostGone && !soldOut && (
             <span className="px-2 py-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center gap-1">
               <Flame className="w-3 h-3" /> {t("badgeAlmostGone")}
             </span>
           )}
-          {offer.delivery && (
-            <span className="px-2 py-1 rounded-full bg-card/90 text-foreground text-[10px] font-medium flex items-center gap-1">
-              <Truck className="w-3 h-3" /> {t("delivery")}
-            </span>
-          )}
         </div>
-        <button
-          onClick={(e) => { e.preventDefault(); toggleFavorite(offer.storeId); }}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-card/95 grid place-items-center hover:scale-110 transition-transform"
-          aria-label="favorite"
-        >
-          <Heart className={`w-4 h-4 ${isFav ? "fill-destructive text-destructive" : "text-foreground"}`} />
-        </button>
+
+        {/* right badges */}
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
+          <button
+            onClick={(e) => { e.preventDefault(); toggleFavorite(offer.storeId); }}
+            className="w-9 h-9 rounded-full bg-card/95 grid place-items-center hover:scale-110 active:scale-95 transition-transform shadow-soft"
+            aria-label="favorite"
+          >
+            <Heart className={`w-4 h-4 ${isFav ? "fill-destructive text-destructive" : "text-foreground"}`} />
+          </button>
+          <span className="px-2 py-1 rounded-full bg-card/95 text-foreground text-[10px] font-bold flex items-center gap-1 shadow-soft">
+            <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> {offer.rating.toFixed(1)}
+          </span>
+        </div>
+
+        {/* sold out overlay */}
+        {soldOut && (
+          <div className="absolute inset-0 grid place-items-center bg-black/40">
+            <span className="px-4 py-2 rounded-full bg-card text-foreground text-sm font-bold uppercase tracking-wider">
+              {language === "en" ? "Sold out" : language === "ru" ? "Распродано" : "გაყიდულია"}
+            </span>
+          </div>
+        )}
+
+        {/* bottom pill */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-card grid place-items-center text-lg shadow-soft">
+          <div className="w-9 h-9 rounded-full bg-card grid place-items-center text-lg shadow-soft shrink-0">
             {offer.storeLogo}
           </div>
-          <div className="flex-1 min-w-0 text-card-foreground bg-card/90 rounded-lg px-2 py-1">
-            <div className="text-xs font-semibold truncate flex items-center gap-1">
+          <div className="flex-1 min-w-0 text-card-foreground bg-card/95 rounded-xl px-2.5 py-1.5">
+            <div className="text-xs font-bold truncate flex items-center gap-1">
               {storeName}
               {trusted && <ShieldCheck className="w-3 h-3 text-primary shrink-0" aria-label={t("badgeTrusted")} />}
               {isFav && <Heart className="w-3 h-3 fill-destructive text-destructive shrink-0" aria-label={t("badgeFavStore")} />}
@@ -101,6 +118,17 @@ export function OfferCard({ offer }: { offer: Offer }) {
       </div>
 
       <div className="p-4 space-y-2.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2 py-0.5 rounded-full bg-secondary text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
+            {getCategoryLabel(offer.category, language)}
+          </span>
+          {offer.delivery && (
+            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center gap-1">
+              <Truck className="w-3 h-3" /> {t("delivery")}
+            </span>
+          )}
+        </div>
+
         <h3 className="font-semibold text-[15px] leading-snug line-clamp-2">{offerText.title}</h3>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -119,8 +147,10 @@ export function OfferCard({ offer }: { offer: Offer }) {
             <div className="text-xs text-muted-foreground line-through">{formatPrice(offer.originalPrice)}</div>
             <div className="text-lg font-bold text-primary">{formatPrice(offer.price)}</div>
           </div>
-          <div className="text-xs text-muted-foreground">
-            {t("left")} <span className="font-semibold text-foreground">{offer.itemsLeft}</span>
+          <div className={`text-xs font-semibold ${soldOut ? "text-destructive" : almostGone ? "text-amber-600" : "text-muted-foreground"}`}>
+            {soldOut
+              ? language === "en" ? "Sold out" : language === "ru" ? "Нет" : "არ არის"
+              : <>{t("left")} <span className="text-foreground font-bold">{offer.itemsLeft}</span></>}
           </div>
         </div>
       </div>
