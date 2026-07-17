@@ -214,3 +214,36 @@ function statusLabel(status: string, t: (key: string) => string) {
   if (status === "გაუქმებული") return t("cancelled");
   return status;
 }
+
+function PostPurchaseVote({ orderId, offerId }: { orderId: string; offerId: string }) {
+  const { t } = useI18n();
+  const hasVoted = useHasVotedOrder(orderId);
+  const offer = findOffer(offerId);
+  if (!offer) return null;
+  if (hasVoted) {
+    return (
+      <div className="mt-4 rounded-2xl bg-success/10 text-success p-4 text-sm font-medium text-center">
+        {t("thanksVote")}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5">
+      <div className="text-sm font-semibold text-center">{t("postPurchaseQuestion")}</div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button
+          onClick={() => addPartnerVote(offer.storeId, true, orderId)}
+          className="p-3 rounded-xl bg-emerald-500 text-white font-semibold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+        >
+          <ThumbsUp className="w-4 h-4" /> {t("yes")}
+        </button>
+        <button
+          onClick={() => addPartnerVote(offer.storeId, false, orderId)}
+          className="p-3 rounded-xl bg-card border border-border font-semibold flex items-center justify-center gap-2 active:scale-95 transition-transform"
+        >
+          <ThumbsDown className="w-4 h-4" /> {t("no")}
+        </button>
+      </div>
+    </div>
+  );
+}
