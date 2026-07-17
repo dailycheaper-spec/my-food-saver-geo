@@ -228,9 +228,12 @@ function Home() {
         </section>
       )}
 
-      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center">
+      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center flex items-center justify-center gap-4">
         <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
           კონფიდენციალობის პოლიტიკა
+        </Link>
+        <Link to="/terms" className="text-xs text-muted-foreground underline underline-offset-4">
+          წესები და პირობები
         </Link>
       </footer>
     </div>
