@@ -215,3 +215,52 @@ export function trackPurchase(storeId: string, storeName: string, storeLogo: str
 const SEEN_KEY = "gemo:seen-offers";
 export function getSeenOffers(): string[] { return read<string[]>(SEEN_KEY, []); }
 export function markOffersSeen(ids: string[]) { write(SEEN_KEY, ids); }
+
+// PARTNER VOTES — thumbs up/down after pickup, drives Trusted Partner badge
+export interface PartnerVotes { yes: number; no: number }
+const VOTES_KEY = "cheaper:partner-votes";
+const VOTED_ORDERS_KEY = "cheaper:voted-orders";
+const EMPTY_VOTES: Record<string, PartnerVotes> = {};
+
+// Seed a few partners as trusted so the badge shows immediately in demo data.
+const SEED_VOTES: Record<string, PartnerVotes> = {
+  s1: { yes: 42, no: 3 },
+  s2: { yes: 18, no: 2 },
+  s5: { yes: 27, no: 1 },
+  s6: { yes: 12, no: 4 },
+  s7: { yes: 9, no: 1 },
+};
+
+function readVotes(): Record<string, PartnerVotes> {
+  if (typeof window === "undefined") return EMPTY_VOTES;
+  return read<Record<string, PartnerVotes>>(VOTES_KEY, SEED_VOTES);
+}
+export function usePartnerVotes() {
+  const hydrated = useHydrated();
+  const value = useSyncExternalStore(subscribe, () => readVotes(), () => EMPTY_VOTES);
+  return hydrated ? value : EMPTY_VOTES;
+}
+export function getPartnerRating(storeId: string) {
+  const v = readVotes()[storeId] ?? { yes: 0, no: 0 };
+  const total = v.yes + v.no;
+  const ratio = total > 0 ? v.yes / total : 0;
+  return { ...v, total, ratio, isTrusted: total >= 5 && ratio >= 0.8 };
+}
+export function isTrustedPartner(storeId: string) {
+  return getPartnerRating(storeId).isTrusted;
+}
+export function addPartnerVote(storeId: string, yes: boolean, orderId?: string) {
+  const current = readVotes();
+  const prev = current[storeId] ?? { yes: 0, no: 0 };
+  const next = { ...current, [storeId]: { yes: prev.yes + (yes ? 1 : 0), no: prev.no + (yes ? 0 : 1) } };
+  write(VOTES_KEY, next);
+  if (orderId) {
+    const voted = read<string[]>(VOTED_ORDERS_KEY, []);
+    if (!voted.includes(orderId)) write(VOTED_ORDERS_KEY, [...voted, orderId]);
+  }
+}
+export function useHasVotedOrder(orderId: string) {
+  const hydrated = useHydrated();
+  const value = useSyncExternalStore(subscribe, () => read<string[]>(VOTED_ORDERS_KEY, []), () => EMPTY_STRING_LIST);
+  return hydrated ? value.includes(orderId) : false;
+}
