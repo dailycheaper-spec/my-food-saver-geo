@@ -123,35 +123,31 @@ function Home() {
       {/* -------- Top bar (sticky, mobile-first) -------- */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-2xl px-4 py-2.5 flex items-center gap-2">
-          <button className="flex items-center gap-1.5 min-w-0 group active:scale-95 transition-transform">
-            <div className="w-9 h-9 rounded-full bg-primary/10 grid place-items-center shrink-0">
-              <MapPin className="w-4 h-4 text-primary" />
-            </div>
-            <div className="min-w-0 text-left">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
-                {L.deliverTo}
-              </div>
-              <div className="text-sm font-bold truncate leading-tight">{t("location")}</div>
-            </div>
-          </button>
+          <Link to="/" aria-label={t("brand")} className="shrink-0 press rounded-2xl focus-visible:outline-none">
+            <Logo />
+          </Link>
+
+          <div className="mx-2 h-8 w-px bg-border/70 shrink-0" aria-hidden="true" />
+
+          <CitySelector variant="compact" />
 
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <LanguageSwitcher compact />
             <Link
               to="/notifications"
               aria-label={t("navNotifications")}
-              className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center active:scale-95 transition-transform"
+              className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
             >
-              <Bell className="w-[18px] h-[18px]" />
+              <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             </Link>
             {user && !rolesLoading && isAdmin && (
-              <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5" /> {t("admin")}
+              <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1 press">
+                <Shield className="w-3.5 h-3.5" aria-hidden="true" /> {t("admin")}
               </Link>
             )}
             {user && !rolesLoading && !isAdmin && isPartner && (
-              <Link to="/partner" className="h-10 px-3 rounded-full bg-accent text-accent-foreground font-semibold text-xs inline-flex items-center gap-1">
-                <Store className="w-3.5 h-3.5" /> {t("partner")}
+              <Link to="/partner" className="h-10 px-3 rounded-full bg-accent text-accent-foreground font-semibold text-xs inline-flex items-center gap-1 press">
+                <Store className="w-3.5 h-3.5" aria-hidden="true" /> {t("partner")}
               </Link>
             )}
           </div>
