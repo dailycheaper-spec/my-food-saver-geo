@@ -247,6 +247,27 @@ function Home() {
         </SectionHeader>
       )}
 
+      {/* -------- Surprise Boxes -------- */}
+      {surpriseBoxes.length > 0 && (
+        <section className="mx-auto max-w-2xl px-4 mt-6">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 p-5 shadow-elevated">
+            <div className="absolute -top-6 -right-6 text-[140px] opacity-20 select-none pointer-events-none">🎁</div>
+            <div className="relative flex items-center gap-2 text-white">
+              <Gift className="w-5 h-5" />
+              <h2 className="font-display text-lg font-bold">{t("surpriseTitle")}</h2>
+            </div>
+            <p className="relative text-white/90 text-xs mt-1">{t("surpriseSubtitle")}</p>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pt-3 pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4">
+            {surpriseBoxes.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* -------- Featured (trusted) -------- */}
       {featured.length > 0 && (
         <SectionHeader
