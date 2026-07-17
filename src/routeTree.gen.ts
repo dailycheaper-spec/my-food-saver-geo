@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as FavoritesRouteImport } from './routes/favorites'
@@ -56,6 +57,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -261,6 +267,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/partner-apply': typeof AuthenticatedPartnerApplyRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/map'
     | '/notifications'
+    | '/privacy'
     | '/profile'
     | '/sitemap.xml'
     | '/admin'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/map'
     | '/notifications'
+    | '/privacy'
     | '/profile'
     | '/sitemap.xml'
     | '/partner-apply'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/map'
     | '/notifications'
+    | '/privacy'
     | '/profile'
     | '/sitemap.xml'
     | '/_authenticated/admin'
@@ -498,6 +510,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   MapRoute: typeof MapRoute
   NotificationsRoute: typeof NotificationsRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   OfferIdRoute: typeof OfferIdRoute
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -860,6 +880,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   MapRoute: MapRoute,
   NotificationsRoute: NotificationsRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   OfferIdRoute: OfferIdRoute,

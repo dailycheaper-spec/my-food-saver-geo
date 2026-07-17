@@ -227,6 +227,12 @@ function Home() {
           </div>
         </section>
       )}
+
+      <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center">
+        <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
+          კონფიდენციალობის პოლიტიკა
+        </Link>
+      </footer>
     </div>
   );
 }
