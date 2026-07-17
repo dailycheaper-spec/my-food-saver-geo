@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } from "lucide-react";
-import { useOrders, updateOrder } from "@/lib/storage";
-import { formatPrice } from "@/lib/mock-data";
+import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag, ThumbsUp, ThumbsDown } from "lucide-react";
+import { useOrders, updateOrder, addPartnerVote, useHasVotedOrder } from "@/lib/storage";
+import { formatPrice, findOffer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
 
