@@ -126,7 +126,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        <div className="min-h-screen pb-20">
+        <div className="min-h-screen pb-24">
           <Outlet />
         </div>
         <BottomNav />
