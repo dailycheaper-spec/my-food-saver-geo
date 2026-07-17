@@ -82,6 +82,11 @@ function Home() {
       .slice(0, 6);
   }, []);
 
+  const surpriseBoxes = useMemo(
+    () => OFFERS.filter((o) => o.isSurprise).slice(0, 8),
+    [],
+  );
+
   const recommended = useMemo(() => {
     if (!hydrated) return OFFERS.slice(0, 4);
     if (favs.length === 0) return OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
