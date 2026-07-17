@@ -91,7 +91,7 @@ export const OFFERS: Offer[] = [
     pickupFrom: "19:00", pickupTo: "21:00",
     district: "საბურთალო", address: "ვაჟა-ფშაველას გამზ. 71",
     distanceKm: 1.2, rating: 4.7, reviewCount: 218, itemsLeft: 2,
-    delivery: true, deliveryFee: 4,
+    delivery: true, deliveryFee: 4, isSurprise: true,
   },
   {
     id: "o3", storeId: "s6", storeName: "ტოკიო სუში", storeLogo: "🍣",
