@@ -229,7 +229,11 @@ function Home() {
       )}
 
       <footer className="mx-auto max-w-2xl px-4 pb-24 pt-4 text-center">
+        <div className="flex justify-center mb-4">
+          <Logo />
+        </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+
           <Link to="/about" className="text-xs text-muted-foreground underline underline-offset-4">
             {language === "en" ? "About" : language === "ru" ? "О нас" : "ჩვენს შესახებ"}
           </Link>
