@@ -68,9 +68,9 @@ function Profile() {
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("packages")} value={String(saved)} />
-        <Stat icon={<Percent className="w-4 h-4" />} label={t("saved")} value={savedPct} />
-        <Stat icon={<Gift className="w-4 h-4" />} label={t("saved")} value={`${gel.toFixed(0)} ${t("currency")}`} />
+        <Stat icon={<PiggyBank className="w-4 h-4" />} label={t("moneySaved")} value={formatPrice(moneySaved)} />
+        <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("ordersCompleted")} value={String(completed)} />
+        <Stat icon={<Heart className="w-4 h-4" />} label={t("favoriteStoresLbl")} value={String(favs.length)} />
       </div>
 
       <div className="mt-4 rounded-2xl bg-warm text-warm-foreground p-5">
