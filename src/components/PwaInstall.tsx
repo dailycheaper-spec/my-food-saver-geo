@@ -64,8 +64,8 @@ const COPY = {
 };
 
 export function PwaInstall() {
-  const { lang } = useI18n();
-  const t = COPY[(lang as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
+  const { language } = useI18n();
+  const t = COPY[(language as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIos, setShowIos] = useState(false);
   const [update, setUpdate] = useState<null | (() => void)>(null);
