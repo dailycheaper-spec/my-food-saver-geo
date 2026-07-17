@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
-  ChevronRight, Clock, Utensils,
+  ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
