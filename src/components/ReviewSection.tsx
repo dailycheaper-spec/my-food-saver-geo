@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Star, ThumbsUp, RotateCcw } from "lucide-react";
 import { useReviews, addReview } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: string }) {
   const reviews = useReviews(offerId);
@@ -15,10 +16,21 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
   const worthPct = reviews.length ? Math.round((reviews.filter((r) => r.worthIt).length / reviews.length) * 100) : 0;
   const rebuyPct = reviews.length ? Math.round((reviews.filter((r) => r.wouldBuyAgain).length / reviews.length) * 100) : 0;
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!text.trim() || !author.trim()) return;
     addReview({ offerId, storeId, author: author.trim(), rating, text: text.trim(), worthIt, wouldBuyAgain });
+    // Negative reviews are reported to admins for moderation
+    if (rating <= 2 || !worthIt) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("store_reports").insert({
+            store_id: storeId, user_id: user.id, rating, worth_it: worthIt, reason: text.trim().slice(0, 500),
+          });
+        }
+      } catch { /* non-blocking */ }
+    }
     setText(""); setAuthor(""); setRating(5); setWorthIt(true); setWouldBuyAgain(true); setOpen(false);
   }
 
