@@ -51,7 +51,7 @@ function OfferPage() {
   const [mounted, setMounted] = useState(false);
   const trusted = mounted && isTrustedPartner(offer.storeId);
 
-  const [method, setMethod] = useState<"აღება" | "მიტანა">(offer.delivery ? "მიტანა" : "აღება");
+  const [method, setMethod] = useState<"აღება" | "მიტანა">("აღება");
   const [quantity, setQuantity] = useState(1);
   const [address, setAddress] = useState("");
   const [payment, setPayment] = useState<"TBC" | "BOG" | "APPLE" | "COD">("TBC");
