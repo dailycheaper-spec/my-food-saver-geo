@@ -1,0 +1,1 @@
+REVOKE SELECT (phone, company_id_number, contact_email) ON public.stores FROM anon;
