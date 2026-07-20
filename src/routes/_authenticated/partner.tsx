@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useMyRole, useMyStores, useStoreOrders } from "@/lib/db";
+import { usePartnerAccount, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
@@ -11,9 +11,8 @@ export const Route = createFileRoute("/_authenticated/partner")({
 
 function PartnerLayout() {
   const { t } = useI18n();
-  const { stores, loading, error: storesError } = useMyStores();
+  const { stores, role, loading, error, isAdmin, isPartner } = usePartnerAccount();
   const store = stores[0] ?? null;
-  const { role, loading: roleLoading, error: roleError, isAdmin, isPartner } = useMyRole();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
@@ -21,10 +20,10 @@ function PartnerLayout() {
   const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
 
   useEffect(() => {
-    if (!roleLoading && !loading && !hasPartnerAccess) {
+    if (!loading && !hasPartnerAccess) {
       navigate({ to: "/partner-apply", replace: true });
     }
-  }, [hasPartnerAccess, loading, navigate, roleLoading]);
+  }, [hasPartnerAccess, loading, navigate]);
 
   // Global realtime notification for new orders on this store
   useEffect(() => {
@@ -51,15 +50,15 @@ function PartnerLayout() {
     { to: "/partner/stats", label: t("stats"), icon: BarChart3 },
   ];
 
-  if (roleLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
         <div className="text-center max-w-md">
           <div className="text-4xl mb-3">🥗</div>
           <div className="font-display text-xl font-bold">{t("loadingPartner")}</div>
           <p className="text-sm text-muted-foreground mt-1">{t("checkingAccount")}</p>
-          {(roleError || storesError) && (
-            <p className="text-xs text-destructive mt-3 break-words">{roleError || storesError}</p>
+          {error && (
+            <p className="text-xs text-destructive mt-3 break-words">{error}</p>
           )}
           <button
             onClick={() => window.location.reload()}
@@ -72,7 +71,7 @@ function PartnerLayout() {
     );
   }
 
-  const blockingAccessError = (roleError || storesError) && !hasPartnerAccess;
+  const blockingAccessError = error && !hasPartnerAccess;
 
   if (blockingAccessError) {
     return (
@@ -80,7 +79,7 @@ function PartnerLayout() {
         <div className="max-w-md text-center">
           <div className="text-4xl mb-3">⚠️</div>
           <div className="font-display text-xl font-bold">{t("partnerError")}</div>
-          <p className="text-sm text-muted-foreground mt-1">{roleError || storesError}</p>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
           <button onClick={() => window.location.reload()} className="mt-4 px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold">
             {t("tryAgain")}
           </button>

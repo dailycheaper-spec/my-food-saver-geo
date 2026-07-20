@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
+import { getMyPartnerAccess } from "@/lib/partner-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -243,6 +244,64 @@ export function useMyStores() {
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [reload]);
   return { stores, loading, error, reload };
+}
+
+export function usePartnerAccount() {
+  const [stores, setStores] = useState<DbStore[]>([]);
+  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await fetchPartnerAccess();
+      setStores(sortPartnerStores((result?.stores ?? []) as DbStore[]));
+      setRoles((result?.roles ?? []) as AppRole[]);
+      setError(null);
+    } catch (e) {
+      try {
+        const [fallbackStores, uid] = await Promise.all([fetchMyStores(), getCurrentUserId()]);
+        let fallbackRoles: AppRole[] = [];
+        if (uid) {
+          const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+          fallbackRoles = (data ?? []).map((row) => row.role as AppRole);
+        }
+        setStores(sortPartnerStores(fallbackStores));
+        setRoles(fallbackRoles);
+        setError(null);
+      } catch (fallbackError) {
+        setStores([]);
+        setRoles([]);
+        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchPartnerAccess]);
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (!alive) return;
+      await reload();
+    };
+    load();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    return () => { alive = false; sub.subscription.unsubscribe(); };
+  }, [reload]);
+
+  return {
+    stores,
+    roles,
+    role: roles.includes("admin") ? "admin" as AppRole : roles.includes("partner") ? "partner" as AppRole : roles.includes("user") ? "user" as AppRole : null,
+    loading,
+    error,
+    isAdmin: roles.includes("admin"),
+    isPartner: roles.includes("partner"),
+    reload,
+  };
 }
 
 export function useStoreOffers(storeId: string | null) {
