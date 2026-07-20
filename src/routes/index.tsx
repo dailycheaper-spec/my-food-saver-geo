@@ -4,13 +4,13 @@ import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronLeft, ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
-import { CATEGORIES, DISTRICTS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
-import { useMyRole } from "@/lib/db";
+import { useMyRole, useLiveOffers } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";

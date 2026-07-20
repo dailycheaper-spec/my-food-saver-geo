@@ -92,8 +92,9 @@ export function useLiveOffers() {
     load();
 
     const channel = supabase
-      .channel("public:offers")
+      .channel(`public:offers-and-stores-${++realtimeChannelCounter}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => load())
       .subscribe();
     return () => { alive = false; supabase.removeChannel(channel); };
   }, []);
