@@ -552,7 +552,8 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
           }
         }}
         onPointerDownCapture={(event) => {
-          if (event.pointerType === "mouse" && event.button !== 0) return;
+          // Only handle click-drag for mouse. Touch/pen use native scrolling.
+          if (event.pointerType !== "mouse" || event.button !== 0) return;
           const element = event.currentTarget;
           if (element.scrollWidth <= element.clientWidth) return;
 
@@ -568,6 +569,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
         onPointerMoveCapture={(event) => {
           const state = drag.current;
           if (!state.active || state.pointerId !== event.pointerId) return;
+          if (event.pointerType !== "mouse") return;
 
           const deltaX = event.clientX - state.startX;
           if (Math.abs(deltaX) > 4) state.moved = true;
