@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
 function AdminPartners() {
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
-  const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
