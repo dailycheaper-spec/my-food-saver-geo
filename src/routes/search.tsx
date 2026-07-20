@@ -268,6 +268,21 @@ function SearchPage() {
             </button>
           </div>
 
+          {/* District dropdown - always visible */}
+          <div className="mt-2 relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              className="w-full pl-9 pr-8 py-2.5 rounded-2xl bg-secondary text-foreground text-sm font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {DISTRICTS.map((d) => (
+                <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
+              ))}
+            </select>
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.06l3.71-3.83a.75.75 0 111.08 1.04l-4.25 4.39a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z" clipRule="evenodd"/></svg>
+          </div>
+
           {/* Sort chips (when there's a query or filters) */}
           {(q || activeFilterCount > 0) && !showFilters && (
             <div className="mt-3 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
