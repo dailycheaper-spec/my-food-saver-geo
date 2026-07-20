@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -378,11 +378,11 @@ export function useStoreOrders(storeId: string | null) {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCount, setNewCount] = useState(0);
-  const channelKey = useRef(`orders-${++realtimeChannelCounter}`);
 
   useEffect(() => {
     if (!storeId) { setOrders([]); setLoading(false); return; }
     let alive = true;
+    const channelTopic = `store-orders-${storeId}-${Date.now()}-${++realtimeChannelCounter}`;
     async function load() {
       const { data } = await supabase
         .from("orders")
@@ -393,15 +393,21 @@ export function useStoreOrders(storeId: string | null) {
       if (alive) setLoading(false);
     }
     load();
-    const channel = supabase
-      .channel(`store-orders-${storeId}-${channelKey.current}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
-        setNewCount((n) => n + 1);
-        load();
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    try {
+      const channel = supabase
+        .channel(channelTopic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
+          setNewCount((n) => n + 1);
+          load();
+        })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
+        .subscribe();
+
+      return () => { alive = false; void supabase.removeChannel(channel); };
+    } catch (error) {
+      console.warn("Partner orders realtime disabled", error);
+      return () => { alive = false; };
+    }
   }, [storeId]);
 
   return { orders, loading, newCount, resetNewCount: () => setNewCount(0) };
