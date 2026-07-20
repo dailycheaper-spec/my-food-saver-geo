@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/partner/orders")({
 
 function PartnerOrders() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
 
@@ -25,6 +25,7 @@ function PartnerOrders() {
     }
   }, [newCount]);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   const groups = {

@@ -13,12 +13,13 @@ export const Route = createFileRoute("/_authenticated/partner/offers")({
 
 function OffersPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const [editing, setEditing] = useState<DbOffer | null>(null);
   const [creating, setCreating] = useState(false);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (

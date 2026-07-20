@@ -13,13 +13,14 @@ export const Route = createFileRoute("/_authenticated/partner/quick")({
 
 function QuickOfferPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { items } = useSavedProducts(store?.id ?? null);
   const [picked, setPicked] = useState<SavedProduct | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const navigate = useNavigate();
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
