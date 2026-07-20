@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
+import { listMyPartnerStores } from "@/lib/partner-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -11,6 +12,15 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 
 export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
+
+function sortPartnerStores(stores: DbStore[]): DbStore[] {
+  const statusRank: Record<string, number> = { active: 0, pending: 1, suspended: 2 };
+  return [...stores].sort((a, b) => {
+    const byStatus = (statusRank[a.status ?? ""] ?? 9) - (statusRank[b.status ?? ""] ?? 9);
+    if (byStatus !== 0) return byStatus;
+    return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+  });
+}
 
 async function getCurrentUserId(): Promise<string | null> {
   for (let i = 0; i < 8; i += 1) {
@@ -187,26 +197,45 @@ export async function fetchMyStores(): Promise<DbStore[]> {
   }
   const map = new Map<string, DbStore>();
   [...(owned ?? []), ...extra].forEach((s) => map.set(s.id, s));
-  return Array.from(map.values());
+  return sortPartnerStores(Array.from(map.values()));
 }
 
 export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchPartnerStores = useServerFn(listMyPartnerStores);
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchPartnerStores();
+      setStores(sortPartnerStores((data ?? []) as DbStore[]));
+      setError(null);
+    } catch (e) {
+      try {
+        const fallbackStores = await fetchMyStores();
+        setStores(fallbackStores);
+        setError(null);
+      } catch (fallbackError) {
+        setStores([]);
+        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchPartnerStores]);
+
   useEffect(() => {
     let alive = true;
-    const load = () => {
-      setLoading(true);
-      fetchMyStores()
-        .then((s) => { if (alive) { setStores(s); setError(null); setLoading(false); } })
-        .catch((e) => { if (alive) { setStores([]); setError(e instanceof Error ? e.message : String(e)); setLoading(false); } });
+    const load = async () => {
+      await reload();
+      if (!alive) return;
     };
     load();
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
     return () => { alive = false; sub.subscription.unsubscribe(); };
-  }, []);
-  return { stores, loading, error, reload: () => fetchMyStores().then(setStores) };
+  }, [reload]);
+  return { stores, loading, error, reload };
 }
 
 export function useStoreOffers(storeId: string | null) {
