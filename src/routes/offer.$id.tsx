@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf,
@@ -8,7 +9,9 @@ import {
   findOffer, formatPrice, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName,
   getAllergens, getIngredients, getPickupInstructions, getSimilarOffers,
 } from "@/lib/mock-data";
-import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase, isTrustedPartner } from "@/lib/storage";
+import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
+import { createOrder as createOrderDb } from "@/lib/db";
+import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
@@ -16,17 +19,18 @@ import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: async ({ params }) => {
-    const offer = findOffer(params.id);
-    if (offer) return { offer };
-    // Fallback: check the live database for offers added by partners.
+    // Real database first — never merge with mocks on a purchase surface.
     try {
       const { fetchOffer } = await import("@/lib/db");
       const { dbOfferToCardOffer } = await import("@/lib/db-adapter");
       const row = await fetchOffer(params.id);
-      if (row) return { offer: dbOfferToCardOffer(row) };
+      if (row) return { offer: dbOfferToCardOffer(row), realDb: true };
     } catch {
-      // ignore — fall through to notFound
+      // ignore — fall through
     }
+    // Fallback: mock/demo pages (browse-only, purchase disabled).
+    const offer = findOffer(params.id);
+    if (offer) return { offer, realDb: false };
     throw notFound();
   },
   head: ({ loaderData }) => ({
