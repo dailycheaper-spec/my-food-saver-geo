@@ -16,6 +16,15 @@ export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbSto
 
 let partnerStoresCache: DbStore[] = [];
 
+function generateOrderCode() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let code = "";
+  for (let i = 0; i < 8; i += 1) {
+    code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return code;
+}
+
 function cachePartnerStores(stores: DbStore[]) {
   partnerStoresCache = sortPartnerStores(stores);
   return partnerStoresCache;
@@ -41,6 +50,22 @@ async function getCurrentUserId(): Promise<string | null> {
 
     const { data } = await supabase.auth.getUser();
     return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getCurrentUserIdentity(): Promise<{ id: string; email: string | null } | null> {
+  try {
+    for (let i = 0; i < 8; i += 1) {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (user?.id) return { id: user.id, email: user.email?.trim().toLowerCase() ?? null };
+      await new Promise((resolve) => setTimeout(resolve, 125));
+    }
+
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ? { id: data.user.id, email: data.user.email?.trim().toLowerCase() ?? null } : null;
   } catch {
     return null;
   }
@@ -134,7 +159,7 @@ export async function createOrder(input: {
   if (!uid) throw new Error("გთხოვთ, ჯერ შეხვიდეთ სისტემაში");
   const { data, error } = await supabase
     .from("orders")
-    .insert({ ...input, user_id: uid })
+    .insert({ ...input, user_id: uid, status: "paid", code: generateOrderCode() })
     .select()
     .single();
   if (error) throw error;
@@ -201,10 +226,10 @@ export function useMyRole() {
 
 // ────── STORES ──────
 export async function fetchMyStores(): Promise<DbStore[]> {
-  const uid = await getCurrentUserId();
-  if (!uid) return [];
-  const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", uid);
-  const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", uid);
+  const identity = await getCurrentUserIdentity();
+  if (!identity) return [];
+  const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", identity.id);
+  const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", identity.id);
 
   if (ownedError && memberError) {
     throw ownedError;
@@ -212,12 +237,20 @@ export async function fetchMyStores(): Promise<DbStore[]> {
 
   const memberIds = (memberOf ?? []).map((m) => m.store_id);
   let extra: DbStore[] = [];
+  let emailStores: DbStore[] = [];
   if (memberIds.length) {
     const { data, error } = await supabase.from("stores").select("*").in("id", memberIds);
     if (!error) extra = data ?? [];
   }
+  if (identity.email) {
+    const { data, error } = await supabase
+      .from("stores")
+      .select("*")
+      .ilike("contact_email", identity.email);
+    if (!error) emailStores = data ?? [];
+  }
   const map = new Map<string, DbStore>();
-  [...(owned ?? []), ...extra].forEach((s) => map.set(s.id, s));
+  [...(owned ?? []), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
   return sortPartnerStores(Array.from(map.values()));
 }
 
@@ -269,9 +302,9 @@ export function useMyStores() {
 }
 
 export function usePartnerAccount() {
-  const [stores, setStores] = useState<DbStore[]>([]);
+  const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
   const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
   const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
   const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
@@ -285,7 +318,7 @@ export function usePartnerAccount() {
     try {
       const result = await Promise.race([
         fetchPartnerAccessRef.current(),
-        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner account check timed out")), 6000)),
+        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner account check timed out")), 12000)),
       ]);
       setStores(cachePartnerStores((result?.stores ?? []) as DbStore[]));
       setRoles((result?.roles ?? []) as AppRole[]);

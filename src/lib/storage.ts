@@ -74,20 +74,40 @@ export interface Order {
 }
 const ORDERS_KEY = "gemo:orders";
 const EMPTY_ORDERS: Order[] = [];
+
+function generateOrderCode(existing: Order[]) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    let code = "";
+    for (let i = 0; i < 8; i += 1) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+    if (!existing.some((order) => order.code === code)) return code;
+  }
+  return `${Date.now().toString(36).slice(-8)}`.toUpperCase();
+}
+
+export function orderQrPayload(order: Order) {
+  return JSON.stringify({
+    app: "cheaper",
+    orderId: order.id,
+    code: order.code,
+    store: order.storeName,
+  });
+}
+
 export function useOrders() {
   const hydrated = useHydrated();
   const value = useSyncExternalStore(subscribe, () => read<Order[]>(ORDERS_KEY, EMPTY_ORDERS), () => EMPTY_ORDERS);
   return hydrated ? value : [];
 }
 export function createOrder(order: Omit<Order, "id" | "createdAt" | "status" | "code">) {
+  const current = read<Order[]>(ORDERS_KEY, []);
   const full: Order = {
     ...order,
     id: `ord_${Math.random().toString(36).slice(2, 8)}`,
     createdAt: Date.now(),
     status: "დაჯავშნილი",
-    code: Math.random().toString(36).slice(2, 8).toUpperCase(),
+    code: generateOrderCode(current),
   };
-  const current = read<Order[]>(ORDERS_KEY, []);
   write(ORDERS_KEY, [full, ...current]);
   return full;
 }
