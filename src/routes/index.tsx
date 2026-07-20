@@ -4,13 +4,14 @@ import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
+import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 
@@ -36,6 +37,15 @@ function Home() {
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
   const hydrated = useHydrated();
+  const { offers: dbOffers } = useLiveDbCardOffers();
+
+  // Merge live DB offers with mock offers — DB entries first so newly-approved
+  // stores (like partner-added items) appear at the top of every list.
+  const ALL_OFFERS = useMemo<Offer[]>(() => {
+    const map = new Map<string, Offer>();
+    [...dbOffers, ...OFFERS].forEach((o) => map.set(o.id, o));
+    return Array.from(map.values());
+  }, [dbOffers]);
 
   const [recentIds, setRecentIds] = useState<string[]>([]);
   useEffect(() => {
@@ -46,13 +56,13 @@ function Home() {
   }, []);
 
   const filtered = useMemo(() => {
-    return OFFERS.filter((o) => {
+    return ALL_OFFERS.filter((o) => {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
       return o.distanceKm <= NEARBY_RADIUS_KM;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [cat, district, q, language]);
+  }, [ALL_OFFERS, cat, district, q, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
 
