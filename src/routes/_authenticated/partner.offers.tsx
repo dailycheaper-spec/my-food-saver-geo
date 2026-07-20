@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle, Sparkles, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
+import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
@@ -61,6 +63,7 @@ function OffersPage() {
 function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
   const { t } = useI18n();
   const remaining = offer.quantity_available - offer.quantity_sold;
+  const soldOut = remaining <= 0;
   async function toggle() {
     await supabase.from("offers").update({ is_active: !offer.is_active }).eq("id", offer.id);
   }
@@ -69,10 +72,15 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
     await supabase.from("offers").delete().eq("id", offer.id);
   }
   return (
-    <div className={`bg-card rounded-2xl border p-4 ${offer.is_active ? "border-border" : "border-border/40 opacity-60"}`}>
+    <div className={`bg-card rounded-2xl border p-4 relative ${offer.is_active && !soldOut ? "border-border" : "border-border/40 opacity-70"}`}>
+      {soldOut && (
+        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
+          {t("soldOut") || "Sold out"}
+        </span>
+      )}
       <div className="flex items-start gap-3">
         {offer.image_url ? (
-          <img src={offer.image_url} alt={offer.title} className="w-16 h-16 rounded-xl object-cover" />
+          <img src={offer.image_url} alt={offer.title} className={`w-16 h-16 rounded-xl object-cover ${soldOut ? "grayscale" : ""}`} />
         ) : (
           <div className="w-16 h-16 rounded-xl bg-muted grid place-items-center text-2xl">🍽</div>
         )}
@@ -137,8 +145,22 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     pickup_from: offer?.pickup_from?.slice(0,5) ?? "18:00",
     pickup_to: offer?.pickup_to?.slice(0,5) ?? "21:00",
     delivery_available: offer?.delivery_available ?? false,
+    image_url: offer?.image_url ?? "",
   });
   const [saving, setSaving] = useState(false);
+  const [genAi, setGenAi] = useState(false);
+  const generateImg = useServerFn(generateOfferImage);
+
+  async function aiGenerate() {
+    const prompt = form.title.trim() || form.description.trim();
+    if (!prompt) { alert(t("productName")); return; }
+    setGenAi(true);
+    try {
+      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
+      setForm((f) => ({ ...f, image_url: r.dataUrl }));
+    } catch (e: any) { alert("AI: " + e.message); }
+    setGenAi(false);
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -154,6 +176,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       pickup_from: form.pickup_from,
       pickup_to: form.pickup_to,
       delivery_available: form.delivery_available,
+      image_url: form.image_url.trim() || null,
     };
     if (offer) {
       await supabase.from("offers").update(payload).eq("id", offer.id);
@@ -179,6 +202,19 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
         <div className="space-y-3">
           <Input label={t("titleLbl")} value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
           <Input label={t("descLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
+          <div>
+            <div className="text-xs font-medium text-muted-foreground mb-1.5">{t("photo")}</div>
+            {form.image_url && <img src={form.image_url} alt="preview" className="mb-2 w-full h-32 object-cover rounded-xl" />}
+            <button
+              type="button"
+              onClick={aiGenerate}
+              disabled={genAi || !form.title.trim()}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+            >
+              {genAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+              {genAi ? t("generating") : t("generateWithAi")}
+            </button>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <Input label={t("origPriceLbl")} type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
             <Input label={t("discPriceLbl")} type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
