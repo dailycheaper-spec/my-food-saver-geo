@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle } from "lucide-react";
-import { useAllStores, approveStore, suspendStore, reactivateStore, formatGel, useAllOrders, type DbStore } from "@/lib/db";
+import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
+import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus } from "@/lib/admin-store.functions";
 
 const FLAG_THRESHOLD = 5;
 
@@ -15,9 +17,9 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
 });
 
 function AdminPartners() {
-  const { stores, reload, loading } = useAllStores();
+  const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
-  const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
@@ -81,6 +83,12 @@ function AdminPartners() {
         </div>
       </div>
 
+      {error && (
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          განაცხადების ჩატვირთვა ვერ მოხერხდა: {error}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -120,10 +128,13 @@ function AdminPartners() {
 
 function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
+  const approveStoreFn = useServerFn(approveAdminStore);
+  const setStatusFn = useServerFn(setAdminStoreStatus);
+  const deleteStoreFn = useServerFn(deleteAdminStore);
   const isFlagged = reportCount >= FLAG_THRESHOLD;
   async function act(fn: () => Promise<void>) {
     setBusy(true);
-    try { await fn(); onChange(); } finally { setBusy(false); }
+    try { await fn(); onChange(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
   }
   return (
     <div className={`bg-card rounded-3xl border p-5 shadow-sm ${isFlagged ? "border-destructive/50 ring-2 ring-destructive/20" : "border-border"}`}>
@@ -166,7 +177,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
       <div className="mt-3 flex gap-2">
         {store.status === "pending" && (
           <>
-            <button onClick={() => act(() => approveStore(store.id, store.owner_id ?? ""))} disabled={busy || !store.owner_id}
+            <button onClick={() => act(async () => { await approveStoreFn({ data: { storeId: store.id, ownerId: store.owner_id } }); })} disabled={busy || !store.owner_id}
               className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
               <Check className="w-3.5 h-3.5" /> დამტკიცება
             </button>
@@ -174,8 +185,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
               onClick={() => {
                 if (!confirm(`უარვყოთ „${store.name}"-ის განაცხადი?`)) return;
                 act(async () => {
-                  const { error } = await supabase.from("stores").delete().eq("id", store.id);
-                  if (error) alert(error.message);
+                  await deleteStoreFn({ data: { storeId: store.id } });
                 });
               }}
               disabled={busy}
@@ -185,13 +195,13 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
           </>
         )}
         {store.status === "active" && (
-          <button onClick={() => act(() => suspendStore(store.id))} disabled={busy}
+          <button onClick={() => act(async () => { await setStatusFn({ data: { storeId: store.id, status: "suspended" } }); })} disabled={busy}
             className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
             <Ban className="w-3.5 h-3.5" /> შეჩერება
           </button>
         )}
         {store.status === "suspended" && (
-          <button onClick={() => act(() => reactivateStore(store.id))} disabled={busy}
+          <button onClick={() => act(async () => { await setStatusFn({ data: { storeId: store.id, status: "active" } }); })} disabled={busy}
             className="flex-1 py-2.5 rounded-2xl bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-primary/20">
             <RefreshCcw className="w-3.5 h-3.5" /> გააქტიურება
           </button>
@@ -200,8 +210,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
           onClick={() => {
             if (!confirm(`დარწმუნებული ხართ, რომ გსურთ „${store.name}"-ის სამუდამოდ წაშლა? ეს მოქმედება ვერ დაბრუნდება.`)) return;
             act(async () => {
-              const { error } = await supabase.from("stores").delete().eq("id", store.id);
-              if (error) alert(error.message);
+              await deleteStoreFn({ data: { storeId: store.id } });
             });
           }}
           disabled={busy}
@@ -230,15 +239,20 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const createStoreFn = useServerFn(createAdminStore);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setErr("");
-    const { error } = await supabase.from("stores").insert({ ...form, status: "active" });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else onCreated();
+    try {
+      await createStoreFn({ data: form });
+      onCreated();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
