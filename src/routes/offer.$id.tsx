@@ -15,10 +15,19 @@ import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/offer/$id")({
-  loader: ({ params }) => {
+  loader: async ({ params }) => {
     const offer = findOffer(params.id);
-    if (!offer) throw notFound();
-    return { offer };
+    if (offer) return { offer };
+    // Fallback: check the live database for offers added by partners.
+    try {
+      const { fetchOffer } = await import("@/lib/db");
+      const { dbOfferToCardOffer } = await import("@/lib/db-adapter");
+      const row = await fetchOffer(params.id);
+      if (row) return { offer: dbOfferToCardOffer(row) };
+    } catch {
+      // ignore — fall through to notFound
+    }
+    throw notFound();
   },
   head: ({ loaderData }) => ({
     meta: loaderData

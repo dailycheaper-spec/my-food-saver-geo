@@ -4,13 +4,14 @@ import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
+import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 
@@ -36,6 +37,15 @@ function Home() {
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
   const hydrated = useHydrated();
+  const { offers: dbOffers } = useLiveDbCardOffers();
+
+  // Merge live DB offers with mock offers — DB entries first so newly-approved
+  // stores (like partner-added items) appear at the top of every list.
+  const ALL_OFFERS = useMemo<Offer[]>(() => {
+    const map = new Map<string, Offer>();
+    [...dbOffers, ...OFFERS].forEach((o) => map.set(o.id, o));
+    return Array.from(map.values());
+  }, [dbOffers]);
 
   const [recentIds, setRecentIds] = useState<string[]>([]);
   useEffect(() => {
@@ -46,20 +56,20 @@ function Home() {
   }, []);
 
   const filtered = useMemo(() => {
-    return OFFERS.filter((o) => {
+    return ALL_OFFERS.filter((o) => {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
       return o.distanceKm <= NEARBY_RADIUS_KM;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
-  }, [cat, district, q, language]);
+  }, [ALL_OFFERS, cat, district, q, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
 
   const flashDeals = useMemo(() => {
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    return OFFERS
+    return ALL_OFFERS
       .map((o) => {
         const [h, m] = o.pickupTo.split(":").map(Number);
         const endMin = h * 60 + m;
@@ -69,39 +79,40 @@ function Home() {
       .sort((a, b) => a.mins - b.mins)
       .slice(0, 6)
       .map((x) => x.o);
-  }, []);
+  }, [ALL_OFFERS]);
 
   const featured = useMemo(
-    () => hydrated ? OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
-    [hydrated],
+    () => hydrated ? ALL_OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
+    [ALL_OFFERS, hydrated],
   );
 
   const newOffers = useMemo(() => {
-    return [...OFFERS]
-      .filter((o) => o.createdAt)
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-      .slice(0, 6);
-  }, []);
+    // Prefer DB offers (freshly added by partners) at the top, then mocks.
+    const withTime = ALL_OFFERS.filter((o) => o.createdAt);
+    return withTime.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)).slice(0, 6);
+  }, [ALL_OFFERS]);
 
   const surpriseBoxes = useMemo(
-    () => OFFERS.filter((o) => o.isSurprise).slice(0, 8),
-    [],
+    () => ALL_OFFERS.filter((o) => o.isSurprise).slice(0, 8),
+    [ALL_OFFERS],
   );
 
   const recommended = useMemo(() => {
-    if (!hydrated) return OFFERS.slice(0, 4);
-    if (favs.length === 0) return OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
-    return OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
-  }, [favs, hydrated]);
+    if (!hydrated) return ALL_OFFERS.slice(0, 4);
+    if (favs.length === 0) return ALL_OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
+    return ALL_OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
+  }, [ALL_OFFERS, favs, hydrated]);
 
   const recentlyViewed = useMemo(() => {
     if (recentIds.length === 0) return [];
     return recentIds
-      .map((id) => OFFERS.find((o) => o.id === id))
-      .filter(Boolean) as typeof OFFERS;
-  }, [recentIds]);
+      .map((id) => ALL_OFFERS.find((o) => o.id === id))
+      .filter(Boolean) as Offer[];
+  }, [ALL_OFFERS, recentIds]);
 
   const nearbyPartners = useMemo(() => STORES.slice(0, 8), []);
+
+
 
   // ---------- Localized labels ----------
   const L = {
