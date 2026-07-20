@@ -69,7 +69,7 @@ function Home() {
   const flashDeals = useMemo(() => {
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
-    return OFFERS
+    return ALL_OFFERS
       .map((o) => {
         const [h, m] = o.pickupTo.split(":").map(Number);
         const endMin = h * 60 + m;
@@ -79,39 +79,40 @@ function Home() {
       .sort((a, b) => a.mins - b.mins)
       .slice(0, 6)
       .map((x) => x.o);
-  }, []);
+  }, [ALL_OFFERS]);
 
   const featured = useMemo(
-    () => hydrated ? OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
-    [hydrated],
+    () => hydrated ? ALL_OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
+    [ALL_OFFERS, hydrated],
   );
 
   const newOffers = useMemo(() => {
-    return [...OFFERS]
-      .filter((o) => o.createdAt)
-      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
-      .slice(0, 6);
-  }, []);
+    // Prefer DB offers (freshly added by partners) at the top, then mocks.
+    const withTime = ALL_OFFERS.filter((o) => o.createdAt);
+    return withTime.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)).slice(0, 6);
+  }, [ALL_OFFERS]);
 
   const surpriseBoxes = useMemo(
-    () => OFFERS.filter((o) => o.isSurprise).slice(0, 8),
-    [],
+    () => ALL_OFFERS.filter((o) => o.isSurprise).slice(0, 8),
+    [ALL_OFFERS],
   );
 
   const recommended = useMemo(() => {
-    if (!hydrated) return OFFERS.slice(0, 4);
-    if (favs.length === 0) return OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
-    return OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
-  }, [favs, hydrated]);
+    if (!hydrated) return ALL_OFFERS.slice(0, 4);
+    if (favs.length === 0) return ALL_OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
+    return ALL_OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
+  }, [ALL_OFFERS, favs, hydrated]);
 
   const recentlyViewed = useMemo(() => {
     if (recentIds.length === 0) return [];
     return recentIds
-      .map((id) => OFFERS.find((o) => o.id === id))
-      .filter(Boolean) as typeof OFFERS;
-  }, [recentIds]);
+      .map((id) => ALL_OFFERS.find((o) => o.id === id))
+      .filter(Boolean) as Offer[];
+  }, [ALL_OFFERS, recentIds]);
 
   const nearbyPartners = useMemo(() => STORES.slice(0, 8), []);
+
+
 
   // ---------- Localized labels ----------
   const L = {
