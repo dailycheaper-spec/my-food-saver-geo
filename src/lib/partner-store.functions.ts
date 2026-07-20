@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
-import { ensurePartnerStoreAccess, linkActiveStoreToOwner } from "@/lib/store-linking.server";
+import { ensurePartnerStoreAccess, linkActiveStoreToOwner } from "@/lib/store-linking";
 
 type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 
