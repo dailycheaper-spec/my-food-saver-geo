@@ -19,7 +19,13 @@ const items: Item[] = [
 export function BottomNav() {
   const { t, language } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (pathname.startsWith("/auth") || pathname.startsWith("/partner") || pathname.startsWith("/admin")) {
+  if (
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/partner") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/offer/") ||
+    pathname.startsWith("/orders/")
+  ) {
     return null;
   }
 
