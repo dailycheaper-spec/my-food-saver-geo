@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -252,11 +252,19 @@ export function usePartnerAccount() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
+  const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
+
+  useEffect(() => {
+    fetchPartnerAccessRef.current = fetchPartnerAccess;
+  }, [fetchPartnerAccess]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await fetchPartnerAccess();
+      const result = await Promise.race([
+        fetchPartnerAccessRef.current(),
+        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner account check timed out")), 6000)),
+      ]);
       setStores(sortPartnerStores((result?.stores ?? []) as DbStore[]));
       setRoles((result?.roles ?? []) as AppRole[]);
       setError(null);
@@ -279,7 +287,7 @@ export function usePartnerAccount() {
     } finally {
       setLoading(false);
     }
-  }, [fetchPartnerAccess]);
+  }, []);
 
   useEffect(() => {
     let alive = true;
