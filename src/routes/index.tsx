@@ -331,9 +331,9 @@ function Home() {
                 {s.logo}
               </div>
               <div className="text-center w-full">
-                <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
+                <div className="text-xs font-bold truncate">{s.name}</div>
                 <div className="text-[10px] text-muted-foreground truncate">
-                  ⭐ {s.rating} · {getDistrictLabel(s.district, language)}
+                  {s.district ? getDistrictLabel(s.district, language) : ""}
                 </div>
               </div>
             </Link>
