@@ -43,7 +43,9 @@ function NewOfferPage() {
     pickup_to: "21:00",
     image_url: "",
     delivery_available: false,
+    is_surprise: false,
   });
+
 
   async function handleAiGenerate() {
     const prompt = form.title.trim() || form.description.trim();
@@ -88,8 +90,10 @@ function NewOfferPage() {
       pickup_to: form.pickup_to,
       image_url: form.image_url.trim() || null,
       delivery_available: form.delivery_available,
+      is_surprise: form.is_surprise,
       is_active: true,
     };
+
     const { error } = await supabase.from("offers").insert(payload);
     setSaving(false);
     if (error) { alert(error.message); return; }
@@ -194,6 +198,15 @@ function NewOfferPage() {
           <input type="checkbox" checked={form.delivery_available} onChange={(e) => setForm({ ...form, delivery_available: e.target.checked })} className="w-5 h-5 rounded" />
           {t("deliveryAvailable")}
         </label>
+
+        <label className="flex items-start gap-2 text-sm py-2 px-3 rounded-2xl bg-gradient-to-br from-fuchsia-500/10 via-pink-500/10 to-orange-400/10 border border-fuchsia-500/30">
+          <input type="checkbox" checked={form.is_surprise} onChange={(e) => setForm({ ...form, is_surprise: e.target.checked })} className="w-5 h-5 rounded mt-0.5" />
+          <span>
+            <span className="font-semibold">🎁 {t("surpriseTitle")}</span>
+            <span className="block text-xs text-muted-foreground">{t("surpriseSubtitle")}</span>
+          </span>
+        </label>
+
 
         <button
           type="submit"

@@ -127,6 +127,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_surprise: boolean
           original_price: number
           pickup_available: boolean
           pickup_from: string
@@ -147,6 +148,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_surprise?: boolean
           original_price: number
           pickup_available?: boolean
           pickup_from?: string
@@ -167,6 +169,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_surprise?: boolean
           original_price?: number
           pickup_available?: boolean
           pickup_from?: string

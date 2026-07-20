@@ -62,7 +62,9 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
     createdAt,
+    isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
   };
+
 }
 
 /** Live DB offers converted to the same Offer shape used by mock data + OfferCard. */
