@@ -232,7 +232,7 @@ const SEED_VOTES: Record<string, PartnerVotes> = {
 };
 
 function readVotes(): Record<string, PartnerVotes> {
-  if (typeof window === "undefined") return EMPTY_VOTES;
+  if (typeof window === "undefined") return SEED_VOTES;
   return read<Record<string, PartnerVotes>>(VOTES_KEY, SEED_VOTES);
 }
 export function usePartnerVotes() {
