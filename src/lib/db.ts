@@ -393,15 +393,21 @@ export function useStoreOrders(storeId: string | null) {
       if (alive) setLoading(false);
     }
     load();
-    const channel = supabase
-      .channel(channelTopic)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
-        setNewCount((n) => n + 1);
-        load();
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; void supabase.removeChannel(channel); };
+    try {
+      const channel = supabase
+        .channel(channelTopic)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
+          setNewCount((n) => n + 1);
+          load();
+        })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
+        .subscribe();
+
+      return () => { alive = false; void supabase.removeChannel(channel); };
+    } catch (error) {
+      console.warn("Partner orders realtime disabled", error);
+      return () => { alive = false; };
+    }
   }, [storeId]);
 
   return { orders, loading, newCount, resetNewCount: () => setNewCount(0) };
