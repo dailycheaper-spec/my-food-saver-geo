@@ -69,12 +69,9 @@ function PartnerApply() {
       </div>
 
       <form onSubmit={submit} className="bg-card rounded-2xl border border-border p-5 space-y-3">
-        <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
-        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
-
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
-            {language === "en" ? "Object type *" : language === "ru" ? "Тип объекта *" : "რა ტიპის ობიექტია *"}
+            {language === "en" ? "What type of object is it? *" : language === "ru" ? "Какой это тип объекта? *" : "რა ტიპის ობიექტია? *"}
           </span>
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
@@ -83,6 +80,9 @@ function PartnerApply() {
             ))}
           </select>
         </label>
+
+        <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
