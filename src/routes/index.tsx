@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
-  ChevronRight, Clock, Utensils, Gift,
+  ChevronLeft, ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
 import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
@@ -200,7 +200,7 @@ function Home() {
 
       {/* -------- Categories (large, native-feel tiles) -------- */}
       <section className="mx-auto max-w-2xl mt-5">
-        <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-hide snap-x snap-mandatory">
+        <ScrollableRow className="pb-2 px-4 snap-x snap-proximity">
           {CATEGORIES.map((c) => {
             const active = cat === c.id;
             return (
@@ -220,7 +220,7 @@ function Home() {
               </button>
             );
           })}
-        </div>
+        </ScrollableRow>
       </section>
 
       {/* -------- Promo banner -------- */}
@@ -278,13 +278,13 @@ function Home() {
             </div>
             <p className="relative text-white/90 text-xs mt-1">{t("surpriseSubtitle")}</p>
           </div>
-          <div className="flex gap-3 overflow-x-auto pt-3 pb-2 scrollbar-hide snap-x snap-mandatory -mx-4 px-4">
+          <ScrollableRow className="pt-3 pb-2 snap-x snap-proximity -mx-4 px-4">
             {surpriseBoxes.map((o) => (
               <div key={o.id} className="snap-start shrink-0 w-[260px]">
                 <OfferCard offer={o} />
               </div>
             ))}
-          </div>
+          </ScrollableRow>
         </section>
       )}
 
@@ -482,10 +482,138 @@ function SectionHeader({
   );
 }
 
-function HScroll({ children }: { children: React.ReactNode }) {
+function ScrollableRow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ canPrev: false, canNext: false });
+  const drag = useRef({
+    active: false,
+    pointerId: -1,
+    startX: 0,
+    scrollLeft: 0,
+    moved: false,
+  });
+
+  const stopDrag = (element: HTMLDivElement, pointerId: number) => {
+    drag.current.active = false;
+    try {
+      if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
+    } catch {}
+  };
+
+  const updateScrollState = () => {
+    const element = ref.current;
+    if (!element) return;
+    const maxScroll = element.scrollWidth - element.clientWidth;
+    setScrollState({
+      canPrev: element.scrollLeft > 4,
+      canNext: element.scrollLeft < maxScroll - 4,
+    });
+  };
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    updateScrollState();
+    element.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+    return () => {
+      element.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [children]);
+
+  const scrollByPage = (direction: -1 | 1) => {
+    const element = ref.current;
+    if (!element) return;
+    element.scrollBy({ left: direction * Math.max(180, element.clientWidth * 0.8), behavior: "smooth" });
+    window.setTimeout(updateScrollState, 320);
+  };
+
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2 px-4 scrollbar-hide snap-x snap-mandatory">
-      {children}
+    <div className="relative">
+      <div
+        ref={ref}
+        draggable={false}
+        className={`flex gap-3 overflow-x-auto scrollbar-hide horizontal-scroll ${className}`}
+        onWheel={(event) => {
+          const element = event.currentTarget;
+          const maxScroll = element.scrollWidth - element.clientWidth;
+          if (maxScroll <= 0) return;
+
+          const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+          const shiftWheel = event.shiftKey && Math.abs(event.deltaY) > 0;
+          if (!horizontalIntent && !shiftWheel) return;
+
+          const delta = horizontalIntent ? event.deltaX : event.deltaY;
+          const next = Math.max(0, Math.min(maxScroll, element.scrollLeft + delta));
+          if (next !== element.scrollLeft) {
+            event.preventDefault();
+            element.scrollLeft = next;
+          }
+        }}
+        onPointerDownCapture={(event) => {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          const element = event.currentTarget;
+          if (element.scrollWidth <= element.clientWidth) return;
+
+          drag.current = {
+            active: true,
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            scrollLeft: element.scrollLeft,
+            moved: false,
+          };
+          element.setPointerCapture(event.pointerId);
+        }}
+        onPointerMoveCapture={(event) => {
+          const state = drag.current;
+          if (!state.active || state.pointerId !== event.pointerId) return;
+
+          const deltaX = event.clientX - state.startX;
+          if (Math.abs(deltaX) > 4) state.moved = true;
+          if (state.moved) event.preventDefault();
+          event.currentTarget.scrollLeft = state.scrollLeft - deltaX;
+        }}
+        onDragStart={(event) => event.preventDefault()}
+        onPointerUpCapture={(event) => stopDrag(event.currentTarget, event.pointerId)}
+        onPointerCancelCapture={(event) => stopDrag(event.currentTarget, event.pointerId)}
+        onClickCapture={(event) => {
+          if (!drag.current.moved) return;
+          drag.current.moved = false;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        {children}
+        <div className="w-1 shrink-0 snap-none" aria-hidden="true" />
+      </div>
+
+      {scrollState.canPrev && (
+        <button
+          type="button"
+          aria-label="Previous"
+          onClick={() => scrollByPage(-1)}
+          className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur sm:grid"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
+
+      {scrollState.canNext && (
+        <button
+          type="button"
+          aria-label="Next"
+          onClick={() => scrollByPage(1)}
+          className="absolute right-2 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur"
+        >
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
+}
+
+function HScroll({ children }: { children: React.ReactNode }) {
+  return <ScrollableRow className="pb-2 px-4 snap-x snap-proximity">{children}</ScrollableRow>;
 }
