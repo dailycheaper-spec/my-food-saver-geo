@@ -177,6 +177,10 @@
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  /* Allow vertical page scroll to pass through horizontal carousels
+     (fixes "can't scroll home page" on trackpads / touch devices). */
+  touch-action: pan-x pinch-zoom;
+  overscroll-behavior-x: contain;
   &::-webkit-scrollbar { display: none; }
 }
 
