@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
-import { getMyPartnerAccess } from "@/lib/partner-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -258,31 +257,16 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
   const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
-  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
-  const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
-
-  useEffect(() => {
-    fetchPartnerAccessRef.current = fetchPartnerAccess;
-  }, [fetchPartnerAccess]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await Promise.race([
-        fetchPartnerAccessRef.current(),
-        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner stores check timed out")), 6000)),
-      ]);
-      setStores(cachePartnerStores((result?.stores ?? []) as DbStore[]));
+      const stores = await fetchMyStores();
+      setStores(cachePartnerStores(stores));
       setError(null);
     } catch (e) {
-      try {
-        const fallbackStores = await fetchMyStores();
-        setStores(cachePartnerStores(fallbackStores));
-        setError(null);
-      } catch (fallbackError) {
-        setStores([]);
-        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
-      }
+      setStores([]);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -306,39 +290,24 @@ export function usePartnerAccount() {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
-  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
-  const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
-
-  useEffect(() => {
-    fetchPartnerAccessRef.current = fetchPartnerAccess;
-  }, [fetchPartnerAccess]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await Promise.race([
-        fetchPartnerAccessRef.current(),
-        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner account check timed out")), 12000)),
-      ]);
-      setStores(cachePartnerStores((result?.stores ?? []) as DbStore[]));
-      setRoles((result?.roles ?? []) as AppRole[]);
+      const [directStores, uid] = await Promise.all([fetchMyStores(), getCurrentUserId()]);
+      let directRoles: AppRole[] = [];
+      if (uid) {
+        const { data, error: rolesError } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+        if (rolesError) throw rolesError;
+        directRoles = (data ?? []).map((row) => row.role as AppRole);
+      }
+      setStores(cachePartnerStores(directStores));
+      setRoles(directRoles);
       setError(null);
     } catch (e) {
-      try {
-        const [fallbackStores, uid] = await Promise.all([fetchMyStores(), getCurrentUserId()]);
-        let fallbackRoles: AppRole[] = [];
-        if (uid) {
-          const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-          fallbackRoles = (data ?? []).map((row) => row.role as AppRole);
-        }
-        setStores(cachePartnerStores(fallbackStores));
-        setRoles(fallbackRoles);
-        setError(null);
-      } catch (fallbackError) {
-        setStores([]);
-        setRoles([]);
-        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
-      }
+      setStores([]);
+      setRoles([]);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
