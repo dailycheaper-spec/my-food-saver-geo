@@ -43,7 +43,9 @@ function NewOfferPage() {
     pickup_to: "21:00",
     image_url: "",
     delivery_available: false,
+    is_surprise: false,
   });
+
 
   async function handleAiGenerate() {
     const prompt = form.title.trim() || form.description.trim();
