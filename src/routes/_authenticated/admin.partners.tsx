@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X } from "lucide-react";
+import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2 } from "lucide-react";
 import { useAllStores, approveStore, suspendStore, reactivateStore, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
@@ -136,6 +136,20 @@ function PartnerCard({ store, balance, commissionPct, onChange }: { store: DbSto
             <RefreshCcw className="w-3.5 h-3.5" /> გააქტიურება
           </button>
         )}
+        <button
+          onClick={() => {
+            if (!confirm(`დარწმუნებული ხართ, რომ გსურთ „${store.name}"-ის სამუდამოდ წაშლა? ეს მოქმედება ვერ დაბრუნდება.`)) return;
+            act(async () => {
+              const { error } = await supabase.from("stores").delete().eq("id", store.id);
+              if (error) alert(error.message);
+            });
+          }}
+          disabled={busy}
+          title="წაშლა"
+          className="shrink-0 w-10 h-10 grid place-items-center rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-60"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
