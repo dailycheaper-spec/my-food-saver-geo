@@ -269,7 +269,14 @@ export function useAllStores() {
     setStores(data ?? []);
     setLoading(false);
   };
-  useEffect(() => { reload(); }, []);
+  useEffect(() => {
+    reload();
+    const ch = supabase
+      .channel("admin-stores")
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => reload())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
   return { stores, loading, reload };
 }
 
