@@ -334,6 +334,7 @@ function OfferPage() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t("deliveryAddress")}
+              style={{}}
               className="mt-3 w-full px-4 py-3 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             />
           )}
