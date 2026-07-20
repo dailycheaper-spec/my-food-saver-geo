@@ -72,8 +72,8 @@ function Home() {
   }, []);
 
   const featured = useMemo(
-    () => OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6),
-    [],
+    () => hydrated ? OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
+    [hydrated],
   );
 
   const newOffers = useMemo(() => {
