@@ -266,11 +266,20 @@ export function useStoreOrders(storeId: string | null) {
 export function useAllStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const fetchAdminStores = useServerFn(listAdminStores);
   const reload = useCallback(async () => {
-    const data = await fetchAdminStores();
-    setStores((data ?? []) as DbStore[]);
-    setLoading(false);
+    setLoading(true);
+    try {
+      const data = await fetchAdminStores();
+      setStores((data ?? []) as DbStore[]);
+      setError(null);
+    } catch (e) {
+      setStores([]);
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
   }, [fetchAdminStores]);
   useEffect(() => {
     reload();
@@ -280,7 +289,7 @@ export function useAllStores() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [reload]);
-  return { stores, loading, reload };
+  return { stores, loading, error, reload };
 }
 
 export function useAllOrders() {

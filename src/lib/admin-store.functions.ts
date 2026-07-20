@@ -15,8 +15,8 @@ const storeIdSchema = z.object({ storeId: z.string().uuid() });
 
 const createStoreSchema = z.object({
   name: z.string().trim().min(1, "Store name is required").max(120),
-  logo: z.string().trim().max(16).optional().nullable(),
-  category: z.string().trim().max(80).optional().nullable(),
+  logo: z.string().trim().max(16).optional(),
+  category: z.string().trim().max(80).optional(),
   city: z.string().trim().min(1).max(80),
   district: z.string().trim().min(1).max(80),
   address: z.string().trim().min(1, "Address is required").max(255),
