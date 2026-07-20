@@ -109,7 +109,17 @@ function Home() {
       .filter(Boolean) as Offer[];
   }, [ALL_OFFERS, recentIds]);
 
-  const nearbyPartners = useMemo(() => STORES.slice(0, 8), []);
+  const { offers: liveWithStore } = useLiveOffers();
+  const nearbyPartners = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string; name_en: string | null; name_ru: string | null; logo: string | null; rating: number | null; district: string | null }>();
+    for (const row of liveWithStore) {
+      const s = row.store;
+      if (!s || seen.has(s.id)) continue;
+      seen.set(s.id, { id: s.id, name: s.name, name_en: s.name_en, name_ru: s.name_ru, logo: s.logo, rating: s.rating, district: s.district });
+      if (seen.size >= 8) break;
+    }
+    return Array.from(seen.values());
+  }, [liveWithStore]);
 
 
 
