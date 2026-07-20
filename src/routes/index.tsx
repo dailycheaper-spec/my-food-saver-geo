@@ -146,6 +146,14 @@ function Home() {
             >
               <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             </Link>
+            {!user && !rolesLoading && (
+              <Link
+                to="/auth"
+                className="h-10 px-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 press shadow-sm"
+              >
+                {t("signIn")}
+              </Link>
+            )}
             {user && !rolesLoading && isAdmin && (
               <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1 press">
                 <Shield className="w-3.5 h-3.5" aria-hidden="true" /> {t("admin")}
