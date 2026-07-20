@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
 
 let partnerStoresCache: DbStore[] = [];
+let realtimeChannelCounter = 0;
 
 function generateOrderCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -377,6 +378,7 @@ export function useStoreOrders(storeId: string | null) {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCount, setNewCount] = useState(0);
+  const channelKey = useRef(`orders-${++realtimeChannelCounter}`);
 
   useEffect(() => {
     if (!storeId) { setOrders([]); setLoading(false); return; }
@@ -392,7 +394,7 @@ export function useStoreOrders(storeId: string | null) {
     }
     load();
     const channel = supabase
-      .channel(`store-orders-${storeId}`)
+      .channel(`store-orders-${storeId}-${channelKey.current}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
         setNewCount((n) => n + 1);
         load();
