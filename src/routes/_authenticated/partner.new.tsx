@@ -24,7 +24,7 @@ const CATEGORIES = [
 function NewOfferPage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [generatingImg, setGeneratingImg] = useState(false);

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/partner/scan")({
 function ScanPage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scanning, setScanning] = useState(false);
   const [code, setCode] = useState("");

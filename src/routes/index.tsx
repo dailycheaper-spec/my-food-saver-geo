@@ -25,6 +25,7 @@ export const Route = createFileRoute("/")({
 });
 
 const RECENT_VIEW_KEY = "cheaper:recent-views";
+const NEARBY_RADIUS_KM = 3;
 
 function Home() {
   const { t, language } = useI18n();
@@ -49,7 +50,7 @@ function Home() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
-      return true;
+      return o.distanceKm <= NEARBY_RADIUS_KM;
     }).sort((a, b) => a.distanceKm - b.distanceKm);
   }, [cat, district, q, language]);
 

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/partner/offers")({
 function OffersPage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const [editing, setEditing] = useState<DbOffer | null>(null);
   const [creating, setCreating] = useState(false);

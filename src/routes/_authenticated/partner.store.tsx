@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/partner/store")({
 function StoreSettings() {
   const { t } = useI18n();
   const { stores, loading, reload } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const [form, setForm] = useState({ name: "", logo: "", category: "restaurant", district: "", address: "", phone: "", description: "" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");

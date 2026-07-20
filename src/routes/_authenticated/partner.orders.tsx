@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/partner/orders")({
 function PartnerOrders() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
 
   useEffect(() => {

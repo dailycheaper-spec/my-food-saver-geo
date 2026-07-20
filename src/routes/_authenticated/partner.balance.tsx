@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/partner/balance")({
 function BalancePage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const { orders } = useStoreOrders(store?.id ?? null);
   const { payouts } = usePayouts(store?.id ?? null);
   const navigate = useNavigate();

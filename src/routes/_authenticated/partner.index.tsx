@@ -13,7 +13,7 @@ export const Route = createFileRoute('/_authenticated/partner/')({
 function PartnerHome() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const { orders } = useStoreOrders(store?.id ?? null);
   const [dupMsg, setDupMsg] = useState<string | null>(null);

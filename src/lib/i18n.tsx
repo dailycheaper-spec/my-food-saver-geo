@@ -44,7 +44,7 @@ const labels: Record<Language, Record<string, string>> = {
     buy: "შეძენა",
     pickup: "აღება",
     notificationsTitle: "შეტყობინებები",
-    notificationsText: "მიიღე შეტყობინება, როცა 1–2 კმ რადიუსში ახალი შემოთავაზება გამოჩნდება.",
+    notificationsText: "მიიღე შეტყობინება, როცა 3 კმ რადიუსში ახალი შემოთავაზება გამოჩნდება.",
     pushNotifications: "Push შეტყობინებები",
     enabled: "✓ ჩართულია",
     denied: "უარყოფილია — ჩართე ბრაუზერის პარამეტრებში",
@@ -384,7 +384,7 @@ const labels: Record<Language, Record<string, string>> = {
     buy: "Buy",
     pickup: "Pickup",
     notificationsTitle: "Notifications",
-    notificationsText: "Get notified when a new offer appears within a 1–2 km radius.",
+    notificationsText: "Get notified when a new offer appears within a 3 km radius.",
     pushNotifications: "Push notifications",
     enabled: "✓ Enabled",
     denied: "Denied — enable it in browser settings",
@@ -723,7 +723,7 @@ const labels: Record<Language, Record<string, string>> = {
     buy: "Купить",
     pickup: "Самовывоз",
     notificationsTitle: "Уведомления",
-    notificationsText: "Получай уведомление, когда новое предложение появится в радиусе 1–2 км.",
+    notificationsText: "Получай уведомление, когда новое предложение появится в радиусе 3 км.",
     pushNotifications: "Push-уведомления",
     enabled: "✓ Включено",
     denied: "Отклонено — включи в настройках браузера",
@@ -1067,8 +1067,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 export function useI18n() {
   const value = useContext(I18nContext);
-  if (!value) throw new Error("useI18n must be used inside I18nProvider");
-  return value;
+  return value ?? {
+    language: "ka" as Language,
+    setLanguage: () => {},
+    t: (key: string) => labels.ka[key] ?? key,
+  };
 }
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {

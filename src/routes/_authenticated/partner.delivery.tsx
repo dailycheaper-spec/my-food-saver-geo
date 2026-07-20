@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/partner/delivery")({
 function PartnerDelivery() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
 
   const [enabled, setEnabled] = useState(false);
   const [radius, setRadius] = useState(3);

@@ -186,7 +186,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
       <div className="mt-3 flex gap-2">
         {store.status === "pending" && (
           <>
-            <button onClick={() => act(async () => { await approveStoreFn({ data: { storeId: store.id, ownerId: store.owner_id } }); })} disabled={busy || !store.owner_id}
+            <button onClick={() => act(async () => { await approveStoreFn({ data: { storeId: store.id, ownerId: store.owner_id } }); })} disabled={busy}
               className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
               <Check className="w-3.5 h-3.5" /> დამტკიცება
             </button>
