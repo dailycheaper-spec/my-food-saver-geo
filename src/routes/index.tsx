@@ -589,7 +589,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
           if (event.pointerType !== "mouse") return;
 
           const deltaX = event.clientX - state.startX;
-          if (Math.abs(deltaX) > 4) state.moved = true;
+          if (Math.abs(deltaX) > 14) state.moved = true;
           if (state.moved) event.preventDefault();
           event.currentTarget.scrollLeft = state.scrollLeft - deltaX;
         }}
