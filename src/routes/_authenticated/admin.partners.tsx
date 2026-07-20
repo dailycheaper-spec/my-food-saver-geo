@@ -111,20 +111,26 @@ function AdminPartners() {
   );
 }
 
-function PartnerCard({ store, balance, commissionPct, onChange }: { store: DbStore; balance: number; commissionPct: number; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
+  const isFlagged = reportCount >= FLAG_THRESHOLD;
   async function act(fn: () => Promise<void>) {
     setBusy(true);
     try { await fn(); onChange(); } finally { setBusy(false); }
   }
   return (
-    <div className="bg-card rounded-3xl border border-border p-5 shadow-sm">
+    <div className={`bg-card rounded-3xl border p-5 shadow-sm ${isFlagged ? "border-destructive/50 ring-2 ring-destructive/20" : "border-border"}`}>
       <div className="flex items-start gap-3">
         <div className="w-14 h-14 rounded-2xl bg-muted grid place-items-center text-3xl shrink-0">{store.logo ?? "🏪"}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>
             <StatusBadge status={store.status} />
+            {reportCount > 0 && (
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${isFlagged ? "bg-destructive text-destructive-foreground" : "bg-warm text-warm-foreground"}`}>
+                <AlertTriangle className="w-3 h-3" /> {reportCount} ჩივილი
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
             <MapPin className="w-3 h-3 shrink-0" /> {store.district ?? "—"} · {store.category}
