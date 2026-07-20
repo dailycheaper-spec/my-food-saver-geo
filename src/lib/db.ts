@@ -14,6 +14,13 @@ export type AppRole = Database["public"]["Enums"]["app_role"];
 export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
 
+let partnerStoresCache: DbStore[] = [];
+
+function cachePartnerStores(stores: DbStore[]) {
+  partnerStoresCache = sortPartnerStores(stores);
+  return partnerStoresCache;
+}
+
 function sortPartnerStores(stores: DbStore[]): DbStore[] {
   const statusRank: Record<string, number> = { active: 0, pending: 1, suspended: 2 };
   return [...stores].sort((a, b) => {
@@ -215,8 +222,8 @@ export async function fetchMyStores(): Promise<DbStore[]> {
 }
 
 export function useMyStores() {
-  const [stores, setStores] = useState<DbStore[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
+  const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
   const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
   const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
@@ -232,12 +239,12 @@ export function useMyStores() {
         fetchPartnerAccessRef.current(),
         new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner stores check timed out")), 6000)),
       ]);
-      setStores(sortPartnerStores((result?.stores ?? []) as DbStore[]));
+      setStores(cachePartnerStores((result?.stores ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
       try {
         const fallbackStores = await fetchMyStores();
-        setStores(sortPartnerStores(fallbackStores));
+        setStores(cachePartnerStores(fallbackStores));
         setError(null);
       } catch (fallbackError) {
         setStores([]);
@@ -280,7 +287,7 @@ export function usePartnerAccount() {
         fetchPartnerAccessRef.current(),
         new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner account check timed out")), 6000)),
       ]);
-      setStores(sortPartnerStores((result?.stores ?? []) as DbStore[]));
+      setStores(cachePartnerStores((result?.stores ?? []) as DbStore[]));
       setRoles((result?.roles ?? []) as AppRole[]);
       setError(null);
     } catch (e) {
@@ -291,7 +298,7 @@ export function usePartnerAccount() {
           const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
           fallbackRoles = (data ?? []).map((row) => row.role as AppRole);
         }
-        setStores(sortPartnerStores(fallbackStores));
+        setStores(cachePartnerStores(fallbackStores));
         setRoles(fallbackRoles);
         setError(null);
       } catch (fallbackError) {
