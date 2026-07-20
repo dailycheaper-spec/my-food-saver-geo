@@ -54,10 +54,19 @@ function PartnerLayout() {
   if (roleLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 grid place-items-center px-4">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <div className="text-4xl mb-3">🥗</div>
           <div className="font-display text-xl font-bold">{t("loadingPartner")}</div>
           <p className="text-sm text-muted-foreground mt-1">{t("checkingAccount")}</p>
+          {(roleError || storesError) && (
+            <p className="text-xs text-destructive mt-3 break-words">{roleError || storesError}</p>
+          )}
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 text-xs px-4 py-2 rounded-full border border-border text-muted-foreground hover:bg-muted/50"
+          >
+            {t("tryAgain")}
+          </button>
         </div>
       </div>
     );

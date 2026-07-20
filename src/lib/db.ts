@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
@@ -204,11 +205,11 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchPartnerStores = useServerFn(listMyPartnerStores);
+
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchPartnerStores();
+      const data = await listMyPartnerStores();
       setStores(sortPartnerStores((data ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
@@ -223,13 +224,13 @@ export function useMyStores() {
     } finally {
       setLoading(false);
     }
-  }, [fetchPartnerStores]);
+  }, []);
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
-      await reload();
       if (!alive) return;
+      await reload();
     };
     load();
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
