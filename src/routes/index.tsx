@@ -111,11 +111,11 @@ function Home() {
 
   const { offers: liveWithStore } = useLiveOffers();
   const nearbyPartners = useMemo(() => {
-    const seen = new Map<string, { id: string; name: string; name_en: string | null; name_ru: string | null; logo: string | null; rating: number | null; district: string | null }>();
+    const seen = new Map<string, { id: string; name: string; logo: string; district: string }>();
     for (const row of liveWithStore) {
       const s = row.store;
       if (!s || seen.has(s.id)) continue;
-      seen.set(s.id, { id: s.id, name: s.name, name_en: s.name_en, name_ru: s.name_ru, logo: s.logo, rating: s.rating, district: s.district });
+      seen.set(s.id, { id: s.id, name: s.name, logo: s.logo ?? "🏪", district: s.district ?? "" });
       if (seen.size >= 8) break;
     }
     return Array.from(seen.values());
