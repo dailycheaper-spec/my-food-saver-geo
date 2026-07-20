@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
+import { ensurePartnerStoreAccess, linkActiveStoreToOwner } from "@/lib/store-linking";
+
+type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 
 export const listMyPartnerStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -14,6 +18,8 @@ export const listMyPartnerStores = createServerFn({ method: "GET" })
     };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    const email = authUser.user?.email?.trim().toLowerCase() ?? null;
 
     const { data: owned, error: ownedError } = await supabaseAdmin
       .from("stores")
@@ -35,8 +41,28 @@ export const listMyPartnerStores = createServerFn({ method: "GET" })
 
     if (memberStores.error) throw new Error(memberStores.error.message);
 
-    const map = new Map<string, NonNullable<typeof owned>[number]>();
-    [...(owned ?? []), ...(memberStores.data ?? [])].forEach((store) => map.set(store.id, store));
+    const emailStores = email
+      ? await supabaseAdmin
+        .from("stores")
+        .select("*")
+        .ilike("contact_email", email)
+        .or(`owner_id.is.null,owner_id.eq.${context.userId}`)
+      : { data: [], error: null };
+
+    if (emailStores.error) throw new Error(emailStores.error.message);
+
+    const map = new Map<string, DbStore>();
+    [...(owned ?? []), ...(memberStores.data ?? []), ...(emailStores.data ?? [])].forEach((store) => map.set(store.id, store));
+
+    for (const store of Array.from(map.values())) {
+      if (store.status !== "active") continue;
+      if (store.owner_id === context.userId) {
+        await ensurePartnerStoreAccess(supabaseAdmin, context.userId, store.id);
+      } else if (!store.owner_id && email && store.contact_email?.trim().toLowerCase() === email) {
+        const linkedStore = await linkActiveStoreToOwner(supabaseAdmin, store);
+        map.set(linkedStore.id, linkedStore);
+      }
+    }
 
     return sortPartnerStores(Array.from(map.values()));
   });

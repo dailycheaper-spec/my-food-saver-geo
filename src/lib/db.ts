@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -205,11 +205,17 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchPartnerStores = useServerFn(listMyPartnerStores);
+  const fetchPartnerStoresRef = useRef(fetchPartnerStores);
+
+  useEffect(() => {
+    fetchPartnerStoresRef.current = fetchPartnerStores;
+  }, [fetchPartnerStores]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await listMyPartnerStores();
+      const data = await fetchPartnerStoresRef.current();
       setStores(sortPartnerStores((data ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
