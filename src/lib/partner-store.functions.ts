@@ -1,18 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-function sortPartnerStores<T extends { status: string | null; created_at: string | null }>(stores: T[]) {
-  const statusRank: Record<string, number> = { active: 0, pending: 1, suspended: 2 };
-  return stores.sort((a, b) => {
-    const byStatus = (statusRank[a.status ?? ""] ?? 9) - (statusRank[b.status ?? ""] ?? 9);
-    if (byStatus !== 0) return byStatus;
-    return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
-  });
-}
-
 export const listMyPartnerStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const sortPartnerStores = <T extends { status: string | null; created_at: string | null }>(stores: T[]) => {
+      const statusRank: Record<string, number> = { active: 0, pending: 1, suspended: 2 };
+      return stores.sort((a, b) => {
+        const byStatus = (statusRank[a.status ?? ""] ?? 9) - (statusRank[b.status ?? ""] ?? 9);
+        if (byStatus !== 0) return byStatus;
+        return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+      });
+    };
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: owned, error: ownedError } = await supabaseAdmin
