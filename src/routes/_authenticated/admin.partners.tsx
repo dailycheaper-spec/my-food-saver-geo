@@ -11,6 +11,15 @@ import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreSta
 
 const FLAG_THRESHOLD = 5;
 
+const STORE_TYPES = [
+  { value: "restaurant", label: "რესტორანი" },
+  { value: "bakery", label: "საცხობი" },
+  { value: "cafe", label: "კაფე" },
+  { value: "market", label: "მარკეტი" },
+  { value: "grocery", label: "სასურსათო" },
+  { value: "other", label: "სხვა" },
+];
+
 export const Route = createFileRoute("/_authenticated/admin/partners")({
   head: () => ({ meta: [{ title: "პარტნიორები — ადმინი" }] }),
   component: AdminPartners,
@@ -266,7 +275,13 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
           <FieldInput label="სახელი *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
           <div className="grid grid-cols-2 gap-3">
             <FieldInput label="ლოგო (emoji)" value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} />
-            <FieldInput label="კატეგორია" value={form.category} onChange={(v) => setForm({ ...form, category: v })} />
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">ობიექტის ტიპი</span>
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+              </select>
+            </label>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
