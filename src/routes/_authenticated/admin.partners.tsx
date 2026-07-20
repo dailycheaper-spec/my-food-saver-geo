@@ -152,10 +152,24 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
 
       <div className="mt-3 flex gap-2">
         {store.status === "pending" && (
-          <button onClick={() => act(() => approveStore(store.id, store.owner_id ?? ""))} disabled={busy || !store.owner_id}
-            className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
-            <Check className="w-3.5 h-3.5" /> დამტკიცება
-          </button>
+          <>
+            <button onClick={() => act(() => approveStore(store.id, store.owner_id ?? ""))} disabled={busy || !store.owner_id}
+              className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
+              <Check className="w-3.5 h-3.5" /> დამტკიცება
+            </button>
+            <button
+              onClick={() => {
+                if (!confirm(`უარვყოთ „${store.name}"-ის განაცხადი?`)) return;
+                act(async () => {
+                  const { error } = await supabase.from("stores").delete().eq("id", store.id);
+                  if (error) alert(error.message);
+                });
+              }}
+              disabled={busy}
+              className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
+              <Ban className="w-3.5 h-3.5" /> უარყოფა
+            </button>
+          </>
         )}
         {store.status === "active" && (
           <button onClick={() => act(() => suspendStore(store.id))} disabled={busy}

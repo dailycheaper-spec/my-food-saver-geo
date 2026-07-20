@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAllStores, useAllOrders, formatGel } from "@/lib/db";
 import { useAllOffers, useOnlinePresence, useRealtimeActivity } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import {
-  Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity,
+  Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity, Inbox, ArrowRight,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -31,6 +31,7 @@ function AdminOverview() {
   const commission = todayRevenue * (settings.commissionPct / 100);
   const totalOrders = orders.length;
   const activeStores = stores.filter((s) => s.status === "active").length;
+  const pendingStores = stores.filter((s) => s.status === "pending");
   const kgSaved = orders.filter((o) => o.status !== "cancelled").length * KG_PER_ORDER;
 
   return (
@@ -44,6 +45,26 @@ function AdminOverview() {
           <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> Realtime
         </div>
       </div>
+
+      {pendingStores.length > 0 && (
+        <Link to="/admin/partners"
+          className="flex items-center gap-4 p-4 lg:p-5 rounded-3xl bg-warm border border-warm-foreground/20 hover:opacity-95 transition-opacity">
+          <div className="w-12 h-12 rounded-2xl bg-warm-foreground/10 grid place-items-center shrink-0">
+            <Inbox className="w-6 h-6 text-warm-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-display font-bold text-warm-foreground">
+              {pendingStores.length} ახალი განაცხადი პარტნიორობაზე
+            </div>
+            <div className="text-xs text-warm-foreground/80 mt-0.5 truncate">
+              {pendingStores.slice(0, 3).map((s) => s.name).join(" · ")}
+              {pendingStores.length > 3 && ` +${pendingStores.length - 3}`}
+            </div>
+          </div>
+          <ArrowRight className="w-5 h-5 text-warm-foreground shrink-0" />
+        </Link>
+      )}
+
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
