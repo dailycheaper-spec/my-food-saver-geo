@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/partner/scan")({
 
 function ScanPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scanning, setScanning] = useState(false);
@@ -89,6 +89,7 @@ function ScanPage() {
     }
   }, []);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (

@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/partner/store")({
 
 function StoreSettings() {
   const { t } = useI18n();
-  const { stores, reload } = useMyStores();
+  const { stores, loading, reload } = useMyStores();
   const store = stores[0] ?? null;
   const [form, setForm] = useState({ name: "", logo: "", category: "restaurant", district: "", address: "", phone: "", description: "" });
   const [saving, setSaving] = useState(false);
@@ -39,6 +39,7 @@ function StoreSettings() {
     });
   }, [store]);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noStoreShort")}</div>;
 
   async function save(e: React.FormEvent) {

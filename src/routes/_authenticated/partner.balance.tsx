@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/partner/balance")({
 
 function BalancePage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { orders } = useStoreOrders(store?.id ?? null);
   const { payouts } = usePayouts(store?.id ?? null);
@@ -42,6 +42,7 @@ function BalancePage() {
     };
   }, [orders, payouts]);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (

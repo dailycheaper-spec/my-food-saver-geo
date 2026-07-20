@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/partner/stats")({
 
 function StatsPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
   const { orders } = useStoreOrders(store?.id ?? null);
@@ -33,6 +33,7 @@ function StatsPage() {
     return { todayCount: todayPaid.length, revenue, top, saved, totalSold: paid.length, activeOffers: offers.filter((x) => x.is_active).length };
   }, [orders, offers]);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (

@@ -23,7 +23,7 @@ const CATEGORIES = [
 
 function NewOfferPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
@@ -89,6 +89,7 @@ function NewOfferPage() {
     navigate({ to: "/partner/offers" });
   }
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (

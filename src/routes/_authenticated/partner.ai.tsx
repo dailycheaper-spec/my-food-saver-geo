@@ -25,7 +25,7 @@ type Draft = {
 
 function AiOfferPage() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading: storesLoading } = useMyStores();
   const store = stores[0] ?? null;
   const navigate = useNavigate();
   const parse = useServerFn(parseOfferText);
@@ -84,6 +84,9 @@ function AiOfferPage() {
     if (error) { alert(error.message); return; }
     navigate({ to: "/partner/offers" });
   }
+
+  if (storesLoading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   return (
     <div className="max-w-lg mx-auto">
