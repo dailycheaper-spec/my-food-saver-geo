@@ -1,0 +1,1 @@
+REVOKE SELECT (phone) ON public.stores FROM anon;
