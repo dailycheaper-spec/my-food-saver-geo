@@ -199,6 +199,15 @@ function NewOfferPage() {
           {t("deliveryAvailable")}
         </label>
 
+        <label className="flex items-start gap-2 text-sm py-2 px-3 rounded-2xl bg-gradient-to-br from-fuchsia-500/10 via-pink-500/10 to-orange-400/10 border border-fuchsia-500/30">
+          <input type="checkbox" checked={form.is_surprise} onChange={(e) => setForm({ ...form, is_surprise: e.target.checked })} className="w-5 h-5 rounded mt-0.5" />
+          <span>
+            <span className="font-semibold">🎁 {t("surpriseTitle")}</span>
+            <span className="block text-xs text-muted-foreground">{t("surpriseSubtitle")}</span>
+          </span>
+        </label>
+
+
         <button
           type="submit"
           disabled={saving || !form.title}
