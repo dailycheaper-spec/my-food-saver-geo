@@ -140,7 +140,7 @@ function Home() {
     <div className="pb-4">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60 pt-[env(safe-area-inset-top)]">
-        <div className="mx-auto max-w-2xl px-4 py-2.5 flex items-center gap-2">
+        <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-2">
           <Link to="/" aria-label={t("brand")} className="shrink-0 press rounded-2xl focus-visible:outline-none">
             <Logo />
           </Link>
@@ -181,7 +181,7 @@ function Home() {
       </div>
 
       {/* -------- Greeting + Search -------- */}
-      <section className="mx-auto max-w-2xl px-4 pt-4">
+      <section className="mx-auto max-w-6xl px-4 pt-4">
         <h1 className="font-display text-[26px] leading-[1.15] font-bold tracking-tight">
           {t("heroTitle")}
         </h1>
@@ -199,7 +199,7 @@ function Home() {
       </section>
 
       {/* -------- Categories (large, native-feel tiles) -------- */}
-      <section className="mx-auto max-w-2xl mt-5">
+      <section className="mx-auto max-w-6xl mt-5">
         <ScrollableRow className="pb-2 px-4 snap-x snap-proximity">
           {CATEGORIES.map((c) => {
             const active = cat === c.id;
@@ -224,7 +224,7 @@ function Home() {
       </section>
 
       {/* -------- Promo banner -------- */}
-      <section className="mx-auto max-w-2xl px-4 mt-5">
+      <section className="mx-auto max-w-6xl px-4 mt-5">
         <div className="relative overflow-hidden rounded-3xl shadow-elevated">
           <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/40" />
@@ -269,7 +269,7 @@ function Home() {
 
       {/* -------- Surprise Boxes -------- */}
       {surpriseBoxes.length > 0 && (
-        <section className="mx-auto max-w-2xl px-4 mt-6">
+        <section className="mx-auto max-w-6xl px-4 mt-6">
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 p-5 shadow-elevated">
             <div className="absolute -top-6 -right-6 text-[140px] opacity-20 select-none pointer-events-none">🎁</div>
             <div className="relative flex items-center gap-2 text-white">
@@ -383,7 +383,7 @@ function Home() {
       )}
 
       {/* -------- All nearby (full grid) + district filter -------- */}
-      <section className="mx-auto max-w-2xl px-4 mt-8">
+      <section className="mx-auto max-w-6xl px-4 mt-8">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
             <MapPin className="w-[18px] h-[18px] text-primary" /> {L.allNearby}
@@ -421,7 +421,7 @@ function Home() {
       </section>
 
       {/* -------- Footer -------- */}
-      <footer className="mx-auto max-w-2xl px-4 pt-10 pb-4 text-center">
+      <footer className="mx-auto max-w-6xl px-4 pt-10 pb-4 text-center">
         <div className="flex justify-center mb-4">
           <Logo />
         </div>
@@ -458,7 +458,7 @@ function SectionHeader({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mx-auto max-w-2xl mt-7">
+    <section className="mx-auto max-w-6xl mt-7">
       <div className="flex items-end justify-between px-4 mb-3">
         <div className="min-w-0">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">

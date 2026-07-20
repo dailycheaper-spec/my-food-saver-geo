@@ -42,7 +42,7 @@ export function BottomNav() {
       className="fixed bottom-0 inset-x-0 z-40 pb-[env(safe-area-inset-bottom)]"
       aria-label={language === "en" ? "Primary navigation" : language === "ru" ? "Основная навигация" : "მთავარი ნავიგაცია"}
     >
-      <div className="mx-auto max-w-2xl px-3 pb-2">
+      <div className="mx-auto max-w-6xl px-3 pb-2">
         <ul className="grid grid-cols-5 rounded-3xl bg-card/95 backdrop-blur-xl border border-border shadow-elevated overflow-hidden">
           {items.map(({ to, key, icon: Icon }) => {
             const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
