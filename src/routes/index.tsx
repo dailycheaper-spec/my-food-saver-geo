@@ -581,7 +581,6 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
             scrollLeft: element.scrollLeft,
             moved: false,
           };
-          element.setPointerCapture(event.pointerId);
         }}
         onPointerMoveCapture={(event) => {
           const state = drag.current;
@@ -589,7 +588,10 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
           if (event.pointerType !== "mouse") return;
 
           const deltaX = event.clientX - state.startX;
-          if (Math.abs(deltaX) > 14) state.moved = true;
+          if (!state.moved && Math.abs(deltaX) > 14) {
+            state.moved = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }
           if (state.moved) event.preventDefault();
           event.currentTarget.scrollLeft = state.scrollLeft - deltaX;
         }}
