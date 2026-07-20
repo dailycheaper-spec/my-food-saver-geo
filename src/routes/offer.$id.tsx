@@ -48,7 +48,8 @@ function OfferPage() {
   const navigate = useNavigate();
   const favs = useFavorites();
   const isFav = favs.includes(offer.storeId);
-  const trusted = isTrustedPartner(offer.storeId);
+  const [mounted, setMounted] = useState(false);
+  const trusted = mounted && isTrustedPartner(offer.storeId);
 
   const [method, setMethod] = useState<"აღება" | "მიტანა">(offer.delivery ? "მიტანა" : "აღება");
   const [quantity, setQuantity] = useState(1);
@@ -67,6 +68,7 @@ function OfferPage() {
   const similar = useMemo(() => getSimilarOffers(offer, 4), [offer]);
 
   useEffect(() => {
+    setMounted(true);
     trackOfferView(offer.id);
     try {
       const KEY = "cheaper:recent-views";
@@ -332,6 +334,7 @@ function OfferPage() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder={t("deliveryAddress")}
+              style={{}}
               className="mt-3 w-full px-4 py-3 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm"
             />
           )}

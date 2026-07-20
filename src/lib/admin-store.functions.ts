@@ -74,28 +74,16 @@ export const approveAdminStore = createServerFn({ method: "POST" })
     if (roleError || !adminRole) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch = data.ownerId ? { status: "active" as const, owner_id: data.ownerId } : { status: "active" as const };
     const { data: store, error } = await supabaseAdmin
       .from("stores")
-      .update({ status: "active" })
+      .update(patch)
       .eq("id", data.storeId)
       .select("*")
       .single();
 
     if (error) throw new Error(error.message);
-
-    let storeForLink = store;
-    if (data.ownerId && store.owner_id !== data.ownerId) {
-      const { data: updatedStore, error: ownerError } = await supabaseAdmin
-        .from("stores")
-        .update({ owner_id: data.ownerId })
-        .eq("id", data.storeId)
-        .select("*")
-        .single();
-      if (ownerError) throw new Error(ownerError.message);
-      storeForLink = updatedStore;
-    }
-
-    return linkActiveStoreToOwner(supabaseAdmin, storeForLink);
+    return linkActiveStoreToOwner(supabaseAdmin, store);
   });
 
 export const setAdminStoreStatus = createServerFn({ method: "POST" })

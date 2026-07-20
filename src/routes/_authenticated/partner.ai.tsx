@@ -26,7 +26,7 @@ type Draft = {
 function AiOfferPage() {
   const { t } = useI18n();
   const { stores, loading: storesLoading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
   const parse = useServerFn(parseOfferText);
   const [text, setText] = useState("");

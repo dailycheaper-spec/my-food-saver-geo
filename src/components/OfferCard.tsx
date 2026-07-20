@@ -16,14 +16,14 @@ function minutesUntil(hhmm: string): number {
 export function OfferCard({ offer }: { offer: Offer }) {
   const { t, language } = useI18n();
   const favs = useFavorites();
-  const isFav = favs.includes(offer.storeId);
+  const [mounted, setMounted] = useState(false);
+  const isFav = mounted && favs.includes(offer.storeId);
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
 
   // Ticker so badges (NEW / Ending Soon) refresh over time
   const [tick, setTick] = useState(0);
-  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
     const id = setInterval(() => setTick((x) => x + 1), 30_000);
@@ -35,7 +35,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
   const minsLeft = minutesUntil(offer.pickupTo);
   const endingSoon = mounted && minsLeft > 0 && minsLeft <= 60;
   const almostGone = offer.itemsLeft <= 3 && offer.itemsLeft > 0;
-  const trusted = isTrustedPartner(offer.storeId);
+  const trusted = mounted && isTrustedPartner(offer.storeId);
   // reference tick so useEffect refresh triggers re-render
   void tick;
 
@@ -115,8 +115,8 @@ export function OfferCard({ offer }: { offer: Offer }) {
           <div className="flex-1 min-w-0 text-card-foreground bg-card/95 rounded-xl px-2.5 py-1.5">
             <div className="text-xs font-bold truncate flex items-center gap-1">
               {storeName}
-              {trusted && <ShieldCheck className="w-3 h-3 text-primary shrink-0" aria-label={t("badgeTrusted")} />}
-              {isFav && <Heart className="w-3 h-3 fill-destructive text-destructive shrink-0" aria-label={t("badgeFavStore")} />}
+              {trusted ? <ShieldCheck className="w-3 h-3 text-primary shrink-0" aria-label={t("badgeTrusted")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
+              {isFav ? <Heart className="w-3 h-3 fill-destructive text-destructive shrink-0" aria-label={t("badgeFavStore")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
             </div>
           </div>
         </div>

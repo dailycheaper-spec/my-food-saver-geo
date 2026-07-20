@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/partner")({
 function PartnerLayout() {
   const { t } = useI18n();
   const { stores, role, loading, error, isAdmin, isPartner } = usePartnerAccount();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);

@@ -106,7 +106,7 @@ export interface NotifSettings {
   categories: string[];
 }
 const NOTIF_KEY = "gemo:notifs";
-const DEFAULT_NOTIF: NotifSettings = { enabled: false, radiusKm: 1.5, categories: [] };
+const DEFAULT_NOTIF: NotifSettings = { enabled: true, radiusKm: 3, categories: [] };
 export function useNotifSettings() {
   const hydrated = useHydrated();
   const value = useSyncExternalStore(
@@ -114,7 +114,7 @@ export function useNotifSettings() {
     () => read<NotifSettings>(NOTIF_KEY, DEFAULT_NOTIF),
     () => DEFAULT_NOTIF,
   );
-  return hydrated ? value : DEFAULT_NOTIF;
+  return hydrated ? { ...DEFAULT_NOTIF, ...value, radiusKm: Number(value.radiusKm ?? DEFAULT_NOTIF.radiusKm) || DEFAULT_NOTIF.radiusKm } : DEFAULT_NOTIF;
 }
 export function saveNotifSettings(s: NotifSettings) { write(NOTIF_KEY, s); }
 
@@ -232,7 +232,7 @@ const SEED_VOTES: Record<string, PartnerVotes> = {
 };
 
 function readVotes(): Record<string, PartnerVotes> {
-  if (typeof window === "undefined") return EMPTY_VOTES;
+  if (typeof window === "undefined") return SEED_VOTES;
   return read<Record<string, PartnerVotes>>(VOTES_KEY, SEED_VOTES);
 }
 export function usePartnerVotes() {

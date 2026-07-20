@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/partner/quick")({
 function QuickOfferPage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
-  const store = stores[0] ?? null;
+  const store = stores.find((s) => s.status === "active") ?? null;
   const { items } = useSavedProducts(store?.id ?? null);
   const [picked, setPicked] = useState<SavedProduct | null>(null);
   const [addOpen, setAddOpen] = useState(false);
