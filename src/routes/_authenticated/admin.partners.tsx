@@ -78,6 +78,8 @@ function AdminPartners() {
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
       </div>
+
+      {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
     </div>
   );
 }
