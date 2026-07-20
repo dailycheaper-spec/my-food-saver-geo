@@ -140,6 +140,18 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
   const [discounted, setDiscounted] = useState("6");
   const [image_url, setImg] = useState("");
   const [saving, setSaving] = useState(false);
+  const [genAi, setGenAi] = useState(false);
+  const generateImg = useServerFn(generateOfferImage);
+
+  async function aiGenerate() {
+    if (!name.trim()) { alert(t("productNamePlaceholder")); return; }
+    setGenAi(true);
+    try {
+      const r = (await generateImg({ data: { prompt: name.trim() } })) as { dataUrl: string };
+      setImg(r.dataUrl);
+    } catch (e: any) { alert("AI: " + e.message); }
+    setGenAi(false);
+  }
 
   async function save() {
     if (!name.trim()) return;
@@ -163,7 +175,17 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
         <h3 className="font-display text-xl font-bold mb-4">{t("newProduct")}</h3>
         <div className="space-y-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("productNamePlaceholder")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
-          <input value={image_url} onChange={(e) => setImg(e.target.value)} placeholder={t("optionalPhotoUrl")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
+          {image_url && <img src={image_url} alt="preview" className="w-full h-40 object-cover rounded-2xl" />}
+          <button
+            type="button"
+            onClick={aiGenerate}
+            disabled={genAi || !name.trim()}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+          >
+            {genAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {genAi ? t("generating") : t("generateWithAi")}
+          </button>
+          <input value={image_url.startsWith("data:") ? "" : image_url} onChange={(e) => setImg(e.target.value)} placeholder={t("optionalPhotoUrl")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
           <div className="grid grid-cols-2 gap-2">
             <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" placeholder={t("original")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
             <input value={discounted} onChange={(e) => setDiscounted(e.target.value)} type="number" placeholder={t("discountedPrice")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
