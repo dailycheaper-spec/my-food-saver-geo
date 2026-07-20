@@ -7,6 +7,15 @@ import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { CITIES, cityLabel, type City } from "@/lib/city";
 
+const STORE_TYPES = [
+  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
+  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
+  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
+  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продуктовый" },
+  { value: "other", ka: "სხვა", en: "Other", ru: "Другое" },
+];
+
 export const Route = createFileRoute("/_authenticated/partner-apply")({
   head: () => ({ meta: [{ title: "გახდი პარტნიორი — Cheaper" }] }),
   component: PartnerApply,
@@ -16,7 +25,7 @@ function PartnerApply() {
   const { t, language } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; description: string }>({ name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", description: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; description: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -62,6 +71,18 @@ function PartnerApply() {
       <form onSubmit={submit} className="bg-card rounded-2xl border border-border p-5 space-y-3">
         <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">
+            {language === "en" ? "Object type *" : language === "ru" ? "Тип объекта *" : "რა ტიპის ობიექტია *"}
+          </span>
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+            {STORE_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>{language === "en" ? type.en : language === "ru" ? type.ru : type.ka}</option>
+            ))}
+          </select>
+        </label>
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
