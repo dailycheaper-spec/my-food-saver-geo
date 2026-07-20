@@ -1034,17 +1034,20 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>("ka");
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY) as Language | null;
     if (saved === "ka" || saved === "en" || saved === "ru") setLanguageState(saved);
+    setReady(true);
   }, []);
 
   useEffect(() => {
+    if (!ready) return;
     document.documentElement.lang = language;
     window.localStorage.setItem(STORAGE_KEY, language);
     window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
-  }, [language]);
+  }, [language, ready]);
 
   const setLanguage = (l: Language) => {
     // write localStorage synchronously so formatGel/currencyLabel pick up

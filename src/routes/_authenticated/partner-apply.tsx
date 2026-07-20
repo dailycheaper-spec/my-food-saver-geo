@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { CITIES, cityLabel, type City } from "@/lib/city";
+import { usePartnerAccount } from "@/lib/db";
 
 const STORE_TYPES = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
@@ -24,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/partner-apply")({
 function PartnerApply() {
   const { t, language } = useI18n();
   const { user } = useAuth();
+  const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
   const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; description: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
@@ -32,6 +34,12 @@ function PartnerApply() {
   useEffect(() => {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
   }, [form.contact_email, user?.email]);
+
+  useEffect(() => {
+    if (!partnerLoading && stores.some((store) => store.status === "active")) {
+      navigate({ to: "/partner", replace: true });
+    }
+  }, [navigate, partnerLoading, stores]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
