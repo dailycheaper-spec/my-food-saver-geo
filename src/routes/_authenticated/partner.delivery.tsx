@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/partner/delivery")({
 
 function PartnerDelivery() {
   const { t } = useI18n();
-  const { stores } = useMyStores();
+  const { stores, loading } = useMyStores();
   const store = stores[0] ?? null;
 
   const [enabled, setEnabled] = useState(false);
@@ -37,6 +37,7 @@ function PartnerDelivery() {
     setProviders((store.delivery_providers ?? ["in_house"]) as DeliveryProviderId[]);
   }, [store]);
 
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
 
   function toggleProvider(id: DeliveryProviderId) {
