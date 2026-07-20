@@ -109,10 +109,15 @@ function NewOfferPage() {
       return;
     }
     setSaving(true);
+    const contents = form.surprise_contents.trim();
+    const baseDesc = form.description.trim();
+    const finalDesc = form.is_surprise && contents
+      ? (baseDesc ? `${baseDesc}\n\n${sl.contentsLabel}: ${contents}` : `${sl.contentsLabel}: ${contents}`)
+      : baseDesc;
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
-      description: form.description.trim(),
+      description: finalDesc,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -124,6 +129,7 @@ function NewOfferPage() {
       is_surprise: form.is_surprise,
       is_active: true,
     };
+
 
     const { error } = await supabase.from("offers").insert(payload);
     setSaving(false);
