@@ -31,6 +31,7 @@ function AdminOverview() {
   const commission = todayRevenue * (settings.commissionPct / 100);
   const totalOrders = orders.length;
   const activeStores = stores.filter((s) => s.status === "active").length;
+  const pendingStores = stores.filter((s) => s.status === "pending");
   const kgSaved = orders.filter((o) => o.status !== "cancelled").length * KG_PER_ORDER;
 
   return (
