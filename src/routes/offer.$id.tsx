@@ -55,7 +55,8 @@ export const Route = createFileRoute("/offer/$id")({
 
 function OfferPage() {
   const { t, language } = useI18n();
-  const { offer } = Route.useLoaderData();
+  const { offer, realDb } = Route.useLoaderData();
+  const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
@@ -92,24 +93,35 @@ function OfferPage() {
     } catch {}
   }, [offer.id]);
 
-  function handleReserve() {
+  async function handleReserve() {
     if (soldOut) return;
-    const order = createOrder({
-      offerId: offer.id,
-      storeName: offer.storeName,
-      storeLogo: offer.storeLogo,
-      title: offer.title,
-      image: offer.image,
-      price: total,
-      quantity,
-      method,
-      address: method === "მიტანა" ? address : undefined,
-      pickupFrom: offer.pickupFrom,
-      pickupTo: offer.pickupTo,
-    });
-    trackPurchase(offer.storeId, offer.storeName, offer.storeLogo, total);
-    navigate({ to: "/orders/$id", params: { id: order.id } });
+    if (!realDb) {
+      alert(language === "en"
+        ? "This is a demo listing — not available for purchase."
+        : language === "ru"
+        ? "Это демо-предложение — покупка недоступна."
+        : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+      return;
+    }
+    try {
+      const isDelivery = method === "მიტანა";
+      const order = await createOrderDb({
+        offer_id: offer.id,
+        store_id: offer.storeId,
+        amount: total,
+        method: isDelivery ? "delivery" : "pickup",
+        delivery_address: isDelivery ? address : undefined,
+      });
+      if (isDelivery) {
+        // Fire-and-forget: don't block navigation on courier dispatch.
+        dispatchDeliveryFn({ data: { orderId: order.id } }).catch(() => {});
+      }
+      navigate({ to: "/orders/$id", params: { id: order.id } });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
   }
+
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
