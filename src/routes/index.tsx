@@ -10,7 +10,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
-import { useMyRole, useLiveOffers } from "@/lib/db";
+import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
