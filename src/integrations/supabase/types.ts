@@ -419,6 +419,44 @@ export type Database = {
           },
         ]
       }
+      store_reports: {
+        Row: {
+          created_at: string
+          id: string
+          rating: number
+          reason: string | null
+          store_id: string
+          user_id: string | null
+          worth_it: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rating: number
+          reason?: string | null
+          store_id: string
+          user_id?: string | null
+          worth_it?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rating?: number
+          reason?: string | null
+          store_id?: string
+          user_id?: string | null
+          worth_it?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_reports_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           address: string | null
