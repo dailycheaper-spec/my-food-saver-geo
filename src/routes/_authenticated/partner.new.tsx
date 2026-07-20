@@ -22,8 +22,36 @@ const CATEGORIES = [
   { value: "other", icon: "📦", key: "other" },
 ];
 
+const SURPRISE_L10N = {
+  ka: {
+    contentsLabel: "🎁 შესაძლო შიგთავსი",
+    contentsHint: "ჩამოთვალე საგნები, რომლებიც შეიძლება მოხვდეს ბოქსში (მომხმარებელი დაინახავს ამას აღწერაში).",
+    contentsPh: "მაგ: ხაჭაპური, ლიმონათი, ნამცხვარი, ხილი...",
+    valueLabel: "სავარაუდო რეალური ღირებულება (₾)",
+    valueHint: "შეიტანე ბოქსში მოთავსებული პროდუქტების საერთო ღირებულება — ეს დაეხმარება ფასდაკლების ავტომატურ დათვლას.",
+    useAsOriginal: "გამოიყენე თავდაპირველ ფასად",
+  },
+  en: {
+    contentsLabel: "🎁 Possible contents",
+    contentsHint: "List items that may be in the box (visible to the customer in the description).",
+    contentsPh: "e.g. khachapuri, lemonade, cake, fruit...",
+    valueLabel: "Estimated real value (GEL)",
+    valueHint: "Enter the total value of items in the box — helps you set the original price and discount.",
+    useAsOriginal: "Use as original price",
+  },
+  ru: {
+    contentsLabel: "🎁 Возможный состав",
+    contentsHint: "Перечисли, что может быть в боксе (это увидит покупатель в описании).",
+    contentsPh: "напр.: хачапури, лимонад, торт, фрукты...",
+    valueLabel: "Примерная реальная стоимость (₾)",
+    valueHint: "Введи общую стоимость продуктов в боксе — поможет рассчитать скидку.",
+    useAsOriginal: "Использовать как исходную цену",
+  },
+} as const;
+
 function NewOfferPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const sl = SURPRISE_L10N[language];
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
@@ -44,7 +72,10 @@ function NewOfferPage() {
     image_url: "",
     delivery_available: false,
     is_surprise: false,
+    surprise_contents: "",
+    surprise_value: "",
   });
+
 
 
   async function handleAiGenerate() {
@@ -78,10 +109,15 @@ function NewOfferPage() {
       return;
     }
     setSaving(true);
+    const contents = form.surprise_contents.trim();
+    const baseDesc = form.description.trim();
+    const finalDesc = form.is_surprise && contents
+      ? (baseDesc ? `${baseDesc}\n\n${sl.contentsLabel}: ${contents}` : `${sl.contentsLabel}: ${contents}`)
+      : baseDesc;
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
-      description: form.description.trim(),
+      description: finalDesc,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -93,6 +129,7 @@ function NewOfferPage() {
       is_surprise: form.is_surprise,
       is_active: true,
     };
+
 
     const { error } = await supabase.from("offers").insert(payload);
     setSaving(false);
@@ -206,6 +243,47 @@ function NewOfferPage() {
             <span className="block text-xs text-muted-foreground">{t("surpriseSubtitle")}</span>
           </span>
         </label>
+
+        {form.is_surprise && (
+          <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-fuchsia-500/5 via-pink-500/5 to-orange-400/5 border border-fuchsia-500/30">
+            <div>
+              <Label>{sl.contentsLabel}</Label>
+              <textarea
+                value={form.surprise_contents}
+                onChange={(e) => setForm({ ...form, surprise_contents: e.target.value })}
+                placeholder={sl.contentsPh}
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm resize-none"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">{sl.contentsHint}</p>
+            </div>
+            <div>
+              <Label>{sl.valueLabel}</Label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.5"
+                  value={form.surprise_value}
+                  onChange={(e) => setForm({ ...form, surprise_value: e.target.value })}
+                  placeholder="0"
+                  className="flex-1 px-3 py-2.5 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
+                />
+                <button
+                  type="button"
+                  disabled={!Number(form.surprise_value)}
+                  onClick={() => setForm({ ...form, original_price: form.surprise_value })}
+                  className="px-3 py-2 rounded-2xl bg-fuchsia-500 text-white text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+                >
+                  {sl.useAsOriginal}
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">{sl.valueHint}</p>
+            </div>
+          </div>
+        )}
+
 
 
         <button
