@@ -115,8 +115,8 @@ export function OfferCard({ offer }: { offer: Offer }) {
           <div className="flex-1 min-w-0 text-card-foreground bg-card/95 rounded-xl px-2.5 py-1.5">
             <div className="text-xs font-bold truncate flex items-center gap-1">
               {storeName}
-              <ShieldCheck className={`w-3 h-3 text-primary shrink-0 ${trusted ? "opacity-100" : "opacity-0"}`} aria-label={t("badgeTrusted")} />
-              <Heart className={`w-3 h-3 fill-destructive text-destructive shrink-0 ${isFav ? "opacity-100" : "opacity-0"}`} aria-label={t("badgeFavStore")} />
+              {trusted ? <ShieldCheck className="w-3 h-3 text-primary shrink-0" aria-label={t("badgeTrusted")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
+              {isFav ? <Heart className="w-3 h-3 fill-destructive text-destructive shrink-0" aria-label={t("badgeFavStore")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
             </div>
           </div>
         </div>
