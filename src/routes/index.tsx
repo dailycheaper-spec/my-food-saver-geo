@@ -4,7 +4,7 @@ import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronLeft, ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
-import { CATEGORIES, DISTRICTS, OFFERS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
@@ -39,11 +39,10 @@ function Home() {
   const hydrated = useHydrated();
   const { offers: dbOffers } = useLiveDbCardOffers();
 
-  // Merge live DB offers with mock offers — DB entries first so newly-approved
-  // stores (like partner-added items) appear at the top of every list.
+  // Real offers only — no mock merging.
   const ALL_OFFERS = useMemo<Offer[]>(() => {
     const map = new Map<string, Offer>();
-    [...dbOffers, ...OFFERS].forEach((o) => map.set(o.id, o));
+    dbOffers.forEach((o) => map.set(o.id, o));
     return Array.from(map.values());
   }, [dbOffers]);
 
@@ -60,8 +59,8 @@ function Home() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
-      return o.distanceKm <= NEARBY_RADIUS_KM;
-    }).sort((a, b) => a.distanceKm - b.distanceKm);
+      return true;
+    });
   }, [ALL_OFFERS, cat, district, q, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);

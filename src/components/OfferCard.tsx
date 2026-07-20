@@ -93,9 +93,11 @@ export function OfferCard({ offer }: { offer: Offer }) {
           >
             <Heart className={`w-4 h-4 ${isFav ? "fill-destructive text-destructive" : "text-foreground"}`} />
           </button>
-          <span className="px-2 py-1 rounded-full bg-card/95 text-foreground text-[10px] font-bold flex items-center gap-1 shadow-soft">
-            <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> {offer.rating.toFixed(1)}
-          </span>
+          {offer.rating > 0 && (
+            <span className="px-2 py-1 rounded-full bg-card/95 text-foreground text-[10px] font-bold flex items-center gap-1 shadow-soft">
+              <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> {offer.rating.toFixed(1)}
+            </span>
+          )}
         </div>
 
         {/* sold out overlay */}
@@ -137,10 +139,12 @@ export function OfferCard({ offer }: { offer: Offer }) {
         <h3 className="font-semibold text-[15px] leading-snug line-clamp-2">{offerText.title}</h3>
 
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5" />
-            {offer.distanceKm} {t("km")}
-          </span>
+          {offer.distanceKm > 0 && (
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" />
+              {offer.distanceKm} {t("km")}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
             {offer.pickupFrom}–{offer.pickupTo}

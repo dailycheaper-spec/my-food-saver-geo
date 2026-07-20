@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.validate_order_amount() FROM PUBLIC, anon, authenticated;

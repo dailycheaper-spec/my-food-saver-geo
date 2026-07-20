@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useMemo } from "react";
 import {
   ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf,
@@ -8,7 +9,9 @@ import {
   findOffer, formatPrice, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName,
   getAllergens, getIngredients, getPickupInstructions, getSimilarOffers,
 } from "@/lib/mock-data";
-import { createOrder, toggleFavorite, useFavorites, trackOfferView, trackPurchase, isTrustedPartner } from "@/lib/storage";
+import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
+import { createOrder as createOrderDb } from "@/lib/db";
+import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
@@ -16,17 +19,18 @@ import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: async ({ params }) => {
-    const offer = findOffer(params.id);
-    if (offer) return { offer };
-    // Fallback: check the live database for offers added by partners.
+    // Real database first — never merge with mocks on a purchase surface.
     try {
       const { fetchOffer } = await import("@/lib/db");
       const { dbOfferToCardOffer } = await import("@/lib/db-adapter");
       const row = await fetchOffer(params.id);
-      if (row) return { offer: dbOfferToCardOffer(row) };
+      if (row) return { offer: dbOfferToCardOffer(row), realDb: true };
     } catch {
-      // ignore — fall through to notFound
+      // ignore — fall through
     }
+    // Fallback: mock/demo pages (browse-only, purchase disabled).
+    const offer = findOffer(params.id);
+    if (offer) return { offer, realDb: false };
     throw notFound();
   },
   head: ({ loaderData }) => ({
@@ -51,7 +55,8 @@ export const Route = createFileRoute("/offer/$id")({
 
 function OfferPage() {
   const { t, language } = useI18n();
-  const { offer } = Route.useLoaderData();
+  const { offer, realDb } = Route.useLoaderData();
+  const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
@@ -88,24 +93,35 @@ function OfferPage() {
     } catch {}
   }, [offer.id]);
 
-  function handleReserve() {
+  async function handleReserve() {
     if (soldOut) return;
-    const order = createOrder({
-      offerId: offer.id,
-      storeName: offer.storeName,
-      storeLogo: offer.storeLogo,
-      title: offer.title,
-      image: offer.image,
-      price: total,
-      quantity,
-      method,
-      address: method === "მიტანა" ? address : undefined,
-      pickupFrom: offer.pickupFrom,
-      pickupTo: offer.pickupTo,
-    });
-    trackPurchase(offer.storeId, offer.storeName, offer.storeLogo, total);
-    navigate({ to: "/orders/$id", params: { id: order.id } });
+    if (!realDb) {
+      alert(language === "en"
+        ? "This is a demo listing — not available for purchase."
+        : language === "ru"
+        ? "Это демо-предложение — покупка недоступна."
+        : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+      return;
+    }
+    try {
+      const isDelivery = method === "მიტანა";
+      const order = await createOrderDb({
+        offer_id: offer.id,
+        store_id: offer.storeId,
+        amount: total,
+        method: isDelivery ? "delivery" : "pickup",
+        delivery_address: isDelivery ? address : undefined,
+      });
+      if (isDelivery) {
+        // Fire-and-forget: don't block navigation on courier dispatch.
+        dispatchDeliveryFn({ data: { orderId: order.id } }).catch(() => {});
+      }
+      navigate({ to: "/orders/$id", params: { id: order.id } });
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
   }
+
 
   async function handleShare() {
     const url = typeof window !== "undefined" ? window.location.href : "";
