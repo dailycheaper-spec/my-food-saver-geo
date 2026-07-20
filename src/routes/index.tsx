@@ -241,7 +241,7 @@ function Home() {
 
       {/* -------- Promo banner -------- */}
       <section className="mx-auto max-w-6xl px-4 mt-5">
-        <div className="relative overflow-hidden rounded-3xl shadow-elevated">
+        <Link to="/search" className="block relative overflow-hidden rounded-3xl shadow-elevated active:scale-[0.99] transition-transform">
           <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/40" />
           <div className="relative p-5 text-primary-foreground">
@@ -254,15 +254,13 @@ function Home() {
             <p className="text-sm text-primary-foreground/90 mt-1 max-w-[80%]">
               {L.promoText}
             </p>
-            <Link
-              to="/search"
-              className="mt-3 inline-flex items-center gap-1.5 bg-card text-foreground text-sm font-bold px-4 py-2 rounded-full active:scale-95 transition-transform"
-            >
+            <span className="mt-3 inline-flex items-center gap-1.5 bg-card text-foreground text-sm font-bold px-4 py-2 rounded-full">
               {L.orderNow} <ChevronRight className="w-4 h-4" />
-            </Link>
+            </span>
           </div>
-        </div>
+        </Link>
       </section>
+
 
       {/* -------- Flash deals -------- */}
       {flashDeals.length > 0 && (
