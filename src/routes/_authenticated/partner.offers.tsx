@@ -145,8 +145,22 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     pickup_from: offer?.pickup_from?.slice(0,5) ?? "18:00",
     pickup_to: offer?.pickup_to?.slice(0,5) ?? "21:00",
     delivery_available: offer?.delivery_available ?? false,
+    image_url: offer?.image_url ?? "",
   });
   const [saving, setSaving] = useState(false);
+  const [genAi, setGenAi] = useState(false);
+  const generateImg = useServerFn(generateOfferImage);
+
+  async function aiGenerate() {
+    const prompt = form.title.trim() || form.description.trim();
+    if (!prompt) { alert(t("productName")); return; }
+    setGenAi(true);
+    try {
+      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
+      setForm((f) => ({ ...f, image_url: r.dataUrl }));
+    } catch (e: any) { alert("AI: " + e.message); }
+    setGenAi(false);
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -162,6 +176,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       pickup_from: form.pickup_from,
       pickup_to: form.pickup_to,
       delivery_available: form.delivery_available,
+      image_url: form.image_url.trim() || null,
     };
     if (offer) {
       await supabase.from("offers").update(payload).eq("id", offer.id);
