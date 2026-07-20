@@ -244,6 +244,47 @@ function NewOfferPage() {
           </span>
         </label>
 
+        {form.is_surprise && (
+          <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-fuchsia-500/5 via-pink-500/5 to-orange-400/5 border border-fuchsia-500/30">
+            <div>
+              <Label>{sl.contentsLabel}</Label>
+              <textarea
+                value={form.surprise_contents}
+                onChange={(e) => setForm({ ...form, surprise_contents: e.target.value })}
+                placeholder={sl.contentsPh}
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm resize-none"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">{sl.contentsHint}</p>
+            </div>
+            <div>
+              <Label>{sl.valueLabel}</Label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.5"
+                  value={form.surprise_value}
+                  onChange={(e) => setForm({ ...form, surprise_value: e.target.value })}
+                  placeholder="0"
+                  className="flex-1 px-3 py-2.5 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
+                />
+                <button
+                  type="button"
+                  disabled={!Number(form.surprise_value)}
+                  onClick={() => setForm({ ...form, original_price: form.surprise_value })}
+                  className="px-3 py-2 rounded-2xl bg-fuchsia-500 text-white text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+                >
+                  {sl.useAsOriginal}
+                </button>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">{sl.valueHint}</p>
+            </div>
+          </div>
+        )}
+
+
 
         <button
           type="submit"
