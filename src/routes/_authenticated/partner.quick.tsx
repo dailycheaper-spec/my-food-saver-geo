@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Plus, Trash2, Zap } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Zap, Sparkles, Loader2 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { useMyStores } from "@/lib/db";
 import { useSavedProducts, upsertSavedProduct, deleteSavedProduct, type SavedProduct } from "@/lib/partner-db";
+import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
