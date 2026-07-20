@@ -495,6 +495,13 @@ function OfferPage() {
               ? (language === "en" ? "Sign in to reserve" : language === "ru" ? "Войти для брони" : "შედი დასაჯავშნად")
               : t("reserve")}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 function SectionCard({
   icon, title, children,
