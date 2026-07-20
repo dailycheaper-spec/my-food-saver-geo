@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
+import { getMyPartnerAccess } from "@/lib/partner-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -257,20 +258,27 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
   const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
+  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const stores = await fetchMyStores();
-      setStores(cachePartnerStores(stores));
+      const access = await fetchPartnerAccess();
+      setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
-      setStores([]);
-      setError(e instanceof Error ? e.message : String(e));
+      try {
+        const stores = await fetchMyStores();
+        setStores(cachePartnerStores(stores));
+        setError(null);
+      } catch (fallbackError) {
+        setStores([]);
+        setError(fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchPartnerAccess]);
 
   useEffect(() => {
     let alive = true;
@@ -290,28 +298,36 @@ export function usePartnerAccount() {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
   const [error, setError] = useState<string | null>(null);
+  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const [directStores, uid] = await Promise.all([fetchMyStores(), getCurrentUserId()]);
-      let directRoles: AppRole[] = [];
-      if (uid) {
-        const { data, error: rolesError } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-        if (rolesError) throw rolesError;
-        directRoles = (data ?? []).map((row) => row.role as AppRole);
-      }
-      setStores(cachePartnerStores(directStores));
-      setRoles(directRoles);
+      const access = await fetchPartnerAccess();
+      setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
+      setRoles((access?.roles ?? []) as AppRole[]);
       setError(null);
     } catch (e) {
-      setStores([]);
-      setRoles([]);
-      setError(e instanceof Error ? e.message : String(e));
+      try {
+        const [directStores, uid] = await Promise.all([fetchMyStores(), getCurrentUserId()]);
+        let directRoles: AppRole[] = [];
+        if (uid) {
+          const { data, error: rolesError } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+          if (rolesError) throw rolesError;
+          directRoles = (data ?? []).map((row) => row.role as AppRole);
+        }
+        setStores(cachePartnerStores(directStores));
+        setRoles(directRoles);
+        setError(null);
+      } catch (fallbackError) {
+        setStores([]);
+        setRoles([]);
+        setError(fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchPartnerAccess]);
 
   useEffect(() => {
     let alive = true;
