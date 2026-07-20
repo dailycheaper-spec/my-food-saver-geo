@@ -63,6 +63,7 @@ function OffersPage() {
 function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
   const { t } = useI18n();
   const remaining = offer.quantity_available - offer.quantity_sold;
+  const soldOut = remaining <= 0;
   async function toggle() {
     await supabase.from("offers").update({ is_active: !offer.is_active }).eq("id", offer.id);
   }
@@ -71,10 +72,15 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
     await supabase.from("offers").delete().eq("id", offer.id);
   }
   return (
-    <div className={`bg-card rounded-2xl border p-4 ${offer.is_active ? "border-border" : "border-border/40 opacity-60"}`}>
+    <div className={`bg-card rounded-2xl border p-4 relative ${offer.is_active && !soldOut ? "border-border" : "border-border/40 opacity-70"}`}>
+      {soldOut && (
+        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
+          {t("soldOut") || "Sold out"}
+        </span>
+      )}
       <div className="flex items-start gap-3">
         {offer.image_url ? (
-          <img src={offer.image_url} alt={offer.title} className="w-16 h-16 rounded-xl object-cover" />
+          <img src={offer.image_url} alt={offer.title} className={`w-16 h-16 rounded-xl object-cover ${soldOut ? "grayscale" : ""}`} />
         ) : (
           <div className="w-16 h-16 rounded-xl bg-muted grid place-items-center text-2xl">🍽</div>
         )}
