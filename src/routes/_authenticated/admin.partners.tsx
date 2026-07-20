@@ -17,6 +17,7 @@ function AdminPartners() {
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended">("all");
   const [q, setQ] = useState("");
+  const [addOpen, setAddOpen] = useState(false);
   const settings = loadAdminSettings();
 
   const balances = new Map<string, number>();
