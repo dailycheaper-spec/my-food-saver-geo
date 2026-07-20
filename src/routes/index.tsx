@@ -262,6 +262,44 @@ function Home() {
       </section>
 
 
+      {/* -------- All nearby (full grid) + district filter (moved up) -------- */}
+      <section className="mx-auto max-w-6xl px-4 mt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-display text-lg font-bold flex items-center gap-2">
+            <MapPin className="w-[18px] h-[18px] text-primary" /> {L.allNearby}
+          </h2>
+          <Link to="/map" className="text-xs font-semibold text-primary flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-full active:scale-95 transition-transform">
+            <MapIcon className="w-3.5 h-3.5" /> {t("onMap")}
+          </Link>
+        </div>
+
+        <div className="relative mb-3">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <select
+            value={district}
+            onChange={(event) => setDistrict(event.target.value)}
+            aria-label={language === "en" ? "Choose district" : language === "ru" ? "Выбрать район" : "უბნის არჩევა"}
+            className="w-full h-11 pl-9 pr-9 rounded-2xl bg-card border border-border text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {DISTRICTS.map((d) => (
+              <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
+            ))}
+          </select>
+          <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
+        </div>
+
+        {nearby.length === 0 ? (
+          <div className="text-center py-14 bg-card rounded-3xl border border-border">
+            <div className="text-4xl mb-2">🥲</div>
+            <p className="text-sm text-muted-foreground">{t("noResults")}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {nearby.map((o) => <OfferCard key={o.id} offer={o} />)}
+          </div>
+        )}
+      </section>
+
       {/* -------- Flash deals -------- */}
       {flashDeals.length > 0 && (
         <SectionHeader
@@ -280,6 +318,7 @@ function Home() {
           </HScroll>
         </SectionHeader>
       )}
+
 
       {/* -------- Surprise Boxes -------- */}
       {surpriseBoxes.length > 0 && (
