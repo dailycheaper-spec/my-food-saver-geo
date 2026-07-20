@@ -1070,10 +1070,10 @@ export function useI18n() {
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage, t } = useI18n();
-  const options: { value: Language; label: string; flag: string }[] = [
-    { value: "ka", label: "ქარ", flag: "🇬🇪" },
-    { value: "en", label: "EN", flag: "🇬🇧" },
-    { value: "ru", label: "RU", flag: "🇷🇺" },
+  const options: { value: Language; label: string }[] = [
+    { value: "ka", label: "ქარ" },
+    { value: "en", label: "EN" },
+    { value: "ru", label: "РУ" },
   ];
 
   return (
@@ -1094,18 +1094,15 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
             title={option.label}
             className={`inline-flex items-center justify-center rounded-full font-bold leading-none transition-colors ${
               compact
-                ? "min-w-[34px] h-8 px-2 text-[11px]"
-                : "min-w-[42px] h-9 px-2.5 text-xs"
+                ? "min-w-[36px] h-8 px-2.5 text-[11px]"
+                : "min-w-[44px] h-9 px-3 text-xs"
             } ${
               active
                 ? "bg-primary text-primary-foreground shadow-sm"
                 : "text-foreground hover:bg-muted"
             }`}
           >
-            <span aria-hidden="true" className="text-[15px] leading-none">
-              {option.flag}
-            </span>
-            <span className="ml-1 hidden min-[400px]:inline">{option.label}</span>
+            {option.label}
           </button>
         );
       })}
