@@ -5,6 +5,15 @@ import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 
+const STORE_TYPES = [
+  { value: "restaurant", label: "რესტორანი" },
+  { value: "bakery", label: "საცხობი" },
+  { value: "cafe", label: "კაფე" },
+  { value: "market", label: "მარკეტი" },
+  { value: "grocery", label: "სასურსათო" },
+  { value: "other", label: "სხვა" },
+];
+
 export const Route = createFileRoute("/_authenticated/partner/store")({
   head: () => ({ meta: [{ title: "Store — Cheaper" }] }),
   component: StoreSettings,
@@ -14,7 +23,7 @@ function StoreSettings() {
   const { t } = useI18n();
   const { stores, reload } = useMyStores();
   const store = stores[0] ?? null;
-  const [form, setForm] = useState({ name: "", logo: "", district: "", address: "", phone: "", description: "" });
+  const [form, setForm] = useState({ name: "", logo: "", category: "restaurant", district: "", address: "", phone: "", description: "" });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -22,6 +31,7 @@ function StoreSettings() {
     if (store) setForm({
       name: store.name,
       logo: store.logo ?? "",
+      category: store.category ?? "restaurant",
       district: store.district ?? "",
       address: store.address ?? "",
       phone: store.phone ?? "",
@@ -48,6 +58,17 @@ function StoreSettings() {
       <p className="text-sm text-muted-foreground mb-6">{t("statusLbl")}: <span className="font-semibold text-success">{store.status}</span></p>
 
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">რა ტიპის ობიექტია? *</span>
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            required
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          >
+            {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+          </select>
+        </label>
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
         <Field label={t("districtLbl")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
