@@ -7,7 +7,28 @@ import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner")({
   component: PartnerLayout,
+  errorComponent: PartnerRouteError,
 });
+
+function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }) {
+  return (
+    <div className="min-h-screen bg-background grid place-items-center px-4">
+      <div className="max-w-md text-center bg-card rounded-3xl border border-border p-6 shadow-card">
+        <div className="text-4xl mb-3">🏪</div>
+        <h1 className="font-display text-xl font-bold">პარტნიორის პანელი ვერ ჩაიტვირთა</h1>
+        <p className="text-sm text-muted-foreground mt-2 break-words">
+          {error?.message || "სცადეთ თავიდან."}
+        </p>
+        <button
+          onClick={reset}
+          className="mt-5 px-5 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold"
+        >
+          თავიდან ცდა
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function PartnerLayout() {
   const { t } = useI18n();

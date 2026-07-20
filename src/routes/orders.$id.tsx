@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag, ThumbsUp, ThumbsDown } from "lucide-react";
-import { useOrders, updateOrder, addPartnerVote, useHasVotedOrder } from "@/lib/storage";
+import { useOrders, updateOrder, addPartnerVote, useHasVotedOrder, orderQrPayload } from "@/lib/storage";
 import { formatPrice, findOffer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
@@ -113,7 +113,7 @@ function OrderDetail() {
 
 
       {/* QR pickup code */}
-      {order.status === "დაჯავშნილი" && (
+      {order.code && order.status !== "გაუქმებული" && (
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">
             {order.method === "მიტანა" ? t("confirmationCode") : t("pickupCode")}
@@ -121,7 +121,7 @@ function OrderDetail() {
           <div className="mt-2 text-3xl font-bold tracking-[0.3em] font-mono">{order.code}</div>
           <div className="mt-3 inline-block p-4 bg-white rounded-2xl">
             <QRCodeSVG
-              value={JSON.stringify({ app: "gemo", orderId: order.id, code: order.code, store: order.storeName })}
+              value={orderQrPayload(order)}
               size={192}
               level="M"
               marginSize={0}
