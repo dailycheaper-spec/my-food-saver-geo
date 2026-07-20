@@ -144,8 +144,9 @@ function Home() {
     allNearby: language === "en" ? "All nearby offers" : language === "ru" ? "Все предложения рядом" : "ყველა შემოთავაზება",
     seeAll: language === "en" ? "See all" : language === "ru" ? "Все" : "ყველა",
     searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა",
-    promoTitle: language === "en" ? "Save up to 70%" : language === "ru" ? "Скидки до 70%" : "70%-მდე ფასდაკლება",
-    promoText: language === "en" ? "Fresh food from your favorite spots" : language === "ru" ? "Свежая еда из любимых мест" : "სუფთა საკვები საყვარელი ადგილებიდან",
+    promoTitle: language === "en" ? "Quality food, better price" : language === "ru" ? "Качественная еда, лучшая цена" : "ხარისხიანი საკვები, უკეთესი ფასი",
+    promoText: language === "en" ? "Tasty food from your favorite spots!" : language === "ru" ? "Вкусная еда из любимых мест!" : "გემრიელი საკვები საყვარელი ადგილებიდან!",
+
     orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : "შეუკვეთე",
   };
 
