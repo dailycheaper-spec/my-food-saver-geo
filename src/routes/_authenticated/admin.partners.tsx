@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle } from "lucide-react";
 import { useAllStores, approveStore, suspendStore, reactivateStore, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
+
+const FLAG_THRESHOLD = 5;
 
 export const Route = createFileRoute("/_authenticated/admin/partners")({
   head: () => ({ meta: [{ title: "პარტნიორები — ადმინი" }] }),
