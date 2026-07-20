@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { listAdminStores } from "@/lib/admin-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -264,11 +266,12 @@ export function useStoreOrders(storeId: string | null) {
 export function useAllStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
-  const reload = async () => {
-    const { data } = await supabase.from("stores").select("*").order("created_at", { ascending: false });
-    setStores(data ?? []);
+  const fetchAdminStores = useServerFn(listAdminStores);
+  const reload = useCallback(async () => {
+    const data = await fetchAdminStores();
+    setStores((data ?? []) as DbStore[]);
     setLoading(false);
-  };
+  }, [fetchAdminStores]);
   useEffect(() => {
     reload();
     const ch = supabase
@@ -276,7 +279,7 @@ export function useAllStores() {
       .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => reload())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [reload]);
   return { stores, loading, reload };
 }
 

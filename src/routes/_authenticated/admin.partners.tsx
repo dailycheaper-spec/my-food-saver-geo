@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
 });
 
 function AdminPartners() {
-  const { stores, reload } = useAllStores();
+  const { stores, reload, loading } = useAllStores();
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("all");
   const [q, setQ] = useState("");
@@ -42,6 +42,7 @@ function AdminPartners() {
     .filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.category ?? "").toLowerCase().includes(q.toLowerCase()));
 
   const flaggedCount = stores.filter((s) => (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD).length;
+  const pendingCount = stores.filter((s) => s.status === "pending").length;
 
   const tabs = [
     { key: "all", label: "ყველა" },
@@ -68,10 +69,16 @@ function AdminPartners() {
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
           <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
         </div>
-        <button onClick={() => setAddOpen(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
-          <Plus className="w-4 h-4" /> პარტნიორის დამატება
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => reload()} disabled={loading}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
+            <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> განაცხადების შემოწმება ({pendingCount})
+          </button>
+          <button onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
+            <Plus className="w-4 h-4" /> პარტნიორის დამატება
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -136,6 +143,12 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
             <MapPin className="w-3 h-3 shrink-0" /> {store.district ?? "—"} · {store.category}
           </div>
           {store.address && <div className="text-xs text-muted-foreground truncate mt-0.5">{store.address}</div>}
+          {(store.company_id_number || store.contact_email) && (
+            <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+              {store.company_id_number && <div>ს/ნ: <span className="font-medium text-foreground">{store.company_id_number}</span></div>}
+              {store.contact_email && <div>მეილი: <span className="font-medium text-foreground">{store.contact_email}</span></div>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -212,8 +225,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; category: string; description: string }>({
-    name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", category: "საცხობი", description: "",
+  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; category: string; description: string }>({
+    name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", category: "საცხობი", description: "",
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -258,6 +271,8 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
             </label>
           </div>
           <FieldInput label="მისამართი *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label="კომპანიის საიდენტიფიკაციო ნომერი *" value={form.company_id_number} onChange={(v) => setForm({ ...form, company_id_number: v })} required />
+          <FieldInput label="მეილი *" value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} placeholder="name@example.com" type="email" required />
           <FieldInput label="ტელეფონი" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
           <label className="block">
             <span className="text-xs font-medium text-muted-foreground">აღწერა</span>
@@ -277,11 +292,11 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   );
 }
 
-function FieldInput({ label, value, onChange, placeholder, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
+function FieldInput({ label, value, onChange, placeholder, required, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean; type?: string }) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
         className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
     </label>
   );
