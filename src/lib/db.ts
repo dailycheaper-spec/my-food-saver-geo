@@ -4,7 +4,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
-import { listMyPartnerStores } from "@/lib/partner-store.functions";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -24,15 +23,19 @@ function sortPartnerStores(stores: DbStore[]): DbStore[] {
 }
 
 async function getCurrentUserId(): Promise<string | null> {
-  for (let i = 0; i < 8; i += 1) {
-    const { data } = await supabase.auth.getSession();
-    const id = data.session?.user.id;
-    if (id) return id;
-    await new Promise((resolve) => setTimeout(resolve, 125));
-  }
+  try {
+    for (let i = 0; i < 8; i += 1) {
+      const { data } = await supabase.auth.getSession();
+      const id = data.session?.user.id;
+      if (id) return id;
+      await new Promise((resolve) => setTimeout(resolve, 125));
+    }
 
-  const { data } = await supabase.auth.getUser();
-  return data.user?.id ?? null;
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // ────── OFFERS ──────
@@ -148,28 +151,37 @@ export function useMyRole() {
   useEffect(() => {
     let alive = true;
     async function load() {
+      if (!alive) return;
       setLoading(true);
-      const uid = await getCurrentUserId();
-      if (!uid) { if (alive) { setRoles([]); setRole(null); setError(null); setLoading(false); } return; }
-      const { data, error: queryError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid);
-      if (queryError) {
+      try {
+        const uid = await getCurrentUserId();
+        if (!uid) {
+          if (alive) {
+            setRoles([]);
+            setRole(null);
+            setError(null);
+          }
+          return;
+        }
+        const { data, error: queryError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", uid);
+        if (queryError) throw queryError;
+        const list = (data ?? []).map((r) => r.role as AppRole);
+        if (!alive) return;
+        setError(null);
+        setRoles(list);
+        setRole(list.includes("admin") ? "admin" : list.includes("partner") ? "partner" : "user");
+      } catch (e) {
         if (alive) {
-          setError(queryError.message);
+          setError(e instanceof Error ? e.message : String(e));
           setRoles([]);
           setRole(null);
-          setLoading(false);
         }
-        return;
+      } finally {
+        if (alive) setLoading(false);
       }
-      const list = (data ?? []).map((r) => r.role as AppRole);
-      if (!alive) return;
-      setError(null);
-      setRoles(list);
-      setRole(list.includes("admin") ? "admin" : list.includes("partner") ? "partner" : "user");
-      setLoading(false);
     }
     load();
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
@@ -205,28 +217,16 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchPartnerStores = useServerFn(listMyPartnerStores);
-  const fetchPartnerStoresRef = useRef(fetchPartnerStores);
-
-  useEffect(() => {
-    fetchPartnerStoresRef.current = fetchPartnerStores;
-  }, [fetchPartnerStores]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchPartnerStoresRef.current();
-      setStores(sortPartnerStores((data ?? []) as DbStore[]));
+      const data = await fetchMyStores();
+      setStores(sortPartnerStores(data));
       setError(null);
     } catch (e) {
-      try {
-        const fallbackStores = await fetchMyStores();
-        setStores(fallbackStores);
-        setError(null);
-      } catch (fallbackError) {
-        setStores([]);
-        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
-      }
+      setStores([]);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
