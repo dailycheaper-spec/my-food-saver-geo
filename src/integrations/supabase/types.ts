@@ -462,6 +462,8 @@ export type Database = {
           address: string | null
           category: string
           city: string
+          company_id_number: string | null
+          contact_email: string | null
           created_at: string
           delivery_enabled: boolean
           delivery_fee_base: number
@@ -485,6 +487,8 @@ export type Database = {
           address?: string | null
           category?: string
           city?: string
+          company_id_number?: string | null
+          contact_email?: string | null
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee_base?: number
@@ -508,6 +512,8 @@ export type Database = {
           address?: string | null
           category?: string
           city?: string
+          company_id_number?: string | null
+          contact_email?: string | null
           created_at?: string
           delivery_enabled?: boolean
           delivery_fee_base?: number

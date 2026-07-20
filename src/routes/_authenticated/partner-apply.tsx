@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Store, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -16,9 +16,13 @@ function PartnerApply() {
   const { t, language } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; description: string }>({ name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", description: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; description: string }>({ name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+
+  useEffect(() => {
+    if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
+  }, [form.contact_email, user?.email]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,6 +82,8 @@ function PartnerApply() {
         </label>
 
         <Field label={`${t("address")} *`} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+        <Field label={language === "en" ? "Company ID number *" : language === "ru" ? "Идентификационный номер компании *" : "კომპანიის საიდენტიფიკაციო ნომერი *"} value={form.company_id_number} onChange={(v) => setForm({ ...form, company_id_number: v })} required />
+        <Field label={language === "en" ? "Email *" : language === "ru" ? "Эл. почта *" : "მეილი *"} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} placeholder="name@example.com" type="email" required />
         <Field label={t("phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
         <Field label={t("description")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
 
@@ -90,7 +96,7 @@ function PartnerApply() {
   );
 }
 
-function Field({ label, value, onChange, placeholder, textarea, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; textarea?: boolean; required?: boolean }) {
+function Field({ label, value, onChange, placeholder, textarea, required, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; textarea?: boolean; required?: boolean; type?: string }) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
@@ -98,7 +104,7 @@ function Field({ label, value, onChange, placeholder, textarea, required }: { la
         <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required} rows={3}
           className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
       ) : (
-        <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
           className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
       )}
     </label>
