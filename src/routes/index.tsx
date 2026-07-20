@@ -4,13 +4,13 @@ import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronLeft, ChevronRight, Clock, Utensils, Gift,
 } from "lucide-react";
-import { CATEGORIES, DISTRICTS, STORES, getCategoryLabel, getDistrictLabel, offerMatchesQuery, getStoreName, type Category, type Offer } from "@/lib/mock-data";
+import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
-import { useMyRole } from "@/lib/db";
+import { useMyRole, useLiveOffers } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
@@ -109,7 +109,17 @@ function Home() {
       .filter(Boolean) as Offer[];
   }, [ALL_OFFERS, recentIds]);
 
-  const nearbyPartners = useMemo(() => STORES.slice(0, 8), []);
+  const { offers: liveWithStore } = useLiveOffers();
+  const nearbyPartners = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string; logo: string; district: string }>();
+    for (const row of liveWithStore) {
+      const s = row.store;
+      if (!s || seen.has(s.id)) continue;
+      seen.set(s.id, { id: s.id, name: s.name, logo: s.logo ?? "🏪", district: s.district ?? "" });
+      if (seen.size >= 8) break;
+    }
+    return Array.from(seen.values());
+  }, [liveWithStore]);
 
 
 
@@ -321,9 +331,9 @@ function Home() {
                 {s.logo}
               </div>
               <div className="text-center w-full">
-                <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
+                <div className="text-xs font-bold truncate">{s.name}</div>
                 <div className="text-[10px] text-muted-foreground truncate">
-                  ⭐ {s.rating} · {getDistrictLabel(s.district, language)}
+                  {s.district ? getDistrictLabel(s.district, language) : ""}
                 </div>
               </div>
             </Link>
@@ -552,7 +562,8 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
           }
         }}
         onPointerDownCapture={(event) => {
-          if (event.pointerType === "mouse" && event.button !== 0) return;
+          // Only handle click-drag for mouse. Touch/pen use native scrolling.
+          if (event.pointerType !== "mouse" || event.button !== 0) return;
           const element = event.currentTarget;
           if (element.scrollWidth <= element.clientWidth) return;
 
@@ -568,6 +579,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
         onPointerMoveCapture={(event) => {
           const state = drag.current;
           if (!state.active || state.pointerId !== event.pointerId) return;
+          if (event.pointerType !== "mouse") return;
 
           const deltaX = event.clientX - state.startX;
           if (Math.abs(deltaX) > 4) state.moved = true;

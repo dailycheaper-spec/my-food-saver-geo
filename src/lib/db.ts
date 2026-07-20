@@ -82,8 +82,9 @@ export function useLiveOffers() {
     async function load() {
       const { data } = await supabase
         .from("offers")
-        .select("*, store:stores(*)")
+        .select("*, store:stores!inner(*)")
         .eq("is_active", true)
+        .eq("store.status", "active")
         .order("created_at", { ascending: false });
       if (alive && data) setOffers(data as OfferWithStore[]);
       if (alive) setLoading(false);
@@ -91,8 +92,9 @@ export function useLiveOffers() {
     load();
 
     const channel = supabase
-      .channel("public:offers")
+      .channel(`public:offers-and-stores-${++realtimeChannelCounter}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => load())
       .subscribe();
     return () => { alive = false; supabase.removeChannel(channel); };
   }, []);
