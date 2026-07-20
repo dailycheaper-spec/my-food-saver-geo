@@ -184,6 +184,20 @@
   &::-webkit-scrollbar { display: none; }
 }
 
+@utility horizontal-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: 1rem;
+  touch-action: pan-x pan-y pinch-zoom;
+  cursor: grab;
+  user-select: none;
+  & img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  &:active { cursor: grabbing; }
+}
+
 /* Accessibility: visually-hidden but screen-reader available */
 @utility sr-only-focusable {
   position: absolute;
