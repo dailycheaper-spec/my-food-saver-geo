@@ -2,34 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-async function assertAdmin(context: { supabase: any; userId: string }) {
-  const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
-    _user_id: context.userId,
-    _role: "admin",
-  });
-
-  if (roleError || !isAdmin) throw new Error("Forbidden");
-}
-
-const storeIdSchema = z.object({ storeId: z.string().uuid() });
-
-const createStoreSchema = z.object({
-  name: z.string().trim().min(1, "Store name is required").max(120),
-  logo: z.string().trim().max(16).optional(),
-  category: z.string().trim().max(80).optional(),
-  city: z.string().trim().min(1).max(80),
-  district: z.string().trim().min(1).max(80),
-  address: z.string().trim().min(1, "Address is required").max(255),
-  phone: z.string().trim().max(40).optional().nullable(),
-  contact_email: z.string().trim().email("Valid email is required").max(255),
-  company_id_number: z.string().trim().min(5, "Company ID is required").max(40),
-  description: z.string().trim().max(1000).optional().nullable(),
-});
-
 export const listAdminStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
@@ -43,9 +24,25 @@ export const listAdminStores = createServerFn({ method: "GET" })
 
 export const createAdminStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => createStoreSchema.parse(input))
+  .inputValidator((input) => z.object({
+    name: z.string().trim().min(1, "Store name is required").max(120),
+    logo: z.string().trim().max(16).optional(),
+    category: z.string().trim().max(80).optional(),
+    city: z.string().trim().min(1).max(80),
+    district: z.string().trim().min(1).max(80),
+    address: z.string().trim().min(1, "Address is required").max(255),
+    phone: z.string().trim().max(40).optional().nullable(),
+    contact_email: z.string().trim().email("Valid email is required").max(255),
+    company_id_number: z.string().trim().min(5, "Company ID is required").max(40),
+    description: z.string().trim().max(1000).optional().nullable(),
+  }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: store, error } = await supabaseAdmin
@@ -60,9 +57,14 @@ export const createAdminStore = createServerFn({ method: "POST" })
 
 export const approveAdminStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => storeIdSchema.extend({ ownerId: z.string().uuid().nullable().optional() }).parse(input))
+  .inputValidator((input) => z.object({ storeId: z.string().uuid(), ownerId: z.string().uuid().nullable().optional() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: store, error } = await supabaseAdmin
@@ -92,9 +94,14 @@ export const approveAdminStore = createServerFn({ method: "POST" })
 
 export const setAdminStoreStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => storeIdSchema.extend({ status: z.enum(["active", "suspended"]) }).parse(input))
+  .inputValidator((input) => z.object({ storeId: z.string().uuid(), status: z.enum(["active", "suspended"]) }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: store, error } = await supabaseAdmin
@@ -110,9 +117,14 @@ export const setAdminStoreStatus = createServerFn({ method: "POST" })
 
 export const deleteAdminStore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => storeIdSchema.parse(input))
+  .inputValidator((input) => z.object({ storeId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context);
+    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+
+    if (roleError || !isAdmin) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("stores").delete().eq("id", data.storeId);
