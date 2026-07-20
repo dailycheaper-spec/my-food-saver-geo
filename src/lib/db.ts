@@ -218,16 +218,31 @@ export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
+  const fetchPartnerAccessRef = useRef(fetchPartnerAccess);
+
+  useEffect(() => {
+    fetchPartnerAccessRef.current = fetchPartnerAccess;
+  }, [fetchPartnerAccess]);
 
   const reload = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchMyStores();
-      setStores(sortPartnerStores(data));
+      const result = await Promise.race([
+        fetchPartnerAccessRef.current(),
+        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("Partner stores check timed out")), 6000)),
+      ]);
+      setStores(sortPartnerStores((result?.stores ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
-      setStores([]);
-      setError(e instanceof Error ? e.message : String(e));
+      try {
+        const fallbackStores = await fetchMyStores();
+        setStores(sortPartnerStores(fallbackStores));
+        setError(null);
+      } catch (fallbackError) {
+        setStores([]);
+        setError(fallbackError instanceof Error ? fallbackError.message : e instanceof Error ? e.message : String(e));
+      }
     } finally {
       setLoading(false);
     }
