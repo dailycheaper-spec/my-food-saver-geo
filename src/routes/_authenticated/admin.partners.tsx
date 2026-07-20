@@ -39,9 +39,15 @@ function AdminPartners() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
-        <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
+          <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
+        </div>
+        <button onClick={() => setAddOpen(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
+          <Plus className="w-4 h-4" /> პარტნიორის დამატება
+        </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
