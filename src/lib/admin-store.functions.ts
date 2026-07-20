@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { linkActiveStoreToOwner } from "@/lib/store-linking.server";
 
 export const listAdminStores = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -56,7 +57,7 @@ export const createAdminStore = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
-    return store;
+    return linkActiveStoreToOwner(supabaseAdmin, store);
   });
 
 export const approveAdminStore = createServerFn({ method: "POST" })
@@ -82,20 +83,19 @@ export const approveAdminStore = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
 
-    const ownerId = data.ownerId ?? store.owner_id;
-    if (ownerId) {
-      const { error: roleError } = await supabaseAdmin
-        .from("user_roles")
-        .upsert({ user_id: ownerId, role: "partner" }, { onConflict: "user_id,role" });
-      if (roleError) throw new Error(roleError.message);
-
-      const { error: memberError } = await supabaseAdmin
-        .from("store_members")
-        .upsert({ store_id: data.storeId, user_id: ownerId, role: "owner" }, { onConflict: "store_id,user_id" });
-      if (memberError) throw new Error(memberError.message);
+    let storeForLink = store;
+    if (data.ownerId && store.owner_id !== data.ownerId) {
+      const { data: updatedStore, error: ownerError } = await supabaseAdmin
+        .from("stores")
+        .update({ owner_id: data.ownerId })
+        .eq("id", data.storeId)
+        .select("*")
+        .single();
+      if (ownerError) throw new Error(ownerError.message);
+      storeForLink = updatedStore;
     }
 
-    return store;
+    return linkActiveStoreToOwner(supabaseAdmin, storeForLink);
   });
 
 export const setAdminStoreStatus = createServerFn({ method: "POST" })
@@ -120,6 +120,7 @@ export const setAdminStoreStatus = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
+    if (data.status === "active") return linkActiveStoreToOwner(supabaseAdmin, store);
     return store;
   });
 
