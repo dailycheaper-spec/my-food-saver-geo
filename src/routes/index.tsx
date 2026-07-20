@@ -381,20 +381,19 @@ function Home() {
           </Link>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 mb-3 scrollbar-hide">
-          {DISTRICTS.map((d) => (
-            <button
-              key={d}
-              onClick={() => setDistrict(d)}
-              className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 ${
-                district === d
-                  ? "bg-foreground text-background"
-                  : "bg-card border border-border text-foreground"
-              }`}
-            >
-              {getDistrictLabel(d, language)}
-            </button>
-          ))}
+        <div className="relative mb-3">
+          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+          <select
+            value={district}
+            onChange={(event) => setDistrict(event.target.value)}
+            aria-label={language === "en" ? "Choose district" : language === "ru" ? "Выбрать район" : "უბნის არჩევა"}
+            className="w-full h-11 pl-9 pr-9 rounded-2xl bg-card border border-border text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {DISTRICTS.map((d) => (
+              <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
+            ))}
+          </select>
+          <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
         </div>
 
         {nearby.length === 0 ? (
