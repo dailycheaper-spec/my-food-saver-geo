@@ -6,6 +6,7 @@ import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
 import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
@@ -164,14 +165,20 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const orig = Number(form.original_price);
+    const disc = Number(form.discounted_price);
+    if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
+      alert(t("minDiscount50"));
+      return;
+    }
     setSaving(true);
     const payload = {
       store_id: storeId,
       title: form.title,
       description: form.description,
       category: form.category,
-      original_price: Number(form.original_price),
-      discounted_price: Number(form.discounted_price),
+      original_price: orig,
+      discounted_price: disc,
       quantity_available: Number(form.quantity_available),
       pickup_from: form.pickup_from,
       pickup_to: form.pickup_to,
@@ -215,10 +222,11 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
               {genAi ? t("generating") : t("generateWithAi")}
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Input label={t("origPriceLbl")} type="number" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
-            <Input label={t("discPriceLbl")} type="number" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
-          </div>
+          <DiscountFields
+            original={form.original_price}
+            discounted={form.discounted_price}
+            onChange={({ original, discounted }) => setForm({ ...form, original_price: original, discounted_price: discounted })}
+          />
           <Input label={t("qtyLbl")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
           <div className="grid grid-cols-2 gap-3">
             <Input label={t("pickupStartLbl")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />

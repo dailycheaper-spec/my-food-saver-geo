@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateOfferImage } from "@/lib/ai-image.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
@@ -68,14 +69,20 @@ function NewOfferPage() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!store) return;
+    const orig = Number(form.original_price);
+    const disc = Number(form.discounted_price);
+    if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
+      alert(t("minDiscount50"));
+      return;
+    }
     setSaving(true);
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
       description: form.description.trim(),
       category: form.category,
-      original_price: Number(form.original_price),
-      discounted_price: Number(form.discounted_price),
+      original_price: orig,
+      discounted_price: disc,
       quantity_available: Number(form.quantity_available),
       pickup_from: form.pickup_from,
       pickup_to: form.pickup_to,
@@ -167,10 +174,12 @@ function NewOfferPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t("originalPrice")} type="number" step="0.01" value={form.original_price} onChange={(v) => setForm({ ...form, original_price: v })} required />
-          <Field label={t("discountedPrice")} type="number" step="0.01" value={form.discounted_price} onChange={(v) => setForm({ ...form, discounted_price: v })} required />
-        </div>
+        <DiscountFields
+          original={form.original_price}
+          discounted={form.discounted_price}
+          onChange={({ original, discounted }) => setForm({ ...form, original_price: original, discounted_price: discounted })}
+        />
+
 
         <Field label={t("quantity")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
 
