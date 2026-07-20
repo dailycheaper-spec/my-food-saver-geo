@@ -149,3 +149,79 @@ function StatusBadge({ status }: { status: string }) {
   };
   return <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${map[status] ?? "bg-muted"}`}>{status}</span>;
 }
+
+function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; category: string; description: string }>({
+    name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", category: "საცხობი", description: "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setErr("");
+    const { error } = await supabase.from("stores").insert({ ...form, status: "active" });
+    setBusy(false);
+    if (error) setErr(error.message);
+    else onCreated();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-bold">ახალი პარტნიორი</h2>
+          <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <FieldInput label="სახელი *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+          <div className="grid grid-cols-2 gap-3">
+            <FieldInput label="ლოგო (emoji)" value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} />
+            <FieldInput label="კატეგორია" value={form.category} onChange={(v) => setForm({ ...form, category: v })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">ქალაქი</span>
+              <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">უბანი</span>
+              <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {DISTRICTS.filter((d) => d !== "ყველა უბანი").map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+          </div>
+          <FieldInput label="მისამართი *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label="ტელეფონი" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">აღწერა</span>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
+          </label>
+          {err && <div className="text-sm text-destructive">{err}</div>}
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">გაუქმება</button>
+            <button type="submit" disabled={busy} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
+              {busy ? "იტვირთება…" : "დამატება"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function FieldInput({ label, value, onChange, placeholder, required }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; required?: boolean }) {
+  return (
+    <label className="block">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
+        className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+    </label>
+  );
+}
