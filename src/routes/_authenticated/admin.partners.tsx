@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X } from "lucide-react";
+import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2 } from "lucide-react";
 import { useAllStores, approveStore, suspendStore, reactivateStore, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
