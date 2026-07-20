@@ -52,8 +52,9 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     pickupTo: timeStr(row.pickup_to as unknown as string, "21:00"),
     district: row.store?.district ?? "ვაკე",
     address: row.store?.address ?? "",
-    distanceKm: 1.0,
-    rating: 4.7,
+    // Real fields not yet computed — components should hide these when 0.
+    distanceKm: 0,
+    rating: 0,
     reviewCount: 0,
     itemsLeft,
     delivery: Boolean(row.delivery_available ?? row.store?.delivery_enabled ?? false),
