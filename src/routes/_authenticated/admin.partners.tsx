@@ -82,7 +82,9 @@ function AdminPartners() {
         </div>
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
           {tabs.map((t) => {
-            const count = t.key === "all" ? stores.length : stores.filter((s) => s.status === t.key).length;
+            const count = t.key === "all" ? stores.length
+              : t.key === "flagged" ? flaggedCount
+              : stores.filter((s) => s.status === t.key).length;
             return (
               <button key={t.key} onClick={() => setFilter(t.key)}
                 className={`shrink-0 px-4 py-2 rounded-2xl text-xs font-semibold transition-colors ${filter === t.key ? "bg-foreground text-background" : "bg-card border border-border text-foreground hover:bg-muted"}`}>
@@ -98,7 +100,8 @@ function AdminPartners() {
           <PartnerCard key={s.id} store={s}
             balance={balances.get(s.id) ?? 0}
             commissionPct={settings.commissionPct}
-            onChange={reload} />
+            reportCount={reportCounts.get(s.id) ?? 0}
+            onChange={() => { reload(); loadReports(); }} />
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
       </div>
