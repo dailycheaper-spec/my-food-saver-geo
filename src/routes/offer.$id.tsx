@@ -15,6 +15,7 @@ import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
+import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/offer/$id")({
@@ -60,6 +61,7 @@ function OfferPage() {
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const favs = useFavorites();
   const isFav = favs.includes(offer.storeId);
   const [mounted, setMounted] = useState(false);
@@ -101,6 +103,14 @@ function OfferPage() {
         : language === "ru"
         ? "Это демо-предложение — покупка недоступна."
         : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+      return;
+    }
+    if (!user) {
+      // Remember where to return after sign-in
+      try {
+        sessionStorage.setItem("cheaper:next", `/offer/${offer.id}`);
+      } catch {}
+      navigate({ to: "/auth" });
       return;
     }
     try {
@@ -479,13 +489,19 @@ function OfferPage() {
             disabled={soldOut || (method === "მიტანა" && address.length < 3)}
             className="px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-soft hover:opacity-90 disabled:opacity-40 active:scale-95 transition-all"
           >
-            {soldOut ? L.soldOut : t("reserve")}
+            {soldOut
+              ? L.soldOut
+              : !user
+              ? (language === "en" ? "Sign in to reserve" : language === "ru" ? "Войти для брони" : "შედი დასაჯავშნად")
+              : t("reserve")}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
+
 
 function SectionCard({
   icon, title, children,
