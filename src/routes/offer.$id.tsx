@@ -489,13 +489,12 @@ function OfferPage() {
             disabled={soldOut || (method === "მიტანა" && address.length < 3)}
             className="px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-soft hover:opacity-90 disabled:opacity-40 active:scale-95 transition-all"
           >
-            {soldOut ? L.soldOut : t("reserve")}
+            {soldOut
+              ? L.soldOut
+              : !user
+              ? (language === "en" ? "Sign in to reserve" : language === "ru" ? "Войти для брони" : "შედი დასაჯავშნად")
+              : t("reserve")}
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function SectionCard({
   icon, title, children,
