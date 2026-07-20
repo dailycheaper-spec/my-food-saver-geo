@@ -54,9 +54,11 @@ function Home() {
     } catch {}
   }, []);
 
+  const inCat = (o: Offer) => cat === "ყველა" || o.category === cat;
+
   const filtered = useMemo(() => {
     return ALL_OFFERS.filter((o) => {
-      if (cat !== "ყველა" && o.category !== cat) return false;
+      if (!inCat(o)) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
       return true;
@@ -69,6 +71,7 @@ function Home() {
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
     return ALL_OFFERS
+      .filter(inCat)
       .map((o) => {
         const [h, m] = o.pickupTo.split(":").map(Number);
         const endMin = h * 60 + m;
@@ -78,48 +81,51 @@ function Home() {
       .sort((a, b) => a.mins - b.mins)
       .slice(0, 6)
       .map((x) => x.o);
-  }, [ALL_OFFERS]);
+  }, [ALL_OFFERS, cat]);
 
   const featured = useMemo(
-    () => hydrated ? ALL_OFFERS.filter((o) => isTrustedPartner(o.storeId)).slice(0, 6) : [],
-    [ALL_OFFERS, hydrated],
+    () => hydrated ? ALL_OFFERS.filter((o) => inCat(o) && isTrustedPartner(o.storeId)).slice(0, 6) : [],
+    [ALL_OFFERS, hydrated, cat],
   );
 
   const newOffers = useMemo(() => {
-    // Prefer DB offers (freshly added by partners) at the top, then mocks.
-    const withTime = ALL_OFFERS.filter((o) => o.createdAt);
+    const withTime = ALL_OFFERS.filter((o) => o.createdAt && inCat(o));
     return withTime.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)).slice(0, 6);
-  }, [ALL_OFFERS]);
+  }, [ALL_OFFERS, cat]);
 
   const surpriseBoxes = useMemo(
-    () => ALL_OFFERS.filter((o) => o.isSurprise).slice(0, 8),
-    [ALL_OFFERS],
+    () => ALL_OFFERS.filter((o) => o.isSurprise && inCat(o)).slice(0, 8),
+    [ALL_OFFERS, cat],
   );
 
   const recommended = useMemo(() => {
-    if (!hydrated) return ALL_OFFERS.slice(0, 4);
-    if (favs.length === 0) return ALL_OFFERS.slice().sort((a, b) => b.rating - a.rating).slice(0, 6);
-    return ALL_OFFERS.filter((o) => favs.includes(o.storeId)).slice(0, 6);
-  }, [ALL_OFFERS, favs, hydrated]);
+    const pool = ALL_OFFERS.filter(inCat);
+    if (!hydrated) return pool.slice(0, 4);
+    const favMatches = pool.filter((o) => favs.includes(o.storeId));
+    if (favMatches.length > 0) return favMatches.slice(0, 6);
+    return pool
+      .slice()
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+      .slice(0, 6);
+  }, [ALL_OFFERS, favs, hydrated, cat]);
 
   const recentlyViewed = useMemo(() => {
     if (recentIds.length === 0) return [];
     return recentIds
       .map((id) => ALL_OFFERS.find((o) => o.id === id))
-      .filter(Boolean) as Offer[];
-  }, [ALL_OFFERS, recentIds]);
+      .filter((o): o is Offer => Boolean(o) && inCat(o as Offer));
+  }, [ALL_OFFERS, recentIds, cat]);
 
-  const { offers: liveWithStore } = useLiveOffers();
   const nearbyPartners = useMemo(() => {
     const seen = new Map<string, { id: string; name: string; logo: string; district: string }>();
-    for (const row of liveWithStore) {
-      const s = row.store;
-      if (!s || seen.has(s.id)) continue;
-      seen.set(s.id, { id: s.id, name: s.name, logo: s.logo ?? "🏪", district: s.district ?? "" });
+    for (const o of ALL_OFFERS) {
+      if (!inCat(o)) continue;
+      if (seen.has(o.storeId)) continue;
+      seen.set(o.storeId, { id: o.storeId, name: o.storeName, logo: o.storeLogo || "🏪", district: o.district ?? "" });
       if (seen.size >= 8) break;
     }
     return Array.from(seen.values());
-  }, [liveWithStore]);
+  }, [ALL_OFFERS, cat]);
 
 
 
