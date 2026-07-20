@@ -22,8 +22,36 @@ const CATEGORIES = [
   { value: "other", icon: "📦", key: "other" },
 ];
 
+const SURPRISE_L10N = {
+  ka: {
+    contentsLabel: "🎁 შესაძლო შიგთავსი",
+    contentsHint: "ჩამოთვალე საგნები, რომლებიც შეიძლება მოხვდეს ბოქსში (მომხმარებელი დაინახავს ამას აღწერაში).",
+    contentsPh: "მაგ: ხაჭაპური, ლიმონათი, ნამცხვარი, ხილი...",
+    valueLabel: "სავარაუდო რეალური ღირებულება (₾)",
+    valueHint: "შეიტანე ბოქსში მოთავსებული პროდუქტების საერთო ღირებულება — ეს დაეხმარება ფასდაკლების ავტომატურ დათვლას.",
+    useAsOriginal: "გამოიყენე თავდაპირველ ფასად",
+  },
+  en: {
+    contentsLabel: "🎁 Possible contents",
+    contentsHint: "List items that may be in the box (visible to the customer in the description).",
+    contentsPh: "e.g. khachapuri, lemonade, cake, fruit...",
+    valueLabel: "Estimated real value (GEL)",
+    valueHint: "Enter the total value of items in the box — helps you set the original price and discount.",
+    useAsOriginal: "Use as original price",
+  },
+  ru: {
+    contentsLabel: "🎁 Возможный состав",
+    contentsHint: "Перечисли, что может быть в боксе (это увидит покупатель в описании).",
+    contentsPh: "напр.: хачапури, лимонад, торт, фрукты...",
+    valueLabel: "Примерная реальная стоимость (₾)",
+    valueHint: "Введи общую стоимость продуктов в боксе — поможет рассчитать скидку.",
+    useAsOriginal: "Использовать как исходную цену",
+  },
+} as const;
+
 function NewOfferPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const sl = SURPRISE_L10N[language];
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
@@ -44,7 +72,10 @@ function NewOfferPage() {
     image_url: "",
     delivery_available: false,
     is_surprise: false,
+    surprise_contents: "",
+    surprise_value: "",
   });
+
 
 
   async function handleAiGenerate() {
