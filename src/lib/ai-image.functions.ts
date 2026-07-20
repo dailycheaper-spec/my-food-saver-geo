@@ -18,9 +18,11 @@ export const generateOfferImage = createServerFn({ method: "POST" })
         Authorization: `Bearer ${key}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
+        model: "openai/gpt-image-2",
         prompt,
-        modalities: ["image", "text"],
+        size: "1024x1024",
+        quality: "low",
+        n: 1,
       }),
     });
 
@@ -30,6 +32,21 @@ export const generateOfferImage = createServerFn({ method: "POST" })
     }
     const json = await resp.json();
     const b64 = json?.data?.[0]?.b64_json;
-    if (!b64) throw new Error("No image returned");
+    if (!b64) {
+      // Fallback: try Gemini chat-shape image model
+      const fallback = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+      const fj = await fallback.json().catch(() => ({}));
+      const fb = fj?.data?.[0]?.b64_json;
+      if (!fb) throw new Error("No image returned");
+      return { dataUrl: `data:image/png;base64,${fb}` };
+    }
     return { dataUrl: `data:image/png;base64,${b64}` };
   });
