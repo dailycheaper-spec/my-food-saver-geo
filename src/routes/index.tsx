@@ -322,30 +322,32 @@ function Home() {
       )}
 
       {/* -------- Nearby partners (stores) -------- */}
-      <SectionHeader
-        title={L.nearbyPartners}
-        icon={<Store className="w-[18px] h-[18px] text-primary" />}
-      >
-        <HScroll>
-          {nearbyPartners.map((s) => (
-            <Link
-              key={s.id}
-              to="/search"
-              className="snap-start shrink-0 w-[120px] flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:shadow-card transition-all active:scale-95"
-            >
-              <div className="w-14 h-14 rounded-2xl bg-secondary grid place-items-center text-3xl">
-                {s.logo}
-              </div>
-              <div className="text-center w-full">
-                <div className="text-xs font-bold truncate">{s.name}</div>
-                <div className="text-[10px] text-muted-foreground truncate">
-                  {s.district ? getDistrictLabel(s.district, language) : ""}
+      {nearbyPartners.length > 0 && (
+        <SectionHeader
+          title={L.nearbyPartners}
+          icon={<Store className="w-[18px] h-[18px] text-primary" />}
+        >
+          <HScroll>
+            {nearbyPartners.map((s) => (
+              <Link
+                key={s.id}
+                to="/search"
+                className="snap-start shrink-0 w-[120px] flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:shadow-card transition-all active:scale-95"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-secondary grid place-items-center text-3xl">
+                  {s.logo}
                 </div>
-              </div>
-            </Link>
-          ))}
-        </HScroll>
-      </SectionHeader>
+                <div className="text-center w-full">
+                  <div className="text-xs font-bold truncate">{s.name}</div>
+                  <div className="text-[10px] text-muted-foreground truncate">
+                    {s.district ? getDistrictLabel(s.district, language) : ""}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </HScroll>
+        </SectionHeader>
+      )}
 
       {/* -------- New offers -------- */}
       {newOffers.length > 0 && (
