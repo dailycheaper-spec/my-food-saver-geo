@@ -5,7 +5,12 @@ import { ensurePartnerStoreAccess, linkActiveStoreToOwner } from "@/lib/store-li
 
 type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 
-export const listMyPartnerStores = createServerFn({ method: "GET" })
+export type PartnerAccessResult = {
+  stores: DbStore[];
+  roles: Array<Database["public"]["Enums"]["app_role"]>;
+};
+
+export const getMyPartnerAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sortPartnerStores = <T extends { status: string | null; created_at: string | null }>(stores: T[]) => {
@@ -64,5 +69,28 @@ export const listMyPartnerStores = createServerFn({ method: "GET" })
       }
     }
 
-    return sortPartnerStores(Array.from(map.values()));
+    const { data: roles, error: rolesError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+
+    if (rolesError) throw new Error(rolesError.message);
+
+    return {
+      stores: sortPartnerStores(Array.from(map.values())),
+      roles: (roles ?? []).map((row) => row.role),
+    } satisfies PartnerAccessResult;
+  });
+
+export const listMyPartnerStores = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: owned, error } = await supabaseAdmin
+      .from("stores")
+      .select("*")
+      .eq("owner_id", context.userId);
+
+    if (error) throw new Error(error.message);
+    return (owned ?? []).sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
   });
