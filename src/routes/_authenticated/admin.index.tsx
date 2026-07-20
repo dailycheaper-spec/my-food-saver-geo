@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAllStores, useAllOrders, formatGel } from "@/lib/db";
 import { useAllOffers, useOnlinePresence, useRealtimeActivity } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import {
-  Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity,
+  Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity, Inbox, ArrowRight,
 } from "lucide-react";
 import { useMemo } from "react";
 
