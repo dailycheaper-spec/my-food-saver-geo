@@ -90,8 +90,10 @@ function NewOfferPage() {
       pickup_to: form.pickup_to,
       image_url: form.image_url.trim() || null,
       delivery_available: form.delivery_available,
+      is_surprise: form.is_surprise,
       is_active: true,
     };
+
     const { error } = await supabase.from("offers").insert(payload);
     setSaving(false);
     if (error) { alert(error.message); return; }
