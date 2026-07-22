@@ -315,31 +315,19 @@ function MapPage() {
 
       <div className="flex-1 relative">
         {!location && status !== "prompting" && (
-          <div className="absolute inset-x-4 top-32 z-[1000] bg-card border border-border rounded-3xl p-4 shadow-elevated">
-            <p className="text-sm font-semibold">გაიგე, რა შემოთავაზებებია შენს ახლოს</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები.
-            </p>
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={askPermission}
-                className="h-10 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold press"
-              >
-                მდებარეობის ჩართვა
-              </button>
-              {status === "denied" && (
-                <button
-                  type="button"
-                  onClick={() => void request()}
-                  className="h-10 px-4 rounded-full bg-secondary text-foreground text-xs font-semibold press"
-                >
-                  ხელახლა
-                </button>
-              )}
-            </div>
+          <div className="absolute left-1/2 -translate-x-1/2 top-28 z-[1000] pointer-events-auto bg-card/95 backdrop-blur border border-border rounded-full shadow-elevated pl-3 pr-1 py-1 flex items-center gap-2 max-w-[92%]">
+            <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
+            <p className="text-[11px] font-semibold text-foreground truncate">მდებარეობა გამორთულია</p>
+            <button
+              type="button"
+              onClick={status === "denied" ? () => void request() : askPermission}
+              className="h-7 px-3 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold press shrink-0"
+            >
+              {status === "denied" ? "ხელახლა" : "ჩართვა"}
+            </button>
           </div>
         )}
+
 
         {mounted && (
           <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკა იტვირთება…</div>}>
