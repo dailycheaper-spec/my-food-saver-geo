@@ -77,8 +77,14 @@ export default function StoreMarker({ store, selected, hovered, compact, onSelec
     () => buildIcon(store, selected, hovered, compact),
     [store, selected, hovered, compact],
   );
+  // Tag the underlying Leaflet marker with store metadata so ClusterLayer's
+  // iconCreateFunction can aggregate total offer counts across the cluster.
+  const setRef = (el: L.Marker | null) => {
+    if (el) (el.options as unknown as { storeMeta: MapStore }).storeMeta = store;
+  };
   return (
     <Marker
+      ref={setRef}
       position={[store.lat, store.lng]}
       icon={icon}
       zIndexOffset={hovered ? 2000 : selected ? 1000 : 0}
