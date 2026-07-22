@@ -1,13 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
-import { DISTRICTS } from "@/lib/mock-data";
+import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
 import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus } from "@/lib/admin-store.functions";
+import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
+import { StoreLocationPreview } from "@/components/StoreLocationPreview";
+import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
+
+type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
+function storeExtras(s: DbStore): StoreExtras {
+  const a = s as unknown as Record<string, unknown>;
+  return {
+    lat: typeof a.lat === "number" ? (a.lat as number) : null,
+    lng: typeof a.lng === "number" ? (a.lng as number) : null,
+    visibility_radius_km:
+      typeof a.visibility_radius_km === "number" ? (a.visibility_radius_km as number) : null,
+  };
+}
+
 
 const FLAG_THRESHOLD = 5;
 
