@@ -87,6 +87,38 @@ function Profile() {
         </p>
       </div>
 
+      {user && followedStores.length > 0 && (
+        <div className="mt-4 bg-card rounded-2xl border border-border shadow-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <StarIcon className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <div className="text-sm font-semibold flex-1">
+              {t("myFollowing") || (t("brand") ? "My Following" : "")}
+            </div>
+            <div className="text-xs text-muted-foreground">{followedStores.length}</div>
+          </div>
+          <ul className="divide-y divide-border">
+            {followedStores.map((s) => (
+              <li key={s.id} className="flex items-center gap-3 p-3">
+                <Link to="/store/$id" params={{ id: s.id }} className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-secondary grid place-items-center text-xl shrink-0">{s.logo ?? "🏪"}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold truncate">{s.name}</div>
+                    {s.district && <div className="text-xs text-muted-foreground truncate">{s.district}</div>}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => handleUnfollow(s.id)}
+                  aria-label="Unfollow"
+                  className="w-8 h-8 rounded-full grid place-items-center text-muted-foreground hover:bg-muted"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card divide-y divide-border overflow-hidden">
         <Link to="/analytics" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
           <span className="text-muted-foreground"><BarChart3 className="w-4 h-4" /></span>
