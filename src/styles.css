@@ -275,3 +275,29 @@
   min-width: 44px;
 }
 
+/* Respect OS-level reduced-motion for map animations. Because marker/cluster
+   HTML is injected via Leaflet DivIcon (outside React), we neutralize their
+   inline @keyframes globally when the user opts out of motion. */
+@media (prefers-reduced-motion: reduce) {
+  .store-marker-in,
+  .cheaper-cluster,
+  .user-loc-dot > span:first-child {
+    animation: none !important;
+  }
+  .store-marker-compact:hover,
+  .store-marker-full:hover,
+  .cheaper-cluster:hover {
+    transform: translate(-50%, -100%) !important;
+  }
+  .cheaper-cluster:hover {
+    transform: none !important;
+  }
+  [class*="animate-\\[mapPreviewIn"],
+  .animate-fade-in,
+  .animate-slide-up,
+  .animate-scale-in {
+    animation: none !important;
+  }
+}
+
+
