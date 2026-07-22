@@ -92,7 +92,7 @@ function Profile() {
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <StarIcon className="w-4 h-4 fill-amber-500 text-amber-500" />
             <div className="text-sm font-semibold flex-1">
-              {t("myFollowing") || (t("brand") ? "My Following" : "")}
+              {language === "en" ? "My Following" : language === "ru" ? "Мои подписки" : "ჩემი გამოწერები"}
             </div>
             <div className="text-xs text-muted-foreground">{followedStores.length}</div>
           </div>
