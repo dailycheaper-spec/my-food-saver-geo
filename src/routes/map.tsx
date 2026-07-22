@@ -53,16 +53,37 @@ function externalDirectionsUrl(lat: number, lng: number) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
+type SortMode = "nearby" | "discount" | "endingSoon";
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function isOpenNow(o: Offer): boolean {
+  const now = new Date();
+  const n = now.getHours() * 60 + now.getMinutes();
+  return n >= timeToMinutes(o.pickupFrom) && n <= timeToMinutes(o.pickupTo);
+}
+const NEW_PARTNER_MS = 7 * 24 * 60 * 60 * 1000;
+
 function MapPage() {
   const { t, language } = useI18n();
   const { offers } = useLiveDbCardOffers();
   const { location, status, askPermission, request } = useUserLocation();
+  const favorites = useFavorites();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [radius, setRadius] = useState<RadiusOption>(5);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(5);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [query, setQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("nearby");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [newPartnersOnly, setNewPartnersOnly] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [districtFilter, setDistrictFilter] = useState<string>("ყველა უბანი");
 
   useEffect(() => setMounted(true), []);
 
