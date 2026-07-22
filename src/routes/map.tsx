@@ -22,13 +22,25 @@ function osmLink([lat, lng]: [number, number]) {
   return `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lng.toFixed(5)}#map=16/${lat.toFixed(5)}/${lng.toFixed(5)}`;
 }
 
+function hashOffset(id: string): [number, number] {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+  const dx = ((h & 0xff) / 255 - 0.5) * 0.0016;
+  const dy = (((h >> 8) & 0xff) / 255 - 0.5) * 0.0016;
+  return [dx, dy];
+}
+
 function priceIcon(o: Offer, selected: boolean) {
   const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
   const bg = selected ? "hsl(var(--primary))" : "hsl(var(--card))";
-  const fg = selected ? "hsl(var(--primary-foreground))" : "hsl(var(--primary))";
-  const html = `<div style="transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:4px 10px;border-radius:9999px;font-weight:700;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.2)"><span style="margin-right:4px">${o.storeLogo}</span>${o.price.toFixed(0)}${discount > 0 ? ` <span style="opacity:.7">-${discount}%</span>` : ""}</div>`;
+  const fg = selected ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))";
+  const badge = discount > 0
+    ? `<div style="position:absolute;top:-8px;right:-10px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:10px;font-weight:800;padding:2px 6px;border-radius:9999px;border:2px solid hsl(var(--card));white-space:nowrap;line-height:1">-${discount}%</div>`
+    : "";
+  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:4px 10px;border-radius:9999px;font-weight:800;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.18);line-height:1.1">${o.price.toFixed(0)}₾${badge}</div>`;
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
+
 
 function RecenterOn({ pos }: { pos: [number, number] | null }) {
   const map = useMap();
@@ -101,19 +113,24 @@ function MapPage() {
                 })}
               />
             )}
-            {mappable.map((o) => (
-              <Marker
-                key={o.id}
-                position={[o.lat, o.lng]}
-                icon={priceIcon(o, selectedId === o.id)}
-                eventHandlers={{ click: () => setSelectedId(o.id) }}
-              >
-                <Popup>
-                  <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
-                  <div className="text-xs">{getOfferText(o, language).title}</div>
-                </Popup>
-              </Marker>
-            ))}
+            {mappable.map((o) => {
+              const [dx, dy] = hashOffset(o.id);
+              return (
+                <Marker
+                  key={o.id}
+                  position={[o.lat + dx, o.lng + dy]}
+                  icon={priceIcon(o, selectedId === o.id)}
+                  zIndexOffset={selectedId === o.id ? 1000 : 0}
+                  eventHandlers={{ click: () => setSelectedId(o.id) }}
+                >
+                  <Popup>
+                    <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
+                    <div className="text-xs">{getOfferText(o, language).title}</div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
           </MapContainer>
         )}
       </div>
