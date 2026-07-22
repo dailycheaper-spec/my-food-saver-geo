@@ -203,6 +203,48 @@ function MapPage() {
     [selectedStoreId, stores],
   );
 
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (sortMode !== "nearby") n++;
+    if (favoritesOnly) n++;
+    if (newPartnersOnly) n++;
+    if (availableOnly) n++;
+    if (districtFilter !== "ყველა უბანი") n++;
+    if (categoryFilter !== "ყველა") n++;
+    if (showUnavailable) n++;
+    return n;
+  }, [sortMode, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, categoryFilter, showUnavailable]);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return null;
+    const seenStores = new Set<string>();
+    const partners: { id: string; name: string; logo: string }[] = [];
+    const foods: { id: string; title: string; storeName: string; image: string }[] = [];
+    for (const o of offers) {
+      const { title: locTitle } = getOfferText(o, language);
+      if (!seenStores.has(o.storeId) && (o.storeName.toLowerCase().includes(q))) {
+        seenStores.add(o.storeId);
+        partners.push({ id: o.storeId, name: o.storeName, logo: o.storeLogo });
+      }
+      if (
+        (o.title.toLowerCase().includes(q) || locTitle.toLowerCase().includes(q)) &&
+        foods.length < 4
+      ) {
+        foods.push({ id: o.id, title: locTitle || o.title, storeName: o.storeName, image: o.image });
+      }
+      if (partners.length >= 3 && foods.length >= 4) break;
+    }
+    const cats = CATEGORIES.filter(
+      (c) => c.id !== "ყველა" && getCategoryLabel(c.id, language).toLowerCase().includes(q),
+    ).slice(0, 3);
+    const districts = DISTRICTS.filter(
+      (d) => d !== "ყველა უბანი" && getDistrictLabel(d, language).toLowerCase().includes(q),
+    ).slice(0, 3);
+    if (!partners.length && !foods.length && !cats.length && !districts.length) return null;
+    return { partners: partners.slice(0, 3), foods, cats, districts };
+  }, [query, offers, language]);
+
   const askOrRefresh = () => {
     if (status === "granted") void request();
     else askPermission();
