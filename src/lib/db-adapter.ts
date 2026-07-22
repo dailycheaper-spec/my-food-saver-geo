@@ -117,7 +117,7 @@ export function useDbStore(id: string): { store: Store | null; raw: DbStore | nu
     (async () => {
       const { data } = await supabase
         .from("stores")
-        .select("*")
+        .select(STORE_PUBLIC_COLUMNS)
         .eq("id", id)
         .eq("status", "active")
         .maybeSingle();
