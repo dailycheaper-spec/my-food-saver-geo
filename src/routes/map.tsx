@@ -8,7 +8,7 @@ import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
-import { useFavorites } from "@/lib/storage";
+import { useFavorites, toggleFavorite } from "@/lib/storage";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
@@ -368,7 +368,11 @@ function MapPage() {
       </div>
 
       {selectedStore && (
-        <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated border border-border max-h-[60vh] flex flex-col overflow-hidden">
+        <div
+          key={selectedStore.storeId}
+          className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated border border-border max-h-[60vh] flex flex-col overflow-hidden animate-[mapPreviewIn_.28s_cubic-bezier(.22,1,.36,1)_both]"
+          style={{ willChange: "transform" }}
+        >
           {/* Header */}
           <div className="p-3 flex items-start gap-3 border-b border-border">
             <div className="w-12 h-12 rounded-xl bg-secondary grid place-items-center text-2xl shrink-0 overflow-hidden">
@@ -417,14 +421,29 @@ function MapPage() {
               >
                 <ExternalLink className="h-3 w-3" /> მარშრუტი
               </a>
-              <button
-                type="button"
-                onClick={() => setSelectedStoreId(null)}
-                className="border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1"
-                aria-label="დახურვა"
-              >
-                <X className="h-3 w-3" /> დახურვა
-              </button>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(selectedStore.storeId)}
+                  className={`flex-1 border px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1 transition-colors ${
+                    favorites.includes(selectedStore.storeId)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background"
+                  }`}
+                  aria-label="ფავორიტი"
+                  aria-pressed={favorites.includes(selectedStore.storeId)}
+                >
+                  <Heart className={`h-3 w-3 ${favorites.includes(selectedStore.storeId) ? "fill-current" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStoreId(null)}
+                  className="flex-1 border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1"
+                  aria-label="დახურვა"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -463,6 +482,11 @@ function MapPage() {
                       {o._state === "almost" && (
                         <span className="text-[10px] font-bold bg-amber-500/15 text-amber-600 px-1.5 py-0.5 rounded-full">
                           ⏳ თითქმის გათავდა
+                        </span>
+                      )}
+                      {o.originalPrice > o.price && !unavailable && (
+                        <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                          დაზოგე {formatPrice(o.originalPrice - o.price)}
                         </span>
                       )}
                     </div>

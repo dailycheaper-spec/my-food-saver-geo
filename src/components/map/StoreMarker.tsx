@@ -35,14 +35,14 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
 
   // Compact view: small price/discount pill only
   if (compact && !hovered && !selected) {
-    const html = `<div class="store-marker-in" style="position:relative;transform:translate(-50%,-100%);border:2px solid ${borderColor};background:${bg};color:${fg};padding:2px 8px;border-radius:9999px;font-weight:800;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,.2);line-height:1;white-space:nowrap">${priceHtml}${
+    const html = `<div class="store-marker-in store-marker-compact" style="position:relative;transform:translate(-50%,-100%);border:2px solid ${borderColor};background:${bg};color:${fg};padding:2px 8px;border-radius:9999px;font-weight:800;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,.2);line-height:1;white-space:nowrap;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease">${priceHtml}${
       s.activeCount > 1
         ? `<span style="margin-left:4px;opacity:.75;font-size:9px">×${s.activeCount}</span>`
         : ""
     }${hasAlmost ? `<span style="margin-left:4px">⏳</span>` : ""}${
       allUnavailable ? `<span style="margin-left:4px">✕</span>` : ""
     }</div>
-    <style>.store-marker-in{animation:markerIn .2s ease-out both}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
+    <style>.store-marker-in{animation:markerIn .22s cubic-bezier(.22,1,.36,1) both}.store-marker-compact:hover{transform:translate(-50%,-100%) scale(1.08);box-shadow:0 8px 18px rgba(0,0,0,.28)}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
     return L.divIcon({ html, className: "", iconSize: [0, 0] });
   }
 
@@ -51,10 +51,10 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
   const size = hovered ? 32 : 24;
   const fontSize = hovered ? 14 : 12;
   const logoHtml = isUrl
-    ? `<img src="${logo}" alt="" style="width:${size}px;height:${size}px;border-radius:9999px;object-fit:cover;background:hsl(var(--card))" />`
+    ? `<img src="${logo}" alt="" style="width:${size}px;height:${size}px;border-radius:9999px;object-fit:cover;background:hsl(var(--card));transition:width .2s ease,height .2s ease" />`
     : `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:hsl(var(--card));display:grid;place-items:center;font-size:${
         hovered ? 18 : 14
-      }px;line-height:1">${logo || "🏪"}</div>`;
+      }px;line-height:1;transition:all .2s ease">${logo || "🏪"}</div>`;
   const nameHtml = hovered
     ? `<span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:${fontSize}px">${s.storeName}</span><span style="opacity:.6">·</span>`
     : "";
@@ -67,8 +67,9 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
     : hasAlmost
     ? `<div style="position:absolute;top:-8px;left:-8px;background:#f59e0b;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:9999px;border:2px solid hsl(var(--card));line-height:1">⏳</div>`
     : "";
-  const html = `<div class="store-marker-in" style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid ${borderColor};background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:0 6px 16px rgba(0,0,0,.22);line-height:1;display:inline-flex;align-items:center;gap:6px;transition:all .15s">${logoHtml}${nameHtml}<span>${priceHtml}</span>${countBadge}${stateBadge}</div>
-  <style>.store-marker-in{animation:markerIn .22s ease-out both}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
+  const liftShadow = hovered || selected ? "0 14px 26px rgba(0,0,0,.32)" : "0 6px 16px rgba(0,0,0,.22)";
+  const html = `<div class="store-marker-in store-marker-full" style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid ${borderColor};background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:${liftShadow};line-height:1;display:inline-flex;align-items:center;gap:6px;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,padding .2s ease,font-size .2s ease">${logoHtml}${nameHtml}<span>${priceHtml}</span>${countBadge}${stateBadge}</div>
+  <style>.store-marker-in{animation:markerIn .22s cubic-bezier(.22,1,.36,1) both}.store-marker-full:hover{transform:translate(-50%,-100%) scale(1.05);box-shadow:0 14px 26px rgba(0,0,0,.32)}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
 
