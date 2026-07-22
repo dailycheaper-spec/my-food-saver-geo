@@ -30,19 +30,25 @@ function hashOffset(id: string): [number, number] {
   return [dx, dy];
 }
 
-function priceIcon(o: Offer, selected: boolean) {
+function priceIcon(o: Offer, selected: boolean, hovered: boolean, name: string) {
   const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
-  const bg = selected ? "hsl(var(--primary))" : "hsl(var(--card))";
-  const fg = selected ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))";
+  const active = selected || hovered;
+  const bg = active ? "hsl(var(--primary))" : "hsl(var(--card))";
+  const fg = active ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))";
   const logo = (o.storeLogo ?? "").toString();
   const isUrl = /^(https?:|\/|data:)/.test(logo);
+  const size = hovered ? 32 : 22;
+  const fontSize = hovered ? 14 : 12;
   const logoHtml = isUrl
-    ? `<img src="${logo}" alt="" style="width:22px;height:22px;border-radius:9999px;object-fit:cover;background:hsl(var(--card))" />`
-    : `<div style="width:22px;height:22px;border-radius:9999px;background:hsl(var(--card));display:grid;place-items:center;font-size:14px;line-height:1">${logo || "🏪"}</div>`;
+    ? `<img src="${logo}" alt="" style="width:${size}px;height:${size}px;border-radius:9999px;object-fit:cover;background:hsl(var(--card))" />`
+    : `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:hsl(var(--card));display:grid;place-items:center;font-size:${hovered ? 18 : 14}px;line-height:1">${logo || "🏪"}</div>`;
   const badge = discount > 0
     ? `<div style="position:absolute;top:-8px;right:-10px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:10px;font-weight:800;padding:2px 6px;border-radius:9999px;border:2px solid hsl(var(--card));white-space:nowrap;line-height:1">-${discount}%</div>`
     : "";
-  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:3px 10px 3px 3px;border-radius:9999px;font-weight:800;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.18);line-height:1;display:inline-flex;align-items:center;gap:6px">${logoHtml}<span>${o.price.toFixed(0)}₾</span>${badge}</div>`;
+  const nameHtml = hovered
+    ? `<span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:${fontSize}px">${name}</span><span style="opacity:.6">·</span>`
+    : "";
+  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:0 6px 16px rgba(0,0,0,.22);line-height:1;display:inline-flex;align-items:center;gap:6px;transition:all .15s">${logoHtml}${nameHtml}<span>${o.price.toFixed(0)}₾</span>${badge}</div>`;
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
 
