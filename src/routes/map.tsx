@@ -154,9 +154,33 @@ function MapPage() {
       });
       list.push(s);
     }
-    if (location) list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    const bestDiscount = (s: MapStore) => {
+      let best = 0;
+      for (const o of s.offers) {
+        if (o._state === "unavailable") continue;
+        const dc = o.originalPrice > 0 ? 1 - o.price / o.originalPrice : 0;
+        if (dc > best) best = dc;
+      }
+      return best;
+    };
+    const earliestEnd = (s: MapStore) => {
+      let min = Infinity;
+      for (const o of s.offers) {
+        if (o._state === "unavailable") continue;
+        const m = timeToMinutes(o.pickupTo);
+        if (m < min) min = m;
+      }
+      return min;
+    };
+    if (sortMode === "discount") {
+      list.sort((a, b) => bestDiscount(b) - bestDiscount(a));
+    } else if (sortMode === "endingSoon") {
+      list.sort((a, b) => earliestEnd(a) - earliestEnd(b));
+    } else if (location) {
+      list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    }
     return list;
-  }, [mappable, location]);
+  }, [mappable, location, sortMode]);
 
   const selectedStore = useMemo(
     () => stores.find((s) => s.storeId === selectedStoreId) ?? null,
