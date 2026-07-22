@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { ArrowLeft, ExternalLink, MapPin, Navigation, X } from "lucide-react";
-import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, type Offer } from "@/lib/mock-data";
+import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2 } from "lucide-react";
+import { TBILISI_CENTER, DISTRICTS, formatPrice, getDistrictLabel, getOfferText, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
+import { useFavorites } from "@/lib/storage";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
