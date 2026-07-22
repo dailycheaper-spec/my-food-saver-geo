@@ -606,7 +606,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
         }}
       >
         {children}
-        <div className="w-1 shrink-0 snap-none" aria-hidden="true" />
+        <div className="w-12 shrink-0 snap-none" aria-hidden="true" />
       </div>
 
       {scrollState.canPrev && (
