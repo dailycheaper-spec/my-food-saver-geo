@@ -88,6 +88,8 @@ function MapPage() {
   useEffect(() => setMounted(true), []);
 
   const mappable = useMemo<MapOffer[]>(() => {
+    const q = query.trim().toLowerCase();
+    const favSet = new Set(favorites);
     const out: MapOffer[] = [];
     for (const o of offers) {
       if (!isValidLatLng(o.lat, o.lng)) continue;
@@ -101,10 +103,21 @@ function MapPage() {
       if (o.itemsLeft <= 0) state = "unavailable";
       else if (o.itemsLeft <= 2) state = "almost";
       if (state === "unavailable" && !showUnavailable) continue;
+      if (availableOnly && (state === "unavailable" || !isOpenNow(o))) continue;
+      if (favoritesOnly && !favSet.has(o.storeId)) continue;
+      if (newPartnersOnly) {
+        if (!o.createdAt || Date.now() - o.createdAt > NEW_PARTNER_MS) continue;
+      }
+      if (districtFilter !== "ყველა უბანი" && o.district !== districtFilter) continue;
+      if (q) {
+        const { title: locTitle } = getOfferText(o, language);
+        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)}`.toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
       out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
     }
     return out;
-  }, [offers, location, effectiveRadius, showUnavailable]);
+  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, query, favorites, language]);
 
   const stores = useMemo<MapStore[]>(() => {
     const map = new Map<string, MapStore>();
