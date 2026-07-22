@@ -13,6 +13,8 @@ import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { NearbyOffersSection } from "@/components/NearbyOffersSection";
+import { useFollowedStoreIds } from "@/lib/follows";
+import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 
@@ -99,6 +101,15 @@ function Home() {
     () => ALL_OFFERS.filter((o) => o.isSurprise && inCat(o)).slice(0, 8),
     [ALL_OFFERS, cat],
   );
+
+  const { ids: followedIds } = useFollowedStoreIds();
+  const followedOffers = useMemo(() => {
+    if (!user || followedIds.size === 0) return [];
+    return ALL_OFFERS
+      .filter((o) => followedIds.has(o.storeId) && inCat(o))
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
+      .slice(0, 12);
+  }, [ALL_OFFERS, followedIds, user, cat]);
 
   const recommended = useMemo(() => {
     const pool = ALL_OFFERS.filter(inCat);
@@ -262,6 +273,25 @@ function Home() {
 
       {/* -------- Nearby (location-aware) -------- */}
       <NearbyOffersSection offers={filtered} />
+
+      {/* -------- Stores You Follow (signed-in only, server-side follows) -------- */}
+      {followedOffers.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+              <StarIcon className="w-[18px] h-[18px] fill-amber-500 text-amber-500" />
+              {language === "en" ? "Stores you follow" : language === "ru" ? "Магазины, на которые вы подписаны" : "გამოწერილი მაღაზიები"}
+            </h2>
+          </div>
+          <ScrollableRow className="pt-1 pb-2 snap-x snap-proximity -mx-4 px-4">
+            {followedOffers.map((o) => (
+              <div key={o.id} className="snap-start shrink-0 w-[260px]">
+                <OfferCard offer={o} />
+              </div>
+            ))}
+          </ScrollableRow>
+        </section>
+      )}
 
       {/* -------- All nearby (full grid) + district filter -------- */}
 

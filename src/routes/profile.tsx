@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank } from "lucide-react";
+import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
+import { useFollowedStores, unfollowStore, useFollowedStoreIds } from "@/lib/follows";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/profile")({
@@ -18,6 +19,12 @@ function Profile() {
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
+  const { stores: followedStores } = useFollowedStores();
+  const { refresh: refreshFollows } = useFollowedStoreIds();
+  async function handleUnfollow(storeId: string) {
+    await unfollowStore(storeId);
+    await refreshFollows();
+  }
   const completed = orders.filter((o) => o.status !== "გაუქმებული").length;
   const moneySaved = orders.reduce((s, o) => {
     if (o.status === "გაუქმებული") return s;
