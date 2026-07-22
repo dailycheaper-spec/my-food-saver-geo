@@ -29,9 +29,12 @@ export interface Offer {
   deliveryFee: number;
   lat?: number;
   lng?: number;
+  /** Partner-configured visibility radius in km (never shown to customers directly). */
+  visibilityRadiusKm?: number;
   createdAt?: number; // epoch ms — used for NEW badge
   isSurprise?: boolean; // mystery bag — contents revealed at pickup
 }
+
 
 // approx Tbilisi district centers
 export const DISTRICT_COORDS: Record<string, [number, number]> = {
