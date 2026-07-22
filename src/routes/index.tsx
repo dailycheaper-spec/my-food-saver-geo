@@ -248,9 +248,6 @@ function Home() {
             <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> {t("heroBadge")}
             </div>
-            <h2 className="font-display text-base font-semibold mt-2 leading-tight opacity-90">
-              {L.promoTitle}
-            </h2>
             <p className="text-sm text-primary-foreground/90 mt-1 max-w-[80%]">
               {L.promoText}
             </p>
