@@ -356,7 +356,7 @@ const labels: Record<Language, Record<string, string>> = {
     partner: "Partner",
     profile: "Profile",
     signIn: "Sign in",
-    heroBadge: "Good food, better price",
+    heroBadge: "Quality price, better food",
     heroTitle: "Today's best offers",
     heroDiscount: "Up to 70% off",
     heroText: "Khachapuri, bread, sushi, fruit — daily surprise bags from nearby shops.",
