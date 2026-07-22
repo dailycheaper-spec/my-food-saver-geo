@@ -151,7 +151,7 @@ export const updateAdminStoreLocation = createServerFn({ method: "POST" })
     if (roleError || !adminRole) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {
+    const patch = {
       lat: data.lat,
       lng: data.lng,
       visibility_radius_km: data.visibility_radius_km,
