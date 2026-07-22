@@ -1,6 +1,6 @@
 import { Marker } from "react-leaflet";
 import L from "leaflet";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import type { MapStore } from "@/routes/map";
 
 interface Props {
@@ -73,7 +73,7 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
 
-export default function StoreMarker({ store, selected, hovered, compact, onSelect, onHover }: Props) {
+function StoreMarkerImpl({ store, selected, hovered, compact, onSelect, onHover }: Props) {
   const icon = useMemo(
     () => buildIcon(store, selected, hovered, compact),
     [store, selected, hovered, compact],
@@ -97,3 +97,8 @@ export default function StoreMarker({ store, selected, hovered, compact, onSelec
     />
   );
 }
+
+// Memoize so unrelated re-renders (e.g. selecting another store) don't
+// recreate every marker's DivIcon HTML. Only markers whose props actually
+// change re-render.
+export default memo(StoreMarkerImpl);

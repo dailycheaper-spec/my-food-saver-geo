@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2 } from "lucide-react";
-import { TBILISI_CENTER, DISTRICTS, formatPrice, getDistrictLabel, getOfferText, type Offer } from "@/lib/mock-data";
+import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
+import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2, Store as StoreIcon, Utensils } from "lucide-react";
+import { TBILISI_CENTER, DISTRICTS, CATEGORIES, formatPrice, getDistrictLabel, getCategoryLabel, getOfferText, type Offer, type Category } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
@@ -78,14 +78,28 @@ function MapPage() {
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("nearby");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [newPartnersOnly, setNewPartnersOnly] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [districtFilter, setDistrictFilter] = useState<string>("ყველა უბანი");
+  const [categoryFilter, setCategoryFilter] = useState<Category | "ყველა">("ყველა");
+  const searchWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  // Close suggestions when clicking outside the search box
+  useEffect(() => {
+    if (!suggestOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!searchWrapRef.current) return;
+      if (!searchWrapRef.current.contains(e.target as Node)) setSuggestOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [suggestOpen]);
 
   const mappable = useMemo<MapOffer[]>(() => {
     const q = query.trim().toLowerCase();
@@ -109,15 +123,17 @@ function MapPage() {
         if (!o.createdAt || Date.now() - o.createdAt > NEW_PARTNER_MS) continue;
       }
       if (districtFilter !== "ყველა უბანი" && o.district !== districtFilter) continue;
+      if (categoryFilter !== "ყველა" && o.category !== categoryFilter) continue;
       if (q) {
         const { title: locTitle } = getOfferText(o, language);
-        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)}`.toLowerCase();
+        const catLabel = getCategoryLabel(o.category as Category, language);
+        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)} ${o.category ?? ""} ${catLabel}`.toLowerCase();
         if (!hay.includes(q)) continue;
       }
       out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
     }
     return out;
-  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, query, favorites, language]);
+  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, categoryFilter, query, favorites, language]);
 
   const stores = useMemo<MapStore[]>(() => {
     const map = new Map<string, MapStore>();
@@ -187,6 +203,48 @@ function MapPage() {
     [selectedStoreId, stores],
   );
 
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (sortMode !== "nearby") n++;
+    if (favoritesOnly) n++;
+    if (newPartnersOnly) n++;
+    if (availableOnly) n++;
+    if (districtFilter !== "ყველა უბანი") n++;
+    if (categoryFilter !== "ყველა") n++;
+    if (showUnavailable) n++;
+    return n;
+  }, [sortMode, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, categoryFilter, showUnavailable]);
+
+  const suggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return null;
+    const seenStores = new Set<string>();
+    const partners: { id: string; name: string; logo: string }[] = [];
+    const foods: { id: string; title: string; storeName: string; image: string }[] = [];
+    for (const o of offers) {
+      const { title: locTitle } = getOfferText(o, language);
+      if (!seenStores.has(o.storeId) && (o.storeName.toLowerCase().includes(q))) {
+        seenStores.add(o.storeId);
+        partners.push({ id: o.storeId, name: o.storeName, logo: o.storeLogo });
+      }
+      if (
+        (o.title.toLowerCase().includes(q) || locTitle.toLowerCase().includes(q)) &&
+        foods.length < 4
+      ) {
+        foods.push({ id: o.id, title: locTitle || o.title, storeName: o.storeName, image: o.image });
+      }
+      if (partners.length >= 3 && foods.length >= 4) break;
+    }
+    const cats = CATEGORIES.filter(
+      (c) => c.id !== "ყველა" && getCategoryLabel(c.id, language).toLowerCase().includes(q),
+    ).slice(0, 3);
+    const districts = DISTRICTS.filter(
+      (d) => d !== "ყველა უბანი" && getDistrictLabel(d, language).toLowerCase().includes(q),
+    ).slice(0, 3);
+    if (!partners.length && !foods.length && !cats.length && !districts.length) return null;
+    return { partners: partners.slice(0, 3), foods, cats, districts };
+  }, [query, offers, language]);
+
   const askOrRefresh = () => {
     if (status === "granted") void request();
     else askPermission();
@@ -205,39 +263,145 @@ function MapPage() {
       </div>
 
       <div className="absolute top-14 inset-x-0 z-[1000] px-3 pointer-events-none space-y-1.5">
-        <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1 max-w-md mx-auto">
-          <div className="flex-1 relative">
-            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="მაღაზია, კერძი, უბანი…"
-              className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center"
-                aria-label="clear"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
+        <div ref={searchWrapRef} className="relative max-w-md mx-auto">
+          <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1">
+            <div className="flex-1 relative">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true); }}
+                onFocus={() => setSuggestOpen(true)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setSuggestOpen(false); (e.target as HTMLInputElement).blur(); } }}
+                placeholder="მაღაზია, კერძი, კატეგორია, უბანი…"
+                aria-label="ძებნა რუკაზე"
+                aria-expanded={Boolean(suggestOpen && suggestions)}
+                aria-controls="map-search-suggestions"
+                className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(""); setSuggestOpen(false); }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="ძებნის გასუფთავება"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`relative h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                showFilters || activeFilterCount > 0
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-foreground"
+              }`}
+              aria-label={`ფილტრი${activeFilterCount > 0 ? ` (${activeFilterCount} აქტიური)` : ""}`}
+              aria-pressed={showFilters}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {activeFilterCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold grid place-items-center border border-card"
+                >
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
-            className={`h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 transition-colors ${
-              showFilters || sortMode !== "nearby" || favoritesOnly || newPartnersOnly || availableOnly || districtFilter !== "ყველა უბანი"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground"
-            }`}
-            aria-label="ფილტრი"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-          </button>
+
+          {suggestOpen && suggestions && (
+            <div
+              id="map-search-suggestions"
+              role="listbox"
+              className="pointer-events-auto absolute inset-x-0 top-[calc(100%+6px)] bg-card border border-border rounded-2xl shadow-elevated overflow-hidden max-h-[60vh] overflow-y-auto"
+            >
+              {suggestions.partners.length > 0 && (
+                <div className="p-2">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">პარტნიორები</div>
+                  {suggestions.partners.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="option"
+                      onClick={() => { setSelectedStoreId(p.id); setSuggestOpen(false); }}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary focus:bg-secondary focus:outline-none text-left"
+                    >
+                      <span className="w-7 h-7 rounded-full bg-secondary grid place-items-center text-sm shrink-0 overflow-hidden">
+                        {/^(https?:|\/|data:)/.test(p.logo)
+                          ? <img src={p.logo} alt="" className="w-full h-full object-cover" />
+                          : <span>{p.logo || "🏪"}</span>}
+                      </span>
+                      <span className="flex-1 min-w-0 truncate text-xs font-semibold">{p.name}</span>
+                      <StoreIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {suggestions.foods.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კერძები</div>
+                  {suggestions.foods.map((f) => (
+                    <Link
+                      key={f.id}
+                      to="/offer/$id"
+                      params={{ id: f.id }}
+                      onClick={() => setSuggestOpen(false)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary focus:bg-secondary focus:outline-none"
+                    >
+                      <img src={f.image} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                      <span className="flex-1 min-w-0">
+                        <span className="block truncate text-xs font-semibold">{f.title}</span>
+                        <span className="block truncate text-[10px] text-muted-foreground">{f.storeName}</span>
+                      </span>
+                      <Utensils className="w-3 h-3 text-muted-foreground shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {suggestions.cats.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კატეგორიები</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions.cats.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        onClick={() => { setCategoryFilter(c.id as Category | "ყველა"); setQuery(""); setSuggestOpen(false); }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground text-[11px] font-semibold hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <span>{c.icon}</span>{getCategoryLabel(c.id, language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {suggestions.districts.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">უბნები</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions.districts.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        role="option"
+                        onClick={() => { setDistrictFilter(d); setQuery(""); setSuggestOpen(false); }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground text-[11px] font-semibold hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <MapPin className="w-3 h-3" />{getDistrictLabel(d, language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
 
         {showFilters && (
           <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in">
@@ -253,7 +417,7 @@ function MapPage() {
                 მიუწვდომელი
               </label>
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="დალაგება">
               {([
                 { id: "nearby", label: "ახლოს", icon: <Navigation className="w-3 h-3" /> },
                 { id: "discount", label: "მაქს. ფასდაკლება", icon: <Percent className="w-3 h-3" /> },
@@ -263,7 +427,8 @@ function MapPage() {
                   key={s.id}
                   type="button"
                   onClick={() => setSortMode(s.id)}
-                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  aria-pressed={sortMode === s.id}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     sortMode === s.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                   }`}
                 >
@@ -271,20 +436,37 @@ function MapPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="კატეგორია">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryFilter(c.id)}
+                  aria-pressed={categoryFilter === c.id}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    categoryFilter === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="ფილტრები">
               <button
                 type="button"
                 onClick={() => setNewPartnersOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={newPartnersOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   newPartnersOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
-                <Sparkles className="w-3 h-3" /> ახალი პარტნიორები
+                <Sparkles className="w-3 h-3" /> ახალი
               </button>
               <button
                 type="button"
                 onClick={() => setFavoritesOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={favoritesOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   favoritesOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
@@ -293,7 +475,8 @@ function MapPage() {
               <button
                 type="button"
                 onClick={() => setAvailableOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={availableOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   availableOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
@@ -302,13 +485,32 @@ function MapPage() {
               <select
                 value={districtFilter}
                 onChange={(e) => setDistrictFilter(e.target.value)}
-                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none"
+                aria-label="უბანი"
+                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {DISTRICTS.map((d) => (
                   <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
                 ))}
               </select>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortMode("nearby");
+                    setFavoritesOnly(false);
+                    setNewPartnersOnly(false);
+                    setAvailableOnly(false);
+                    setDistrictFilter("ყველა უბანი");
+                    setCategoryFilter("ყველა");
+                    setShowUnavailable(false);
+                  }}
+                  className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-muted text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <X className="w-3 h-3" /> გასუფთავება
+                </button>
+              )}
             </div>
+
           </div>
         )}
       </div>
