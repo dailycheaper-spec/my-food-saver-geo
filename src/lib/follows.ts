@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
+import { getStoreFollowerCount } from "@/lib/follows.functions";
 import type { DbStore } from "@/lib/db";
 
 async function getUserId(): Promise<string | null> {
@@ -84,21 +85,18 @@ export function useStoreFollowerCount(storeId: string | undefined): number | nul
   useEffect(() => {
     if (!storeId) return;
     let alive = true;
-    (async () => {
-      const { count: c, error } = await supabase
-        .from("store_follows")
-        .select("id", { count: "exact", head: true })
-        .eq("store_id", storeId);
-      if (!alive) return;
-      if (error) { setCount(null); return; }
-      setCount(c ?? 0);
-    })();
+    const load = async () => {
+      try {
+        const res = await getStoreFollowerCount({ data: { storeId } });
+        if (alive) setCount(res.count);
+      } catch {
+        if (alive) setCount(null);
+      }
+    };
+    load();
     const channel = supabase
       .channel(`store_follows-count-${storeId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_follows", filter: `store_id=eq.${storeId}` }, async () => {
-        const { count: c } = await supabase.from("store_follows").select("id", { count: "exact", head: true }).eq("store_id", storeId);
-        if (alive) setCount(c ?? 0);
-      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "store_follows", filter: `store_id=eq.${storeId}` }, () => { load(); })
       .subscribe();
     return () => { alive = false; supabase.removeChannel(channel); };
   }, [storeId]);
