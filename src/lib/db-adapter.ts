@@ -62,10 +62,12 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     deliveryFee: Number(row.store?.delivery_fee_base ?? 0),
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
+    visibilityRadiusKm: (row.store as unknown as { visibility_radius_km?: number | null } | null)?.visibility_radius_km ?? undefined,
     createdAt,
     isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
   };
 }
+
 
 export function dbStoreToStore(row: DbStore): Store {
   return {

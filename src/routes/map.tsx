@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
-import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useUserLocation } from "@/hooks/use-user-location";
+import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
+import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
+
+const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -18,74 +20,62 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
-function osmLink([lat, lng]: [number, number]) {
-  return `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lng.toFixed(5)}#map=16/${lat.toFixed(5)}/${lng.toFixed(5)}`;
+const PARTNER_DEFAULT_RADIUS = 3;
+
+export type MarkerState = "available" | "almost" | "unavailable";
+
+export interface MapOffer extends Offer {
+  lat: number;
+  lng: number;
+  _distanceKm: number | null;
+  _state: MarkerState;
 }
 
-function hashOffset(id: string): [number, number] {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  const dx = ((h & 0xff) / 255 - 0.5) * 0.0016;
-  const dy = (((h >> 8) & 0xff) / 255 - 0.5) * 0.0016;
-  return [dx, dy];
-}
-
-function priceIcon(o: Offer, selected: boolean, hovered: boolean, name: string) {
-  const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
-  const active = selected || hovered;
-  const bg = active ? "hsl(var(--primary))" : "hsl(var(--card))";
-  const fg = active ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))";
-  const logo = (o.storeLogo ?? "").toString();
-  const isUrl = /^(https?:|\/|data:)/.test(logo);
-  const size = hovered ? 32 : 22;
-  const fontSize = hovered ? 14 : 12;
-  const logoHtml = isUrl
-    ? `<img src="${logo}" alt="" style="width:${size}px;height:${size}px;border-radius:9999px;object-fit:cover;background:hsl(var(--card))" />`
-    : `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:hsl(var(--card));display:grid;place-items:center;font-size:${hovered ? 18 : 14}px;line-height:1">${logo || "🏪"}</div>`;
-  const badge = discount > 0
-    ? `<div style="position:absolute;top:-8px;right:-10px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:10px;font-weight:800;padding:2px 6px;border-radius:9999px;border:2px solid hsl(var(--card));white-space:nowrap;line-height:1">-${discount}%</div>`
-    : "";
-  const nameHtml = hovered
-    ? `<span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:${fontSize}px">${name}</span><span style="opacity:.6">·</span>`
-    : "";
-  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:0 6px 16px rgba(0,0,0,.22);line-height:1;display:inline-flex;align-items:center;gap:6px;transition:all .15s">${logoHtml}${nameHtml}<span>${o.price.toFixed(0)}₾</span>${badge}</div>`;
-  return L.divIcon({ html, className: "", iconSize: [0, 0] });
-}
-
-
-function RecenterOn({ pos }: { pos: [number, number] | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (pos) map.flyTo(pos, Math.max(map.getZoom(), 14));
-  }, [pos, map]);
-  return null;
+function externalDirectionsUrl(lat: number, lng: number) {
+  const isIOS = typeof navigator !== "undefined" && /iP(hone|od|ad)/.test(navigator.userAgent);
+  if (isIOS) return `https://maps.apple.com/?daddr=${lat},${lng}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
 function MapPage() {
   const { t, language } = useI18n();
   const { offers } = useLiveDbCardOffers();
-  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const { location, status, askPermission, request } = useUserLocation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [radius, setRadius] = useState<RadiusOption>(5);
+  const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(5);
+  const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
-  const mappable = useMemo(
-    () => offers.filter((o): o is Offer & { lat: number; lng: number } => o.lat != null && o.lng != null),
-    [offers],
-  );
-
-  const locate = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
-      () => setUserPos(TBILISI_CENTER),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  };
+  const mappable = useMemo<MapOffer[]>(() => {
+    const out: MapOffer[] = [];
+    for (const o of offers) {
+      if (!isValidLatLng(o.lat, o.lng)) continue;
+      const partnerRadius = o.visibilityRadiusKm ?? PARTNER_DEFAULT_RADIUS;
+      const d = location ? calculateDistanceKm(location.lat, location.lng, o.lat as number, o.lng as number) : null;
+      if (location && d !== null) {
+        if (d > partnerRadius) continue;
+        if (d > effectiveRadius) continue;
+      }
+      let state: MarkerState = "available";
+      if (o.itemsLeft <= 0) state = "unavailable";
+      else if (o.itemsLeft <= 2) state = "almost";
+      if (state === "unavailable" && !showUnavailable) continue;
+      out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
+    }
+    if (location) out.sort((a, b) => (a._distanceKm ?? Infinity) - (b._distanceKm ?? Infinity));
+    return out;
+  }, [offers, location, effectiveRadius, showUnavailable]);
 
   const selected = useMemo(() => mappable.find((o) => o.id === selectedId) ?? null, [selectedId, mappable]);
+
+  const askOrRefresh = () => {
+    if (status === "granted") void request();
+    else askPermission();
+  };
 
   return (
     <div className="fixed inset-0 top-0 bottom-16 flex flex-col bg-background">
@@ -96,62 +86,91 @@ function MapPage() {
         <div className="pointer-events-auto bg-card shadow-elevated rounded-full px-4 py-2 text-sm font-semibold flex items-center gap-1.5">
           <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {mappable.length} {t("offers")}
         </div>
-        <button onClick={locate} className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center" aria-label={t("myLocation")}>
+        <button
+          onClick={askOrRefresh}
+          className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center"
+          aria-label={t("myLocation")}
+        >
           <Navigation className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="flex-1 relative">
-        {mounted && (
-          <MapContainer
-            center={TBILISI_CENTER}
-            zoom={12}
-            scrollWheelZoom
-            zoomControl={false}
-            className="h-full w-full"
-            style={{ height: "100%", width: "100%" }}
-          >
-            <ZoomControl position="bottomright" />
-            <TileLayer
-              attribution='&copy; OpenStreetMap'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      {/* Radius + unavailable toggle */}
+      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none">
+        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2 overflow-x-auto">
+          <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
+          <label className="ml-auto shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1">
+            <input
+              type="checkbox"
+              checked={showUnavailable}
+              onChange={(e) => setShowUnavailable(e.target.checked)}
+              className="accent-primary"
             />
-            <RecenterOn pos={userPos} />
-            {userPos && (
-              <Marker
-                position={userPos}
-                icon={L.divIcon({
-                  html: `<div style="transform:translate(-50%,-50%);width:16px;height:16px;border-radius:9999px;background:hsl(var(--primary));box-shadow:0 0 0 6px hsl(var(--primary)/.25)"></div>`,
-                  className: "",
-                  iconSize: [0, 0],
-                })}
-              />
-            )}
-            {mappable.map((o) => {
-              const [dx, dy] = hashOffset(o.id);
-              const isHovered = hoveredId === o.id;
-              const isSelected = selectedId === o.id;
-              return (
-                <Marker
-                  key={o.id}
-                  position={[o.lat + dx, o.lng + dy]}
-                  icon={priceIcon(o, isSelected, isHovered, getStoreName(o, language))}
-                  zIndexOffset={isHovered ? 2000 : isSelected ? 1000 : 0}
-                  eventHandlers={{
-                    click: () => setSelectedId(o.id),
-                    mouseover: () => setHoveredId(o.id),
-                    mouseout: () => setHoveredId((v) => (v === o.id ? null : v)),
-                  }}
-                >
-                  <Popup>
-                    <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
-                    <div className="text-xs">{getOfferText(o, language).title}</div>
-                  </Popup>
-                </Marker>
-              );
-            })}
+            მიუწვდომელი
+          </label>
+        </div>
+      </div>
 
-          </MapContainer>
+      <div className="flex-1 relative">
+        {!location && status !== "prompting" && (
+          <div className="absolute inset-x-4 top-32 z-[1000] bg-card border border-border rounded-3xl p-4 shadow-elevated">
+            <p className="text-sm font-semibold">გაიგე, რა შემოთავაზებებია შენს ახლოს</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები.
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={askPermission}
+                className="h-10 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold press"
+              >
+                მდებარეობის ჩართვა
+              </button>
+              {status === "denied" && (
+                <button
+                  type="button"
+                  onClick={() => void request()}
+                  className="h-10 px-4 rounded-full bg-secondary text-foreground text-xs font-semibold press"
+                >
+                  ხელახლა
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {mounted && (
+          <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკა იტვირთება…</div>}>
+            <MapCanvas
+              center={location ? [location.lat, location.lng] : TBILISI_CENTER}
+              userPos={location ? [location.lat, location.lng] : null}
+              offers={mappable}
+              language={language}
+              selectedId={selectedId}
+              hoveredId={hoveredId}
+              onSelect={setSelectedId}
+              onHover={setHoveredId}
+            />
+          </Suspense>
+        )}
+
+        {location && mappable.length === 0 && (
+          <div className="absolute inset-x-4 bottom-24 z-[1000] bg-card border border-border rounded-3xl p-4 text-center shadow-elevated">
+            <p className="text-sm text-muted-foreground">
+              ამ რადიუსში აქტიური შეთავაზებები ვერ მოიძებნა.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const next = (radius === 1 ? 3 : radius === 3 ? 5 : radius === 5 ? 10 : 20) as RadiusOption;
+                setRadius(next);
+                setEffectiveRadius(next);
+              }}
+              className="mt-2 inline-flex h-9 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold press"
+            >
+              რადიუსის გაზრდა
+            </button>
+          </div>
         )}
       </div>
 
@@ -159,31 +178,48 @@ function MapPage() {
         <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated p-3 flex gap-3 border border-border">
           <img src={selected.image} alt="" width={72} height={72} className="w-[72px] h-[72px] rounded-xl object-cover" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-muted-foreground truncate">
-              {getStoreName(selected, language)}
-              {selected.district ? ` · ${getDistrictLabel(selected.district, language)}` : ""}
+            <div className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+              <span className="text-base leading-none">{selected.storeLogo || "🏪"}</span>
+              <span className="truncate">{getStoreName(selected, language)}</span>
+              {selected.district ? <span>· {getDistrictLabel(selected.district, language)}</span> : null}
             </div>
             <div className="font-semibold text-sm truncate">{getOfferText(selected, language).title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}
+            <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
+              <span>{t("pickup")} {selected.pickupFrom}–{selected.pickupTo}</span>
+              {selected._distanceKm != null && (
+                <span className="inline-flex items-center gap-0.5 text-primary font-semibold">
+                  · <Navigation className="w-3 h-3" /> {formatDistance(selected._distanceKm)}
+                </span>
+              )}
+              <span>· {selected.itemsLeft} დარჩა</span>
             </div>
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs text-muted-foreground line-through">{formatPrice(selected.originalPrice)}</span>
               <span className="text-base font-bold text-primary">{formatPrice(selected.price)}</span>
+              {selected.originalPrice > 0 && (
+                <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                  -{Math.round((1 - selected.price / selected.originalPrice) * 100)}%
+                </span>
+              )}
             </div>
           </div>
-          <Link to="/offer/$id" params={{ id: selected.id }} className="self-center bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold">
-            {t("buy")}
-          </Link>
-          <a
-            href={osmLink([selected.lat, selected.lng])}
-            target="_blank"
-            rel="noreferrer"
-            className="self-center border border-border bg-background px-3 py-2 rounded-xl text-xs font-bold"
-            aria-label="გახსნა OpenStreetMap-ზე"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
+          <div className="flex flex-col gap-1.5 self-center">
+            <Link
+              to="/offer/$id"
+              params={{ id: selected.id }}
+              className="bg-primary text-primary-foreground px-3 py-1.5 rounded-xl text-[11px] font-bold text-center"
+            >
+              შეთავაზების ნახვა
+            </Link>
+            <a
+              href={externalDirectionsUrl(selected.lat, selected.lng)}
+              target="_blank"
+              rel="noreferrer"
+              className="border border-border bg-background px-3 py-1.5 rounded-xl text-[11px] font-bold text-center inline-flex items-center justify-center gap-1"
+            >
+              <ExternalLink className="h-3 w-3" /> მარშრუტი
+            </a>
+          </div>
         </div>
       )}
     </div>
