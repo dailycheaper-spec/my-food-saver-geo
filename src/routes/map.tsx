@@ -78,14 +78,28 @@ function MapPage() {
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("nearby");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [newPartnersOnly, setNewPartnersOnly] = useState(false);
   const [availableOnly, setAvailableOnly] = useState(false);
   const [districtFilter, setDistrictFilter] = useState<string>("ყველა უბანი");
+  const [categoryFilter, setCategoryFilter] = useState<Category | "ყველა">("ყველა");
+  const searchWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  // Close suggestions when clicking outside the search box
+  useEffect(() => {
+    if (!suggestOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!searchWrapRef.current) return;
+      if (!searchWrapRef.current.contains(e.target as Node)) setSuggestOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [suggestOpen]);
 
   const mappable = useMemo<MapOffer[]>(() => {
     const q = query.trim().toLowerCase();
