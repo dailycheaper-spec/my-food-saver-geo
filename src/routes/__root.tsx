@@ -16,6 +16,8 @@ import { PwaInstall } from "@/components/PwaInstall";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
 import { CityProvider } from "@/lib/city";
+import { UserLocationProvider } from "@/hooks/use-user-location";
+
 
 function NotFoundComponent() {
   return (
@@ -137,20 +139,23 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <CityProvider>
-          <a
-            href="#content"
-            className="sr-only-focusable text-sm font-semibold"
-          >
-            Skip to content
-          </a>
-          <main id="content" className="min-h-dvh pb-24">
-            <Outlet />
-          </main>
-          <BottomNav />
-          <AppTracker />
-          <PwaInstall />
+          <UserLocationProvider>
+            <a
+              href="#content"
+              className="sr-only-focusable text-sm font-semibold"
+            >
+              Skip to content
+            </a>
+            <main id="content" className="min-h-dvh pb-24">
+              <Outlet />
+            </main>
+            <BottomNav />
+            <AppTracker />
+            <PwaInstall />
+          </UserLocationProvider>
         </CityProvider>
       </I18nProvider>
+
     </QueryClientProvider>
   );
 }
