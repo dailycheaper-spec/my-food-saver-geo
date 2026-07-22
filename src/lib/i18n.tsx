@@ -14,7 +14,7 @@ const labels: Record<Language, Record<string, string>> = {
     partner: "პარტნიორი",
     profile: "პროფილი",
     signIn: "შესვლა",
-    heroBadge: "კარგი საკვები, უკეთესი ფასი",
+    heroBadge: "ხარისხიანი ფასი, უკეთესი საკვები",
     heroTitle: "დღის საუკეთესო შემოთავაზებები",
     heroDiscount: "-70%-მდე ფასდაკლებით",
     heroText: "ხაჭაპური, პური, სუში, ხილი — ყოველდღიური სიურპრიზ პაკეტები ახლომდებარე მაღაზიებიდან.",
