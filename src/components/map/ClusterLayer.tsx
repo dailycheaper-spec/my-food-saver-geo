@@ -41,8 +41,8 @@ export default function ClusterLayer({ children }: Props) {
         : hasAlmost
         ? "#f59e0b"
         : "hsl(var(--primary))";
-      const html = `<div class="cheaper-cluster" style="width:44px;height:44px;border-radius:9999px;background:${bg};color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px;border:3px solid #fff;box-shadow:0 6px 16px rgba(0,0,0,.28);animation:markerIn .22s ease-out both">${total}</div>`;
-      return L.divIcon({ html, className: "", iconSize: [44, 44] });
+      const html = `<div class="cheaper-cluster" style="width:46px;height:46px;border-radius:9999px;background:${bg};color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;border:3px solid #fff;box-shadow:0 8px 20px rgba(0,0,0,.32);cursor:pointer;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease;animation:clusterIn .28s cubic-bezier(.22,1,.36,1) both"><span style="line-height:1">${total}</span></div><style>.cheaper-cluster:hover{transform:scale(1.08);box-shadow:0 12px 26px rgba(0,0,0,.38)}@keyframes clusterIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}</style>`;
+      return L.divIcon({ html, className: "", iconSize: [46, 46] });
     },
     [],
   );
