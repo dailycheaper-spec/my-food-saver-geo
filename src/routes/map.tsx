@@ -4,7 +4,7 @@ import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -34,10 +34,15 @@ function priceIcon(o: Offer, selected: boolean) {
   const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
   const bg = selected ? "hsl(var(--primary))" : "hsl(var(--card))";
   const fg = selected ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground))";
+  const logo = (o.storeLogo ?? "").toString();
+  const isUrl = /^(https?:|\/|data:)/.test(logo);
+  const logoHtml = isUrl
+    ? `<img src="${logo}" alt="" style="width:22px;height:22px;border-radius:9999px;object-fit:cover;background:hsl(var(--card))" />`
+    : `<div style="width:22px;height:22px;border-radius:9999px;background:hsl(var(--card));display:grid;place-items:center;font-size:14px;line-height:1">${logo || "🏪"}</div>`;
   const badge = discount > 0
     ? `<div style="position:absolute;top:-8px;right:-10px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:10px;font-weight:800;padding:2px 6px;border-radius:9999px;border:2px solid hsl(var(--card));white-space:nowrap;line-height:1">-${discount}%</div>`
     : "";
-  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:4px 10px;border-radius:9999px;font-weight:800;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.18);line-height:1.1">${o.price.toFixed(0)}₾${badge}</div>`;
+  const html = `<div style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:3px 10px 3px 3px;border-radius:9999px;font-weight:800;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.18);line-height:1;display:inline-flex;align-items:center;gap:6px">${logoHtml}<span>${o.price.toFixed(0)}₾</span>${badge}</div>`;
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
 
@@ -95,9 +100,11 @@ function MapPage() {
             center={TBILISI_CENTER}
             zoom={12}
             scrollWheelZoom
+            zoomControl={false}
             className="h-full w-full"
             style={{ height: "100%", width: "100%" }}
           >
+            <ZoomControl position="bottomright" />
             <TileLayer
               attribution='&copy; OpenStreetMap'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
