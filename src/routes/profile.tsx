@@ -13,7 +13,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function Profile() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading } = useAuth();
