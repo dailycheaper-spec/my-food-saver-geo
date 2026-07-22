@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
-import { OFFERS, DISTRICT_COORDS, TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
+import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
+import { useLiveDbCardOffers } from "@/lib/db-adapter";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -13,21 +14,6 @@ export const Route = createFileRoute("/map")({
   }),
   component: MapPage,
 });
-
-function hashOffset(id: string): [number, number] {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  const dx = ((h & 0xff) / 255 - 0.5) * 0.012;
-  const dy = (((h >> 8) & 0xff) / 255 - 0.5) * 0.012;
-  return [dx, dy];
-}
-
-function offerCoords(o: Offer): [number, number] {
-  if (o.lat != null && o.lng != null) return [o.lat, o.lng];
-  const base = DISTRICT_COORDS[o.district] ?? TBILISI_CENTER;
-  const [dx, dy] = hashOffset(o.id);
-  return [base[0] + dx, base[1] + dy];
-}
 
 const MAP_BOUNDS = {
   north: 41.755,
@@ -51,8 +37,15 @@ function osmLink([lat, lng]: [number, number]) {
 
 function MapPage() {
   const { t, language } = useI18n();
+  const { offers } = useLiveDbCardOffers();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Only offers with real store coordinates can appear on the map.
+  const mappable = useMemo(
+    () => offers.filter((o): o is Offer & { lat: number; lng: number } => o.lat != null && o.lng != null),
+    [offers],
+  );
 
   const locate = () => {
     if (!navigator.geolocation) return;
@@ -63,7 +56,7 @@ function MapPage() {
     );
   };
 
-  const selected = useMemo(() => OFFERS.find((o) => o.id === selectedId) ?? null, [selectedId]);
+  const selected = useMemo(() => mappable.find((o) => o.id === selectedId) ?? null, [selectedId, mappable]);
 
   return (
     <div className="fixed inset-0 top-0 bottom-16 flex flex-col bg-background">
@@ -72,7 +65,7 @@ function MapPage() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="pointer-events-auto bg-card shadow-elevated rounded-full px-4 py-2 text-sm font-semibold flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {OFFERS.length} {t("offers")}
+          <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {mappable.length} {t("offers")}
         </div>
         <button onClick={locate} className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center" aria-label={t("myLocation")}>
           <Navigation className="w-5 h-5" />
@@ -103,9 +96,9 @@ function MapPage() {
               <Navigation className="h-4 w-4" />
             </a>
           )}
-          {OFFERS.map((o) => {
-            const coords = offerCoords(o);
-            const discount = Math.round((1 - o.price / o.originalPrice) * 100);
+          {mappable.map((o) => {
+            const coords: [number, number] = [o.lat, o.lng];
+            const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
             const isSel = selectedId === o.id;
             return (
               <button
@@ -119,7 +112,8 @@ function MapPage() {
                 }`}
                 style={toPercent(coords)}
               >
-                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)} {t("currency")} <span className="opacity-70">-{discount}%</span>
+                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)} {t("currency")}
+                {discount > 0 && <span className="opacity-70"> -{discount}%</span>}
               </button>
             );
           })}
@@ -130,9 +124,14 @@ function MapPage() {
         <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated p-3 flex gap-3 border border-border">
           <img src={selected.image} alt="" width={72} height={72} className="w-[72px] h-[72px] rounded-xl object-cover" />
           <div className="flex-1 min-w-0">
-            <div className="text-xs text-muted-foreground truncate">{getStoreName(selected, language)} · {getDistrictLabel(selected.district, language)}</div>
+            <div className="text-xs text-muted-foreground truncate">
+              {getStoreName(selected, language)}
+              {selected.district ? ` · ${getDistrictLabel(selected.district, language)}` : ""}
+            </div>
             <div className="font-semibold text-sm truncate">{getOfferText(selected, language).title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">📍 {selected.distanceKm} {t("km")} · {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {t("pickup")} {selected.pickupFrom}–{selected.pickupTo}
+            </div>
             <div className="mt-1 flex items-center gap-2">
               <span className="text-xs text-muted-foreground line-through">{formatPrice(selected.originalPrice)}</span>
               <span className="text-base font-bold text-primary">{formatPrice(selected.price)}</span>
@@ -142,7 +141,7 @@ function MapPage() {
             {t("buy")}
           </Link>
           <a
-            href={osmLink(offerCoords(selected))}
+            href={osmLink([selected.lat, selected.lng])}
             target="_blank"
             rel="noreferrer"
             className="self-center border border-border bg-background px-3 py-2 rounded-xl text-xs font-bold"

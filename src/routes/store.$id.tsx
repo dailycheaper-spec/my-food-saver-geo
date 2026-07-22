@@ -1,17 +1,17 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo } from "react";
 import {
   ArrowLeft, Star, MapPin, Clock, Heart, Share2, Phone, Shield,
 } from "lucide-react";
 import {
-  STORES, OFFERS, DISTRICT_COORDS,
+  DISTRICT_COORDS,
   getStoreName, getCategoryLabel, getDistrictLabel,
-  type Store,
 } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useFavorites, toggleFavorite, useReviews, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Skeleton } from "@/components/Skeleton";
+import { useDbStore, useLiveDbCardOffers } from "@/lib/db-adapter";
 
 // Reuse OSM embed logic — small enough to inline here to avoid coupling.
 const LazyMap = lazy(async () => {
@@ -20,22 +20,12 @@ const LazyMap = lazy(async () => {
 });
 
 export const Route = createFileRoute("/store/$id")({
-  loader: ({ params }) => {
-    const store = STORES.find((s) => s.id === params.id);
-    if (!store) throw notFound();
-    return { store };
-  },
-  head: ({ loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "მაღაზია — Cheaper" }, { name: "robots", content: "noindex" }] };
-    const s = loaderData.store;
-    return {
-      meta: [
-        { title: `${s.name} — Cheaper` },
-        { name: "description", content: `${s.name} — ფასდაკლებული შეთავაზებები, ${s.district}. რეიტინგი ${s.rating}★.` },
-        { property: "og:title", content: `${s.name} — Cheaper` },
-      ],
-    };
-  },
+  head: () => ({
+    meta: [
+      { title: "მაღაზია — Cheaper" },
+      { name: "description", content: "პარტნიორის აქტიური შემოთავაზებები Cheaper-ზე." },
+    ],
+  }),
   errorComponent: ({ error, reset }) => (
     <div className="p-8 text-center">
       <p className="text-sm text-muted-foreground">{error.message}</p>
@@ -46,48 +36,60 @@ export const Route = createFileRoute("/store/$id")({
   component: StorePage,
 });
 
-// deterministic pseudo-random from string
-function hash(s: string): number {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
 function StorePage() {
-  const { store } = Route.useLoaderData();
+  const { id } = Route.useParams();
   const { language } = useI18n();
+  const { store, raw, loading, notFound } = useDbStore(id);
+  const { offers } = useLiveDbCardOffers();
   const hydrated = useHydrated();
   const favs = useFavorites();
-  const isFav = favs.includes(store.id);
   const allReviews = useReviews();
-  const reviews = useMemo(
-    () => allReviews.filter((r) => r.storeId === store.id).slice(0, 8),
-    [allReviews, store.id],
+
+  const storeOffers = useMemo(
+    () => (store ? offers.filter((o) => o.storeId === store.id) : []),
+    [offers, store],
   );
+
+  const reviews = useMemo(
+    () => (store ? allReviews.filter((r) => r.storeId === store.id).slice(0, 8) : []),
+    [allReviews, store],
+  );
+
+  if (loading) {
+    return (
+      <div className="p-8 space-y-3">
+        <Skeleton className="h-40 w-full rounded-3xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (notFound || !store || !raw) {
+    return <div className="p-8 text-center text-muted-foreground">Store not found.</div>;
+  }
+
+  const isFav = favs.includes(store.id);
   const storeName = getStoreName(store, language);
 
   const L = (ka: string, en: string, ru: string) =>
     language === "en" ? en : language === "ru" ? ru : ka;
 
-  const storeOffers = useMemo(() => OFFERS.filter((o) => o.storeId === store.id), [store.id]);
-
-  // Deterministic hours & description
-  const seed = hash(store.id);
-  const openH = 8 + (seed % 3); // 8-10
-  const closeH = 20 + (seed % 3); // 20-22
-  const address = storeOffers[0]?.address
-    ?? `${getDistrictLabel(store.district, language)}, ${(seed % 90) + 10}`;
-  const phone = `+995 5${String(90 + (seed % 10))} ${String(100 + (seed % 900))}-${String(100 + ((seed >> 3) % 900))}`;
-
-  const description = L(
-    `${storeName} — სანდო პარტნიორი ${getDistrictLabel(store.district, language)}-ში. ყოველდღიური ფასდაკლებული პაკეტები დღის ბოლოს, სუფთა კერძები და საუკეთესო ფასი.`,
-    `${storeName} is a trusted partner in ${getDistrictLabel(store.district, language)}. End-of-day discounted packs, fresh items, and the best prices around.`,
-    `${storeName} — надёжный партнёр в ${getDistrictLabel(store.district, language)}. Уценённые наборы в конце дня, свежие блюда и лучшая цена.`,
+  const description = raw.description ?? L(
+    `${storeName} — სანდო პარტნიორი Cheaper-ზე.`,
+    `${storeName} is a trusted partner on Cheaper.`,
+    `${storeName} — надёжный партнёр на Cheaper.`,
   );
 
   const heroOffer = storeOffers[0];
   const cover = heroOffer?.image;
-  const coord = DISTRICT_COORDS[store.district];
+  const coord: [number, number] | undefined =
+    raw.lat != null && raw.lng != null
+      ? [raw.lat, raw.lng]
+      : (store.district ? DISTRICT_COORDS[store.district] : undefined);
+
+  const address = raw.address ?? "";
+  const phone = raw.phone ?? "";
 
   return (
     <div className="min-h-screen pb-8">
@@ -150,35 +152,38 @@ function StorePage() {
                 <Shield className="w-4 h-4 text-primary shrink-0" aria-label="Trusted" />
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                <span className="flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> {store.rating}
-                </span>
-                <span>·</span>
-                <span>{store.followers.toLocaleString()} {L("გამომწერი", "followers", "подписчиков")}</span>
-                <span>·</span>
                 <span>{getCategoryLabel(store.category, language)}</span>
+                {store.district && (
+                  <>
+                    <span>·</span>
+                    <span>{getDistrictLabel(store.district, language)}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{description}</p>
 
-          {/* Info rows */}
-          <div className="mt-4 space-y-2 text-sm">
-            <InfoRow icon={<MapPin className="w-4 h-4 text-primary" />}>
-              <span className="font-medium">{address}</span>
-              <span className="text-muted-foreground"> · {getDistrictLabel(store.district, language)}</span>
-            </InfoRow>
-            <InfoRow icon={<Clock className="w-4 h-4 text-primary" />}>
-              <span className="font-medium">
-                {openH.toString().padStart(2, "0")}:00 – {closeH.toString().padStart(2, "0")}:00
-              </span>
-              <span className="text-muted-foreground"> · {L("ყოველდღე", "Every day", "Ежедневно")}</span>
-            </InfoRow>
-            <InfoRow icon={<Phone className="w-4 h-4 text-primary" />}>
-              <a href={`tel:${phone.replace(/\s/g, "")}`} className="font-medium">{phone}</a>
-            </InfoRow>
-          </div>
+          {/* Info rows — only real fields */}
+          {(address || store.district || phone) && (
+            <div className="mt-4 space-y-2 text-sm">
+              {(address || store.district) && (
+                <InfoRow icon={<MapPin className="w-4 h-4 text-primary" />}>
+                  {address && <span className="font-medium">{address}</span>}
+                  {address && store.district && <span className="text-muted-foreground"> · </span>}
+                  {store.district && (
+                    <span className="text-muted-foreground">{getDistrictLabel(store.district, language)}</span>
+                  )}
+                </InfoRow>
+              )}
+              {phone && (
+                <InfoRow icon={<Phone className="w-4 h-4 text-primary" />}>
+                  <a href={`tel:${phone.replace(/\s/g, "")}`} className="font-medium">{phone}</a>
+                </InfoRow>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Active offers */}
@@ -290,6 +295,3 @@ function InfoRow({ icon, children }: { icon: React.ReactNode; children: React.Re
     </div>
   );
 }
-
-// Suppress unused import lint (Store type only for reference)
-export type _StoreRef = Store;

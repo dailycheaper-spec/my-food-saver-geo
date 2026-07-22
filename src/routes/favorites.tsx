@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
-import { STORES, OFFERS } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
+import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
+import { getCategoryLabel, getDistrictLabel } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),
@@ -10,9 +12,12 @@ export const Route = createFileRoute("/favorites")({
 });
 
 function Favorites() {
+  const { language } = useI18n();
   const favs = useFavorites();
-  const favStores = STORES.filter((s) => favs.includes(s.id));
-  const favOffers = OFFERS.filter((o) => favs.includes(o.storeId));
+  const { stores } = useLiveStores();
+  const { offers } = useLiveDbCardOffers();
+  const favStores = stores.filter((s) => favs.includes(s.id));
+  const favOffers = offers.filter((o) => favs.includes(o.storeId));
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6">
@@ -38,7 +43,10 @@ function Favorites() {
                   <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center text-2xl">{s.logo}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">{s.category} • {s.district} • ⭐ {s.rating}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {getCategoryLabel(s.category, language)}
+                      {s.district ? ` • ${getDistrictLabel(s.district, language)}` : ""}
+                    </div>
                   </div>
                   <button
                     onClick={() => toggleFavorite(s.id)}
