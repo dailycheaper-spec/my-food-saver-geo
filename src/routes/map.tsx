@@ -204,19 +204,112 @@ function MapPage() {
         <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
       </div>
 
-      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none">
-        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2 overflow-x-auto">
-          <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
-          <label className="ml-auto shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1">
+      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none space-y-2">
+        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2">
+          <div className="flex-1 relative">
+            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
-              type="checkbox"
-              checked={showUnavailable}
-              onChange={(e) => setShowUnavailable(e.target.checked)}
-              className="accent-primary"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="მაღაზია, კერძი, უბანი…"
+              className="w-full pl-8 pr-8 h-9 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            მიუწვდომელი
-          </label>
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted grid place-items-center"
+                aria-label="clear"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className={`h-9 px-3 rounded-xl inline-flex items-center gap-1.5 text-xs font-semibold shrink-0 transition-colors ${
+              showFilters || sortMode !== "nearby" || favoritesOnly || newPartnersOnly || availableOnly || districtFilter !== "ყველა უბანი"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-foreground"
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" /> ფილტრი
+          </button>
         </div>
+
+        {showFilters && (
+          <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
+              <label className="shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={showUnavailable}
+                  onChange={(e) => setShowUnavailable(e.target.checked)}
+                  className="accent-primary"
+                />
+                მიუწვდომელი
+              </label>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              {([
+                { id: "nearby", label: "ახლოს", icon: <Navigation className="w-3 h-3" /> },
+                { id: "discount", label: "მაქს. ფასდაკლება", icon: <Percent className="w-3 h-3" /> },
+                { id: "endingSoon", label: "სრულდება", icon: <Clock className="w-3 h-3" /> },
+              ] as { id: SortMode; label: string; icon: React.ReactNode }[]).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSortMode(s.id)}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                    sortMode === s.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  {s.icon} {s.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              <button
+                type="button"
+                onClick={() => setNewPartnersOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  newPartnersOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <Sparkles className="w-3 h-3" /> ახალი პარტნიორები
+              </button>
+              <button
+                type="button"
+                onClick={() => setFavoritesOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  favoritesOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <Heart className="w-3 h-3" /> ფავორიტები
+              </button>
+              <button
+                type="button"
+                onClick={() => setAvailableOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  availableOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> ხელმისაწვდომია ახლა
+              </button>
+              <select
+                value={districtFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none"
+              >
+                {DISTRICTS.map((d) => (
+                  <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 relative">
