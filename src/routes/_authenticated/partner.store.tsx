@@ -183,8 +183,14 @@ function StoreSettings() {
           <StoreLocationPicker
             value={{ lat: form.lat, lng: form.lng }}
             onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+            radiusKm={form.visibility_radius_km < 50 ? form.visibility_radius_km : undefined}
+            storageKey="cheaper-partner-store-map"
           />
         </Suspense>
+
+        <p className="text-xs text-muted-foreground">
+          ეს არის ტერიტორია, სადაც თქვენი ობიექტი გამოჩნდება მომხმარებლების რუკაზე.
+        </p>
 
         <div className="text-xs text-muted-foreground font-mono">
           {form.lat != null && form.lng != null ? (
@@ -195,6 +201,7 @@ function StoreSettings() {
             <span>დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.</span>
           )}
         </div>
+
       </div>
 
       {/* Radius section */}
