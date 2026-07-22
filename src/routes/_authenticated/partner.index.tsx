@@ -153,6 +153,7 @@ function PartnerHome() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Shortcut to="/partner/quick" icon={<Zap className="w-4 h-4" />} label={t("quickOffer")} />
         <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label={t("aiMode")} />
+        <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label="Insights" />
         <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />
         <Shortcut to="/partner/profile" icon={<StoreIcon className="w-4 h-4" />} label={t("profile")} />
       </div>
