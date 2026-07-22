@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -15,24 +18,24 @@ export const Route = createFileRoute("/map")({
   component: MapPage,
 });
 
-const MAP_BOUNDS = {
-  north: 41.755,
-  south: 41.665,
-  west: 44.695,
-  east: 44.885,
-};
-
-function toPercent([lat, lng]: [number, number]) {
-  const x = ((lng - MAP_BOUNDS.west) / (MAP_BOUNDS.east - MAP_BOUNDS.west)) * 100;
-  const y = ((MAP_BOUNDS.north - lat) / (MAP_BOUNDS.north - MAP_BOUNDS.south)) * 100;
-  return {
-    left: `${Math.min(94, Math.max(6, x))}%`,
-    top: `${Math.min(90, Math.max(10, y))}%`,
-  };
-}
-
 function osmLink([lat, lng]: [number, number]) {
   return `https://www.openstreetmap.org/?mlat=${lat.toFixed(5)}&mlon=${lng.toFixed(5)}#map=16/${lat.toFixed(5)}/${lng.toFixed(5)}`;
+}
+
+function priceIcon(o: Offer, selected: boolean) {
+  const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
+  const bg = selected ? "hsl(var(--primary))" : "hsl(var(--card))";
+  const fg = selected ? "hsl(var(--primary-foreground))" : "hsl(var(--primary))";
+  const html = `<div style="transform:translate(-50%,-100%);white-space:nowrap;border:2px solid hsl(var(--primary));background:${bg};color:${fg};padding:4px 10px;border-radius:9999px;font-weight:700;font-size:12px;box-shadow:0 4px 12px rgba(0,0,0,.2)"><span style="margin-right:4px">${o.storeLogo}</span>${o.price.toFixed(0)}${discount > 0 ? ` <span style="opacity:.7">-${discount}%</span>` : ""}</div>`;
+  return L.divIcon({ html, className: "", iconSize: [0, 0] });
+}
+
+function RecenterOn({ pos }: { pos: [number, number] | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (pos) map.flyTo(pos, Math.max(map.getZoom(), 14));
+  }, [pos, map]);
+  return null;
 }
 
 function MapPage() {
@@ -40,8 +43,10 @@ function MapPage() {
   const { offers } = useLiveDbCardOffers();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Only offers with real store coordinates can appear on the map.
+  useEffect(() => setMounted(true), []);
+
   const mappable = useMemo(
     () => offers.filter((o): o is Offer & { lat: number; lng: number } => o.lat != null && o.lng != null),
     [offers],
@@ -73,51 +78,44 @@ function MapPage() {
       </div>
 
       <div className="flex-1 relative">
-        <div className="absolute inset-0 overflow-hidden bg-[linear-gradient(135deg,hsl(var(--muted)),hsl(var(--background)))]">
-          <iframe
-            title="თბილისის რუკა"
-            src="https://www.openstreetmap.org/export/embed.html?bbox=44.695%2C41.665%2C44.885%2C41.755&layer=mapnik"
-            className="h-full w-full border-0 opacity-70 grayscale-[15%]"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/20 pointer-events-none" />
-        </div>
-
-        <div className="absolute inset-0 z-[500]">
-          {userPos && (
-            <a
-              href={osmLink(userPos)}
-              target="_blank"
-              rel="noreferrer"
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary p-2 text-primary-foreground shadow-elevated ring-4 ring-primary/25"
-              style={toPercent(userPos)}
-              aria-label={t("myLocation")}
-            >
-              <Navigation className="h-4 w-4" />
-            </a>
-          )}
-          {mappable.map((o) => {
-            const coords: [number, number] = [o.lat, o.lng];
-            const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
-            const isSel = selectedId === o.id;
-            return (
-              <button
+        {mounted && (
+          <MapContainer
+            center={TBILISI_CENTER}
+            zoom={12}
+            scrollWheelZoom
+            className="h-full w-full"
+            style={{ height: "100%", width: "100%" }}
+          >
+            <TileLayer
+              attribution='&copy; OpenStreetMap'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <RecenterOn pos={userPos} />
+            {userPos && (
+              <Marker
+                position={userPos}
+                icon={L.divIcon({
+                  html: `<div style="transform:translate(-50%,-50%);width:16px;height:16px;border-radius:9999px;background:hsl(var(--primary));box-shadow:0 0 0 6px hsl(var(--primary)/.25)"></div>`,
+                  className: "",
+                  iconSize: [0, 0],
+                })}
+              />
+            )}
+            {mappable.map((o) => (
+              <Marker
                 key={o.id}
-                type="button"
-                onClick={() => setSelectedId(o.id)}
-                className={`absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-xs font-bold shadow-elevated transition ${
-                  isSel
-                    ? "z-20 border-primary bg-primary text-primary-foreground scale-110"
-                    : "z-10 border-primary bg-card text-primary hover:scale-105"
-                }`}
-                style={toPercent(coords)}
+                position={[o.lat, o.lng]}
+                icon={priceIcon(o, selectedId === o.id)}
+                eventHandlers={{ click: () => setSelectedId(o.id) }}
               >
-                <span className="mr-1">{o.storeLogo}</span>{o.price.toFixed(0)} {t("currency")}
-                {discount > 0 && <span className="opacity-70"> -{discount}%</span>}
-              </button>
-            );
-          })}
-        </div>
+                <Popup>
+                  <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
+                  <div className="text-xs">{getOfferText(o, language).title}</div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        )}
       </div>
 
       {selected && (
