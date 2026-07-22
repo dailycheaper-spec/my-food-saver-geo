@@ -12,8 +12,10 @@ import { CitySelector } from "@/components/CitySelector";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
+import { NearbyOffersSection } from "@/components/NearbyOffersSection";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -258,8 +260,11 @@ function Home() {
         </Link>
       </section>
 
+      {/* -------- Nearby (location-aware) -------- */}
+      <NearbyOffersSection offers={filtered} />
 
-      {/* -------- All nearby (full grid) + district filter (moved up) -------- */}
+      {/* -------- All nearby (full grid) + district filter -------- */}
+
       <section className="mx-auto max-w-6xl px-4 mt-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
