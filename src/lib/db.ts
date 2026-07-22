@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
 import { getMyPartnerAccess } from "@/lib/partner-store.functions";
+import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
