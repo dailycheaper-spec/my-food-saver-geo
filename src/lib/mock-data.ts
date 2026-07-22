@@ -185,6 +185,8 @@ const DISTRICT_LABELS: Record<string, Record<UiLanguage, string>> = {
   "ისანი": { ka: "ისანი", en: "Isani", ru: "Исани" },
   "დიღომი": { ka: "დიღომი", en: "Dighomi", ru: "Дигоми" },
   "მთაწმინდა": { ka: "მთაწმინდა", en: "Mtatsminda", ru: "Мтацминда" },
+  "გლდანი": { ka: "გლდანი", en: "Gldani", ru: "Глдани" },
+  "ვარკეთილი": { ka: "ვარკეთილი", en: "Varketili", ru: "Варкетили" },
 };
 
 const STORE_LABELS: Record<string, Record<UiLanguage, string>> = {
