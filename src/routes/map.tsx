@@ -66,6 +66,7 @@ function MapPage() {
   const { offers } = useLiveDbCardOffers();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
