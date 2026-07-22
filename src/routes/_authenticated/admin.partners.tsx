@@ -40,13 +40,26 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
   component: AdminPartners,
 });
 
+const LOC_FILTERS = [
+  { key: "missing_coords", label: "მდებარეობის გარეშე" },
+  { key: "invalid_coords", label: "არასწორი კოორდინატები" },
+  { key: "no_radius", label: "რადიუსი მითითებული არაა" },
+  { key: "city_wide", label: "მთელი ქალაქი" },
+  { key: "has_offers", label: "აქტიური შეთავაზებები" },
+  { key: "no_offers", label: "შეთავაზების გარეშე" },
+] as const;
+type LocFilterKey = typeof LOC_FILTERS[number]["key"];
+
 function AdminPartners() {
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
+  const [locFilters, setLocFilters] = useState<Set<LocFilterKey>>(new Set());
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<DbStore | null>(null);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
+  const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
   const settings = loadAdminSettings();
 
   async function loadReports() {
@@ -55,7 +68,13 @@ function AdminPartners() {
     (data ?? []).forEach((r: { store_id: string }) => m.set(r.store_id, (m.get(r.store_id) ?? 0) + 1));
     setReportCounts(m);
   }
-  useEffect(() => { loadReports(); }, []);
+  async function loadActiveOffers() {
+    const { data } = await supabase.from("offers").select("store_id").eq("is_active", true);
+    const m = new Map<string, number>();
+    (data ?? []).forEach((r: { store_id: string }) => m.set(r.store_id, (m.get(r.store_id) ?? 0) + 1));
+    setActiveOffersCount(m);
+  }
+  useEffect(() => { loadReports(); loadActiveOffers(); }, []);
 
   const balances = new Map<string, number>();
   orders.filter((o) => o.status !== "cancelled").forEach((o) => {
@@ -63,9 +82,26 @@ function AdminPartners() {
     balances.set(o.store_id, prev + Number(o.amount) * (1 - settings.commissionPct / 100));
   });
 
+  function passesLocFilters(s: DbStore): boolean {
+    if (locFilters.size === 0) return true;
+    const { lat, lng, visibility_radius_km } = storeExtras(s);
+    const status = evaluateStoreLocation(lat, lng);
+    const offers = activeOffersCount.get(s.id) ?? 0;
+    for (const k of locFilters) {
+      if (k === "missing_coords" && status !== "missing") return false;
+      if (k === "invalid_coords" && status !== "invalid") return false;
+      if (k === "no_radius" && visibility_radius_km != null) return false;
+      if (k === "city_wide" && !(visibility_radius_km != null && visibility_radius_km >= 50)) return false;
+      if (k === "has_offers" && offers <= 0) return false;
+      if (k === "no_offers" && offers > 0) return false;
+    }
+    return true;
+  }
+
   const filtered = stores
     .filter((s) => filter === "all" ? true : filter === "flagged" ? (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD : s.status === filter)
-    .filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.category ?? "").toLowerCase().includes(q.toLowerCase()));
+    .filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.category ?? "").toLowerCase().includes(q.toLowerCase()))
+    .filter(passesLocFilters);
 
   const flaggedCount = stores.filter((s) => (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD).length;
   const pendingCount = stores.filter((s) => s.status === "pending").length;
@@ -77,6 +113,15 @@ function AdminPartners() {
     { key: "suspended", label: "შეჩერებული" },
     { key: "flagged", label: "🚩 გასაჩივრებული" },
   ] as const;
+
+  function toggleLoc(k: LocFilterKey) {
+    setLocFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -96,7 +141,7 @@ function AdminPartners() {
           <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => reload()} disabled={loading}
+          <button onClick={() => { reload(); loadActiveOffers(); loadReports(); }} disabled={loading}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
             <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> განაცხადების შემოწმება ({pendingCount})
           </button>
@@ -134,20 +179,49 @@ function AdminPartners() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <span className="text-xs text-muted-foreground self-center mr-1">მდებარეობის ფილტრები:</span>
+        {LOC_FILTERS.map((f) => {
+          const active = locFilters.has(f.key);
+          return (
+            <button key={f.key} onClick={() => toggleLoc(f.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"}`}>
+              {f.label}
+            </button>
+          );
+        })}
+        {locFilters.size > 0 && (
+          <button onClick={() => setLocFilters(new Set())}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground">
+            გასუფთავება
+          </button>
+        )}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((s) => (
           <PartnerCard key={s.id} store={s}
             balance={balances.get(s.id) ?? 0}
             commissionPct={settings.commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
-            onChange={() => { reload(); loadReports(); }} />
+            activeOffers={activeOffersCount.get(s.id) ?? 0}
+            onEditLocation={() => setEditingLocation(s)}
+            onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
       </div>
 
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
+      {editingLocation && (
+        <AdminStoreLocationModal
+          store={editingLocation}
+          onClose={() => setEditingLocation(null)}
+          onSaved={() => { setEditingLocation(null); reload(); }}
+        />
+      )}
     </div>
   );
+
 }
 
 function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; onChange: () => void }) {
