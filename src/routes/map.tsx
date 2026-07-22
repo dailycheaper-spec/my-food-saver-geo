@@ -123,15 +123,17 @@ function MapPage() {
         if (!o.createdAt || Date.now() - o.createdAt > NEW_PARTNER_MS) continue;
       }
       if (districtFilter !== "ყველა უბანი" && o.district !== districtFilter) continue;
+      if (categoryFilter !== "ყველა" && o.category !== categoryFilter) continue;
       if (q) {
         const { title: locTitle } = getOfferText(o, language);
-        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)}`.toLowerCase();
+        const catLabel = getCategoryLabel(o.category as Category, language);
+        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)} ${o.category ?? ""} ${catLabel}`.toLowerCase();
         if (!hay.includes(q)) continue;
       }
       out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
     }
     return out;
-  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, query, favorites, language]);
+  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, categoryFilter, query, favorites, language]);
 
   const stores = useMemo<MapStore[]>(() => {
     const map = new Map<string, MapStore>();
