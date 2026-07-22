@@ -4,7 +4,7 @@ import { ArrowLeft, ExternalLink, MapPin, Navigation } from "lucide-react";
 import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, getStoreName, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
