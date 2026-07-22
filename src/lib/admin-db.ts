@@ -16,7 +16,7 @@ export function useAllOffers() {
     async function load() {
       const { data } = await supabase
         .from("offers")
-        .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+        .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .order("created_at", { ascending: false })
         .limit(500);
       if (alive && data) setOffers(data as OfferWithStore[]);
