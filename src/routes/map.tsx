@@ -263,39 +263,145 @@ function MapPage() {
       </div>
 
       <div className="absolute top-14 inset-x-0 z-[1000] px-3 pointer-events-none space-y-1.5">
-        <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1 max-w-md mx-auto">
-          <div className="flex-1 relative">
-            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="მაღაზია, კერძი, უბანი…"
-              className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none"
-            />
-            {query && (
-              <button
-                type="button"
-                onClick={() => setQuery("")}
-                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center"
-                aria-label="clear"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
+        <div ref={searchWrapRef} className="relative max-w-md mx-auto">
+          <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1">
+            <div className="flex-1 relative">
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true); }}
+                onFocus={() => setSuggestOpen(true)}
+                onKeyDown={(e) => { if (e.key === "Escape") { setSuggestOpen(false); (e.target as HTMLInputElement).blur(); } }}
+                placeholder="მაღაზია, კერძი, კატეგორია, უბანი…"
+                aria-label="ძებნა რუკაზე"
+                aria-expanded={Boolean(suggestOpen && suggestions)}
+                aria-controls="map-search-suggestions"
+                className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(""); setSuggestOpen(false); }}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="ძებნის გასუფთავება"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFilters((v) => !v)}
+              className={`relative h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                showFilters || activeFilterCount > 0
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-foreground"
+              }`}
+              aria-label={`ფილტრი${activeFilterCount > 0 ? ` (${activeFilterCount} აქტიური)` : ""}`}
+              aria-pressed={showFilters}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              {activeFilterCount > 0 && (
+                <span
+                  aria-hidden
+                  className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold grid place-items-center border border-card"
+                >
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowFilters((v) => !v)}
-            className={`h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 transition-colors ${
-              showFilters || sortMode !== "nearby" || favoritesOnly || newPartnersOnly || availableOnly || districtFilter !== "ყველა უბანი"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground"
-            }`}
-            aria-label="ფილტრი"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-          </button>
+
+          {suggestOpen && suggestions && (
+            <div
+              id="map-search-suggestions"
+              role="listbox"
+              className="pointer-events-auto absolute inset-x-0 top-[calc(100%+6px)] bg-card border border-border rounded-2xl shadow-elevated overflow-hidden max-h-[60vh] overflow-y-auto"
+            >
+              {suggestions.partners.length > 0 && (
+                <div className="p-2">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">პარტნიორები</div>
+                  {suggestions.partners.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      role="option"
+                      onClick={() => { setSelectedStoreId(p.id); setSuggestOpen(false); }}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary focus:bg-secondary focus:outline-none text-left"
+                    >
+                      <span className="w-7 h-7 rounded-full bg-secondary grid place-items-center text-sm shrink-0 overflow-hidden">
+                        {/^(https?:|\/|data:)/.test(p.logo)
+                          ? <img src={p.logo} alt="" className="w-full h-full object-cover" />
+                          : <span>{p.logo || "🏪"}</span>}
+                      </span>
+                      <span className="flex-1 min-w-0 truncate text-xs font-semibold">{p.name}</span>
+                      <StoreIcon className="w-3 h-3 text-muted-foreground shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {suggestions.foods.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კერძები</div>
+                  {suggestions.foods.map((f) => (
+                    <Link
+                      key={f.id}
+                      to="/offer/$id"
+                      params={{ id: f.id }}
+                      onClick={() => setSuggestOpen(false)}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary focus:bg-secondary focus:outline-none"
+                    >
+                      <img src={f.image} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                      <span className="flex-1 min-w-0">
+                        <span className="block truncate text-xs font-semibold">{f.title}</span>
+                        <span className="block truncate text-[10px] text-muted-foreground">{f.storeName}</span>
+                      </span>
+                      <Utensils className="w-3 h-3 text-muted-foreground shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {suggestions.cats.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კატეგორიები</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions.cats.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        onClick={() => { setCategoryFilter(c.id as Category | "ყველა"); setQuery(""); setSuggestOpen(false); }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground text-[11px] font-semibold hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <span>{c.icon}</span>{getCategoryLabel(c.id, language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {suggestions.districts.length > 0 && (
+                <div className="p-2 border-t border-border">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">უბნები</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {suggestions.districts.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        role="option"
+                        onClick={() => { setDistrictFilter(d); setQuery(""); setSuggestOpen(false); }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground text-[11px] font-semibold hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <MapPin className="w-3 h-3" />{getDistrictLabel(d, language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
 
         {showFilters && (
           <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in">
