@@ -232,7 +232,7 @@ export function useMyRole() {
 export async function fetchMyStores(): Promise<DbStore[]> {
   const identity = await getCurrentUserIdentity();
   if (!identity) return [];
-  const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", identity.id);
+  const { data: owned, error: ownedError } = await supabase.from("stores").select(STORE_PUBLIC_COLUMNS).eq("owner_id", identity.id);
   const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", identity.id);
 
   if (ownedError && memberError) {
@@ -243,18 +243,18 @@ export async function fetchMyStores(): Promise<DbStore[]> {
   let extra: DbStore[] = [];
   let emailStores: DbStore[] = [];
   if (memberIds.length) {
-    const { data, error } = await supabase.from("stores").select("*").in("id", memberIds);
-    if (!error) extra = data ?? [];
+    const { data, error } = await supabase.from("stores").select(STORE_PUBLIC_COLUMNS).in("id", memberIds);
+    if (!error) extra = (data ?? []) as unknown as DbStore[];
   }
   if (identity.email) {
     const { data, error } = await supabase
       .from("stores")
-      .select("*")
+      .select(STORE_PUBLIC_COLUMNS)
       .ilike("contact_email", identity.email);
-    if (!error) emailStores = data ?? [];
+    if (!error) emailStores = (data ?? []) as unknown as DbStore[];
   }
   const map = new Map<string, DbStore>();
-  [...(owned ?? []), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
+  [...((owned ?? []) as unknown as DbStore[]), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
   return sortPartnerStores(Array.from(map.values()));
 }
 
