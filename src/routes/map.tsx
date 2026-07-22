@@ -7,6 +7,7 @@ import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
+import LocationButton from "@/components/map/LocationButton";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
@@ -141,13 +142,7 @@ function MapPage() {
         <div className="pointer-events-auto bg-card shadow-elevated rounded-full px-4 py-2 text-sm font-semibold flex items-center gap-1.5">
           <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {stores.length}
         </div>
-        <button
-          onClick={askOrRefresh}
-          className="pointer-events-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-elevated grid place-items-center"
-          aria-label={t("myLocation")}
-        >
-          <Navigation className="w-5 h-5" />
-        </button>
+        <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
       </div>
 
       <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none">
@@ -198,6 +193,7 @@ function MapPage() {
             <MapCanvas
               center={location ? [location.lat, location.lng] : TBILISI_CENTER}
               userPos={location ? [location.lat, location.lng] : null}
+              userAccuracy={location?.accuracy}
               stores={stores}
               selectedId={selectedStoreId}
               hoveredId={hoveredId}
