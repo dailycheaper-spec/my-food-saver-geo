@@ -417,7 +417,7 @@ function MapPage() {
                 მიუწვდომელი
               </label>
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="დალაგება">
               {([
                 { id: "nearby", label: "ახლოს", icon: <Navigation className="w-3 h-3" /> },
                 { id: "discount", label: "მაქს. ფასდაკლება", icon: <Percent className="w-3 h-3" /> },
@@ -427,7 +427,8 @@ function MapPage() {
                   key={s.id}
                   type="button"
                   onClick={() => setSortMode(s.id)}
-                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  aria-pressed={sortMode === s.id}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                     sortMode === s.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                   }`}
                 >
@@ -435,20 +436,37 @@ function MapPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="კატეგორია">
+              {CATEGORIES.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCategoryFilter(c.id)}
+                  aria-pressed={categoryFilter === c.id}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                    categoryFilter === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="ფილტრები">
               <button
                 type="button"
                 onClick={() => setNewPartnersOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={newPartnersOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   newPartnersOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
-                <Sparkles className="w-3 h-3" /> ახალი პარტნიორები
+                <Sparkles className="w-3 h-3" /> ახალი
               </button>
               <button
                 type="button"
                 onClick={() => setFavoritesOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={favoritesOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   favoritesOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
@@ -457,7 +475,8 @@ function MapPage() {
               <button
                 type="button"
                 onClick={() => setAvailableOnly((v) => !v)}
-                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                aria-pressed={availableOnly}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                   availableOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
@@ -466,13 +485,32 @@ function MapPage() {
               <select
                 value={districtFilter}
                 onChange={(e) => setDistrictFilter(e.target.value)}
-                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none"
+                aria-label="უბანი"
+                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {DISTRICTS.map((d) => (
                   <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
                 ))}
               </select>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSortMode("nearby");
+                    setFavoritesOnly(false);
+                    setNewPartnersOnly(false);
+                    setAvailableOnly(false);
+                    setDistrictFilter("ყველა უბანი");
+                    setCategoryFilter("ყველა");
+                    setShowUnavailable(false);
+                  }}
+                  className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-muted text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <X className="w-3 h-3" /> გასუფთავება
+                </button>
+              )}
             </div>
+
           </div>
         )}
       </div>
