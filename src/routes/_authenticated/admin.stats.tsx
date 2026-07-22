@@ -95,6 +95,10 @@ function AdminStats() {
         <Kpi icon={Users} label="აქტიური კლიენტი" value={new Set(filtered.map((o) => o.user_id)).size.toString()} tint="warm" />
       </div>
 
+      <PlatformInsights orders={orders} />
+
+
+
       {/* Revenue chart */}
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
         <h3 className="font-display font-bold text-lg mb-4">შემოსავალი დღეების მიხედვით</h3>
