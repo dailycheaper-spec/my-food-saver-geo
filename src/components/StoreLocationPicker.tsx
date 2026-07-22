@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TBILISI_CENTER } from "@/lib/mock-data";
+import MapLayerSelector, { type MapLayerId } from "@/components/map/MapLayerSelector";
 
 // Fix default marker icons (Leaflet needs explicit URLs when bundled).
 const markerIcon = L.icon({
@@ -50,10 +51,11 @@ export function StoreLocationPicker({ value, onChange, height = 320 }: Props) {
   }, [value.lat, value.lng]);
 
   const hasMarker = value.lat != null && value.lng != null;
+  const [layer, setLayer] = useState<MapLayerId>("standard");
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden border border-border"
+      className="w-full rounded-2xl overflow-hidden border border-border relative"
       style={{ height }}
     >
       <MapContainer
@@ -62,10 +64,27 @@ export function StoreLocationPicker({ value, onChange, height = 320 }: Props) {
         scrollWheelZoom
         style={{ height: "100%", width: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {layer === "standard" && (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        )}
+        {(layer === "satellite" || layer === "hybrid") && (
+          <TileLayer
+            attribution="Tiles &copy; Esri"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={19}
+          />
+        )}
+        {layer === "hybrid" && (
+          <TileLayer
+            attribution="Labels &copy; Esri"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+            opacity={0.9}
+            maxZoom={19}
+          />
+        )}
         <ClickHandler onChange={onChange} />
         <Recenter lat={value.lat} lng={value.lng} />
         {hasMarker && (
@@ -83,6 +102,9 @@ export function StoreLocationPicker({ value, onChange, height = 320 }: Props) {
           />
         )}
       </MapContainer>
+      <div className="absolute top-2 right-2 z-[500]">
+        <MapLayerSelector value={layer} onChange={setLayer} />
+      </div>
     </div>
   );
 }

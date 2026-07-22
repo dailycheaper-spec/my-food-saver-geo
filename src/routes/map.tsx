@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { ArrowLeft, ExternalLink, MapPin, Navigation, X } from "lucide-react";
-import { TBILISI_CENTER, formatPrice, getDistrictLabel, getOfferText, type Offer } from "@/lib/mock-data";
+import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2 } from "lucide-react";
+import { TBILISI_CENTER, DISTRICTS, formatPrice, getDistrictLabel, getOfferText, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
+import { useFavorites } from "@/lib/storage";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
@@ -52,20 +53,43 @@ function externalDirectionsUrl(lat: number, lng: number) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
+type SortMode = "nearby" | "discount" | "endingSoon";
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+function isOpenNow(o: Offer): boolean {
+  const now = new Date();
+  const n = now.getHours() * 60 + now.getMinutes();
+  return n >= timeToMinutes(o.pickupFrom) && n <= timeToMinutes(o.pickupTo);
+}
+const NEW_PARTNER_MS = 7 * 24 * 60 * 60 * 1000;
+
 function MapPage() {
   const { t, language } = useI18n();
   const { offers } = useLiveDbCardOffers();
   const { location, status, askPermission, request } = useUserLocation();
+  const favorites = useFavorites();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [radius, setRadius] = useState<RadiusOption>(5);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(5);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [query, setQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("nearby");
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [newPartnersOnly, setNewPartnersOnly] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
+  const [districtFilter, setDistrictFilter] = useState<string>("ყველა უბანი");
 
   useEffect(() => setMounted(true), []);
 
   const mappable = useMemo<MapOffer[]>(() => {
+    const q = query.trim().toLowerCase();
+    const favSet = new Set(favorites);
     const out: MapOffer[] = [];
     for (const o of offers) {
       if (!isValidLatLng(o.lat, o.lng)) continue;
@@ -79,10 +103,21 @@ function MapPage() {
       if (o.itemsLeft <= 0) state = "unavailable";
       else if (o.itemsLeft <= 2) state = "almost";
       if (state === "unavailable" && !showUnavailable) continue;
+      if (availableOnly && (state === "unavailable" || !isOpenNow(o))) continue;
+      if (favoritesOnly && !favSet.has(o.storeId)) continue;
+      if (newPartnersOnly) {
+        if (!o.createdAt || Date.now() - o.createdAt > NEW_PARTNER_MS) continue;
+      }
+      if (districtFilter !== "ყველა უბანი" && o.district !== districtFilter) continue;
+      if (q) {
+        const { title: locTitle } = getOfferText(o, language);
+        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)}`.toLowerCase();
+        if (!hay.includes(q)) continue;
+      }
       out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
     }
     return out;
-  }, [offers, location, effectiveRadius, showUnavailable]);
+  }, [offers, location, effectiveRadius, showUnavailable, favoritesOnly, newPartnersOnly, availableOnly, districtFilter, query, favorites, language]);
 
   const stores = useMemo<MapStore[]>(() => {
     const map = new Map<string, MapStore>();
@@ -119,9 +154,33 @@ function MapPage() {
       });
       list.push(s);
     }
-    if (location) list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    const bestDiscount = (s: MapStore) => {
+      let best = 0;
+      for (const o of s.offers) {
+        if (o._state === "unavailable") continue;
+        const dc = o.originalPrice > 0 ? 1 - o.price / o.originalPrice : 0;
+        if (dc > best) best = dc;
+      }
+      return best;
+    };
+    const earliestEnd = (s: MapStore) => {
+      let min = Infinity;
+      for (const o of s.offers) {
+        if (o._state === "unavailable") continue;
+        const m = timeToMinutes(o.pickupTo);
+        if (m < min) min = m;
+      }
+      return min;
+    };
+    if (sortMode === "discount") {
+      list.sort((a, b) => bestDiscount(b) - bestDiscount(a));
+    } else if (sortMode === "endingSoon") {
+      list.sort((a, b) => earliestEnd(a) - earliestEnd(b));
+    } else if (location) {
+      list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    }
     return list;
-  }, [mappable, location]);
+  }, [mappable, location, sortMode]);
 
   const selectedStore = useMemo(
     () => stores.find((s) => s.storeId === selectedStoreId) ?? null,
@@ -145,19 +204,112 @@ function MapPage() {
         <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
       </div>
 
-      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none">
-        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2 overflow-x-auto">
-          <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
-          <label className="ml-auto shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1">
+      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none space-y-2">
+        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2">
+          <div className="flex-1 relative">
+            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             <input
-              type="checkbox"
-              checked={showUnavailable}
-              onChange={(e) => setShowUnavailable(e.target.checked)}
-              className="accent-primary"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="მაღაზია, კერძი, უბანი…"
+              className="w-full pl-8 pr-8 h-9 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            მიუწვდომელი
-          </label>
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted grid place-items-center"
+                aria-label="clear"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className={`h-9 px-3 rounded-xl inline-flex items-center gap-1.5 text-xs font-semibold shrink-0 transition-colors ${
+              showFilters || sortMode !== "nearby" || favoritesOnly || newPartnersOnly || availableOnly || districtFilter !== "ყველა უბანი"
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-foreground"
+            }`}
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" /> ფილტრი
+          </button>
         </div>
+
+        {showFilters && (
+          <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
+              <label className="shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={showUnavailable}
+                  onChange={(e) => setShowUnavailable(e.target.checked)}
+                  className="accent-primary"
+                />
+                მიუწვდომელი
+              </label>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              {([
+                { id: "nearby", label: "ახლოს", icon: <Navigation className="w-3 h-3" /> },
+                { id: "discount", label: "მაქს. ფასდაკლება", icon: <Percent className="w-3 h-3" /> },
+                { id: "endingSoon", label: "სრულდება", icon: <Clock className="w-3 h-3" /> },
+              ] as { id: SortMode; label: string; icon: React.ReactNode }[]).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSortMode(s.id)}
+                  className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                    sortMode === s.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                  }`}
+                >
+                  {s.icon} {s.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              <button
+                type="button"
+                onClick={() => setNewPartnersOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  newPartnersOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <Sparkles className="w-3 h-3" /> ახალი პარტნიორები
+              </button>
+              <button
+                type="button"
+                onClick={() => setFavoritesOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  favoritesOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <Heart className="w-3 h-3" /> ფავორიტები
+              </button>
+              <button
+                type="button"
+                onClick={() => setAvailableOnly((v) => !v)}
+                className={`shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold ${
+                  availableOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                }`}
+              >
+                <CheckCircle2 className="w-3 h-3" /> ხელმისაწვდომია ახლა
+              </button>
+              <select
+                value={districtFilter}
+                onChange={(e) => setDistrictFilter(e.target.value)}
+                className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none"
+              >
+                {DISTRICTS.map((d) => (
+                  <option key={d} value={d}>{getDistrictLabel(d, language)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 relative">
