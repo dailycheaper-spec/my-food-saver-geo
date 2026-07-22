@@ -129,13 +129,19 @@ function MapPage() {
             )}
             {mappable.map((o) => {
               const [dx, dy] = hashOffset(o.id);
+              const isHovered = hoveredId === o.id;
+              const isSelected = selectedId === o.id;
               return (
                 <Marker
                   key={o.id}
                   position={[o.lat + dx, o.lng + dy]}
-                  icon={priceIcon(o, selectedId === o.id)}
-                  zIndexOffset={selectedId === o.id ? 1000 : 0}
-                  eventHandlers={{ click: () => setSelectedId(o.id) }}
+                  icon={priceIcon(o, isSelected, isHovered, getStoreName(o, language))}
+                  zIndexOffset={isHovered ? 2000 : isSelected ? 1000 : 0}
+                  eventHandlers={{
+                    click: () => setSelectedId(o.id),
+                    mouseover: () => setHoveredId(o.id),
+                    mouseout: () => setHoveredId((v) => (v === o.id ? null : v)),
+                  }}
                 >
                   <Popup>
                     <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
