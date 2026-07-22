@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiveOffers, type DbStore, type OfferWithStore } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
 import type { Offer, Store, Category } from "@/lib/mock-data";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
