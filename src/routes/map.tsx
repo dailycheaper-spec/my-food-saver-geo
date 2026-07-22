@@ -8,7 +8,7 @@ import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
-import { useFavorites } from "@/lib/storage";
+import { useFavorites, toggleFavorite } from "@/lib/storage";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
