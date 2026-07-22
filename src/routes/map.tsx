@@ -113,19 +113,24 @@ function MapPage() {
                 })}
               />
             )}
-            {mappable.map((o) => (
-              <Marker
-                key={o.id}
-                position={[o.lat, o.lng]}
-                icon={priceIcon(o, selectedId === o.id)}
-                eventHandlers={{ click: () => setSelectedId(o.id) }}
-              >
-                <Popup>
-                  <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
-                  <div className="text-xs">{getOfferText(o, language).title}</div>
-                </Popup>
-              </Marker>
-            ))}
+            {mappable.map((o) => {
+              const [dx, dy] = hashOffset(o.id);
+              return (
+                <Marker
+                  key={o.id}
+                  position={[o.lat + dx, o.lng + dy]}
+                  icon={priceIcon(o, selectedId === o.id)}
+                  zIndexOffset={selectedId === o.id ? 1000 : 0}
+                  eventHandlers={{ click: () => setSelectedId(o.id) }}
+                >
+                  <Popup>
+                    <div className="text-xs font-semibold">{getStoreName(o, language)}</div>
+                    <div className="text-xs">{getOfferText(o, language).title}</div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+
           </MapContainer>
         )}
       </div>
