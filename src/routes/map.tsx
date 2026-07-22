@@ -204,21 +204,21 @@ function MapPage() {
         <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
       </div>
 
-      <div className="absolute top-16 inset-x-0 z-[1000] px-3 pointer-events-none space-y-2">
-        <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 flex items-center gap-2">
+      <div className="absolute top-14 inset-x-0 z-[1000] px-3 pointer-events-none space-y-1.5">
+        <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1 max-w-md mx-auto">
           <div className="flex-1 relative">
-            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="მაღაზია, კერძი, უბანი…"
-              className="w-full pl-8 pr-8 h-9 rounded-xl bg-secondary text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted grid place-items-center"
+                className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center"
                 aria-label="clear"
               >
                 <X className="w-3 h-3" />
@@ -228,13 +228,14 @@ function MapPage() {
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
-            className={`h-9 px-3 rounded-xl inline-flex items-center gap-1.5 text-xs font-semibold shrink-0 transition-colors ${
+            className={`h-8 w-8 rounded-full inline-flex items-center justify-center shrink-0 transition-colors ${
               showFilters || sortMode !== "nearby" || favoritesOnly || newPartnersOnly || availableOnly || districtFilter !== "ყველა უბანი"
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-foreground"
             }`}
+            aria-label="ფილტრი"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" /> ფილტრი
+            <SlidersHorizontal className="w-3.5 h-3.5" />
           </button>
         </div>
 
