@@ -1,13 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
-import { DISTRICTS } from "@/lib/mock-data";
+import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
 import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus } from "@/lib/admin-store.functions";
+import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
+import { StoreLocationPreview } from "@/components/StoreLocationPreview";
+import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
+
+type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
+function storeExtras(s: DbStore): StoreExtras {
+  const a = s as unknown as Record<string, unknown>;
+  return {
+    lat: typeof a.lat === "number" ? (a.lat as number) : null,
+    lng: typeof a.lng === "number" ? (a.lng as number) : null,
+    visibility_radius_km:
+      typeof a.visibility_radius_km === "number" ? (a.visibility_radius_km as number) : null,
+  };
+}
+
 
 const FLAG_THRESHOLD = 5;
 
@@ -25,13 +40,26 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
   component: AdminPartners,
 });
 
+const LOC_FILTERS = [
+  { key: "missing_coords", label: "მდებარეობის გარეშე" },
+  { key: "invalid_coords", label: "არასწორი კოორდინატები" },
+  { key: "no_radius", label: "რადიუსი მითითებული არაა" },
+  { key: "city_wide", label: "მთელი ქალაქი" },
+  { key: "has_offers", label: "აქტიური შეთავაზებები" },
+  { key: "no_offers", label: "შეთავაზების გარეშე" },
+] as const;
+type LocFilterKey = typeof LOC_FILTERS[number]["key"];
+
 function AdminPartners() {
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
+  const [locFilters, setLocFilters] = useState<Set<LocFilterKey>>(new Set());
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<DbStore | null>(null);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
+  const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
   const settings = loadAdminSettings();
 
   async function loadReports() {
@@ -40,7 +68,13 @@ function AdminPartners() {
     (data ?? []).forEach((r: { store_id: string }) => m.set(r.store_id, (m.get(r.store_id) ?? 0) + 1));
     setReportCounts(m);
   }
-  useEffect(() => { loadReports(); }, []);
+  async function loadActiveOffers() {
+    const { data } = await supabase.from("offers").select("store_id").eq("is_active", true);
+    const m = new Map<string, number>();
+    (data ?? []).forEach((r: { store_id: string }) => m.set(r.store_id, (m.get(r.store_id) ?? 0) + 1));
+    setActiveOffersCount(m);
+  }
+  useEffect(() => { loadReports(); loadActiveOffers(); }, []);
 
   const balances = new Map<string, number>();
   orders.filter((o) => o.status !== "cancelled").forEach((o) => {
@@ -48,9 +82,26 @@ function AdminPartners() {
     balances.set(o.store_id, prev + Number(o.amount) * (1 - settings.commissionPct / 100));
   });
 
+  function passesLocFilters(s: DbStore): boolean {
+    if (locFilters.size === 0) return true;
+    const { lat, lng, visibility_radius_km } = storeExtras(s);
+    const status = evaluateStoreLocation(lat, lng);
+    const offers = activeOffersCount.get(s.id) ?? 0;
+    for (const k of locFilters) {
+      if (k === "missing_coords" && status !== "missing") return false;
+      if (k === "invalid_coords" && status !== "invalid") return false;
+      if (k === "no_radius" && visibility_radius_km != null) return false;
+      if (k === "city_wide" && !(visibility_radius_km != null && visibility_radius_km >= 50)) return false;
+      if (k === "has_offers" && offers <= 0) return false;
+      if (k === "no_offers" && offers > 0) return false;
+    }
+    return true;
+  }
+
   const filtered = stores
     .filter((s) => filter === "all" ? true : filter === "flagged" ? (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD : s.status === filter)
-    .filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.category ?? "").toLowerCase().includes(q.toLowerCase()));
+    .filter((s) => !q || s.name.toLowerCase().includes(q.toLowerCase()) || (s.category ?? "").toLowerCase().includes(q.toLowerCase()))
+    .filter(passesLocFilters);
 
   const flaggedCount = stores.filter((s) => (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD).length;
   const pendingCount = stores.filter((s) => s.status === "pending").length;
@@ -62,6 +113,15 @@ function AdminPartners() {
     { key: "suspended", label: "შეჩერებული" },
     { key: "flagged", label: "🚩 გასაჩივრებული" },
   ] as const;
+
+  function toggleLoc(k: LocFilterKey) {
+    setLocFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -81,7 +141,7 @@ function AdminPartners() {
           <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => reload()} disabled={loading}
+          <button onClick={() => { reload(); loadActiveOffers(); loadReports(); }} disabled={loading}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
             <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> განაცხადების შემოწმება ({pendingCount})
           </button>
@@ -119,28 +179,66 @@ function AdminPartners() {
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        <span className="text-xs text-muted-foreground self-center mr-1">მდებარეობის ფილტრები:</span>
+        {LOC_FILTERS.map((f) => {
+          const active = locFilters.has(f.key);
+          return (
+            <button key={f.key} onClick={() => toggleLoc(f.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"}`}>
+              {f.label}
+            </button>
+          );
+        })}
+        {locFilters.size > 0 && (
+          <button onClick={() => setLocFilters(new Set())}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground">
+            გასუფთავება
+          </button>
+        )}
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filtered.map((s) => (
           <PartnerCard key={s.id} store={s}
             balance={balances.get(s.id) ?? 0}
             commissionPct={settings.commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
-            onChange={() => { reload(); loadReports(); }} />
+            activeOffers={activeOffersCount.get(s.id) ?? 0}
+            onEditLocation={() => setEditingLocation(s)}
+            onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
       </div>
 
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
+      {editingLocation && (
+        <AdminStoreLocationModal
+          store={editingLocation}
+          onClose={() => setEditingLocation(null)}
+          onSaved={() => { setEditingLocation(null); reload(); }}
+        />
+      )}
     </div>
   );
+
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; onEditLocation: () => void; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
   const deleteStoreFn = useServerFn(deleteAdminStore);
   const isFlagged = reportCount >= FLAG_THRESHOLD;
+  const { lat, lng, visibility_radius_km } = useMemo(() => storeExtras(store), [store]);
+  const locStatus: StoreLocationStatus = evaluateStoreLocation(lat, lng);
+  const districtCenter = store.district ? DISTRICT_COORDS[store.district] : undefined;
+  const farFromDistrict =
+    locStatus === "ok" && districtCenter && lat != null && lng != null
+      ? calculateDistanceKm(lat, lng, districtCenter[0], districtCenter[1]) > 15
+      : false;
+  const radiusMissing = visibility_radius_km == null;
+
   async function act(fn: () => Promise<void>) {
     setBusy(true);
     try { await fn(); onChange(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
@@ -172,7 +270,52 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
         </div>
       </div>
 
+      <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">მდებარეობა</div>
+          <button
+            type="button"
+            onClick={onEditLocation}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
+          >
+            <Pencil className="w-3 h-3" /> რედაქტირება
+          </button>
+        </div>
+        <StoreLocationPreview lat={lat} lng={lng} height={130} />
+        <div className="text-xs space-y-0.5">
+          <LocStatusLine status={locStatus} />
+          <div className="text-muted-foreground">
+            კოორდინატები: <span className="font-mono text-foreground">
+              {lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}
+            </span>
+          </div>
+          <div className="text-muted-foreground">
+            რადიუსი: <span className="font-semibold text-foreground">
+              {visibility_radius_km == null
+                ? "მითითებული არაა"
+                : visibility_radius_km >= 50
+                  ? "მთელი ქალაქი"
+                  : `${visibility_radius_km} კმ`}
+            </span>
+            {" · "}
+            აქტიური შეთავაზება: <span className="font-semibold text-foreground">{activeOffers}</span>
+          </div>
+          {store.status === "pending" && (locStatus !== "ok" || radiusMissing || farFromDistrict) && (
+            <div className="mt-2 text-[11px] rounded-lg bg-warm/40 border border-warm text-warm-foreground p-2 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                {locStatus === "missing" && <div>კოორდინატები არ არის მითითებული — შეამოწმეთ დამტკიცებამდე.</div>}
+                {locStatus === "invalid" && <div>კოორდინატები საქართველოს საზღვრებს გარეთაა.</div>}
+                {radiusMissing && <div>ხილვადობის რადიუსი მითითებული არაა.</div>}
+                {farFromDistrict && <div>კოორდინატები შორსაა უბნისგან „{store.district}"-.</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+
         <div className="p-2.5 rounded-2xl bg-muted/50">
           <div className="text-muted-foreground">ბალანსი</div>
           <div className="font-bold text-sm">{formatGel(balance)}</div>
@@ -231,6 +374,12 @@ function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: {
       </div>
     </div>
   );
+}
+
+function LocStatusLine({ status }: { status: StoreLocationStatus }) {
+  if (status === "ok") return <div className="text-success font-semibold">✓ მდებარეობა გამართულია</div>;
+  if (status === "invalid") return <div className="text-destructive font-semibold">✗ კოორდინატები არასწორია</div>;
+  return <div className="text-warm-foreground font-semibold">⚠ მდებარეობა არ არის მითითებული</div>;
 }
 
 function StatusBadge({ status }: { status: string }) {
