@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { listAdminStores } from "@/lib/admin-store.functions";
 import { getMyPartnerAccess } from "@/lib/partner-store.functions";
+import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
 
 export type DbStore = Database["public"]["Tables"]["stores"]["Row"];
 export type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
@@ -82,7 +83,7 @@ export function useLiveOffers() {
     async function load() {
       const { data } = await supabase
         .from("offers")
-        .select("*, store:stores!inner(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+        .select("*, store:stores!inner(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .eq("is_active", true)
         .eq("store.status", "active")
         .order("created_at", { ascending: false });
@@ -105,7 +106,7 @@ export function useLiveOffers() {
 export async function fetchOffer(id: string): Promise<OfferWithStore | null> {
   const { data } = await supabase
     .from("offers")
-    .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+    .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
     .eq("id", id)
     .maybeSingle();
   return (data as OfferWithStore) ?? null;
@@ -123,7 +124,7 @@ export function useMyOrders() {
       if (!sess.session) { if (alive) { setOrders([]); setLoading(false); } return; }
       const { data } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .order("created_at", { ascending: false });
       if (alive && data) setOrders(data as OrderWithRelations[]);
       if (alive) setLoading(false);
@@ -144,7 +145,7 @@ export function useMyOrders() {
 export async function fetchOrder(id: string): Promise<OrderWithRelations | null> {
   const { data } = await supabase
     .from("orders")
-    .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+    .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
     .eq("id", id)
     .maybeSingle();
   return (data as OrderWithRelations) ?? null;
@@ -231,7 +232,7 @@ export function useMyRole() {
 export async function fetchMyStores(): Promise<DbStore[]> {
   const identity = await getCurrentUserIdentity();
   if (!identity) return [];
-  const { data: owned, error: ownedError } = await supabase.from("stores").select("*").eq("owner_id", identity.id);
+  const { data: owned, error: ownedError } = await supabase.from("stores").select(STORE_PUBLIC_COLUMNS).eq("owner_id", identity.id);
   const { data: memberOf, error: memberError } = await supabase.from("store_members").select("store_id").eq("user_id", identity.id);
 
   if (ownedError && memberError) {
@@ -242,18 +243,13 @@ export async function fetchMyStores(): Promise<DbStore[]> {
   let extra: DbStore[] = [];
   let emailStores: DbStore[] = [];
   if (memberIds.length) {
-    const { data, error } = await supabase.from("stores").select("*").in("id", memberIds);
-    if (!error) extra = data ?? [];
+    const { data, error } = await supabase.from("stores").select(STORE_PUBLIC_COLUMNS).in("id", memberIds);
+    if (!error) extra = (data ?? []) as unknown as DbStore[];
   }
-  if (identity.email) {
-    const { data, error } = await supabase
-      .from("stores")
-      .select("*")
-      .ilike("contact_email", identity.email);
-    if (!error) emailStores = data ?? [];
-  }
+  // Email-based lookup requires reading contact_email which is admin-only;
+  // this fallback is handled server-side by getMyPartnerAccess (service role).
   const map = new Map<string, DbStore>();
-  [...(owned ?? []), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
+  [...((owned ?? []) as unknown as DbStore[]), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
   return sortPartnerStores(Array.from(map.values()));
 }
 
@@ -388,7 +384,7 @@ export function useStoreOrders(storeId: string | null) {
     async function load() {
       const { data } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
       if (alive && data) setOrders(data as OrderWithRelations[]);
@@ -453,7 +449,7 @@ export function useAllOrders() {
     async function load() {
       const { data } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km)")
+        .select("*, offer:offers(*), store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (alive && data) setOrders(data as OrderWithRelations[]);

@@ -23,7 +23,7 @@ export const dispatchDelivery = createServerFn({ method: "POST" })
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km), offer:offers(*)")
+      .select("*, store:stores(id,name,logo,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), offer:offers(*)")
       .eq("id", data.orderId)
       .maybeSingle();
     if (orderErr || !order) throw new Error(orderErr?.message ?? "Order not found");

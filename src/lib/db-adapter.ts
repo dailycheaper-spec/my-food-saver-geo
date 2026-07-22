@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiveOffers, type DbStore, type OfferWithStore } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
 import type { Offer, Store, Category } from "@/lib/mock-data";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
@@ -117,7 +118,7 @@ export function useDbStore(id: string): { store: Store | null; raw: DbStore | nu
     (async () => {
       const { data } = await supabase
         .from("stores")
-        .select("*")
+        .select(STORE_PUBLIC_COLUMNS)
         .eq("id", id)
         .eq("status", "active")
         .maybeSingle();
