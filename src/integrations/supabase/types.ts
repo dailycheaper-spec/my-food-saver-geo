@@ -485,6 +485,7 @@ export type Database = {
           phone: string | null
           status: Database["public"]["Enums"]["store_status"]
           updated_at: string
+          visibility_radius_km: number | null
         }
         Insert: {
           address?: string | null
@@ -510,6 +511,7 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
+          visibility_radius_km?: number | null
         }
         Update: {
           address?: string | null
@@ -535,6 +537,7 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
+          visibility_radius_km?: number | null
         }
         Relationships: []
       }
