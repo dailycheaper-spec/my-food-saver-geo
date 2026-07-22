@@ -5,13 +5,14 @@ import {
   Utensils, Tag, Star, Clock, Percent, Navigation, RotateCcw,
 } from "lucide-react";
 import {
-  CATEGORIES, DISTRICTS, OFFERS, STORES,
+  CATEGORIES, DISTRICTS,
   getCategoryLabel, getDistrictLabel, getStoreName, getOfferText,
   offerMatchesQuery, formatPrice,
   type Category, type Offer,
 } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
+import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -61,6 +62,9 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
+  const { offers: OFFERS } = useLiveDbCardOffers();
+  const { stores: STORES } = useLiveStores();
+
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
   const [district, setDistrict] = useState("ყველა უბანი");
@@ -125,11 +129,13 @@ function SearchPage() {
       if (cat !== "ყველა" && o.category !== cat) return false;
       if (district !== "ყველა უბანი" && o.district !== district) return false;
       if (q && !offerMatchesQuery(o, q)) return false;
-      if (o.distanceKm > maxDistance) return false;
+      // distanceKm is 0 for real data (not yet computed) — only apply this filter when user tightens it.
+      if (maxDistance < 10 && o.distanceKm > maxDistance) return false;
       if (o.price > maxPrice) return false;
-      const discount = Math.round((1 - o.price / o.originalPrice) * 100);
+      const discount = o.originalPrice > 0 ? Math.round((1 - o.price / o.originalPrice) * 100) : 0;
       if (discount < minDiscount) return false;
-      if (o.rating < minRating) return false;
+      // rating is 0 for real data — only apply this filter when the user sets a minimum.
+      if (minRating > 0 && o.rating < minRating) return false;
       if (openNow && !isOpenNow(o)) return false;
       if (pickupBefore && timeToMinutes(o.pickupFrom) > timeToMinutes(pickupBefore)) return false;
       for (const d of diets) if (!offerMatchesDiet(o, d)) return false;
@@ -141,15 +147,15 @@ function SearchPage() {
         case "price": return a.price - b.price;
         case "rating": return b.rating - a.rating;
         case "discount": {
-          const da = 1 - a.price / a.originalPrice;
-          const db = 1 - b.price / b.originalPrice;
+          const da = a.originalPrice > 0 ? 1 - a.price / a.originalPrice : 0;
+          const db = b.originalPrice > 0 ? 1 - b.price / b.originalPrice : 0;
           return db - da;
         }
         default: return a.distanceKm - b.distanceKm;
       }
     });
     return result;
-  }, [cat, district, q, maxDistance, maxPrice, minDiscount, minRating, openNow, pickupBefore, diets, sort]);
+  }, [OFFERS, cat, district, q, maxDistance, maxPrice, minDiscount, minRating, openNow, pickupBefore, diets, sort]);
 
   // Instant suggestions
   const suggestions = useMemo(() => {
@@ -170,7 +176,7 @@ function SearchPage() {
     ).slice(0, 3);
     if (!partners.length && !foods.length && !cats.length && !districts.length) return null;
     return { partners, foods, cats, districts };
-  }, [q, language]);
+  }, [q, language, OFFERS, STORES]);
 
   const trendingTerms = language === "en"
     ? ["Khachapuri", "Sushi", "Bakery", "Coffee", "Fruits"]
@@ -228,15 +234,13 @@ function SearchPage() {
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground" />
+            <div className="flex-1 relative">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-muted-foreground pointer-events-none" />
               <input
                 ref={inputRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                onBlur={() => saveRecent(q)}
-                enterKeyHint="search"
-                inputMode="search"
+                onBlur={() => q && saveRecent(q)}
                 placeholder={t("searchPlaceholder")}
                 className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-secondary text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary text-[15px]"
               />
@@ -381,7 +385,7 @@ function SearchPage() {
                   <Clock className="w-3.5 h-3.5" /> {openNowLabel}
                 </button>
                 <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-semibold">
-                  <Clock className="w-3.5 h-3.5" /> {pickupLabel}
+                  <Clock className="w-3 h-3" /> {pickupLabel}
                   <input
                     type="time"
                     value={pickupBefore}
@@ -443,11 +447,10 @@ function SearchPage() {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold truncate">{getStoreName(s, language)}</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {getCategoryLabel(s.category, language)} · {getDistrictLabel(s.district, language)}
+                        {getCategoryLabel(s.category, language)}
+                        {s.district ? ` · ${getDistrictLabel(s.district, language)}` : ""}
                       </div>
                     </div>
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <span className="text-xs font-semibold">{s.rating}</span>
                   </button>
                 ))}
               </SuggestGroup>
@@ -467,7 +470,7 @@ function SearchPage() {
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate">{title}</div>
                         <div className="text-[11px] text-muted-foreground truncate">
-                          {getStoreName(o, language)} · {o.distanceKm} km
+                          {getStoreName(o, language)}
                         </div>
                       </div>
                       <span className="text-sm font-bold text-primary">{formatPrice(o.price)}</span>
@@ -546,26 +549,30 @@ function SearchPage() {
               </div>
             </section>
 
-            <section>
-              <h2 className="text-sm font-bold mb-3">{partnersLabel}</h2>
-              <div className="grid grid-cols-2 gap-2">
-                {STORES.slice(0, 6).map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
-                    className="flex items-center gap-2 p-3 bg-card border border-border rounded-2xl text-left hover:bg-secondary transition-colors"
-                  >
-                    <span className="text-2xl">{s.logo}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
-                      <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-                        <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" /> {s.rating}
+            {STORES.length > 0 && (
+              <section>
+                <h2 className="text-sm font-bold mb-3">{partnersLabel}</h2>
+                <div className="grid grid-cols-2 gap-2">
+                  {STORES.slice(0, 6).map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
+                      className="flex items-center gap-2 p-3 bg-card border border-border rounded-2xl text-left hover:bg-secondary transition-colors"
+                    >
+                      <span className="text-2xl">{s.logo}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
+                        {s.district && (
+                          <div className="text-[10px] text-muted-foreground truncate">
+                            {getDistrictLabel(s.district, language)}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
           </>
         )}
 
