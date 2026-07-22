@@ -606,7 +606,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
         }}
       >
         {children}
-        <div className="w-1 shrink-0 snap-none" aria-hidden="true" />
+        <div className="w-12 shrink-0 snap-none" aria-hidden="true" />
       </div>
 
       {scrollState.canPrev && (
@@ -625,7 +625,7 @@ function ScrollableRow({ children, className = "" }: { children: React.ReactNode
           type="button"
           aria-label="Next"
           onClick={() => scrollByPage(1)}
-          className="absolute right-2 top-1/2 z-10 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur"
+          className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur sm:grid"
         >
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
