@@ -38,3 +38,32 @@ export function isValidLatLng(lat: number | null | undefined, lng: number | null
     lng <= 180
   );
 }
+
+// Approximate bounding box for Georgia (country).
+export const GEORGIA_BOUNDS = {
+  minLat: 41.0,
+  maxLat: 43.6,
+  minLng: 40.0,
+  maxLng: 46.8,
+};
+
+export function isWithinGeorgia(lat: number, lng: number): boolean {
+  return (
+    lat >= GEORGIA_BOUNDS.minLat &&
+    lat <= GEORGIA_BOUNDS.maxLat &&
+    lng >= GEORGIA_BOUNDS.minLng &&
+    lng <= GEORGIA_BOUNDS.maxLng
+  );
+}
+
+export type StoreLocationStatus = "ok" | "missing" | "invalid";
+
+export function evaluateStoreLocation(
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+): StoreLocationStatus {
+  if (lat == null || lng == null) return "missing";
+  if (!isValidLatLng(lat, lng)) return "invalid";
+  if (!isWithinGeorgia(lat, lng)) return "invalid";
+  return "ok";
+}
