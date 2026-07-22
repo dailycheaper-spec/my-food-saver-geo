@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { TrendingUp, Store, Package, Users, Leaf } from "lucide-react";
+import { TrendingUp, Store, Package, Users, Leaf, Repeat, Wallet, Percent } from "lucide-react";
 import { useAllOrders, useAllStores, formatGel, currencyLabel } from "@/lib/db";
 import { useAllOffers } from "@/lib/admin-db";
+import { returningCustomerPct, averageBasketValue, averageDiscountPct } from "@/lib/insights";
 
 export const Route = createFileRoute("/_authenticated/admin/stats")({
   head: () => ({ meta: [{ title: "სტატისტიკა — ადმინი" }] }),
