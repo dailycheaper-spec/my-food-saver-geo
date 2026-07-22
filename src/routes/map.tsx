@@ -100,9 +100,11 @@ function MapPage() {
             center={TBILISI_CENTER}
             zoom={12}
             scrollWheelZoom
+            zoomControl={false}
             className="h-full w-full"
             style={{ height: "100%", width: "100%" }}
           >
+            <ZoomControl position="bottomright" />
             <TileLayer
               attribution='&copy; OpenStreetMap'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
