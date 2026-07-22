@@ -368,7 +368,11 @@ function MapPage() {
       </div>
 
       {selectedStore && (
-        <div className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated border border-border max-h-[60vh] flex flex-col overflow-hidden">
+        <div
+          key={selectedStore.storeId}
+          className="absolute bottom-20 inset-x-3 z-[1000] bg-card rounded-2xl shadow-elevated border border-border max-h-[60vh] flex flex-col overflow-hidden animate-[mapPreviewIn_.28s_cubic-bezier(.22,1,.36,1)_both]"
+          style={{ willChange: "transform" }}
+        >
           {/* Header */}
           <div className="p-3 flex items-start gap-3 border-b border-border">
             <div className="w-12 h-12 rounded-xl bg-secondary grid place-items-center text-2xl shrink-0 overflow-hidden">
