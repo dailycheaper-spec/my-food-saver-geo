@@ -39,6 +39,7 @@ import { Route as AuthenticatedPartnerProfileRouteImport } from './routes/_authe
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
 import { Route as AuthenticatedPartnerNewRouteImport } from './routes/_authenticated/partner.new'
+import { Route as AuthenticatedPartnerInsightsRouteImport } from './routes/_authenticated/partner.insights'
 import { Route as AuthenticatedPartnerDeliveryRouteImport } from './routes/_authenticated/partner.delivery'
 import { Route as AuthenticatedPartnerBalanceRouteImport } from './routes/_authenticated/partner.balance'
 import { Route as AuthenticatedPartnerAiRouteImport } from './routes/_authenticated/partner.ai'
@@ -211,6 +212,12 @@ const AuthenticatedPartnerNewRoute = AuthenticatedPartnerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AuthenticatedPartnerRoute,
 } as any)
+const AuthenticatedPartnerInsightsRoute =
+  AuthenticatedPartnerInsightsRouteImport.update({
+    id: '/insights',
+    path: '/insights',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerDeliveryRoute =
   AuthenticatedPartnerDeliveryRouteImport.update({
     id: '/delivery',
@@ -314,6 +321,7 @@ export interface FileRoutesByFullPath {
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
+  '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -356,6 +364,7 @@ export interface FileRoutesByTo {
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
+  '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -402,6 +411,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/_authenticated/partner/balance': typeof AuthenticatedPartnerBalanceRoute
   '/_authenticated/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
+  '/_authenticated/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/_authenticated/partner/new': typeof AuthenticatedPartnerNewRoute
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -448,6 +458,7 @@ export interface FileRouteTypes {
     | '/partner/ai'
     | '/partner/balance'
     | '/partner/delivery'
+    | '/partner/insights'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
     | '/partner/ai'
     | '/partner/balance'
     | '/partner/delivery'
+    | '/partner/insights'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -535,6 +547,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/ai'
     | '/_authenticated/partner/balance'
     | '/_authenticated/partner/delivery'
+    | '/_authenticated/partner/insights'
     | '/_authenticated/partner/new'
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
@@ -785,6 +798,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerNewRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/insights': {
+      id: '/_authenticated/partner/insights'
+      path: '/insights'
+      fullPath: '/partner/insights'
+      preLoaderRoute: typeof AuthenticatedPartnerInsightsRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/delivery': {
       id: '/_authenticated/partner/delivery'
       path: '/delivery'
@@ -908,6 +928,7 @@ interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerAiRoute: typeof AuthenticatedPartnerAiRoute
   AuthenticatedPartnerBalanceRoute: typeof AuthenticatedPartnerBalanceRoute
   AuthenticatedPartnerDeliveryRoute: typeof AuthenticatedPartnerDeliveryRoute
+  AuthenticatedPartnerInsightsRoute: typeof AuthenticatedPartnerInsightsRoute
   AuthenticatedPartnerNewRoute: typeof AuthenticatedPartnerNewRoute
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
@@ -923,6 +944,7 @@ const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerAiRoute: AuthenticatedPartnerAiRoute,
   AuthenticatedPartnerBalanceRoute: AuthenticatedPartnerBalanceRoute,
   AuthenticatedPartnerDeliveryRoute: AuthenticatedPartnerDeliveryRoute,
+  AuthenticatedPartnerInsightsRoute: AuthenticatedPartnerInsightsRoute,
   AuthenticatedPartnerNewRoute: AuthenticatedPartnerNewRoute,
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,

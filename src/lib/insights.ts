@@ -18,7 +18,7 @@ export function ordersToday(orders: OrderRow[]) {
   return orders.filter((o) => isRevenueOrder(o) && new Date(o.created_at).toDateString() === today);
 }
 
-export function ordersInLastDays(orders: OrderRow[], days: number) {
+export function ordersInLastDays<T extends OrderRow>(orders: T[], days: number): T[] {
   const cutoff = Date.now() - days * dayMs;
   return orders.filter((o) => isRevenueOrder(o) && new Date(o.created_at).getTime() >= cutoff);
 }
