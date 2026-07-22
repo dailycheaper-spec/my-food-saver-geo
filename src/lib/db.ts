@@ -246,13 +246,8 @@ export async function fetchMyStores(): Promise<DbStore[]> {
     const { data, error } = await supabase.from("stores").select(STORE_PUBLIC_COLUMNS).in("id", memberIds);
     if (!error) extra = (data ?? []) as unknown as DbStore[];
   }
-  if (identity.email) {
-    const { data, error } = await supabase
-      .from("stores")
-      .select(STORE_PUBLIC_COLUMNS)
-      .ilike("contact_email", identity.email);
-    if (!error) emailStores = (data ?? []) as unknown as DbStore[];
-  }
+  // Email-based lookup requires reading contact_email which is admin-only;
+  // this fallback is handled server-side by getMyPartnerAccess (service role).
   const map = new Map<string, DbStore>();
   [...((owned ?? []) as unknown as DbStore[]), ...extra, ...emailStores].forEach((s) => map.set(s.id, s));
   return sortPartnerStores(Array.from(map.values()));
