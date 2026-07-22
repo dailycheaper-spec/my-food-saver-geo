@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank } from "lucide-react";
+import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X } from "lucide-react";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
+import { useFollowedStores, unfollowStore, useFollowedStoreIds } from "@/lib/follows";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/profile")({
@@ -12,12 +13,18 @@ export const Route = createFileRoute("/profile")({
 });
 
 function Profile() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
+  const { stores: followedStores } = useFollowedStores();
+  const { refresh: refreshFollows } = useFollowedStoreIds();
+  async function handleUnfollow(storeId: string) {
+    await unfollowStore(storeId);
+    await refreshFollows();
+  }
   const completed = orders.filter((o) => o.status !== "გაუქმებული").length;
   const moneySaved = orders.reduce((s, o) => {
     if (o.status === "გაუქმებული") return s;
@@ -79,6 +86,38 @@ function Profile() {
           {t("impactText")}
         </p>
       </div>
+
+      {user && followedStores.length > 0 && (
+        <div className="mt-4 bg-card rounded-2xl border border-border shadow-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-border flex items-center gap-2">
+            <StarIcon className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <div className="text-sm font-semibold flex-1">
+              {language === "en" ? "My Following" : language === "ru" ? "Мои подписки" : "ჩემი გამოწერები"}
+            </div>
+            <div className="text-xs text-muted-foreground">{followedStores.length}</div>
+          </div>
+          <ul className="divide-y divide-border">
+            {followedStores.map((s) => (
+              <li key={s.id} className="flex items-center gap-3 p-3">
+                <Link to="/store/$id" params={{ id: s.id }} className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-secondary grid place-items-center text-xl shrink-0">{s.logo ?? "🏪"}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold truncate">{s.name}</div>
+                    {s.district && <div className="text-xs text-muted-foreground truncate">{s.district}</div>}
+                  </div>
+                </Link>
+                <button
+                  onClick={() => handleUnfollow(s.id)}
+                  aria-label="Unfollow"
+                  className="w-8 h-8 rounded-full grid place-items-center text-muted-foreground hover:bg-muted"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card divide-y divide-border overflow-hidden">
         <Link to="/analytics" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">

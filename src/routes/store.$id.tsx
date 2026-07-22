@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { lazy, Suspense, useMemo } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { lazy, Suspense, useMemo, useState } from "react";
 import {
-  ArrowLeft, Star, MapPin, Clock, Heart, Share2, Phone, Shield,
+  ArrowLeft, Star, MapPin, Clock, Heart, Share2, Phone, Shield, Bell, BellOff,
 } from "lucide-react";
 import {
   DISTRICT_COORDS,
@@ -12,6 +12,8 @@ import { useFavorites, toggleFavorite, useReviews, useHydrated } from "@/lib/sto
 import { OfferCard } from "@/components/OfferCard";
 import { Skeleton } from "@/components/Skeleton";
 import { useDbStore, useLiveDbCardOffers } from "@/lib/db-adapter";
+import { useFollowedStoreIds, followStore, unfollowStore, useStoreFollowerCount } from "@/lib/follows";
+import { useAuth } from "@/lib/auth";
 
 // Reuse OSM embed logic — small enough to inline here to avoid coupling.
 const LazyMap = lazy(async () => {
@@ -39,11 +41,30 @@ export const Route = createFileRoute("/store/$id")({
 function StorePage() {
   const { id } = Route.useParams();
   const { language } = useI18n();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { store, raw, loading, notFound } = useDbStore(id);
   const { offers } = useLiveDbCardOffers();
   const hydrated = useHydrated();
   const favs = useFavorites();
   const allReviews = useReviews();
+  const { ids: followedIds, refresh: refreshFollows } = useFollowedStoreIds();
+  const followerCount = useStoreFollowerCount(store?.id);
+  const [followBusy, setFollowBusy] = useState(false);
+  const isFollowing = store ? followedIds.has(store.id) : false;
+
+  async function handleFollowToggle() {
+    if (!store) return;
+    if (!user) {
+      navigate({ to: "/auth" });
+      return;
+    }
+    setFollowBusy(true);
+    if (isFollowing) await unfollowStore(store.id);
+    else await followStore(store.id);
+    await refreshFollows();
+    setFollowBusy(false);
+  }
 
   const storeOffers = useMemo(
     () => (store ? offers.filter((o) => o.storeId === store.id) : []),
@@ -164,6 +185,31 @@ function StorePage() {
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{description}</p>
+
+          {/* Follow button — server-side, per-account (distinct from local favorites heart) */}
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              onClick={handleFollowToggle}
+              disabled={followBusy}
+              className={`flex-1 py-2.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-colors ${
+                isFollowing
+                  ? "bg-secondary text-secondary-foreground border border-border"
+                  : "bg-primary text-primary-foreground"
+              } disabled:opacity-60`}
+              aria-pressed={isFollowing}
+            >
+              {isFollowing ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+              {isFollowing
+                ? L("გამოწერილია", "Following", "Вы подписаны")
+                : L("გამოწერა", "Follow", "Подписаться")}
+            </button>
+            {followerCount !== null && followerCount > 0 && (
+              <div className="text-xs text-muted-foreground whitespace-nowrap">
+                <span className="font-bold text-foreground">{followerCount}</span>{" "}
+                {L("გამომწერი", "followers", "подписч.")}
+              </div>
+            )}
+          </div>
 
           {/* Info rows — only real fields */}
           {(address || store.district || phone) && (
