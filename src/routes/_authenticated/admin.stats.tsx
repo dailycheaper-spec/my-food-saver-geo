@@ -183,3 +183,49 @@ function Kpi({ icon: Icon, label, value, tint }: { icon: React.ElementType; labe
     </div>
   );
 }
+
+function PlatformInsights({ orders }: { orders: Parameters<typeof returningCustomerPct>[0] }) {
+  const returning = useMemo(() => returningCustomerPct(orders, 30), [orders]);
+  const basket = useMemo(() => averageBasketValue(orders), [orders]);
+  const avgDisc = useMemo(() => averageDiscountPct(orders as Parameters<typeof averageDiscountPct>[0], 30), [orders]);
+
+  return (
+    <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
+      <h3 className="font-display font-bold text-lg mb-4">პლატფორმის ჭრილი (30 დღე)</h3>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <MiniStat
+          icon={Repeat}
+          label="დაბრუნებადი კლიენტი"
+          value={returning ? `${returning.pct.toFixed(0)}%` : "—"}
+          note={returning ? `${returning.returning}/${returning.total}` : "მონაცემი არასაკმარისია"}
+        />
+        <MiniStat
+          icon={Wallet}
+          label="საშ. კალათა"
+          value={basket === null ? "—" : formatGel(basket)}
+          note={basket === null ? "მონაცემი არასაკმარისია" : undefined}
+        />
+        <MiniStat
+          icon={Percent}
+          label="საშ. ფასდაკლება"
+          value={avgDisc === null ? "—" : `${avgDisc.toFixed(0)}%`}
+          note={avgDisc === null ? "მონაცემი არასაკმარისია" : undefined}
+        />
+      </div>
+    </div>
+  );
+}
+
+function MiniStat({ icon: Icon, label, value, note }: { icon: React.ElementType; label: string; value: string; note?: string }) {
+  return (
+    <div className="rounded-2xl border border-border p-4">
+      <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary grid place-items-center mb-2">
+        <Icon className="w-5 h-5" />
+      </div>
+      <div className="font-display text-xl font-bold">{value}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      {note && <div className="text-[11px] text-muted-foreground mt-1">{note}</div>}
+    </div>
+  );
+}
+
