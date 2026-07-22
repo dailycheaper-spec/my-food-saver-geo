@@ -224,12 +224,21 @@ function AdminPartners() {
 
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; onEditLocation: () => void; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
   const deleteStoreFn = useServerFn(deleteAdminStore);
   const isFlagged = reportCount >= FLAG_THRESHOLD;
+  const { lat, lng, visibility_radius_km } = useMemo(() => storeExtras(store), [store]);
+  const locStatus: StoreLocationStatus = evaluateStoreLocation(lat, lng);
+  const districtCenter = store.district ? DISTRICT_COORDS[store.district] : undefined;
+  const farFromDistrict =
+    locStatus === "ok" && districtCenter && lat != null && lng != null
+      ? calculateDistanceKm(lat, lng, districtCenter[0], districtCenter[1]) > 15
+      : false;
+  const radiusMissing = visibility_radius_km == null;
+
   async function act(fn: () => Promise<void>) {
     setBusy(true);
     try { await fn(); onChange(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
