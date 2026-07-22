@@ -270,7 +270,52 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         </div>
       </div>
 
+      <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">მდებარეობა</div>
+          <button
+            type="button"
+            onClick={onEditLocation}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
+          >
+            <Pencil className="w-3 h-3" /> რედაქტირება
+          </button>
+        </div>
+        <StoreLocationPreview lat={lat} lng={lng} height={130} />
+        <div className="text-xs space-y-0.5">
+          <LocStatusLine status={locStatus} />
+          <div className="text-muted-foreground">
+            კოორდინატები: <span className="font-mono text-foreground">
+              {lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}
+            </span>
+          </div>
+          <div className="text-muted-foreground">
+            რადიუსი: <span className="font-semibold text-foreground">
+              {visibility_radius_km == null
+                ? "მითითებული არაა"
+                : visibility_radius_km >= 50
+                  ? "მთელი ქალაქი"
+                  : `${visibility_radius_km} კმ`}
+            </span>
+            {" · "}
+            აქტიური შეთავაზება: <span className="font-semibold text-foreground">{activeOffers}</span>
+          </div>
+          {store.status === "pending" && (locStatus !== "ok" || radiusMissing || farFromDistrict) && (
+            <div className="mt-2 text-[11px] rounded-lg bg-warm/40 border border-warm text-warm-foreground p-2 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                {locStatus === "missing" && <div>კოორდინატები არ არის მითითებული — შეამოწმეთ დამტკიცებამდე.</div>}
+                {locStatus === "invalid" && <div>კოორდინატები საქართველოს საზღვრებს გარეთაა.</div>}
+                {radiusMissing && <div>ხილვადობის რადიუსი მითითებული არაა.</div>}
+                {farFromDistrict && <div>კოორდინატები შორსაა უბნისგან „{store.district}"-.</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+
         <div className="p-2.5 rounded-2xl bg-muted/50">
           <div className="text-muted-foreground">ბალანსი</div>
           <div className="font-bold text-sm">{formatGel(balance)}</div>
