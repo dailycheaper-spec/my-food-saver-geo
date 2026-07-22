@@ -3,7 +3,10 @@ import { MapContainer, TileLayer, Marker, Popup, ZoomControl, useMap } from "rea
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapOffer } from "@/routes/map";
-import { getStoreName, getOfferText, type Language } from "@/lib/mock-data";
+import { getStoreName, getOfferText } from "@/lib/mock-data";
+
+type Language = "ka" | "en" | "ru";
+
 
 function hashOffset(id: string): [number, number] {
   let h = 0;
