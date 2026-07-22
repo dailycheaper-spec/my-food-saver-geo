@@ -131,3 +131,38 @@ export const deleteAdminStore = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const updateAdminStoreLocation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    storeId: z.string().uuid(),
+    lat: z.number().min(-90).max(90).nullable(),
+    lng: z.number().min(-180).max(180).nullable(),
+    visibility_radius_km: z.number().int().min(1).max(50),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: adminRole, error: roleError } = await context.supabase
+      .from("user_roles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleError || !adminRole) throw new Error("Forbidden");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {
+      lat: data.lat,
+      lng: data.lng,
+      visibility_radius_km: data.visibility_radius_km,
+    };
+    const { data: store, error } = await supabaseAdmin
+      .from("stores")
+      .update(patch)
+      .eq("id", data.storeId)
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+    return store;
+  });
