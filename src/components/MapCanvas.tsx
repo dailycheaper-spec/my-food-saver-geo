@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, LayersControl, Circle, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapStore } from "@/routes/map";
@@ -37,6 +37,10 @@ interface Props {
   hoveredId: string | null;
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
+  /** Semi-transparent search radius circle around the user, in km. */
+  searchRadiusKm?: number;
+  /** localStorage key namespace for persisting layer + zoom. */
+  storageKey?: string;
 }
 
 function StandardTiles() {
@@ -69,6 +73,19 @@ function HybridReferenceOverlay() {
   );
 }
 
+function readStoredLayer(key: string): MapLayerId {
+  if (typeof window === "undefined") return "standard";
+  const v = window.localStorage.getItem(`${key}:layer`);
+  if (v === "standard" || v === "satellite" || v === "hybrid") return v;
+  return "standard";
+}
+function readStoredZoom(key: string, fallback: number): number {
+  if (typeof window === "undefined") return fallback;
+  const raw = window.localStorage.getItem(`${key}:zoom`);
+  const n = raw != null ? Number(raw) : NaN;
+  return Number.isFinite(n) && n >= 3 && n <= 20 ? n : fallback;
+}
+
 export default function MapCanvas({
   center,
   userPos,
@@ -78,15 +95,33 @@ export default function MapCanvas({
   hoveredId,
   onSelect,
   onHover,
+  searchRadiusKm,
+  storageKey = "cheaper-customer-map",
 }: Props) {
-  const [layer, setLayer] = useState<MapLayerId>("standard");
-  const [zoom, setZoom] = useState(12);
+  const [layer, setLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+  const initialZoom = useMemo(() => readStoredZoom(storageKey, 12), [storageKey]);
+  const [zoom, setZoom] = useState(initialZoom);
   const compact = zoom < 13;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(`${storageKey}:layer`, layer);
+  }, [layer, storageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(`${storageKey}:zoom`, String(zoom));
+  }, [zoom, storageKey]);
+
+  const selectedStore = useMemo(
+    () => stores.find((s) => s.storeId === selectedId) ?? null,
+    [stores, selectedId],
+  );
 
   return (
     <MapContainer
       center={center}
-      zoom={12}
+      zoom={initialZoom}
       scrollWheelZoom
       zoomControl={false}
       className="h-full w-full"
@@ -104,6 +139,35 @@ export default function MapCanvas({
           <MapLayerSelector value={layer} onChange={setLayer} />
         </div>
       </div>
+
+      {userPos && searchRadiusKm && searchRadiusKm > 0 && (
+        <Circle
+          center={userPos}
+          radius={searchRadiusKm * 1000}
+          interactive={false}
+          pathOptions={{
+            color: "hsl(var(--primary))",
+            weight: 1.5,
+            opacity: 0.55,
+            fillColor: "hsl(var(--primary))",
+            fillOpacity: 0.06,
+            dashArray: "4 6",
+          }}
+        />
+      )}
+
+      {userPos && selectedStore && (
+        <Polyline
+          positions={[userPos, [selectedStore.lat, selectedStore.lng]]}
+          interactive={false}
+          pathOptions={{
+            color: "hsl(var(--primary))",
+            weight: 2,
+            opacity: 0.75,
+            dashArray: "6 8",
+          }}
+        />
+      )}
 
       {userPos && (
         <UserLocationMarker lat={userPos[0]} lng={userPos[1]} accuracy={userAccuracy} />

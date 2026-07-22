@@ -340,7 +340,10 @@ function MapPage() {
               hoveredId={hoveredId}
               onSelect={setSelectedStoreId}
               onHover={setHoveredId}
+              searchRadiusKm={location ? effectiveRadius : undefined}
+              storageKey="cheaper-customer-map"
             />
+
           </Suspense>
         )}
 

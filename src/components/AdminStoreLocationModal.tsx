@@ -133,8 +133,14 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
               setLng(ln);
             }}
             height={300}
+            radiusKm={radius < 50 ? radius : undefined}
+            storageKey="cheaper-admin-location-map"
           />
         </Suspense>
+        <p className="mt-2 text-xs text-muted-foreground">
+          მწვანე წრე გვიჩვენებს ტერიტორიას, სადაც ეს ობიექტი გამოჩნდება მომხმარებლების რუკაზე.
+        </p>
+
 
         <div className="grid grid-cols-2 gap-3 mt-3">
           <label className="block">

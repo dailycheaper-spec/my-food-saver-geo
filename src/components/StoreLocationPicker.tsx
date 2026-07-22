@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TBILISI_CENTER } from "@/lib/mock-data";
@@ -20,6 +20,10 @@ interface Props {
   value: { lat: number | null; lng: number | null };
   onChange: (v: { lat: number; lng: number }) => void;
   height?: number;
+  /** Draws a semi-transparent radius preview circle around the marker (km). */
+  radiusKm?: number;
+  /** localStorage key namespace for persisting the layer choice. */
+  storageKey?: string;
 }
 
 function ClickHandler({ onChange }: { onChange: Props["onChange"] }) {
@@ -44,14 +48,32 @@ function Recenter({ lat, lng }: { lat: number | null; lng: number | null }) {
   return null;
 }
 
-export function StoreLocationPicker({ value, onChange, height = 320 }: Props) {
+function readStoredLayer(key: string): MapLayerId {
+  if (typeof window === "undefined") return "standard";
+  const v = window.localStorage.getItem(`${key}:layer`);
+  if (v === "standard" || v === "satellite" || v === "hybrid") return v;
+  return "standard";
+}
+
+export function StoreLocationPicker({
+  value,
+  onChange,
+  height = 320,
+  radiusKm,
+  storageKey = "cheaper-picker-map",
+}: Props) {
   const center = useMemo<[number, number]>(() => {
     if (value.lat != null && value.lng != null) return [value.lat, value.lng];
     return TBILISI_CENTER;
   }, [value.lat, value.lng]);
 
   const hasMarker = value.lat != null && value.lng != null;
-  const [layer, setLayer] = useState<MapLayerId>("standard");
+  const [layer, setLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(`${storageKey}:layer`, layer);
+  }, [layer, storageKey]);
 
   return (
     <div
@@ -87,6 +109,20 @@ export function StoreLocationPicker({ value, onChange, height = 320 }: Props) {
         )}
         <ClickHandler onChange={onChange} />
         <Recenter lat={value.lat} lng={value.lng} />
+        {hasMarker && radiusKm && radiusKm > 0 && (
+          <Circle
+            center={[value.lat!, value.lng!]}
+            radius={radiusKm * 1000}
+            interactive={false}
+            pathOptions={{
+              color: "hsl(142 71% 45%)",
+              weight: 1.5,
+              opacity: 0.7,
+              fillColor: "hsl(142 71% 45%)",
+              fillOpacity: 0.12,
+            }}
+          />
+        )}
         {hasMarker && (
           <Marker
             position={[value.lat!, value.lng!]}
