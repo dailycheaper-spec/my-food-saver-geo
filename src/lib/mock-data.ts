@@ -164,7 +164,7 @@ export const CATEGORIES: { id: Category | "ყველა"; label: string; icon
   { id: "სუში", label: "სუში", icon: "🍣" },
 ];
 
-export const DISTRICTS = ["ყველა უბანი", "ვაკე", "საბურთალო", "ვერა", "ისანი", "დიღომი", "მთაწმინდა", "გლდანი", "ვარკეთილი"];
+export const DISTRICTS = ["ყველა უბანი", "ვაკე", "საბურთალო", "ვერა", "ისანი", "დიღომი", "მთაწმინდა", "ჩუღურეთი", "ნაძალადევი", "სამგორი"];
 
 type UiLanguage = "ka" | "en" | "ru";
 
