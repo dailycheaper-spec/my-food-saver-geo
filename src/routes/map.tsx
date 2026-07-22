@@ -421,14 +421,29 @@ function MapPage() {
               >
                 <ExternalLink className="h-3 w-3" /> მარშრუტი
               </a>
-              <button
-                type="button"
-                onClick={() => setSelectedStoreId(null)}
-                className="border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1"
-                aria-label="დახურვა"
-              >
-                <X className="h-3 w-3" /> დახურვა
-              </button>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(selectedStore.storeId)}
+                  className={`flex-1 border px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1 transition-colors ${
+                    favorites.includes(selectedStore.storeId)
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background"
+                  }`}
+                  aria-label="ფავორიტი"
+                  aria-pressed={favorites.includes(selectedStore.storeId)}
+                >
+                  <Heart className={`h-3 w-3 ${favorites.includes(selectedStore.storeId) ? "fill-current" : ""}`} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedStoreId(null)}
+                  className="flex-1 border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1"
+                  aria-label="დახურვა"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             </div>
           </div>
 
