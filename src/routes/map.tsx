@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
-import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2, Store as StoreIcon, Utensils, Tag } from "lucide-react";
+import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2, Store as StoreIcon, Utensils } from "lucide-react";
 import { TBILISI_CENTER, DISTRICTS, CATEGORIES, formatPrice, getDistrictLabel, getCategoryLabel, getOfferText, type Offer, type Category } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
