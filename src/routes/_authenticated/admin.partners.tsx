@@ -376,6 +376,12 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
   );
 }
 
+function LocStatusLine({ status }: { status: StoreLocationStatus }) {
+  if (status === "ok") return <div className="text-success font-semibold">✓ მდებარეობა გამართულია</div>;
+  if (status === "invalid") return <div className="text-destructive font-semibold">✗ კოორდინატები არასწორია</div>;
+  return <div className="text-warm-foreground font-semibold">⚠ მდებარეობა არ არის მითითებული</div>;
+}
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     pending: "bg-warm text-warm-foreground",
