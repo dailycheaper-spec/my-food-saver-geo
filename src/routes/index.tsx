@@ -159,6 +159,7 @@ function Home() {
     searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა",
     promoTitle: language === "en" ? "Quality price, better food" : language === "ru" ? "Качественная цена, лучшая еда" : "ხარისხიანი ფასი, უკეთესი საკვები",
     promoText: language === "en" ? "Tasty food from your favorite spots!" : language === "ru" ? "Вкусная еда из любимых мест!" : "გემრიელი საკვები საყვარელი ადგილებიდან!",
+    dailyDiscount: language === "en" ? "Every day 50%+ off" : language === "ru" ? "Каждый день скидка 50%+" : "ყოველდღე 50%+ ფასდაკლებით",
 
     orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : "შეუკვეთე",
   };
