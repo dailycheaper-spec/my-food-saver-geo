@@ -77,6 +77,28 @@ function PartnerApply() {
       </div>
 
       <form onSubmit={submit} className="bg-card rounded-2xl border border-border p-5 space-y-3">
+        {/* Highlighted required contact block */}
+        <div className="rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 space-y-3">
+          <div className="text-xs font-bold uppercase tracking-wider text-primary">
+            {language === "en" ? "Required contact details" : language === "ru" ? "Обязательные контактные данные" : "სავალდებულო საკონტაქტო ინფორმაცია"}
+          </div>
+          <Field
+            label={language === "en" ? "Email *" : language === "ru" ? "Эл. почта *" : "ელ. ფოსტა *"}
+            value={form.contact_email}
+            onChange={(v) => setForm({ ...form, contact_email: v })}
+            placeholder="name@example.com"
+            type="email"
+            required
+          />
+          <Field
+            label={language === "en" ? "Company ID number *" : language === "ru" ? "Идентификационный номер компании *" : "კომპანიის საიდენტიფიკაციო ნომერი *"}
+            value={form.company_id_number}
+            onChange={(v) => setForm({ ...form, company_id_number: v })}
+            placeholder="404715947"
+            required
+          />
+        </div>
+
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
             {language === "en" ? "What type of object is it? *" : language === "ru" ? "Какой это тип объекта? *" : "რა ტიპის ობიექტია? *"}
@@ -111,8 +133,6 @@ function PartnerApply() {
         </label>
 
         <Field label={`${t("address")} *`} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
-        <Field label={language === "en" ? "Company ID number *" : language === "ru" ? "Идентификационный номер компании *" : "კომპანიის საიდენტიფიკაციო ნომერი *"} value={form.company_id_number} onChange={(v) => setForm({ ...form, company_id_number: v })} required />
-        <Field label={language === "en" ? "Email *" : language === "ru" ? "Эл. почта *" : "მეილი *"} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} placeholder="name@example.com" type="email" required />
         <Field label={t("phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
         <Field label={t("description")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
 
