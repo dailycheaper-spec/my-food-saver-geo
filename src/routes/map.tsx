@@ -540,6 +540,7 @@ function MapPage() {
         {mounted && (
           <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკა იტვირთება…</div>}>
             <MapCanvas
+              key={`map-${city}${location ? "-loc" : ""}`}
               center={location ? [location.lat, location.lng] : (CITY_CENTERS[city] ?? TBILISI_CENTER)}
               userPos={location ? [location.lat, location.lng] : null}
               userAccuracy={location?.accuracy}
