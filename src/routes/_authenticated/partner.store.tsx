@@ -36,6 +36,9 @@ type FormState = {
   lat: number | null;
   lng: number | null;
   visibility_radius_km: number;
+  company_name: string;
+  company_id_number: string;
+  contact_email: string;
 };
 
 function StoreSettings() {
