@@ -8,6 +8,20 @@ import type { Language } from "./i18n";
 export const CITIES = ["თბილისი", "ქუთაისი", "ბათუმი"] as const;
 export type City = (typeof CITIES)[number];
 
+/** Approx city centers [lat, lng] for map defaults and geo-fallbacks. */
+export const CITY_CENTERS: Record<City, [number, number]> = {
+  "თბილისი": [41.7151, 44.7873],
+  "ქუთაისი": [42.2679, 42.7180],
+  "ბათუმი": [41.6168, 41.6367],
+};
+
+/** Default map zoom for each city (Tbilisi tighter, others slightly wider). */
+export const CITY_ZOOM: Record<City, number> = {
+  "თბილისი": 12,
+  "ქუთაისი": 13,
+  "ბათუმი": 13,
+};
+
 const STORAGE_KEY = "cheaper:city";
 
 export function cityLabel(c: City, lang: Language): string {
