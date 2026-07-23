@@ -13,6 +13,7 @@ function mapCategory(raw: string | null | undefined): Category {
   const c = (raw ?? "").toLowerCase();
   if (c.includes("bak") || c.includes("საცხობი")) return "საცხობი";
   if (c.includes("sushi") || c.includes("სუში")) return "სუში";
+  if (c.includes("pizza") || c.includes("პიცა")) return "პიცა";
   if (c.includes("market") || c.includes("super") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
   if (c.includes("cafe") || c.includes("caf") || c.includes("კაფე")) return "კაფე";
   return "რესტორანი";
