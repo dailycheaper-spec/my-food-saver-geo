@@ -495,6 +495,7 @@ export type Database = {
           category: string
           city: string
           company_id_number: string | null
+          company_name: string | null
           contact_email: string | null
           created_at: string
           delivery_enabled: boolean
@@ -521,6 +522,7 @@ export type Database = {
           category?: string
           city?: string
           company_id_number?: string | null
+          company_name?: string | null
           contact_email?: string | null
           created_at?: string
           delivery_enabled?: boolean
@@ -547,6 +549,7 @@ export type Database = {
           category?: string
           city?: string
           company_id_number?: string | null
+          company_name?: string | null
           contact_email?: string | null
           created_at?: string
           delivery_enabled?: boolean
