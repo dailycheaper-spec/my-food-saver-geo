@@ -180,6 +180,32 @@ function StoreSettings() {
         <Field label={t("descriptionLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
       </div>
 
+      <div className="bg-card rounded-2xl border border-border p-5 space-y-4 mt-4">
+        <h2 className="font-semibold">კომპანიის მონაცემები</h2>
+        <Field label="კომპანიის სახელი" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder="შპს ..." />
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)</span>
+          <input
+            value={form.company_id_number}
+            onChange={(e) => setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, 9) })}
+            inputMode="numeric"
+            maxLength={9}
+            placeholder="123456789"
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">ელფოსტა</span>
+          <input
+            type="email"
+            value={form.contact_email}
+            onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+            placeholder="name@example.com"
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          />
+        </label>
+      </div>
+
       {/* Location section */}
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4 mt-4">
         <div className="flex items-center gap-2">
