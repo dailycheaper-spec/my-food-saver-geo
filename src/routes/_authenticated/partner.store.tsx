@@ -56,6 +56,9 @@ function StoreSettings() {
     lat: null,
     lng: null,
     visibility_radius_km: 3,
+    company_name: "",
+    company_id_number: "",
+    contact_email: "",
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
