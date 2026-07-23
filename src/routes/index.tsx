@@ -159,6 +159,7 @@ function Home() {
     searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა",
     promoTitle: language === "en" ? "Quality price, better food" : language === "ru" ? "Качественная цена, лучшая еда" : "ხარისხიანი ფასი, უკეთესი საკვები",
     promoText: language === "en" ? "Tasty food from your favorite spots!" : language === "ru" ? "Вкусная еда из любимых мест!" : "გემრიელი საკვები საყვარელი ადგილებიდან!",
+    dailyDiscount: language === "en" ? "Every day 50%+ off" : language === "ru" ? "Каждый день скидка 50%+" : "ყოველდღე 50%+ ფასდაკლებით",
 
     orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : "შეუკვეთე",
   };
@@ -260,17 +261,22 @@ function Home() {
 
       {/* -------- Promo banner -------- */}
       <section className="mx-auto max-w-6xl px-4 mt-5">
-        <Link to="/search" className="block relative overflow-hidden rounded-3xl shadow-elevated active:scale-[0.99] transition-transform">
+        <Link to="/search" className="block relative overflow-hidden rounded-3xl shadow-elevated active:scale-[0.99] transition-transform min-h-[240px] sm:min-h-[280px]">
           <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/95 via-primary/80 to-primary/40" />
-          <div className="relative p-5 text-primary-foreground">
-            <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
+          {/* Darker green vignette anchored to left+bottom so the food image stays visible on the right */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/60 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+          <div className="relative p-5 sm:p-6 text-primary-foreground flex flex-col justify-end min-h-[240px] sm:min-h-[280px]">
+            <div className="inline-flex self-start items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> {t("heroBadge")}
             </div>
-            <p className="text-sm text-primary-foreground/90 mt-1 max-w-[80%]">
+            <h2 className="font-display text-2xl sm:text-3xl font-extrabold leading-tight mt-2 drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
+              {L.dailyDiscount}
+            </h2>
+            <p className="text-sm sm:text-base text-primary-foreground/95 mt-1 max-w-[85%] drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)]">
               {L.promoText}
             </p>
-            <span className="mt-3 inline-flex items-center gap-1.5 bg-card text-foreground text-sm font-bold px-4 py-2 rounded-full">
+            <span className="mt-3 self-start inline-flex items-center gap-1.5 bg-card text-foreground text-sm font-bold px-4 py-2 rounded-full">
               {L.orderNow} <ChevronRight className="w-4 h-4" />
             </span>
           </div>
