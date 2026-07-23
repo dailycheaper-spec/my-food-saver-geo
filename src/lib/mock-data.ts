@@ -330,6 +330,10 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
     { ka: "სოია", en: "Soy", ru: "Соя" },
     { ka: "მოლუსკები", en: "Shellfish", ru: "Моллюски" },
   ],
+  "პიცა": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+  ],
 };
 
 const INGREDIENTS_BY_OFFER: Record<string, Localized[]> = {
