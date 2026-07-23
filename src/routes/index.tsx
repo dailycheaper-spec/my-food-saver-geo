@@ -471,6 +471,68 @@ function Home() {
 
 
 
+      {/* -------- Empty-state filler (always fill the mobile home) -------- */}
+      {ALL_OFFERS.length === 0 && (
+        <section className="mx-auto max-w-6xl px-4 mt-6">
+          <div className="rounded-3xl border border-border bg-card p-5">
+            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+              <Sparkles className="w-[18px] h-[18px] text-primary" />
+              {language === "en" ? "Fresh deals landing soon" : language === "ru" ? "Свежие предложения скоро появятся" : "ახალი შემოთავაზებები მალე გამოჩნდება"}
+            </h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              {language === "en"
+                ? "Our partners are preparing today's discounted boxes. In the meantime, explore Cheaper."
+                : language === "ru"
+                ? "Наши партнёры готовят коробки со скидками. А пока — исследуйте Cheaper."
+                : "პარტნიორები ამზადებენ დღევანდელ ფასდაკლებულ პაკეტებს. სანამ, გაეცანი Cheaper-ს."}
+            </p>
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { icon: "🥐", key: "bakery" },
+                { icon: "🍣", key: "sushi" },
+                { icon: "🍕", key: "pizza" },
+                { icon: "🥗", key: "healthy" },
+              ].map((p) => (
+                <div key={p.key} className="rounded-2xl bg-secondary/60 border border-border/50 p-3 flex flex-col items-center gap-1">
+                  <span className="text-3xl">{p.icon}</span>
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    {language === "en" ? "Coming soon" : language === "ru" ? "Скоро" : "მალე"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Link to="/map" className="flex-1 text-center py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">
+                {t("onMap")}
+              </Link>
+              <Link to="/search" className="flex-1 text-center py-2.5 rounded-xl bg-card border border-border text-sm font-semibold">
+                {L.searchOnPage}
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* -------- Gift a friend (always visible CTA) -------- */}
+      <section className="mx-auto max-w-6xl px-4 mt-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 p-5 shadow-elevated">
+          <div className="absolute -bottom-8 -right-6 text-[140px] opacity-20 select-none pointer-events-none">🎁</div>
+          <div className="relative text-white">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5" />
+              <h2 className="font-display text-lg font-bold">{t("giftOrder")}</h2>
+            </div>
+            <p className="text-white/90 text-xs mt-1 max-w-[85%]">{t("giftOrderHelp")}</p>
+            <Link
+              to="/orders"
+              className="mt-3 inline-flex items-center gap-1.5 bg-white text-foreground text-sm font-bold px-4 py-2 rounded-full active:scale-95 transition-transform"
+            >
+              {t("giftOrder")} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* -------- Footer -------- */}
       <footer className="mx-auto max-w-6xl px-4 pt-10 pb-4 text-center">
         <div className="flex justify-center mb-4">
