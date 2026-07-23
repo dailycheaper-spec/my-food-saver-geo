@@ -9,6 +9,7 @@ import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
 import { useFavorites, toggleFavorite } from "@/lib/storage";
+import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
@@ -68,7 +69,12 @@ const NEW_PARTNER_MS = 7 * 24 * 60 * 60 * 1000;
 
 function MapPage() {
   const { t, language } = useI18n();
-  const { offers } = useLiveDbCardOffers();
+  const { offers: allOffers } = useLiveDbCardOffers();
+  const { city } = useCity();
+  const offers = useMemo(
+    () => allOffers.filter((o) => (o.city ?? "თბილისი") === city),
+    [allOffers, city],
+  );
   const { location, status, askPermission, request } = useUserLocation();
   const favorites = useFavorites();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
@@ -534,7 +540,8 @@ function MapPage() {
         {mounted && (
           <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკა იტვირთება…</div>}>
             <MapCanvas
-              center={location ? [location.lat, location.lng] : TBILISI_CENTER}
+              key={`map-${city}${location ? "-loc" : ""}`}
+              center={location ? [location.lat, location.lng] : (CITY_CENTERS[city] ?? TBILISI_CENTER)}
               userPos={location ? [location.lat, location.lng] : null}
               userAccuracy={location?.accuracy}
               stores={stores}

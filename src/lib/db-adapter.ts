@@ -68,6 +68,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     visibilityRadiusKm: (row.store as unknown as { visibility_radius_km?: number | null } | null)?.visibility_radius_km ?? undefined,
     createdAt,
     isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
+    city: (row.store as unknown as { city?: string | null } | null)?.city ?? undefined,
   };
 }
 
