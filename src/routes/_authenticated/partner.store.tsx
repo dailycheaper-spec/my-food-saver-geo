@@ -36,6 +36,9 @@ type FormState = {
   lat: number | null;
   lng: number | null;
   visibility_radius_km: number;
+  company_name: string;
+  company_id_number: string;
+  contact_email: string;
 };
 
 function StoreSettings() {
@@ -53,6 +56,9 @@ function StoreSettings() {
     lat: null,
     lng: null,
     visibility_radius_km: 3,
+    company_name: "",
+    company_id_number: "",
+    contact_email: "",
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
@@ -75,6 +81,9 @@ function StoreSettings() {
           typeof anyStore.visibility_radius_km === "number"
             ? (anyStore.visibility_radius_km as number)
             : 3,
+        company_name: (anyStore.company_name as string | null) ?? "",
+        company_id_number: (anyStore.company_id_number as string | null) ?? "",
+        contact_email: (anyStore.contact_email as string | null) ?? "",
       });
     }
   }, [store]);
@@ -116,6 +125,12 @@ function StoreSettings() {
 
     setSaving(true);
     setMsg(null);
+    const cid = form.company_id_number.trim();
+    if (cid && !/^\d{9}$/.test(cid)) {
+      setSaving(false);
+      setMsg({ text: "საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", kind: "err" });
+      return;
+    }
     const payload = {
       name: form.name,
       logo: form.logo,
@@ -127,6 +142,9 @@ function StoreSettings() {
       lat: form.lat,
       lng: form.lng,
       visibility_radius_km: form.visibility_radius_km,
+      company_name: form.company_name.trim() || null,
+      company_id_number: cid || null,
+      contact_email: form.contact_email.trim() || null,
     } as never;
     const { error } = await supabase.from("stores").update(payload).eq("id", store.id);
     setSaving(false);
@@ -160,6 +178,32 @@ function StoreSettings() {
         <Field label={t("addressLbl")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
         <Field label={t("phoneLbl")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
         <Field label={t("descriptionLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
+      </div>
+
+      <div className="bg-card rounded-2xl border border-border p-5 space-y-4 mt-4">
+        <h2 className="font-semibold">კომპანიის მონაცემები</h2>
+        <Field label="კომპანიის სახელი" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder="შპს ..." />
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)</span>
+          <input
+            value={form.company_id_number}
+            onChange={(e) => setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, 9) })}
+            inputMode="numeric"
+            maxLength={9}
+            placeholder="123456789"
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">ელფოსტა</span>
+          <input
+            type="email"
+            value={form.contact_email}
+            onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+            placeholder="name@example.com"
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+          />
+        </label>
       </div>
 
       {/* Location section */}
