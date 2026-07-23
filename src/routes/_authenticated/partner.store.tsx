@@ -125,6 +125,12 @@ function StoreSettings() {
 
     setSaving(true);
     setMsg(null);
+    const cid = form.company_id_number.trim();
+    if (cid && !/^\d{9}$/.test(cid)) {
+      setSaving(false);
+      setMsg({ text: "საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", kind: "err" });
+      return;
+    }
     const payload = {
       name: form.name,
       logo: form.logo,
@@ -136,6 +142,9 @@ function StoreSettings() {
       lat: form.lat,
       lng: form.lng,
       visibility_radius_km: form.visibility_radius_km,
+      company_name: form.company_name.trim() || null,
+      company_id_number: cid || null,
+      contact_email: form.contact_email.trim() || null,
     } as never;
     const { error } = await supabase.from("stores").update(payload).eq("id", store.id);
     setSaving(false);
