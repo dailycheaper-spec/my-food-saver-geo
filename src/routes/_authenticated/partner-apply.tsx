@@ -44,6 +44,10 @@ function PartnerApply() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if (!/^\d{9}$/.test(form.company_id_number)) {
+      setMsg(language === "en" ? "Company ID must be exactly 9 digits" : language === "ru" ? "Идентификационный номер компании должен содержать ровно 9 цифр" : "საიდენტიფიკაციო ნომერი უნდა იყოს ზუსტად 9 ციფრი");
+      return;
+    }
     setSubmitting(true);
     setMsg("");
     const { error } = await supabase.from("stores").insert({
@@ -98,10 +102,13 @@ function PartnerApply() {
             required
           />
           <Field
-            label={language === "en" ? "Company ID number *" : language === "ru" ? "Идентификационный номер компании *" : "კომპანიის საიდენტიფიკაციო ნომერი *"}
+            label={language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
             value={form.company_id_number}
-            onChange={(v) => setForm({ ...form, company_id_number: v })}
+            onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, 9) })}
             placeholder="404715947"
+            inputMode="numeric"
+            pattern="\d{9}"
+            maxLength={9}
             required
           />
         </div>
@@ -152,7 +159,7 @@ function PartnerApply() {
   );
 }
 
-function Field({ label, value, onChange, placeholder, textarea, required, type = "text" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; textarea?: boolean; required?: boolean; type?: string }) {
+function Field({ label, value, onChange, placeholder, textarea, required, type = "text", inputMode, pattern, maxLength }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; textarea?: boolean; required?: boolean; type?: string; inputMode?: "numeric" | "text" | "tel" | "email"; pattern?: string; maxLength?: number }) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
@@ -161,6 +168,7 @@ function Field({ label, value, onChange, placeholder, textarea, required, type =
           className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
       ) : (
         <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
+          inputMode={inputMode} pattern={pattern} maxLength={maxLength}
           className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm" />
       )}
     </label>
