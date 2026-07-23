@@ -91,6 +91,13 @@ function PartnerApply() {
             required
           />
           <Field
+            label={language === "en" ? "Company name *" : language === "ru" ? "Название компании *" : "კომპანიის დასახელება *"}
+            value={form.company_name}
+            onChange={(v) => setForm({ ...form, company_name: v })}
+            placeholder={language === "en" ? "LLC Example" : language === "ru" ? "ООО Пример" : "შპს მაგალითი"}
+            required
+          />
+          <Field
             label={language === "en" ? "Company ID number *" : language === "ru" ? "Идентификационный номер компании *" : "კომპანიის საიდენტიფიკაციო ნომერი *"}
             value={form.company_id_number}
             onChange={(v) => setForm({ ...form, company_id_number: v })}
