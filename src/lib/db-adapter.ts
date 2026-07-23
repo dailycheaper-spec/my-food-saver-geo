@@ -9,13 +9,13 @@ import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-function mapCategory(raw: string | null | undefined): Category {
-  const c = (raw ?? "").toLowerCase();
-  if (c.includes("bak") || c.includes("საცხობი")) return "საცხობი";
-  if (c.includes("sushi") || c.includes("სუში")) return "სუში";
+function mapCategory(raw: string | null | undefined, ...extra: (string | null | undefined)[]): Category {
+  const c = [raw, ...extra].filter(Boolean).join(" ").toLowerCase();
   if (c.includes("pizza") || c.includes("პიცა")) return "პიცა";
-  if (c.includes("market") || c.includes("super") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
-  if (c.includes("cafe") || c.includes("caf") || c.includes("კაფე")) return "კაფე";
+  if (c.includes("sushi") || c.includes("სუში")) return "სუში";
+  if (c.includes("bak") || c.includes("საცხობი") || c.includes("bakery")) return "საცხობი";
+  if (c.includes("market") || c.includes("super") || c.includes("grocery") || c.includes("produce") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
+  if (c.includes("cafe") || c.includes("caf") || c.includes("dessert") || c.includes("კაფე")) return "კაფე";
   return "რესტორანი";
 }
 
@@ -37,7 +37,7 @@ function timeStr(t: string | null | undefined, fallback: string): string {
 }
 
 export function dbOfferToCardOffer(row: OfferWithStore): Offer {
-  const cat = mapCategory(row.category ?? row.store?.category ?? null);
+  const cat = mapCategory(row.category, row.store?.category, row.title, row.description);
   const itemsLeft = Math.max(0, (row.quantity_available ?? 0) - (row.quantity_sold ?? 0));
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : undefined;
   return {
