@@ -16,6 +16,7 @@ import { NearbyOffersSection } from "@/components/NearbyOffersSection";
 import { useFollowedStoreIds } from "@/lib/follows";
 import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { useCity, cityLabel } from "@/lib/city";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 
 
@@ -42,13 +43,19 @@ function Home() {
   const favs = useFavorites();
   const hydrated = useHydrated();
   const { offers: dbOffers } = useLiveDbCardOffers();
+  const { city } = useCity();
 
-  // Real offers only — no mock merging.
+  // Real offers only — filtered to the currently selected city.
   const ALL_OFFERS = useMemo<Offer[]>(() => {
     const map = new Map<string, Offer>();
-    dbOffers.forEach((o) => map.set(o.id, o));
+    dbOffers.forEach((o) => {
+      // If offer has no city info, keep it in Tbilisi (legacy default) only.
+      const offerCity = o.city ?? "თბილისი";
+      if (offerCity !== city) return;
+      map.set(o.id, o);
+    });
     return Array.from(map.values());
-  }, [dbOffers]);
+  }, [dbOffers, city]);
 
   const [recentIds, setRecentIds] = useState<string[]>([]);
   useEffect(() => {
