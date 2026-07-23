@@ -16,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/partner/new")({
 const CATEGORIES = [
   { value: "meal", icon: "🍽", key: "meal" },
   { value: "bakery", icon: "🥐", key: "bakery" },
+  { value: "pizza", icon: "🍕", key: "pizza" },
+  { value: "sushi", icon: "🍣", key: "sushi" },
   { value: "grocery", icon: "🛒", key: "grocery" },
   { value: "produce", icon: "🥬", key: "produce" },
   { value: "dessert", icon: "🍰", key: "dessert" },
