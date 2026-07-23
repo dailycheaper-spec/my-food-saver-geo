@@ -23,6 +23,7 @@ function fallbackImage(cat: Category): string {
   switch (cat) {
     case "საცხობი": return bagBakery;
     case "სუში": return bagSushi;
+    case "პიცა": return bagKhachapuri;
     case "სუპერმარკეტი": return bagProduce;
     case "კაფე": return bagSweets;
     default: return bagKhachapuri;
