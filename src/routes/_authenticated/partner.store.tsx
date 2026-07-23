@@ -81,6 +81,9 @@ function StoreSettings() {
           typeof anyStore.visibility_radius_km === "number"
             ? (anyStore.visibility_radius_km as number)
             : 3,
+        company_name: (anyStore.company_name as string | null) ?? "",
+        company_id_number: (anyStore.company_id_number as string | null) ?? "",
+        contact_email: (anyStore.contact_email as string | null) ?? "",
       });
     }
   }, [store]);
