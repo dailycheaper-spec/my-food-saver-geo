@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
-  ChevronLeft, ChevronRight, Clock, Utensils, Gift,
+  ChevronLeft, ChevronRight, Clock, Utensils, Gift, LogIn, User,
 } from "lucide-react";
 import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
@@ -190,9 +190,9 @@ function Home() {
             {!user && !rolesLoading && (
               <Link
                 to="/auth"
-                className="h-10 px-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 press shadow-sm"
+                className="h-10 px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center gap-1.5 press shadow-sm"
               >
-                {t("signIn")}
+                <LogIn className="w-4 h-4" aria-hidden="true" /> {t("signIn")}
               </Link>
             )}
             {user && !rolesLoading && isAdmin && (
@@ -203,6 +203,11 @@ function Home() {
             {user && !rolesLoading && !isAdmin && isPartner && (
               <Link to="/partner" className="h-10 px-3 rounded-full bg-accent text-accent-foreground font-semibold text-xs inline-flex items-center gap-1 press">
                 <Store className="w-3.5 h-3.5" aria-hidden="true" /> {t("partner")}
+              </Link>
+            )}
+            {user && !rolesLoading && !isAdmin && !isPartner && (
+              <Link to="/profile" className="h-10 w-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none" aria-label={t("profile")}>
+                <User className="w-[18px] h-[18px]" aria-hidden="true" />
               </Link>
             )}
           </div>
@@ -225,6 +230,26 @@ function Home() {
             {L.searchOnPage}
           </span>
         </Link>
+
+        {!user && !rolesLoading && (
+          <Link
+            to="/auth"
+            className="mt-3 flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-primary text-primary-foreground shadow-sm active:scale-[0.99] transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 grid place-items-center">
+                <User className="w-[18px] h-[18px]" aria-hidden="true" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold">{language === "en" ? "Sign in to Cheaper" : language === "ru" ? "Войдите в Cheaper" : "შედი Cheaper-ში"}</p>
+                <p className="text-xs text-primary-foreground/80">
+                  {language === "en" ? "Track orders and get deals first" : language === "ru" ? "Следите за заказами и получайте скидки первыми" : "თვალყური ადევი შეკვეთებს და პირველმი იყიდე"}
+                </p>
+              </div>
+            </div>
+            <span className="text-sm font-bold">{t("signIn")} →</span>
+          </Link>
+        )}
       </section>
 
       {/* -------- Categories (large, native-feel tiles) -------- */}
