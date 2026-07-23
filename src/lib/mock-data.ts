@@ -33,6 +33,7 @@ export interface Offer {
   visibilityRadiusKm?: number;
   createdAt?: number; // epoch ms — used for NEW badge
   isSurprise?: boolean; // mystery bag — contents revealed at pickup
+  city?: string; // store city ("თბილისი" | "ქუთაისი" | "ბათუმი")
 }
 
 
