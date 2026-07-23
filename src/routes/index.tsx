@@ -230,6 +230,26 @@ function Home() {
             {L.searchOnPage}
           </span>
         </Link>
+
+        {!user && !rolesLoading && (
+          <Link
+            to="/auth"
+            className="mt-3 flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl bg-primary text-primary-foreground shadow-sm active:scale-[0.99] transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 grid place-items-center">
+                <User className="w-[18px] h-[18px]" aria-hidden="true" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold">{language === "en" ? "Sign in to Cheaper" : language === "ru" ? "Войдите в Cheaper" : "შედი Cheaper-ში"}</p>
+                <p className="text-xs text-primary-foreground/80">
+                  {language === "en" ? "Track orders and get deals first" : language === "ru" ? "Следите за заказами и получайте скидки первыми" : "თვალყური ადევი შეკვეთებს და პირველმი იყიდე"}
+                </p>
+              </div>
+            </div>
+            <span className="text-sm font-bold">{t("signIn")} →</span>
+          </Link>
+        )}
       </section>
 
       {/* -------- Categories (large, native-feel tiles) -------- */}
