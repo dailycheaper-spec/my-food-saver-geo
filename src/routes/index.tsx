@@ -190,9 +190,9 @@ function Home() {
             {!user && !rolesLoading && (
               <Link
                 to="/auth"
-                className="h-10 px-3.5 rounded-full bg-primary text-primary-foreground font-semibold text-xs inline-flex items-center gap-1 press shadow-sm"
+                className="h-10 px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center gap-1.5 press shadow-sm"
               >
-                {t("signIn")}
+                <LogIn className="w-4 h-4" aria-hidden="true" /> {t("signIn")}
               </Link>
             )}
             {user && !rolesLoading && isAdmin && (
@@ -203,6 +203,11 @@ function Home() {
             {user && !rolesLoading && !isAdmin && isPartner && (
               <Link to="/partner" className="h-10 px-3 rounded-full bg-accent text-accent-foreground font-semibold text-xs inline-flex items-center gap-1 press">
                 <Store className="w-3.5 h-3.5" aria-hidden="true" /> {t("partner")}
+              </Link>
+            )}
+            {user && !rolesLoading && !isAdmin && !isPartner && (
+              <Link to="/profile" className="h-10 w-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none" aria-label={t("profile")}>
+                <User className="w-[18px] h-[18px]" aria-hidden="true" />
               </Link>
             )}
           </div>
