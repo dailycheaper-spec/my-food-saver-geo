@@ -197,6 +197,7 @@ export function useMyRole() {
             setRoles([]);
             setRole(null);
             setError(null);
+            setLoading(false);
           }
           return;
         }
