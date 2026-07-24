@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS stores_one_pending_per_owner ON public.stores (owner_id) WHERE status = 'pending' AND owner_id IS NOT NULL;
