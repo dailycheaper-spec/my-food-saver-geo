@@ -420,9 +420,9 @@ function OfferPage() {
           <div className="font-bold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
+              { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
+              { id: "GPAY", label: "Google Pay", icon: "🟢" },
               { id: "TBC", label: "TBC Pay", icon: "🏦" },
-              { id: "BOG", label: "BOG e-commerce", icon: "🏛️" },
-              { id: "APPLE", label: "Apple / Google Pay", icon: "📱" },
               { id: "COD", label: t("payAtPickup"), icon: "💵" },
             ].map((p) => (
               <button
@@ -437,10 +437,32 @@ function OfferPage() {
               </button>
             ))}
           </div>
+
+          {payment === "GPAY" && (
+            <div className="mt-4">
+              <GooglePayButton
+                amount={total}
+                currency="GEL"
+                disabled={soldOut || (method === "მიტანა" && address.length < 3)}
+                onPaymentAuthorized={async (_token) => {
+                  // TODO: forward `_token` to BOG's Google Pay gateway once
+                  // certified credentials are issued. Until then, fall through
+                  // to the hosted card flow so orders still settle.
+                  await handleReserve();
+                }}
+                onFallback={() => setPayment("BOG")}
+              />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Google Pay ტესტ-რეჟიმში — გადახდა დასრულდება BOG-ის უსაფრთხო გვერდზე.
+              </p>
+            </div>
+          )}
+
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
             <Shield className="w-3.5 h-3.5" /> {t("safePayment")}
           </div>
         </div>
+
 
         {/* ---- Partner information ---- */}
         <SectionCard icon={<Shield className="w-4 h-4 text-primary" />} title={L.aboutStore}>
