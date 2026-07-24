@@ -42,28 +42,29 @@ function PartnerLayout() {
   const [notifOpen, setNotifOpen] = useState(false);
   const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
 
+  const sound = useSoundPref();
+  const [showSoundBanner, setShowSoundBanner] = useState(false);
+  useEffect(() => {
+    if (!hasPartnerAccess) return;
+    if (sound.pref === null) setShowSoundBanner(true);
+    else setShowSoundBanner(false);
+  }, [hasPartnerAccess, sound.pref]);
+
+  useNewOrderSound(stores.map((s) => s.id), sound.enabled);
+
   useEffect(() => {
     if (!loading && !hasPartnerAccess) {
       navigate({ to: "/partner-apply", replace: true });
     }
   }, [hasPartnerAccess, loading, navigate]);
 
-  // Global realtime notification for new orders on this store
+  // Desktop OS notification on new orders for the currently-viewed store
   useEffect(() => {
-    if (newCount > 0 && "Notification" in window) {
-      if (Notification.permission === "granted") {
-        new Notification(t("newOrder"), { body: t("newOrderBody") });
-      }
-      try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880; gain.gain.value = 0.08;
-        osc.start(); osc.stop(ctx.currentTime + 0.15);
-      } catch {}
+    if (newCount > 0 && "Notification" in window && Notification.permission === "granted") {
+      new Notification(t("newOrder"), { body: t("newOrderBody") });
     }
-  }, [newCount]);
+  }, [newCount, t]);
+
 
   const nav = [
     { to: "/partner", label: t("navHome"), icon: Home, exact: true },
