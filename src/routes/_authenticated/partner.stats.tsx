@@ -11,7 +11,9 @@ export const Route = createFileRoute("/_authenticated/partner/stats")({
 });
 
 function StatsPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const kg = language === "en" ? "kg" : language === "ru" ? "кг" : "კგ";
+
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
