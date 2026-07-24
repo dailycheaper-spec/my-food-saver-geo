@@ -69,6 +69,7 @@ const NEW_PARTNER_MS = 7 * 24 * 60 * 60 * 1000;
 
 function MapPage() {
   const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { offers: allOffers } = useLiveDbCardOffers();
   const { city } = useCity();
   const offers = useMemo(
@@ -279,8 +280,8 @@ function MapPage() {
                 onChange={(e) => { setQuery(e.target.value); setSuggestOpen(true); }}
                 onFocus={() => setSuggestOpen(true)}
                 onKeyDown={(e) => { if (e.key === "Escape") { setSuggestOpen(false); (e.target as HTMLInputElement).blur(); } }}
-                placeholder="მაღაზია, კერძი, კატეგორია, უბანი…"
-                aria-label="ძებნა რუკაზე"
+                placeholder={L("მაღაზია, კერძი, კატეგორია, უბანი…", "Shop, dish, category, district…", "Магазин, блюдо, категория, район…")}
+                aria-label={L("ძებნა რუკაზე", "Search the map", "Поиск по карте")}
                 aria-expanded={Boolean(suggestOpen && suggestions)}
                 aria-controls="map-search-suggestions"
                 className="w-full pl-7 pr-7 h-8 rounded-full bg-transparent text-foreground placeholder:text-muted-foreground text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -290,7 +291,7 @@ function MapPage() {
                   type="button"
                   onClick={() => { setQuery(""); setSuggestOpen(false); }}
                   className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted grid place-items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label="ძებნის გასუფთავება"
+                  aria-label={L("ძებნის გასუფთავება", "Clear search", "Очистить поиск")}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -304,7 +305,7 @@ function MapPage() {
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-foreground"
               }`}
-              aria-label={`ფილტრი${activeFilterCount > 0 ? ` (${activeFilterCount} აქტიური)` : ""}`}
+              aria-label={`${L("ფილტრი", "Filter", "Фильтр")}${activeFilterCount > 0 ? ` (${activeFilterCount} ${L("აქტიური", "active", "активн.")})` : ""}`}
               aria-pressed={showFilters}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -327,7 +328,7 @@ function MapPage() {
             >
               {suggestions.partners.length > 0 && (
                 <div className="p-2">
-                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">პარტნიორები</div>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">{L("პარტნიორები", "Partners", "Партнёры")}</div>
                   {suggestions.partners.map((p) => (
                     <button
                       key={p.id}
@@ -349,7 +350,7 @@ function MapPage() {
               )}
               {suggestions.foods.length > 0 && (
                 <div className="p-2 border-t border-border">
-                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კერძები</div>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">{L("კერძები", "Dishes", "Блюда")}</div>
                   {suggestions.foods.map((f) => (
                     <Link
                       key={f.id}
@@ -370,7 +371,7 @@ function MapPage() {
               )}
               {suggestions.cats.length > 0 && (
                 <div className="p-2 border-t border-border">
-                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">კატეგორიები</div>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">{L("კატეგორიები", "Categories", "Категории")}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {suggestions.cats.map((c) => (
                       <button
@@ -388,7 +389,7 @@ function MapPage() {
               )}
               {suggestions.districts.length > 0 && (
                 <div className="p-2 border-t border-border">
-                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">უბნები</div>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground px-2 pb-1">{L("უბნები", "Districts", "Районы")}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {suggestions.districts.map((d) => (
                       <button
@@ -420,14 +421,14 @@ function MapPage() {
                   onChange={(e) => setShowUnavailable(e.target.checked)}
                   className="accent-primary"
                 />
-                მიუწვდომელი
+                {L("მიუწვდომელი", "Unavailable", "Недоступно")}
               </label>
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="დალაგება">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label={L("დალაგება", "Sort", "Сортировка")}>
               {([
-                { id: "nearby", label: "ახლოს", icon: <Navigation className="w-3 h-3" /> },
-                { id: "discount", label: "მაქს. ფასდაკლება", icon: <Percent className="w-3 h-3" /> },
-                { id: "endingSoon", label: "სრულდება", icon: <Clock className="w-3 h-3" /> },
+                { id: "nearby", label: L("ახლოს", "Nearest", "Ближайшие"), icon: <Navigation className="w-3 h-3" /> },
+                { id: "discount", label: L("მაქს. ფასდაკლება", "Max discount", "Макс. скидка"), icon: <Percent className="w-3 h-3" /> },
+                { id: "endingSoon", label: L("სრულდება", "Ending soon", "Скоро закончится"), icon: <Clock className="w-3 h-3" /> },
               ] as { id: SortMode; label: string; icon: React.ReactNode }[]).map((s) => (
                 <button
                   key={s.id}
@@ -442,7 +443,7 @@ function MapPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="კატეგორია">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label={L("კატეგორია", "Category", "Категория")}>
               {CATEGORIES.map((c) => (
                 <button
                   key={c.id}
@@ -457,7 +458,7 @@ function MapPage() {
                 </button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label="ფილტრები">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide" role="group" aria-label={L("ფილტრები", "Filters", "Фильтры")}>
               <button
                 type="button"
                 onClick={() => setNewPartnersOnly((v) => !v)}
@@ -466,7 +467,7 @@ function MapPage() {
                   newPartnersOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
-                <Sparkles className="w-3 h-3" /> ახალი
+                <Sparkles className="w-3 h-3" /> {L("ახალი", "New", "Новые")}
               </button>
               <button
                 type="button"
@@ -476,7 +477,7 @@ function MapPage() {
                   favoritesOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
-                <Heart className="w-3 h-3" /> ფავორიტები
+                <Heart className="w-3 h-3" /> {L("ფავორიტები", "Favorites", "Избранное")}
               </button>
               <button
                 type="button"
@@ -486,12 +487,12 @@ function MapPage() {
                   availableOnly ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                 }`}
               >
-                <CheckCircle2 className="w-3 h-3" /> ხელმისაწვდომია ახლა
+                <CheckCircle2 className="w-3 h-3" /> {L("ხელმისაწვდომია ახლა", "Available now", "Доступно сейчас")}
               </button>
               <select
                 value={districtFilter}
                 onChange={(e) => setDistrictFilter(e.target.value)}
-                aria-label="უბანი"
+                aria-label={L("უბანი", "District", "Район")}
                 className="shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-secondary text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {DISTRICTS.map((d) => (
@@ -512,7 +513,7 @@ function MapPage() {
                   }}
                   className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-full text-[11px] font-semibold bg-muted text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <X className="w-3 h-3" /> გასუფთავება
+                  <X className="w-3 h-3" /> {L("გასუფთავება", "Clear", "Очистить")}
                 </button>
               )}
             </div>
@@ -525,20 +526,20 @@ function MapPage() {
         {!location && status !== "prompting" && (
           <div className="absolute left-1/2 -translate-x-1/2 top-28 z-[1000] pointer-events-auto bg-card/95 backdrop-blur border border-border rounded-full shadow-elevated pl-3 pr-1 py-1 flex items-center gap-2 max-w-[92%]">
             <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
-            <p className="text-[11px] font-semibold text-foreground truncate">მდებარეობა გამორთულია</p>
+            <p className="text-[11px] font-semibold text-foreground truncate">{L("მდებარეობა გამორთულია", "Location is off", "Геолокация выключена")}</p>
             <button
               type="button"
               onClick={status === "denied" ? () => void request() : askPermission}
               className="h-7 px-3 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold press shrink-0"
             >
-              {status === "denied" ? "ხელახლა" : "ჩართვა"}
+              {status === "denied" ? L("ხელახლა", "Retry", "Ещё раз") : L("ჩართვა", "Enable", "Включить")}
             </button>
           </div>
         )}
 
 
         {mounted && (
-          <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">რუკა იტვირთება…</div>}>
+          <Suspense fallback={<div className="h-full w-full grid place-items-center text-sm text-muted-foreground">{L("რუკა იტვირთება…", "Loading map…", "Загрузка карты…")}</div>}>
             <MapCanvas
               key={`map-${city}${location ? "-loc" : ""}`}
               center={location ? [location.lat, location.lng] : (CITY_CENTERS[city] ?? TBILISI_CENTER)}
@@ -559,7 +560,11 @@ function MapPage() {
         {location && stores.length === 0 && (
           <div className="absolute inset-x-4 bottom-24 z-[1000] bg-card border border-border rounded-3xl p-4 text-center shadow-elevated">
             <p className="text-sm text-muted-foreground">
-              ამ რადიუსში აქტიური შეთავაზებები ვერ მოიძებნა.
+              {L(
+                "ამ რადიუსში აქტიური შეთავაზებები ვერ მოიძებნა.",
+                "No active offers within this radius.",
+                "В этом радиусе нет активных предложений.",
+              )}
             </p>
             <button
               type="button"
@@ -570,7 +575,7 @@ function MapPage() {
               }}
               className="mt-2 inline-flex h-9 px-4 rounded-full bg-primary text-primary-foreground text-xs font-semibold press"
             >
-              რადიუსის გაზრდა
+              {L("რადიუსის გაზრდა", "Expand radius", "Увеличить радиус")}
             </button>
           </div>
         )}
