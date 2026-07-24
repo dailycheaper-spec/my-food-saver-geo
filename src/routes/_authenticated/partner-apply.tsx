@@ -108,6 +108,9 @@ function PartnerApply() {
     );
   }
 
+  return (
+    <div className="mx-auto max-w-xl px-4 py-6">
+      <button onClick={() => navigate({ to: "/" })} className="flex items-center gap-1 text-sm text-muted-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> {t("back")}
       </button>
       <div className="flex justify-end mb-3"><LanguageSwitcher /></div>
