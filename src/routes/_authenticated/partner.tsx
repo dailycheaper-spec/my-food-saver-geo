@@ -144,7 +144,7 @@ function PartnerLayout() {
             <button
               onClick={() => { setNotifOpen(true); resetNewCount(); if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }}
               className="relative p-2 rounded-full hover:bg-muted/50"
-              aria-label="შეტყობინებები"
+              aria-label={t("notificationsTitle")}
             >
               <Bell className="w-5 h-5 text-muted-foreground" />
               {newCount > 0 && (
@@ -154,8 +154,8 @@ function PartnerLayout() {
             <button
               onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
               className="p-2 rounded-full hover:bg-muted/50"
-              aria-label={sound.enabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
-              title={sound.enabled ? "ხმა ჩართულია" : "ხმა გამორთულია"}
+              aria-label={sound.enabled ? L("ხმის გამორთვა", "Turn sound off", "Выключить звук") : L("ხმის ჩართვა", "Turn sound on", "Включить звук")}
+              title={sound.enabled ? L("ხმა ჩართულია", "Sound on", "Звук включён") : L("ხმა გამორთულია", "Sound off", "Звук выключен")}
             >
               {sound.enabled
                 ? <Volume2 className="w-5 h-5 text-primary" />
@@ -168,10 +168,11 @@ function PartnerLayout() {
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/" }); }}
               className="p-2 rounded-full hover:bg-muted/50"
-              aria-label="გასვლა"
+              aria-label={t("signOut")}
             >
               <LogOut className="w-4 h-4 text-muted-foreground" />
             </button>
+
           </div>
         </div>
         {/* Desktop side nav strip */}
