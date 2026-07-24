@@ -199,17 +199,18 @@ function PartnerLayout() {
         {showSoundBanner && (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3">
             <span className="text-lg">🔔</span>
-            <p className="flex-1 text-sm">ჩართეთ ხმოვანი შეტყობინება ახალი შეკვეთისთვის</p>
+            <p className="flex-1 text-sm">{L("ჩართეთ ხმოვანი შეტყობინება ახალი შეკვეთისთვის", "Enable sound alert for new orders", "Включить звуковое уведомление о новых заказах")}</p>
             <button
               onClick={() => { sound.enable(); setShowSoundBanner(false); }}
               className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
-            >ჩართვა</button>
+            >{t("enable")}</button>
             <button
               onClick={() => { sound.disable(); setShowSoundBanner(false); }}
               className="p-1 rounded-full hover:bg-muted/50"
-              aria-label="დახურვა"
+              aria-label={t("close")}
             ><X className="w-4 h-4 text-muted-foreground" /></button>
           </div>
+
         )}
         <Outlet />
       </main>
