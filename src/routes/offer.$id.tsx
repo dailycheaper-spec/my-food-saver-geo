@@ -12,7 +12,7 @@ import {
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
-import { startBogCheckout } from "@/lib/payments/bog.functions";
+import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
