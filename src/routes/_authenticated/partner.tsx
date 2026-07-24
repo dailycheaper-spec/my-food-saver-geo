@@ -1,9 +1,11 @@
 import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck } from "lucide-react";
+import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePartnerAccount, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { useNewOrderSound, useSoundPref } from "@/lib/partner-sound";
+
 
 export const Route = createFileRoute("/_authenticated/partner")({
   component: PartnerLayout,
@@ -40,28 +42,29 @@ function PartnerLayout() {
   const [notifOpen, setNotifOpen] = useState(false);
   const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
 
+  const sound = useSoundPref();
+  const [showSoundBanner, setShowSoundBanner] = useState(false);
+  useEffect(() => {
+    if (!hasPartnerAccess) return;
+    if (sound.pref === null) setShowSoundBanner(true);
+    else setShowSoundBanner(false);
+  }, [hasPartnerAccess, sound.pref]);
+
+  useNewOrderSound(stores.map((s) => s.id), sound.enabled);
+
   useEffect(() => {
     if (!loading && !hasPartnerAccess) {
       navigate({ to: "/partner-apply", replace: true });
     }
   }, [hasPartnerAccess, loading, navigate]);
 
-  // Global realtime notification for new orders on this store
+  // Desktop OS notification on new orders for the currently-viewed store
   useEffect(() => {
-    if (newCount > 0 && "Notification" in window) {
-      if (Notification.permission === "granted") {
-        new Notification(t("newOrder"), { body: t("newOrderBody") });
-      }
-      try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880; gain.gain.value = 0.08;
-        osc.start(); osc.stop(ctx.currentTime + 0.15);
-      } catch {}
+    if (newCount > 0 && "Notification" in window && Notification.permission === "granted") {
+      new Notification(t("newOrder"), { body: t("newOrderBody") });
     }
-  }, [newCount]);
+  }, [newCount, t]);
+
 
   const nav = [
     { to: "/partner", label: t("navHome"), icon: Home, exact: true },
@@ -143,6 +146,16 @@ function PartnerLayout() {
                 <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">{newCount}</span>
               )}
             </button>
+            <button
+              onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
+              className="p-2 rounded-full hover:bg-muted/50"
+              aria-label={sound.enabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
+              title={sound.enabled ? "ხმა ჩართულია" : "ხმა გამორთულია"}
+            >
+              {sound.enabled
+                ? <Volume2 className="w-5 h-5 text-primary" />
+                : <VolumeX className="w-5 h-5 text-muted-foreground" />}
+            </button>
             <LanguageSwitcher compact />
             <Link to="/partner/profile" className="p-2 rounded-full hover:bg-muted/50 text-xs font-medium hidden sm:block">
               {!loading && store ? `${store.logo ?? "🏪"} ${store.name}` : t("profile")}
@@ -177,6 +190,21 @@ function PartnerLayout() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-4 md:py-6">
+        {showSoundBanner && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3">
+            <span className="text-lg">🔔</span>
+            <p className="flex-1 text-sm">ჩართეთ ხმოვანი შეტყობინება ახალი შეკვეთისთვის</p>
+            <button
+              onClick={() => { sound.enable(); setShowSoundBanner(false); }}
+              className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+            >ჩართვა</button>
+            <button
+              onClick={() => { sound.disable(); setShowSoundBanner(false); }}
+              className="p-1 rounded-full hover:bg-muted/50"
+              aria-label="დახურვა"
+            ><X className="w-4 h-4 text-muted-foreground" /></button>
+          </div>
+        )}
         <Outlet />
       </main>
 
