@@ -171,7 +171,22 @@ function PartnerApply() {
             maxLength={9}
             required
           />
+          <Field
+            label={language === "en" ? "Bank IBAN (Georgian) *" : language === "ru" ? "Банковский IBAN (Грузия) *" : "საბანკო IBAN (ქართული) *"}
+            value={form.bank_iban}
+            onChange={(v) => setForm({ ...form, bank_iban: v.replace(/\s+/g, "").toUpperCase().slice(0, 22) })}
+            placeholder="GE29NB0000000101904917"
+            maxLength={22}
+            required
+          />
+          <Field
+            label={language === "en" ? "Account holder (optional)" : language === "ru" ? "Владелец счёта (необязательно)" : "ანგარიშის მფლობელი (არასავალდებულო)"}
+            value={form.account_holder}
+            onChange={(v) => setForm({ ...form, account_holder: v })}
+            placeholder={language === "en" ? "Same as company name if empty" : language === "ru" ? "По умолчанию — название компании" : "თუ ცარიელია, კომპანიის სახელი გამოიყენება"}
+          />
         </div>
+
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
