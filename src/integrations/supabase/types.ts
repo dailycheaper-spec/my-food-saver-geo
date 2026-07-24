@@ -205,6 +205,7 @@ export type Database = {
           method: Database["public"]["Enums"]["order_method"]
           notes: string | null
           offer_id: string
+          payout_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           updated_at: string
@@ -224,6 +225,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id: string
+          payout_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           updated_at?: string
@@ -243,6 +245,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id?: string
+          payout_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           updated_at?: string
@@ -264,6 +267,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "orders_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "payouts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "orders_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
@@ -275,27 +285,45 @@ export type Database = {
       payouts: {
         Row: {
           amount: number
+          commission_amount: number
           created_at: string
+          generated_by: string
+          gross_amount: number
           id: string
+          order_count: number
           paid_at: string | null
+          period_end: string | null
+          period_start: string | null
           status: string
           store_id: string
           updated_at: string
         }
         Insert: {
           amount: number
+          commission_amount?: number
           created_at?: string
+          generated_by?: string
+          gross_amount?: number
           id?: string
+          order_count?: number
           paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
           status?: string
           store_id: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          commission_amount?: number
           created_at?: string
+          generated_by?: string
+          gross_amount?: number
           id?: string
+          order_count?: number
           paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
           status?: string
           store_id?: string
           updated_at?: string
@@ -385,6 +413,41 @@ export type Database = {
             foreignKeyName: "saved_products_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_bank_accounts: {
+        Row: {
+          account_holder: string | null
+          created_at: string
+          iban: string
+          id: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string | null
+          created_at?: string
+          iban: string
+          id?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string | null
+          created_at?: string
+          iban?: string
+          id?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_bank_accounts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
             referencedRelation: "stores"
             referencedColumns: ["id"]
           },
@@ -599,6 +662,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_pending_payouts: {
+        Args: {
+          _commission?: number
+          _generated_by?: string
+          _min_payout?: number
+        }
+        Returns: {
+          gross: number
+          net: number
+          order_count: number
+          payout_id: string
+          store_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
