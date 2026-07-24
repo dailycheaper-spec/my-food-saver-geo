@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
+import { useStoresWithBank } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
@@ -60,6 +61,7 @@ function AdminPartners() {
   const [editingLocation, setEditingLocation] = useState<DbStore | null>(null);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
   const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
+  const storesWithBank = useStoresWithBank();
   const settings = loadAdminSettings();
 
   async function loadReports() {
@@ -205,6 +207,7 @@ function AdminPartners() {
             commissionPct={settings.commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
             activeOffers={activeOffersCount.get(s.id) ?? 0}
+            hasBank={storesWithBank.has(s.id)}
             onEditLocation={() => setEditingLocation(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
@@ -224,7 +227,7 @@ function AdminPartners() {
 
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; onEditLocation: () => void; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, hasBank, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; hasBank: boolean; onEditLocation: () => void; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
@@ -251,6 +254,11 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>
             <StatusBadge status={store.status} />
+            {!hasBank && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-warm text-warm-foreground">
+                <AlertTriangle className="w-3 h-3" /> IBAN არაა
+              </span>
+            )}
             {reportCount > 0 && (
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${isFlagged ? "bg-destructive text-destructive-foreground" : "bg-warm text-warm-foreground"}`}>
                 <AlertTriangle className="w-3 h-3" /> {reportCount} ჩივილი

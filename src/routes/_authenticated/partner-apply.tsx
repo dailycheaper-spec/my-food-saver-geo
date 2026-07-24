@@ -27,7 +27,7 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -51,9 +51,13 @@ function PartnerApply() {
       setMsg(language === "en" ? "Company ID must be exactly 9 digits" : language === "ru" ? "Идентификационный номер компании должен содержать ровно 9 цифр" : "საიდენტიფიკაციო ნომერი უნდა იყოს ზუსტად 9 ციფრი");
       return;
     }
+    const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
+    if (!/^GE\d{2}[A-Z]{2}\d{16}$/.test(ibanNormalized)) {
+      setMsg(language === "en" ? "Bank IBAN must be a valid Georgian IBAN (e.g. GE29NB0000000101904917)." : language === "ru" ? "IBAN должен быть в грузинском формате (напр. GE29NB0000000101904917)." : "საბანკო IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).");
+      return;
+    }
     setSubmitting(true);
     setMsg("");
-    // Extra safeguard: re-check for an existing pending application before insert
     const { data: existingPending } = await supabase
       .from("stores")
       .select("id")
@@ -65,13 +69,24 @@ function PartnerApply() {
       setMsg(language === "en" ? "You already have a pending application." : language === "ru" ? "У вас уже есть заявка на рассмотрении." : "თქვენ უკვე გაქვთ განაცხადი განხილვის პროცესში.");
       return;
     }
-    const { error } = await supabase.from("stores").insert({
-      ...form,
+    const { bank_iban: _b, account_holder: _h, ...storePayload } = form;
+    const { data: newStore, error } = await supabase.from("stores").insert({
+      ...storePayload,
       owner_id: user.id,
       status: "pending",
+    }).select("id").single();
+    if (error || !newStore) {
+      setSubmitting(false);
+      setMsg("შეცდომა: " + (error?.message ?? ""));
+      return;
+    }
+    const { error: bankErr } = await supabase.from("store_bank_accounts").insert({
+      store_id: newStore.id,
+      iban: ibanNormalized,
+      account_holder: form.account_holder.trim() || form.company_name.trim() || null,
     });
     setSubmitting(false);
-    if (error) setMsg("შეცდომა: " + error.message);
+    if (bankErr) setMsg("შეცდომა: " + bankErr.message);
     else {
       setMsg(t("applicationSent"));
       setTimeout(() => navigate({ to: "/partner" }), 1000);
@@ -156,7 +171,22 @@ function PartnerApply() {
             maxLength={9}
             required
           />
+          <Field
+            label={language === "en" ? "Bank IBAN (Georgian) *" : language === "ru" ? "Банковский IBAN (Грузия) *" : "საბანკო IBAN (ქართული) *"}
+            value={form.bank_iban}
+            onChange={(v) => setForm({ ...form, bank_iban: v.replace(/\s+/g, "").toUpperCase().slice(0, 22) })}
+            placeholder="GE29NB0000000101904917"
+            maxLength={22}
+            required
+          />
+          <Field
+            label={language === "en" ? "Account holder (optional)" : language === "ru" ? "Владелец счёта (необязательно)" : "ანგარიშის მფლობელი (არასავალდებულო)"}
+            value={form.account_holder}
+            onChange={(v) => setForm({ ...form, account_holder: v })}
+            placeholder={language === "en" ? "Same as company name if empty" : language === "ru" ? "По умолчанию — название компании" : "თუ ცარიელია, კომპანიის სახელი გამოიყენება"}
+          />
         </div>
+
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">

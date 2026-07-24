@@ -44,16 +44,23 @@ export async function deleteOfferAdmin(id: string) {
 }
 
 // ────── PAYOUTS ──────
+export type AdminPayoutRow = DbPayout & { store_name?: string; bank_iban?: string | null; account_holder?: string | null };
+
 export function useAllPayouts() {
-  const [payouts, setPayouts] = useState<(DbPayout & { store_name?: string })[]>([]);
+  const [payouts, setPayouts] = useState<AdminPayoutRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function load() {
     const { data } = await supabase
       .from("payouts")
-      .select("*, store:stores(name)")
+      .select("*, store:stores(name), bank:store_bank_accounts!store_bank_accounts_store_id_fkey(iban, account_holder)")
       .order("created_at", { ascending: false });
-    if (data) setPayouts(data.map((p: any) => ({ ...p, store_name: p.store?.name })));
+    if (data) setPayouts(data.map((p: any) => ({
+      ...p,
+      store_name: p.store?.name,
+      bank_iban: p.bank?.iban ?? null,
+      account_holder: p.bank?.account_holder ?? null,
+    })));
     setLoading(false);
   }
 
@@ -67,6 +74,26 @@ export function useAllPayouts() {
   }, []);
 
   return { payouts, loading, reload: load };
+}
+
+// Which stores have bank details on file (admin view — used to flag missing IBAN).
+export function useStoresWithBank() {
+  const [ids, setIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase.from("store_bank_accounts").select("store_id");
+      if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
+    })();
+    const ch = supabase.channel("admin-bank-accounts")
+      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, async () => {
+        const { data } = await supabase.from("store_bank_accounts").select("store_id");
+        if (data) setIds(new Set(data.map((r: any) => r.store_id as string)));
+      })
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, []);
+  return ids;
 }
 
 export async function markPayoutPaid(id: string) {
