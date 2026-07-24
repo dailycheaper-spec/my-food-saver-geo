@@ -1,0 +1,77 @@
+CREATE OR REPLACE FUNCTION public.generate_pending_payouts(_commission numeric DEFAULT 0.10, _min_payout numeric DEFAULT 5, _generated_by text DEFAULT 'cron'::text)
+ RETURNS TABLE(store_id uuid, payout_id uuid, gross numeric, net numeric, order_count integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public', 'pg_temp'
+AS $function$
+DECLARE
+  s record;
+  new_payout_id uuid;
+  gross_amount numeric;
+  net_amount numeric;
+  order_cnt int;
+  period_start_ts timestamptz;
+  period_end_ts timestamptz;
+BEGIN
+  FOR s IN
+    SELECT st.id
+    FROM public.stores st
+    WHERE st.status = 'active'
+      AND EXISTS (SELECT 1 FROM public.store_bank_accounts b WHERE b.store_id = st.id)
+  LOOP
+    -- Create a placeholder payout first so we can atomically tag rows with its id.
+    INSERT INTO public.payouts (
+      store_id, amount, status, period_start, period_end,
+      order_count, gross_amount, commission_amount, generated_by
+    ) VALUES (
+      s.id, 0, 'pending', now(), now(),
+      0, 0, 0, _generated_by
+    )
+    RETURNING id INTO new_payout_id;
+
+    -- Atomic select+lock+tag. Any order inserted after this statement starts
+    -- is not visible here and remains untagged for the next cycle.
+    WITH locked AS (
+      SELECT o.id, o.amount, o.created_at
+      FROM public.orders o
+      WHERE o.store_id = s.id
+        AND o.payout_id IS NULL
+        AND o.status IN ('collected','gifted')
+      FOR UPDATE SKIP LOCKED
+    ),
+    tagged AS (
+      UPDATE public.orders o
+      SET payout_id = new_payout_id
+      FROM locked
+      WHERE o.id = locked.id
+      RETURNING o.id, o.amount, o.created_at
+    )
+    SELECT COALESCE(SUM(t.amount), 0)::numeric,
+           COUNT(*)::int,
+           MIN(t.created_at),
+           MAX(t.created_at)
+    INTO gross_amount, order_cnt, period_start_ts, period_end_ts
+    FROM tagged t;
+
+    net_amount := ROUND(gross_amount * (1 - _commission), 2);
+
+    IF order_cnt = 0 OR net_amount < _min_payout THEN
+      -- Roll back: untag (in case count was 0 nothing was tagged anyway) and drop the placeholder.
+      UPDATE public.orders SET payout_id = NULL WHERE payout_id = new_payout_id;
+      DELETE FROM public.payouts WHERE id = new_payout_id;
+      CONTINUE;
+    END IF;
+
+    UPDATE public.payouts
+    SET amount = net_amount,
+        gross_amount = gross_amount,
+        commission_amount = ROUND(gross_amount * _commission, 2),
+        order_count = order_cnt,
+        period_start = period_start_ts,
+        period_end = period_end_ts
+    WHERE id = new_payout_id;
+
+    RETURN QUERY SELECT s.id, new_payout_id, gross_amount, net_amount, order_cnt;
+  END LOOP;
+END;
+$function$;
