@@ -12,13 +12,13 @@ const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
 );
 
-const STORE_TYPES = [
-  { value: "restaurant", label: "რესტორანი" },
-  { value: "bakery", label: "საცხობი" },
-  { value: "cafe", label: "კაფე" },
-  { value: "market", label: "მარკეტი" },
-  { value: "grocery", label: "სასურსათო" },
-  { value: "other", label: "სხვა" },
+const STORE_TYPES: { value: string; ka: string; en: string; ru: string }[] = [
+  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
+  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
+  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
+  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },
+  { value: "other", ka: "სხვა", en: "Other", ru: "Другое" },
 ];
 
 export const Route = createFileRoute("/_authenticated/partner/store")({
@@ -43,7 +43,8 @@ type FormState = {
 };
 
 function StoreSettings() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { stores, loading, reload } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const [form, setForm] = useState<FormState>({
@@ -94,7 +95,7 @@ function StoreSettings() {
 
   function useCurrentLocation() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setMsg({ text: "თქვენი ბრაუზერი ლოკაციის ავტომატურ განსაზღვრას არ უჭერს მხარს.", kind: "err" });
+      setMsg({ text: L("თქვენი ბრაუზერი ლოკაციის ავტომატურ განსაზღვრას არ უჭერს მხარს.", "Your browser doesn't support automatic location.", "Ваш браузер не поддерживает автоматическое определение местоположения."), kind: "err" });
       return;
     }
     setLocBusy(true);
@@ -102,13 +103,13 @@ function StoreSettings() {
       (pos) => {
         setLocBusy(false);
         setForm((f) => ({ ...f, lat: pos.coords.latitude, lng: pos.coords.longitude }));
-        setMsg({ text: "მდებარეობა წარმატებით განისაზღვრა.", kind: "ok" });
+        setMsg({ text: L("მდებარეობა წარმატებით განისაზღვრა.", "Location detected successfully.", "Местоположение определено."), kind: "ok" });
       },
       (err) => {
         setLocBusy(false);
-        let text = "მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ რუკაზე ხელით მონიშვნა.";
-        if (err.code === err.PERMISSION_DENIED) text = "ლოკაციაზე წვდომა არ არის ნებადართული. მონიშნეთ ობიექტი რუკაზე.";
-        else if (err.code === err.TIMEOUT) text = "მდებარეობის განსაზღვრას ძალიან დიდი დრო დასჭირდა. სცადეთ ხელახლა.";
+        let text = L("მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ რუკაზე ხელით მონიშვნა.", "Couldn't detect location. Try picking it on the map.", "Не удалось определить местоположение. Отметьте на карте.");
+        if (err.code === err.PERMISSION_DENIED) text = L("ლოკაციაზე წვდომა არ არის ნებადართული. მონიშნეთ ობიექტი რუკაზე.", "Location access denied. Please pick the store on the map.", "Доступ к геолокации запрещён. Отметьте магазин на карте.");
+        else if (err.code === err.TIMEOUT) text = L("მდებარეობის განსაზღვრას ძალიან დიდი დრო დასჭირდა. სცადეთ ხელახლა.", "Location took too long. Try again.", "Определение местоположения заняло слишком много времени. Попробуйте снова.");
         setMsg({ text, kind: "err" });
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -120,7 +121,7 @@ function StoreSettings() {
     if (!store) return;
 
     if (!isValidLatLng(form.lat, form.lng)) {
-      setMsg({ text: "გთხოვთ, მონიშნოთ ობიექტის მდებარეობა რუკაზე.", kind: "err" });
+      setMsg({ text: L("გთხოვთ, მონიშნოთ ობიექტის მდებარეობა რუკაზე.", "Please mark the store location on the map.", "Пожалуйста, отметьте местоположение магазина на карте."), kind: "err" });
       return;
     }
 
@@ -129,7 +130,7 @@ function StoreSettings() {
     const cid = form.company_id_number.trim();
     if (cid && !/^\d{9}$/.test(cid)) {
       setSaving(false);
-      setMsg({ text: "საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", kind: "err" });
+      setMsg({ text: L("საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", "Company ID must be exactly 9 digits.", "Идентификационный номер должен состоять из 9 цифр."), kind: "err" });
       return;
     }
     const payload = {
@@ -163,14 +164,14 @@ function StoreSettings() {
 
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4">
         <label className="block">
-          <span className="text-xs font-medium text-muted-foreground">რა ტიპის ობიექტია? *</span>
+          <span className="text-xs font-medium text-muted-foreground">{L("რა ტიპის ობიექტია?", "Store type", "Тип заведения")} *</span>
           <select
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.target.value })}
             required
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
           >
-            {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+            {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{L(type.ka, type.en, type.ru)}</option>)}
           </select>
         </label>
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
@@ -182,10 +183,10 @@ function StoreSettings() {
       </div>
 
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4 mt-4">
-        <h2 className="font-semibold">კომპანიის მონაცემები</h2>
-        <Field label="კომპანიის სახელი" value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder="შპს ..." />
+        <h2 className="font-semibold">{L("კომპანიის მონაცემები", "Company details", "Данные компании")}</h2>
+        <Field label={L("კომპანიის სახელი", "Company name", "Название компании")} value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder={L("შპს ...", "LLC ...", "ООО ...")} />
         <label className="block">
-          <span className="text-xs font-medium text-muted-foreground">კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)</span>
+          <span className="text-xs font-medium text-muted-foreground">{L("კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)", "Company ID number (9 digits)", "Идентификационный номер компании (9 цифр)")}</span>
           <input
             value={form.company_id_number}
             onChange={(e) => setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, 9) })}
@@ -196,7 +197,7 @@ function StoreSettings() {
           />
         </label>
         <label className="block">
-          <span className="text-xs font-medium text-muted-foreground">ელფოსტა</span>
+          <span className="text-xs font-medium text-muted-foreground">{L("ელფოსტა", "Email", "Эл. почта")}</span>
           <input
             type="email"
             value={form.contact_email}
@@ -211,7 +212,7 @@ function StoreSettings() {
       <div className="bg-card rounded-2xl border border-border p-5 space-y-4 mt-4">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
-          <h2 className="font-semibold">ობიექტის მდებარეობა</h2>
+          <h2 className="font-semibold">{L("ობიექტის მდებარეობა", "Store location", "Местоположение магазина")}</h2>
         </div>
 
         <button
@@ -221,7 +222,7 @@ function StoreSettings() {
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-medium disabled:opacity-60"
         >
           <LocateFixed className="w-4 h-4" />
-          {locBusy ? "მდებარეობის მოძიება…" : "ჩემი მიმდინარე მდებარეობის გამოყენება"}
+          {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
         </button>
 
         <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
@@ -234,7 +235,7 @@ function StoreSettings() {
         </Suspense>
 
         <p className="text-xs text-muted-foreground">
-          ეს არის ტერიტორია, სადაც თქვენი ობიექტი გამოჩნდება მომხმარებლების რუკაზე.
+          {L("ეს არის ტერიტორია, სადაც თქვენი ობიექტი გამოჩნდება მომხმარებლების რუკაზე.", "This is the area where your store appears on the customer map.", "Это область, где ваш магазин будет показан на карте пользователей.")}
         </p>
 
         <div className="text-xs text-muted-foreground font-mono">
@@ -243,7 +244,7 @@ function StoreSettings() {
               Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}
             </>
           ) : (
-            <span>დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.</span>
+            <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
           )}
         </div>
 
@@ -251,9 +252,9 @@ function StoreSettings() {
 
       {/* Radius section */}
       <div className="bg-card rounded-2xl border border-border p-5 space-y-3 mt-4">
-        <h2 className="font-semibold">მომხმარებლებისთვის ხილვადობის რადიუსი</h2>
+        <h2 className="font-semibold">{L("მომხმარებლებისთვის ხილვადობის რადიუსი", "Visibility radius for customers", "Радиус видимости для клиентов")}</h2>
         <p className="text-xs text-muted-foreground">
-          აირჩიეთ, რა მაქსიმალური მანძილიდან გამოჩნდეს თქვენი ობიექტი მომხმარებლების ლოკაციაზე დაფუძნებულ შეთავაზებებში.
+          {L("აირჩიეთ, რა მაქსიმალური მანძილიდან გამოჩნდეს თქვენი ობიექტი მომხმარებლების ლოკაციაზე დაფუძნებულ შეთავაზებებში.", "Choose the maximum distance from which your store will appear in location-based offers.", "Выберите максимальное расстояние, с которого ваш магазин будет показан в предложениях на основе геолокации.")}
         </p>
         <VisibilityRadiusSelector
           value={form.visibility_radius_km}
@@ -301,6 +302,8 @@ function Field({ label, value, onChange, placeholder, textarea }: { label: strin
 }
 
 function BankDetailsSection({ storeId }: { storeId: string }) {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { bank, loading, reload } = useStoreBankAccount(storeId);
   const [iban, setIban] = useState("");
   const [holder, setHolder] = useState("");
@@ -318,13 +321,13 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
     setMsg(null);
     const normalized = normalizeIban(iban);
     if (!isValidGeorgianIban(normalized)) {
-      setMsg({ text: "IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).", kind: "err" });
+      setMsg({ text: L("IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).", "IBAN must be in Georgian format (e.g. GE29NB0000000101904917).", "IBAN должен быть в грузинском формате (напр. GE29NB0000000101904917)."), kind: "err" });
       return;
     }
     setSaving(true);
     try {
       await upsertStoreBankAccount(storeId, normalized, holder.trim() || null);
-      setMsg({ text: "საბანკო რეკვიზიტები შენახულია.", kind: "ok" });
+      setMsg({ text: L("საბანკო რეკვიზიტები შენახულია.", "Bank details saved.", "Банковские реквизиты сохранены."), kind: "ok" });
       reload();
     } catch (e) {
       setMsg({ text: e instanceof Error ? e.message : String(e), kind: "err" });
@@ -337,17 +340,17 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
     <div className="bg-card rounded-2xl border border-border p-5 space-y-3 mt-4">
       <div className="flex items-center gap-2">
         <Landmark className="w-4 h-4 text-primary" />
-        <h2 className="font-semibold">საბანკო რეკვიზიტები (გადარიცხვისთვის)</h2>
+        <h2 className="font-semibold">{L("საბანკო რეკვიზიტები (გადარიცხვისთვის)", "Bank details (for payouts)", "Банковские реквизиты (для выплат)")}</h2>
       </div>
       <p className="text-xs text-muted-foreground">
-        ეს რეკვიზიტები ხილულია მხოლოდ თქვენთვის და ადმინისტრატორისთვის. მომხმარებელი ვერასდროს ხედავს.
+        {L("ეს რეკვიზიტები ხილულია მხოლოდ თქვენთვის და ადმინისტრატორისთვის. მომხმარებელი ვერასდროს ხედავს.", "These details are visible only to you and the admin. Customers never see them.", "Эти реквизиты видны только вам и администратору. Клиенты их не увидят.")}
       </p>
       {loading ? (
-        <div className="text-xs text-muted-foreground">იტვირთება…</div>
+        <div className="text-xs text-muted-foreground">{L("იტვირთება…", "Loading…", "Загрузка…")}</div>
       ) : (
         <>
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">IBAN (22 სიმბოლო) *</span>
+            <span className="text-xs font-medium text-muted-foreground">{L("IBAN (22 სიმბოლო)", "IBAN (22 characters)", "IBAN (22 символа)")} *</span>
             <input
               value={iban}
               onChange={(e) => setIban(e.target.value.replace(/\s+/g, "").toUpperCase().slice(0, 22))}
@@ -357,11 +360,11 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">ანგარიშის მფლობელი</span>
+            <span className="text-xs font-medium text-muted-foreground">{L("ანგარიშის მფლობელი", "Account holder", "Владелец счёта")}</span>
             <input
               value={holder}
               onChange={(e) => setHolder(e.target.value)}
-              placeholder="შპს ..."
+              placeholder={L("შპს ...", "LLC ...", "ООО ...")}
               className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
@@ -374,7 +377,7 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
             disabled={saving}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-semibold disabled:opacity-60"
           >
-            <Save className="w-4 h-4" /> {saving ? "ინახება…" : "საბანკოს შენახვა"}
+            <Save className="w-4 h-4" /> {saving ? L("ინახება…", "Saving…", "Сохраняем…") : L("საბანკოს შენახვა", "Save bank details", "Сохранить реквизиты")}
           </button>
         </>
       )}

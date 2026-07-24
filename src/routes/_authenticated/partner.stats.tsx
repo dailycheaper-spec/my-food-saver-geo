@@ -11,7 +11,9 @@ export const Route = createFileRoute("/_authenticated/partner/stats")({
 });
 
 function StatsPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const kg = language === "en" ? "kg" : language === "ru" ? "кг" : "კგ";
+
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const { offers } = useStoreOffers(store?.id ?? null);
@@ -47,7 +49,7 @@ function StatsPage() {
         <Kpi color="from-primary to-primary/70" icon={<ShoppingBag className="w-5 h-5" />} label={t("todayOrders")} value={String(s.todayCount)} />
         <Kpi color="from-orange-500 to-amber-400" icon={<TrendingUp className="w-5 h-5" />} label={t("todayRevenue")} value={formatGel(s.revenue)} />
         <Kpi color="from-blue-500 to-cyan-400" icon={<Trophy className="w-5 h-5" />} label={t("totalSold")} value={String(s.totalSold)} />
-        <Kpi color="from-emerald-500 to-teal-400" icon={<Leaf className="w-5 h-5" />} label={t("foodSaved")} value={`${s.saved.toFixed(1)} კგ`} />
+        <Kpi color="from-emerald-500 to-teal-400" icon={<Leaf className="w-5 h-5" />} label={t("foodSaved")} value={`${s.saved.toFixed(1)} ${kg}`} />
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5">
