@@ -150,7 +150,7 @@ function PartnerApply() {
             label={language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
             value={form.company_id_number}
             onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, 9) })}
-            placeholder="404715947"
+            placeholder="123456789"
             inputMode="numeric"
             pattern="\d{9}"
             maxLength={9}
