@@ -486,7 +486,11 @@ function OfferPage() {
                 onFallback={() => setPayment("BOG")}
               />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {GPAY_TEST_NOTE_KEY(language)}
+                {language === "en"
+                  ? "Google Pay (TEST mode) — 3DS may be required to complete the charge."
+                  : language === "ru"
+                  ? "Google Pay (тест) — может потребоваться 3DS-подтверждение."
+                  : "Google Pay (ტესტ-რეჟიმი) — შესაძლოა საჭირო გახდეს 3DS-დადასტურება."}
               </p>
             </div>
           )}
