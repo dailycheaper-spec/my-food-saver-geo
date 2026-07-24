@@ -13,6 +13,7 @@ export const Route = createFileRoute("/favorites")({
 
 function Favorites() {
   const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const favs = useFavorites();
   const { stores } = useLiveStores();
   const { offers } = useLiveDbCardOffers();
@@ -21,22 +22,38 @@ function Favorites() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pt-6">
-      <h1 className="font-display text-2xl font-bold">ფავორიტები</h1>
+      <h1 className="font-display text-2xl font-bold">{L("ფავორიტები", "Favorites", "Избранное")}</h1>
       <p className="text-sm text-muted-foreground mt-1">
-        გამოიწერე ფავორიტი მაღაზიები — მიიღე პირველი შეტყობინება ახალ პაკეტზე.
+        {L(
+          "გამოიწერე ფავორიტი მაღაზიები — მიიღე პირველი შეტყობინება ახალ პაკეტზე.",
+          "Follow your favorite shops and be the first to hear about new bags.",
+          "Подпишись на любимые магазины — получай уведомления первым.",
+        )}
       </p>
 
       {favStores.length === 0 ? (
         <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-border">
           <Heart className="w-10 h-10 mx-auto text-muted-foreground" />
-          <p className="text-sm text-muted-foreground mt-3">ჯერ არავინ გამოგიწერია.</p>
-          <p className="text-xs text-muted-foreground mt-1">დააჭირე ♡ შემოთავაზების ბარათზე მაღაზიის გამოსაწერად.</p>
-          <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">მაღაზიების ნახვა</Link>
+          <p className="text-sm text-muted-foreground mt-3">
+            {L("ჯერ არავინ გამოგიწერია.", "You haven't followed anyone yet.", "Пока никого не добавили.")}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {L(
+              "დააჭირე ♡ შემოთავაზების ბარათზე მაღაზიის გამოსაწერად.",
+              "Tap ♡ on an offer card to follow that shop.",
+              "Нажми ♡ на карточке предложения, чтобы подписаться.",
+            )}
+          </p>
+          <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">
+            {L("მაღაზიების ნახვა", "Browse shops", "Смотреть магазины")}
+          </Link>
         </div>
       ) : (
         <>
           <section className="mt-5">
-            <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">გამოწერილი მაღაზიები</h2>
+            <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+              {L("გამოწერილი მაღაზიები", "Followed shops", "Отслеживаемые магазины")}
+            </h2>
             <div className="mt-3 grid grid-cols-1 gap-2">
               {favStores.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl p-3 border border-border shadow-soft">
@@ -51,7 +68,7 @@ function Favorites() {
                   <button
                     onClick={() => toggleFavorite(s.id)}
                     className="w-9 h-9 rounded-full bg-muted grid place-items-center"
-                    aria-label="ამოღება"
+                    aria-label={L("ამოღება", "Remove", "Убрать")}
                   >
                     <Heart className="w-4 h-4 fill-destructive text-destructive" />
                   </button>
@@ -62,7 +79,9 @@ function Favorites() {
 
           {favOffers.length > 0 && (
             <section className="mt-8">
-              <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">მათი აქტიური შემოთავაზებები</h2>
+              <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+                {L("მათი აქტიური შემოთავაზებები", "Their active offers", "Их активные предложения")}
+              </h2>
               <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {favOffers.map((o) => <OfferCard key={o.id} offer={o} />)}
               </div>

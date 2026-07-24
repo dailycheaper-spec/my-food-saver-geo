@@ -11,7 +11,8 @@ export const Route = createFileRoute("/notifications")({
 });
 
 function Notifications() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -39,8 +40,12 @@ function Notifications() {
   }
 
   function triggerDemo() {
-    const title = "🥖 ახალი პაკეტი 1.2 კმ-ში";
-    const body = `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`;
+    const title = L("🥖 ახალი პაკეტი 1.2 კმ-ში", "🥖 New bag 1.2 km away", "🥖 Новый пакет в 1.2 км");
+    const body = L(
+      `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`,
+      `Puri Guliani — surprise bag for 10 ${t("currency")}`,
+      `Пури Гулиани — сюрприз-пакет за 10 ${t("currency")}`,
+    );
     if (permission === "granted") {
       new Notification(title, { body, icon: "/favicon.ico" });
     }
