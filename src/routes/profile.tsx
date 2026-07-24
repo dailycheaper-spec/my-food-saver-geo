@@ -181,12 +181,16 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function Row({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+function Row({ icon, label, to, href }: { icon: React.ReactNode; label: string; to?: string; href?: string }) {
+  const className = "w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors";
+  const content = (
+    <>
       <span className="text-muted-foreground">{icon}</span>
       <span className="flex-1">{label}</span>
       <span className="text-muted-foreground">›</span>
-    </button>
+    </>
   );
+  if (to) return <Link to={to} className={className}>{content}</Link>;
+  if (href) return <a href={href} className={className}>{content}</a>;
+  return <button className={className}>{content}</button>;
 }
