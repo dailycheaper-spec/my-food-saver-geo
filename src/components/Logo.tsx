@@ -5,10 +5,13 @@ export function Logo({ className = "" }: { className?: string }) {
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <div className="relative w-9 h-9 rounded-xl gradient-hero grid place-items-center shadow-soft">
-        <span className="text-primary-foreground text-lg font-bold">C</span>
-        <span className="absolute -top-1 -right-1 text-sm">🌿</span>
-      </div>
+      <img
+        src="/logo.svg"
+        alt={t("brand")}
+        width={36}
+        height={36}
+        className="w-9 h-9 rounded-xl shadow-soft"
+      />
       <div className="leading-tight">
         <div className="font-display font-bold text-lg tracking-tight">{t("brand")}</div>
         <div className="text-[9px] uppercase tracking-widest text-muted-foreground -mt-0.5">{t("tagline")}</div>
