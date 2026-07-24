@@ -5,17 +5,15 @@
       <stop offset="100%" stop-color="#4ea954"/>
     </linearGradient>
   </defs>
-  <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="url(#cheaperHero)"/>
-  <text x="50%" y="52%" text-anchor="middle" dominant-baseline="central"
-        font-family="'Noto Serif Georgian', 'Georgia', serif"
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#cheaperHero)"/>
+  <text x="256" y="266" text-anchor="middle" dominant-baseline="central"
+        font-family="'Noto Serif Georgian','Georgia',serif"
         font-weight="800" font-size="340" fill="#fdfcf8">C</text>
-  <g transform="translate(360 108) rotate(35)">
-    <circle r="52" fill="#fdfcf8"/>
-    <g transform="translate(-26 -26) scale(2.17)">
-      <path fill="none" stroke="#076b29" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            d="M11 20A7 7 0 0 1 4 13V6a1 1 0 0 1 1-1h7a7 7 0 0 1 7 7v1a7 7 0 0 1-7 7Z"/>
-      <path fill="none" stroke="#076b29" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-            d="M2 21c0-3 1.85-5.36 5.08-6"/>
+  <g transform="translate(400 112)">
+    <circle r="64" fill="#fdfcf8"/>
+    <g transform="translate(-36 -36) scale(3)" stroke="#076b29" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M11 20A7 7 0 0 1 4 13V6a1 1 0 0 1 1-1h7a7 7 0 0 1 7 7v1a7 7 0 0 1-7 7Z"/>
+      <path d="M2 21c0-3 1.85-5.36 5.08-6"/>
     </g>
   </g>
 </svg>
