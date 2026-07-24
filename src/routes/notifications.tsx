@@ -101,7 +101,7 @@ function Notifications() {
           <div className="flex-1">
             <div className="font-semibold">{t("address")}</div>
             <div className="text-xs text-muted-foreground">
-              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : "ვერ ვხედავ შენს ლოკაციას"}
+              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : L("ვერ ვხედავ შენს ლოკაციას", "Location not available", "Местоположение недоступно")}
             </div>
           </div>
           <button onClick={requestLocation} className="px-4 py-2 rounded-full bg-card border border-border text-sm font-semibold">
@@ -114,7 +114,7 @@ function Notifications() {
       <div className="mt-3 bg-card rounded-2xl p-5 border border-border shadow-card">
         <div className="flex items-center justify-between mb-2">
           <div className="font-semibold">{t("radius")}</div>
-          <div className="text-sm font-bold text-primary">{settings.radiusKm} კმ</div>
+          <div className="text-sm font-bold text-primary">{settings.radiusKm} {t("km")}</div>
         </div>
         <input
           type="range" min={0.5} max={5} step={0.5}
@@ -123,7 +123,7 @@ function Notifications() {
           className="w-full accent-primary"
         />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-          <span>0.5 კმ</span><span>2 კმ</span><span>5 კმ</span>
+          <span>0.5 {t("km")}</span><span>2 {t("km")}</span><span>5 {t("km")}</span>
         </div>
       </div>
 

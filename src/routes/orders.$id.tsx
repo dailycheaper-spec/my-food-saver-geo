@@ -218,7 +218,9 @@ function OrderDetail() {
               >
                 <div className="text-lg">❤️</div>
                 <div className="text-sm font-semibold mt-1">{t("charity")}</div>
-                <div className="text-xs text-muted-foreground">„მოწყალე“</div>
+                <div className="text-xs text-muted-foreground">
+                  {language === "en" ? "\"Motskale\"" : language === "ru" ? "«Моцкале»" : "„მოწყალე\""}
+                </div>
               </button>
             </div>
 
