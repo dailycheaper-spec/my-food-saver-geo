@@ -16,6 +16,7 @@ import { startBogCheckout } from "@/lib/payments/bog.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
+import { GooglePayButton } from "@/components/GooglePayButton";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
