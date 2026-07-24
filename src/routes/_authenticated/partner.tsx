@@ -1,9 +1,11 @@
 import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck } from "lucide-react";
+import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePartnerAccount, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { useNewOrderSound, useSoundPref } from "@/lib/partner-sound";
+
 
 export const Route = createFileRoute("/_authenticated/partner")({
   component: PartnerLayout,
