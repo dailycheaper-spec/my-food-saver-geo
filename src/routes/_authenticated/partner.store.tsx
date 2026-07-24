@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, lazy, Suspense } from "react";
-import { Save, MapPin, LocateFixed } from "lucide-react";
+import { Save, MapPin, LocateFixed, Landmark } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector";
 import { isValidLatLng } from "@/lib/geo";
+import { useStoreBankAccount, upsertStoreBankAccount, isValidGeorgianIban, normalizeIban } from "@/lib/bank-account";
 
 const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
@@ -259,6 +260,10 @@ function StoreSettings() {
           onChange={(v) => setForm((f) => ({ ...f, visibility_radius_km: v }))}
         />
       </div>
+
+      <BankDetailsSection storeId={store.id} />
+
+
 
       {msg && (
         <div
