@@ -11,7 +11,8 @@ export const Route = createFileRoute("/_authenticated/partner/orders")({
 });
 
 function PartnerOrders() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => language === "en" ? en : language === "ru" ? ru : ka;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
