@@ -151,10 +151,10 @@ function Profile() {
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
-        <Row icon={<Heart className="w-4 h-4" />} label={`${t("favorites")} (${favs.length})`} />
-        <Row icon={<ShoppingBag className="w-4 h-4" />} label={`${t("orderHistory")} (${orders.length})`} />
-        <Row icon={<Settings className="w-4 h-4" />} label={t("settings")} />
-        <Row icon={<HelpCircle className="w-4 h-4" />} label={t("help")} />
+        <Row to="/favorites" icon={<Heart className="w-4 h-4" />} label={`${t("favorites")} (${favs.length})`} />
+        <Row to="/orders" icon={<ShoppingBag className="w-4 h-4" />} label={`${t("orderHistory")} (${orders.length})`} />
+        <Row to="/notifications" icon={<Settings className="w-4 h-4" />} label={t("settings")} />
+        <Row href="mailto:dailycheaper@gmail.com" icon={<HelpCircle className="w-4 h-4" />} label={t("help")} />
         {user && (
           <button onClick={handleSignOut} className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium text-destructive hover:bg-muted/30 transition-colors">
             <span className="text-destructive"><LogOut className="w-4 h-4" /></span>
