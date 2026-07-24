@@ -35,11 +35,14 @@ function PartnerApply() {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
   }, [form.contact_email, user?.email]);
 
+  const pendingStore = useMemo(() => stores.find((s) => s.status === "pending"), [stores]);
+  const hasActive = useMemo(() => stores.some((s) => s.status === "active"), [stores]);
+
   useEffect(() => {
-    if (!partnerLoading && stores.some((store) => store.status === "active")) {
+    if (!partnerLoading && hasActive) {
       navigate({ to: "/partner", replace: true });
     }
-  }, [navigate, partnerLoading, stores]);
+  }, [navigate, partnerLoading, hasActive]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
