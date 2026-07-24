@@ -124,7 +124,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
         </div>
       </div>
 
-      <div className="p-4 space-y-2.5">
+      <div className="p-3 space-y-2 sm:p-4 sm:space-y-2.5">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2 py-0.5 rounded-full bg-secondary text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
             {getCategoryLabel(offer.category, language)}

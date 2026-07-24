@@ -106,7 +106,7 @@ function OrderDetail() {
         <h1 className="font-display text-xl font-bold">{t("order")} #{order.code}</h1>
       </div>
 
-      <div className="bg-card rounded-2xl border border-border shadow-card p-5">
+      <div className="bg-card rounded-2xl border border-border shadow-card p-4 sm:p-5">
         <div className="flex gap-3">
           {image ? (
             <img src={image} alt="" width={100} height={100} className="w-24 h-24 rounded-xl object-cover" />
@@ -154,7 +154,7 @@ function OrderDetail() {
       )}
 
       {order.code && !isCancelled && (
-        <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5 text-center">
+        <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-4 sm:p-5 text-center">
           <div className="text-xs text-muted-foreground uppercase tracking-wide">
             {isDelivery ? t("confirmationCode") : t("pickupCode")}
           </div>

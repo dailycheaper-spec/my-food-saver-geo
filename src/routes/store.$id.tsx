@@ -160,9 +160,10 @@ function StorePage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 -mt-10 relative space-y-4">
+      <div className="mx-auto max-w-2xl px-4 -mt-10 relative space-y-3 sm:space-y-4">
         {/* Header card */}
-        <div className="bg-card rounded-3xl shadow-elevated border border-border p-5">
+        <div className="bg-card rounded-3xl shadow-elevated border border-border p-4 sm:p-5">
+
           <div className="flex items-center gap-3">
             <div className="w-16 h-16 rounded-2xl gradient-warm grid place-items-center text-3xl shrink-0 border-4 border-card -mt-10 shadow-card">
               {store.logo}
@@ -241,7 +242,7 @@ function StorePage() {
             <span className="text-xs text-muted-foreground font-semibold">{storeOffers.length}</span>
           </div>
           {storeOffers.length === 0 ? (
-            <div className="text-center py-10 bg-card rounded-2xl border border-border">
+            <div className="text-center py-8 sm:py-10 bg-card rounded-2xl border border-border">
               <div className="text-4xl mb-2">🕒</div>
               <p className="text-sm text-muted-foreground">
                 {L("ამჟამად აქტიური შეთავაზება არ არის.", "No active offers right now.", "Нет активных предложений.")}
@@ -292,7 +293,8 @@ function StorePage() {
               <Skeleton className="h-20 w-full" />
             </div>
           ) : reviews.length === 0 ? (
-            <div className="text-center py-10 bg-card rounded-2xl border border-border">
+            <div className="text-center py-8 sm:py-10 bg-card rounded-2xl border border-border">
+
               <div className="text-4xl mb-2">💬</div>
               <p className="text-sm text-muted-foreground">
                 {L("ჯერ არაფერი დაწერილა.", "No reviews yet.", "Пока нет отзывов.")}
@@ -310,7 +312,7 @@ function StorePage() {
           ) : (
             <div className="space-y-2">
               {reviews.map((r) => (
-                <div key={r.id} className="bg-card rounded-2xl border border-border p-4">
+                <div key={r.id} className="bg-card rounded-2xl border border-border p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-sm">{r.author}</div>
                     <div className="flex items-center gap-0.5">

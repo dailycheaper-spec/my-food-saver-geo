@@ -259,9 +259,10 @@ function OfferPage() {
         )}
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 -mt-6 relative space-y-4">
+      <div className="mx-auto max-w-2xl px-4 -mt-6 relative space-y-3 sm:space-y-4">
         {/* ---- Store header + title + meta ---- */}
-        <div className="bg-card rounded-3xl shadow-elevated p-5 border border-border">
+        <div className="bg-card rounded-3xl shadow-elevated p-4 sm:p-5 border border-border">
+
           <Link
             to="/store/$id"
             params={{ id: offer.storeId }}
@@ -360,7 +361,8 @@ function OfferPage() {
         </div>
 
         {/* ---- Method selector ---- */}
-        <div className="bg-card rounded-3xl shadow-card p-5 border border-border">
+        <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
+
           <div className="font-bold mb-3">{t("howReceive")}</div>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -417,7 +419,7 @@ function OfferPage() {
         </div>
 
         {/* ---- Payment ---- */}
-        <div className="bg-card rounded-3xl shadow-card p-5 border border-border">
+        <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
           <div className="font-bold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
@@ -591,7 +593,7 @@ function SectionCard({
   icon, title, children,
 }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="bg-card rounded-3xl shadow-card p-5 border border-border">
+    <section className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
       <h2 className="font-bold text-[15px] flex items-center gap-2 mb-3">
         {icon} {title}
       </h2>

@@ -223,14 +223,15 @@ function Home() {
       </div>
 
       {/* -------- Greeting + Search -------- */}
-      <section className="mx-auto max-w-6xl px-4 pt-4">
+      <section className="mx-auto max-w-6xl px-4 pt-3 sm:pt-4">
         <h1 className="font-display text-[26px] leading-[1.15] font-bold tracking-tight">
           {t("heroTitle")}
         </h1>
 
         <Link
           to="/search"
-          className="mt-4 flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-secondary hover:bg-muted transition-colors active:scale-[0.99]"
+          className="mt-3 flex items-center gap-3 px-4 py-3 rounded-2xl bg-secondary hover:bg-muted transition-colors active:scale-[0.99] sm:mt-4 sm:py-3.5"
+
         >
           <Search className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
           <span className="text-sm text-muted-foreground flex-1 truncate">{t("searchPlaceholder")}</span>
@@ -242,7 +243,7 @@ function Home() {
       </section>
 
       {/* -------- Categories (large, native-feel tiles) -------- */}
-      <section className="mx-auto max-w-6xl mt-5">
+      <section className="mx-auto max-w-6xl mt-4 sm:mt-5">
         <ScrollableRow className="pb-2 px-4 snap-x snap-proximity">
           {CATEGORIES.map((c) => {
             const active = cat === c.id;
@@ -267,13 +268,13 @@ function Home() {
       </section>
 
       {/* -------- Promo banner -------- */}
-      <section className="mx-auto max-w-6xl px-4 mt-5">
-        <Link to="/search" className="block relative overflow-hidden rounded-3xl shadow-elevated active:scale-[0.99] transition-transform min-h-[240px] sm:min-h-[280px]">
+      <section className="mx-auto max-w-6xl px-4 mt-4 sm:mt-5">
+        <Link to="/search" className="block relative overflow-hidden rounded-3xl shadow-elevated active:scale-[0.99] transition-transform min-h-[200px] sm:min-h-[280px]">
           <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
           {/* Darker green vignette anchored to left+bottom so the food image stays visible on the right */}
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/60 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-          <div className="relative p-5 sm:p-6 text-primary-foreground flex flex-col justify-end min-h-[240px] sm:min-h-[280px]">
+          <div className="relative p-4 sm:p-6 text-primary-foreground flex flex-col justify-end min-h-[200px] sm:min-h-[280px]">
             <div className="inline-flex self-start items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
               <Sparkles className="w-3 h-3" /> {t("heroBadge")}
             </div>
@@ -295,7 +296,8 @@ function Home() {
 
       {/* -------- Stores You Follow (signed-in only, server-side follows) -------- */}
       {followedOffers.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 mt-6">
+        <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-lg font-bold flex items-center gap-2">
               <StarIcon className="w-[18px] h-[18px] fill-amber-500 text-amber-500" />
@@ -314,7 +316,8 @@ function Home() {
 
       {/* -------- All nearby (full grid) + district filter -------- */}
 
-      <section className="mx-auto max-w-6xl px-4 mt-6">
+      <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">
             <MapPin className="w-[18px] h-[18px] text-primary" /> {L.allNearby}
@@ -340,14 +343,15 @@ function Home() {
         </div>
 
         {nearby.length === 0 ? (
-          <div className="text-center py-14 bg-card rounded-3xl border border-border">
+          <div className="text-center py-10 sm:py-14 bg-card rounded-3xl border border-border">
             <div className="text-4xl mb-2">🥲</div>
             <p className="text-sm text-muted-foreground">{t("noResults")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {nearby.map((o) => <OfferCard key={o.id} offer={o} />)}
           </div>
+
         )}
       </section>
 
@@ -373,8 +377,9 @@ function Home() {
 
       {/* -------- Surprise Boxes -------- */}
       {surpriseBoxes.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 mt-6">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 p-5 shadow-elevated">
+        <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-fuchsia-500 via-pink-500 to-orange-400 p-4 sm:p-5 shadow-elevated">
+
             <div className="absolute -top-6 -right-6 text-[140px] opacity-20 select-none pointer-events-none">🎁</div>
             <div className="relative flex items-center gap-2 text-white">
               <Gift className="w-5 h-5" />
@@ -492,8 +497,9 @@ function Home() {
 
       {/* -------- Empty-state filler (always fill the mobile home) -------- */}
       {ALL_OFFERS.length === 0 && (
-        <section className="mx-auto max-w-6xl px-4 mt-6">
-          <div className="rounded-3xl border border-border bg-card p-5">
+        <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+          <div className="rounded-3xl border border-border bg-card p-4 sm:p-5">
+
             <h2 className="font-display text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-[18px] h-[18px] text-primary" />
               {language === "en" ? "Fresh deals landing soon" : language === "ru" ? "Свежие предложения скоро появятся" : "ახალი შემოთავაზებები მალე გამოჩნდება"}
@@ -533,8 +539,9 @@ function Home() {
       )}
 
       {/* -------- Gift a friend (always visible CTA) -------- */}
-      <section className="mx-auto max-w-6xl px-4 mt-6">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 p-5 shadow-elevated">
+      <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-pink-500 to-fuchsia-500 p-4 sm:p-5 shadow-elevated">
+
           <div className="absolute -bottom-8 -right-6 text-[140px] opacity-20 select-none pointer-events-none">🎁</div>
           <div className="relative text-white">
             <div className="flex items-center gap-2">
@@ -553,7 +560,7 @@ function Home() {
       </section>
 
       {/* -------- Footer -------- */}
-      <footer className="mx-auto max-w-6xl px-4 pt-10 pb-4 text-center">
+      <footer className="mx-auto max-w-6xl px-4 pt-8 pb-4 text-center sm:pt-10">
         <div className="flex justify-center mb-4">
           <Logo />
         </div>
@@ -590,7 +597,7 @@ function SectionHeader({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mx-auto max-w-6xl mt-7">
+    <section className="mx-auto max-w-6xl mt-5 sm:mt-7">
       <div className="flex items-end justify-between px-4 mb-3">
         <div className="min-w-0">
           <h2 className="font-display text-lg font-bold flex items-center gap-2">

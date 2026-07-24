@@ -43,7 +43,7 @@ export function NearbyOffersSection({ offers }: Props) {
   }, [offers, location, effectiveRadius]);
 
   return (
-    <section className="mx-auto max-w-6xl px-4 mt-6">
+    <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <MapPin className="w-[18px] h-[18px] text-primary" /> 📍 თქვენთან ახლოს
@@ -65,7 +65,7 @@ export function NearbyOffersSection({ offers }: Props) {
       )}
 
       {!location && status !== "prompting" && (
-        <div className="rounded-3xl border border-border bg-card p-5 text-center">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center">
           <div className="text-3xl mb-2">📍</div>
           <p className="text-sm font-semibold">გაიგე, რა შემოთავაზებებია შენს ახლოს</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -101,7 +101,7 @@ export function NearbyOffersSection({ offers }: Props) {
       )}
 
       {location && nearby.length === 0 && (
-        <div className="rounded-3xl border border-border bg-card p-6 text-center">
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 text-center">
           <div className="text-3xl mb-2">🥲</div>
           <p className="text-sm text-muted-foreground">თქვენთან ახლოს აქტიური შეთავაზებები ვერ მოიძებნა.</p>
           {radius < 20 && (
@@ -121,7 +121,7 @@ export function NearbyOffersSection({ offers }: Props) {
       )}
 
       {location && nearby.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {nearby.slice(0, 6).map((o) => (
             <div key={o.id} className="relative">
               <OfferCard offer={o} />
