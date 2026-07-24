@@ -74,7 +74,7 @@ function Orders() {
   }, [orders, tab]);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6 pb-6">
+    <div className="mx-auto max-w-2xl px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
       <h1 className="font-display text-2xl font-bold">{t("myOrders")}</h1>
 
       <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
@@ -101,7 +101,7 @@ function Orders() {
         })}
       </div>
 
-      <div className="mt-5 space-y-3">
+      <div className="mt-4 space-y-2 sm:mt-5 sm:space-y-3">
         {loading ? (
           <>
             <OrderCardSkeleton />
@@ -109,7 +109,7 @@ function Orders() {
             <OrderCardSkeleton />
           </>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-14 bg-card rounded-2xl border border-border">
+          <div className="text-center py-10 sm:py-14 bg-card rounded-2xl border border-border">
             <ShoppingBag className="w-10 h-10 mx-auto text-muted-foreground" />
             <p className="text-sm text-muted-foreground mt-3">{t("noOrders")}</p>
             <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">{t("firstPack")}</Link>
@@ -140,7 +140,7 @@ function OrderRow({ order }: { order: OrderWithRelations }) {
     <Link
       to="/orders/$id"
       params={{ id: order.id }}
-      className="block bg-card rounded-2xl p-4 border border-border shadow-soft hover:shadow-card transition"
+      className="block bg-card rounded-2xl p-3 sm:p-4 border border-border shadow-soft hover:shadow-card transition"
     >
       <div className="flex gap-3">
         {image ? (
