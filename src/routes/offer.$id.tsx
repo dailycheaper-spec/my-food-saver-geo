@@ -422,10 +422,7 @@ function OfferPage() {
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
               { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
-              // Google Pay hidden until BOG issues live `georgiancard`
-              // gateway credentials — without them the token cannot settle
-              // and users would be shown a broken one-tap experience.
-              // { id: "GPAY", label: "Google Pay", icon: "🟢" },
+              { id: "GPAY", label: "Google Pay", icon: "🟢" },
               { id: "TBC", label: "TBC Pay", icon: "🏦" },
               { id: "COD", label: t("payAtPickup"), icon: "💵" },
 
