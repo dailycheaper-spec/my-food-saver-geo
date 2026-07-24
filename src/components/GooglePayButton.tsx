@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
-// Public merchant identifier — safe to ship in client code.
-// Google Pay requires this to be present in the payment request; it's the
-// same value you'd expose in a <script> tag on any Google Pay integration.
+// Public merchant identifier issued by Google Pay & Wallet Console.
+// Per Google's own integration docs, `merchantInfo.merchantId` is sent
+// from the browser inside every PaymentDataRequest — it is a public
+// identifier (analogous to Stripe's publishable key), NOT a secret.
+// See: https://developers.google.com/pay/api/web/reference/request-objects#MerchantInfo
 export const GOOGLE_PAY_MERCHANT_ID = "BCR2DN6D7KCZFESS";
 
-// Set to "PRODUCTION" once the app is Google Pay–approved and wired to a
-// certified payment processor (e.g. BOG's Google Pay gateway credentials).
+// Switch to "PRODUCTION" once the merchant ID is approved in the Google
+// Pay & Wallet Console. In TEST mode the merchantId is not validated.
 const GPAY_ENVIRONMENT: "TEST" | "PRODUCTION" = "TEST";
 
 declare global {
@@ -44,14 +46,14 @@ const BASE_REQUEST = {
   apiVersionMinor: 0,
 };
 
-// "EXAMPLE" gateway lets the Google Pay sheet open in TEST mode without a
-// real processor. Swap to { type: "PAYMENT_GATEWAY", parameters: { gateway: "bog", gatewayMerchantId: "..." } }
-// once BOG issues Google Pay gateway credentials.
+// BOG's required tokenization spec — the resulting `google_pay_token`
+// can only be decrypted by Georgian Card (BOG's processor).
+// https://api.bog.ge/docs/en/payments/external-orders/external-googlepay
 const TOKENIZATION_SPEC = {
   type: "PAYMENT_GATEWAY",
   parameters: {
-    gateway: "example",
-    gatewayMerchantId: "exampleGatewayMerchantId",
+    gateway: "georgiancard",
+    gatewayMerchantId: "BCR2DN4TXKPITITV",
   },
 } as const;
 
@@ -64,6 +66,7 @@ const CARD_PAYMENT_METHOD = {
   },
   tokenizationSpecification: TOKENIZATION_SPEC,
 };
+
 
 function loadGpayScript(): Promise<void> {
   return new Promise((resolve, reject) => {
