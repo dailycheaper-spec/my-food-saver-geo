@@ -12,13 +12,13 @@ const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
 );
 
-const STORE_TYPES = [
-  { value: "restaurant", label: "რესტორანი" },
-  { value: "bakery", label: "საცხობი" },
-  { value: "cafe", label: "კაფე" },
-  { value: "market", label: "მარკეტი" },
-  { value: "grocery", label: "სასურსათო" },
-  { value: "other", label: "სხვა" },
+const STORE_TYPES: { value: string; ka: string; en: string; ru: string }[] = [
+  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
+  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
+  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
+  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },
+  { value: "other", ka: "სხვა", en: "Other", ru: "Другое" },
 ];
 
 export const Route = createFileRoute("/_authenticated/partner/store")({
