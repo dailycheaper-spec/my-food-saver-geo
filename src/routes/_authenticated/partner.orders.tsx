@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle } from "lucide-react";
+import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle, Info } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useMyStores, useStoreOrders, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
