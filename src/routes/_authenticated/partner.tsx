@@ -13,24 +13,27 @@ export const Route = createFileRoute("/_authenticated/partner")({
 });
 
 function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }) {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   return (
     <div className="min-h-screen bg-background grid place-items-center px-4">
       <div className="max-w-md text-center bg-card rounded-3xl border border-border p-6 shadow-card">
         <div className="text-4xl mb-3">🏪</div>
-        <h1 className="font-display text-xl font-bold">პარტნიორის პანელი ვერ ჩაიტვირთა</h1>
+        <h1 className="font-display text-xl font-bold">{L("პარტნიორის პანელი ვერ ჩაიტვირთა", "Partner panel failed to load", "Не удалось загрузить панель партнёра")}</h1>
         <p className="text-sm text-muted-foreground mt-2 break-words">
-          {error?.message || "სცადეთ თავიდან."}
+          {error?.message || L("სცადეთ თავიდან.", "Please try again.", "Попробуйте снова.")}
         </p>
         <button
           onClick={reset}
           className="mt-5 px-5 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold"
         >
-          თავიდან ცდა
+          {L("თავიდან ცდა", "Try again", "Попробовать снова")}
         </button>
       </div>
     </div>
   );
 }
+
 
 function PartnerLayout() {
   const { t } = useI18n();
