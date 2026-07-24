@@ -299,3 +299,85 @@ function Field({ label, value, onChange, placeholder, textarea }: { label: strin
     </label>
   );
 }
+
+function BankDetailsSection({ storeId }: { storeId: string }) {
+  const { bank, loading, reload } = useStoreBankAccount(storeId);
+  const [iban, setIban] = useState("");
+  const [holder, setHolder] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
+
+  useEffect(() => {
+    if (bank) {
+      setIban(bank.iban);
+      setHolder(bank.account_holder ?? "");
+    }
+  }, [bank]);
+
+  async function save() {
+    setMsg(null);
+    const normalized = normalizeIban(iban);
+    if (!isValidGeorgianIban(normalized)) {
+      setMsg({ text: "IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).", kind: "err" });
+      return;
+    }
+    setSaving(true);
+    try {
+      await upsertStoreBankAccount(storeId, normalized, holder.trim() || null);
+      setMsg({ text: "საბანკო რეკვიზიტები შენახულია.", kind: "ok" });
+      reload();
+    } catch (e) {
+      setMsg({ text: e instanceof Error ? e.message : String(e), kind: "err" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="bg-card rounded-2xl border border-border p-5 space-y-3 mt-4">
+      <div className="flex items-center gap-2">
+        <Landmark className="w-4 h-4 text-primary" />
+        <h2 className="font-semibold">საბანკო რეკვიზიტები (გადარიცხვისთვის)</h2>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        ეს რეკვიზიტები ხილულია მხოლოდ თქვენთვის და ადმინისტრატორისთვის. მომხმარებელი ვერასდროს ხედავს.
+      </p>
+      {loading ? (
+        <div className="text-xs text-muted-foreground">იტვირთება…</div>
+      ) : (
+        <>
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">IBAN (22 სიმბოლო) *</span>
+            <input
+              value={iban}
+              onChange={(e) => setIban(e.target.value.replace(/\s+/g, "").toUpperCase().slice(0, 22))}
+              placeholder="GE29NB0000000101904917"
+              maxLength={22}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </label>
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">ანგარიშის მფლობელი</span>
+            <input
+              value={holder}
+              onChange={(e) => setHolder(e.target.value)}
+              placeholder="შპს ..."
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+          </label>
+          {msg && (
+            <div className={`text-xs ${msg.kind === "err" ? "text-destructive" : "text-success"}`}>{msg.text}</div>
+          )}
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-semibold disabled:opacity-60"
+          >
+            <Save className="w-4 h-4" /> {saving ? "ინახება…" : "საბანკოს შენახვა"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
