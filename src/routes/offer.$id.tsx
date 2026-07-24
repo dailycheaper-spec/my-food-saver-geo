@@ -12,7 +12,7 @@ import {
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
-import { startBogCheckout } from "@/lib/payments/bog.functions";
+import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
@@ -61,6 +61,7 @@ function OfferPage() {
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const startBogCheckoutFn = useServerFn(startBogCheckout);
+  const startBogGooglePayFn = useServerFn(startBogGooglePayCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
@@ -444,19 +445,56 @@ function OfferPage() {
                 amount={total}
                 currency="GEL"
                 disabled={soldOut || (method === "მიტანა" && address.length < 3)}
-                onPaymentAuthorized={async (_token) => {
-                  // TODO: forward `_token` to BOG's Google Pay gateway once
-                  // certified credentials are issued. Until then, fall through
-                  // to the hosted card flow so orders still settle.
-                  await handleReserve();
+                onPaymentAuthorized={async (googlePayToken) => {
+                  if (!realDb) {
+                    alert(language === "en"
+                      ? "This is a demo listing — not available for purchase."
+                      : language === "ru"
+                      ? "Это демо-предложение — покупка недоступна."
+                      : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+                    return;
+                  }
+                  if (!user) {
+                    try { sessionStorage.setItem("cheaper:next", `/offer/${offer.id}`); } catch {}
+                    navigate({ to: "/auth" });
+                    return;
+                  }
+                  try {
+                    const isDelivery = method === "მიტანა";
+                    const { orderId, redirectUrl } = await startBogGooglePayFn({
+                      data: {
+                        offerId: offer.id,
+                        storeId: offer.storeId,
+                        amount: total,
+                        method: isDelivery ? "delivery" : "pickup",
+                        deliveryAddress: isDelivery ? address : undefined,
+                        googlePayToken,
+                      },
+                    });
+                    // 3DS challenge required — hand off to BOG. Otherwise
+                    // land on the order page; the callback webhook will
+                    // flip status to `paid` after server-to-server verify.
+                    if (redirectUrl) {
+                      window.location.href = redirectUrl;
+                    } else {
+                      navigate({ to: "/orders/$id", params: { id: orderId } });
+                    }
+                  } catch (e) {
+                    alert(e instanceof Error ? e.message : String(e));
+                  }
                 }}
                 onFallback={() => setPayment("BOG")}
               />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Google Pay ტესტ-რეჟიმში — გადახდა დასრულდება BOG-ის უსაფრთხო გვერდზე.
+                {language === "en"
+                  ? "Google Pay (TEST mode) — 3DS may be required to complete the charge."
+                  : language === "ru"
+                  ? "Google Pay (тест) — может потребоваться 3DS-подтверждение."
+                  : "Google Pay (ტესტ-რეჟიმი) — შესაძლოა საჭირო გახდეს 3DS-დადასტურება."}
               </p>
             </div>
           )}
+
 
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
             <Shield className="w-3.5 h-3.5" /> {t("safePayment")}
