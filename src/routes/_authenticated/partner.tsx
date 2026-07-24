@@ -36,7 +36,9 @@ function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }
 
 
 function PartnerLayout() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+
   const { stores, role, loading, error, isAdmin, isPartner } = usePartnerAccount();
   const store = stores.find((s) => s.status === "active") ?? null;
   const path = useRouterState({ select: (s) => s.location.pathname });
