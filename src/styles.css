@@ -136,6 +136,18 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    min-height: 100dvh;
+  }
+
+  /* PWA standalone mode: no browser chrome, so avoid layout that assumes
+     a toolbar's presence. Prevent iOS overscroll white bands and let the
+     app extend into the safe areas (real insets are still respected via
+     env(safe-area-inset-*) with a 0 fallback in components). */
+  @media (display-mode: standalone) {
+    html, body {
+      overscroll-behavior-y: none;
+      background-color: var(--color-background);
+    }
   }
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.015em; }
   h1 { font-weight: 800; }
