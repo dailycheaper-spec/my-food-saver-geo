@@ -662,6 +662,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_complete_stale_paid_orders: {
+        Args: { _grace_hours?: number }
+        Returns: {
+          order_id: string
+        }[]
+      }
       generate_pending_payouts: {
         Args: {
           _commission?: number
