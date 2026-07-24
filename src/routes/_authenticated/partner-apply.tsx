@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Store, ArrowLeft } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { Store, ArrowLeft, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
@@ -35,11 +35,14 @@ function PartnerApply() {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
   }, [form.contact_email, user?.email]);
 
+  const pendingStore = useMemo(() => stores.find((s) => s.status === "pending"), [stores]);
+  const hasActive = useMemo(() => stores.some((s) => s.status === "active"), [stores]);
+
   useEffect(() => {
-    if (!partnerLoading && stores.some((store) => store.status === "active")) {
+    if (!partnerLoading && hasActive) {
       navigate({ to: "/partner", replace: true });
     }
-  }, [navigate, partnerLoading, stores]);
+  }, [navigate, partnerLoading, hasActive]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,6 +53,18 @@ function PartnerApply() {
     }
     setSubmitting(true);
     setMsg("");
+    // Extra safeguard: re-check for an existing pending application before insert
+    const { data: existingPending } = await supabase
+      .from("stores")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("status", "pending")
+      .maybeSingle();
+    if (existingPending) {
+      setSubmitting(false);
+      setMsg(language === "en" ? "You already have a pending application." : language === "ru" ? "У вас уже есть заявка на рассмотрении." : "თქვენ უკვე გაქვთ განაცხადი განხილვის პროცესში.");
+      return;
+    }
     const { error } = await supabase.from("stores").insert({
       ...form,
       owner_id: user.id,
@@ -61,6 +76,36 @@ function PartnerApply() {
       setMsg(t("applicationSent"));
       setTimeout(() => navigate({ to: "/partner" }), 1000);
     }
+  }
+
+  if (!partnerLoading && pendingStore) {
+    const title = language === "en" ? "Your application is under review" : language === "ru" ? "Ваша заявка на рассмотрении" : "თქვენი განაცხადი განიხილება";
+    const body = language === "en"
+      ? "We'll notify you by email as soon as an admin approves your store. You don't need to submit again."
+      : language === "ru"
+      ? "Мы уведомим вас по электронной почте, как только администратор одобрит ваш магазин. Повторно отправлять заявку не нужно."
+      : "როგორც კი ადმინი დაამტკიცებს თქვენს ობიექტს, გამოგიგზავნით შეტყობინებას ელ.ფოსტაზე. ხელახლა გაგზავნა საჭირო არ არის.";
+    const submittedLabel = language === "en" ? "Submitted store" : language === "ru" ? "Отправленный магазин" : "გაგზავნილი ობიექტი";
+    const backHome = language === "en" ? "Back to home" : language === "ru" ? "На главную" : "მთავარზე დაბრუნება";
+    const supportLine = language === "en" ? "Questions? Email" : language === "ru" ? "Вопросы? Пишите на" : "შეკითხვები? მოგვწერეთ";
+    return (
+      <div className="mx-auto max-w-xl px-4 py-6">
+        <div className="flex justify-end mb-3"><LanguageSwitcher /></div>
+        <div className="bg-card rounded-2xl border border-border p-6 text-center">
+          <div className="inline-grid place-items-center w-16 h-16 rounded-3xl bg-amber-500/10 mb-3">
+            <Clock className="w-8 h-8 text-amber-600" />
+          </div>
+          <h1 className="font-display text-2xl font-bold">{title}</h1>
+          <p className="text-sm text-muted-foreground mt-2">{body}</p>
+          <div className="mt-4 rounded-xl bg-muted/40 border border-border p-3 text-left">
+            <div className="text-xs text-muted-foreground">{submittedLabel}</div>
+            <div className="font-semibold">{pendingStore.logo} {pendingStore.name}</div>
+          </div>
+          <Link to="/" className="inline-block mt-5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">{backHome}</Link>
+          <div className="text-xs text-muted-foreground mt-4">{supportLine} <a href="mailto:dailycheaper@gmail.com" className="underline">dailycheaper@gmail.com</a></div>
+        </div>
+      </div>
+    );
   }
 
   return (
