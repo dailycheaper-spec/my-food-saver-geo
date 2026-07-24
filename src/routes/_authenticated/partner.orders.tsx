@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useMyStores, useStoreOrders, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
@@ -16,14 +16,6 @@ function PartnerOrders() {
   const store = stores.find((s) => s.status === "active") ?? null;
   const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
 
-  useEffect(() => {
-    if (newCount > 0) {
-      try {
-        const audio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAA");
-        audio.play().catch(() => {});
-      } catch {}
-    }
-  }, [newCount]);
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
