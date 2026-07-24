@@ -607,14 +607,14 @@ function MapPage() {
               <div className="text-xs text-muted-foreground mt-0.5">
                 {selectedStore.activeCount > 0 ? (
                   <>
-                    {selectedStore.activeCount} აქტიური შეთავაზება
+                    {selectedStore.activeCount} {L("აქტიური შეთავაზება", "active offers", "активн. предложений")}
                     {" · "}
                     <span className="font-semibold text-primary">
-                      ფასები {formatPrice(selectedStore.minPrice)}-დან
+                      {L("ფასები", "from", "цены от")} {formatPrice(selectedStore.minPrice)}{language === "ka" ? "-დან" : ""}
                     </span>
                   </>
                 ) : (
-                  <span>ამჟამად მიუწვდომელი</span>
+                  <span>{L("ამჟამად მიუწვდომელი", "Currently unavailable", "Сейчас недоступно")}</span>
                 )}
               </div>
               <div className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1.5">
@@ -633,7 +633,7 @@ function MapPage() {
                 rel="noreferrer"
                 className="border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-center inline-flex items-center justify-center gap-1"
               >
-                <ExternalLink className="h-3 w-3" /> მარშრუტი
+                <ExternalLink className="h-3 w-3" /> {L("მარშრუტი", "Directions", "Маршрут")}
               </a>
               <div className="flex gap-1.5">
                 <button
@@ -644,7 +644,7 @@ function MapPage() {
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-background"
                   }`}
-                  aria-label="ფავორიტი"
+                  aria-label={L("ფავორიტი", "Favorite", "Избранное")}
                   aria-pressed={favorites.includes(selectedStore.storeId)}
                 >
                   <Heart className={`h-3 w-3 ${favorites.includes(selectedStore.storeId) ? "fill-current" : ""}`} />
@@ -653,7 +653,7 @@ function MapPage() {
                   type="button"
                   onClick={() => setSelectedStoreId(null)}
                   className="flex-1 border border-border bg-background px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1"
-                  aria-label="დახურვა"
+                  aria-label={L("დახურვა", "Close", "Закрыть")}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -679,7 +679,7 @@ function MapPage() {
                     <div className="text-[11px] text-muted-foreground mt-0.5">
                       {t("pickup")} {o.pickupFrom}–{o.pickupTo}
                       {" · "}
-                      {unavailable ? "ამოწურულია" : `${o.itemsLeft} დარჩა`}
+                      {unavailable ? L("ამოწურულია", "Sold out", "Распродано") : `${o.itemsLeft} ${L("დარჩა", "left", "осталось")}`}
                     </div>
                     <div className="mt-1 flex items-center gap-2">
                       {o.originalPrice > 0 && (
@@ -695,12 +695,12 @@ function MapPage() {
                       )}
                       {o._state === "almost" && (
                         <span className="text-[10px] font-bold bg-amber-500/15 text-amber-600 px-1.5 py-0.5 rounded-full">
-                          ⏳ თითქმის გათავდა
+                          ⏳ {L("თითქმის გათავდა", "Almost gone", "Почти закончилось")}
                         </span>
                       )}
                       {o.originalPrice > o.price && !unavailable && (
                         <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full">
-                          დაზოგე {formatPrice(o.originalPrice - o.price)}
+                          {L("დაზოგე", "Save", "Экономия")} {formatPrice(o.originalPrice - o.price)}
                         </span>
                       )}
                     </div>
