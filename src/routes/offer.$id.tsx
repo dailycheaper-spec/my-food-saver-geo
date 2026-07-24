@@ -12,6 +12,7 @@ import {
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
+import { startBogCheckout } from "@/lib/payments/bog.functions";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
@@ -58,6 +59,7 @@ function OfferPage() {
   const { t, language } = useI18n();
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
+  const startBogCheckoutFn = useServerFn(startBogCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
   const navigate = useNavigate();
@@ -115,18 +117,38 @@ function OfferPage() {
     }
     try {
       const isDelivery = method === "მიტანა";
-      const order = await createOrderDb({
-        offer_id: offer.id,
-        store_id: offer.storeId,
-        amount: total,
-        method: isDelivery ? "delivery" : "pickup",
-        delivery_address: isDelivery ? address : undefined,
-      });
-      if (isDelivery) {
-        // Fire-and-forget: don't block navigation on courier dispatch.
-        dispatchDeliveryFn({ data: { orderId: order.id } }).catch(() => {});
+      const methodDb: "pickup" | "delivery" = isDelivery ? "delivery" : "pickup";
+
+      // Cash / Pay-at-pickup: unchanged legacy flow — creates a paid order immediately.
+      if (payment === "COD") {
+        const order = await createOrderDb({
+          offer_id: offer.id,
+          store_id: offer.storeId,
+          amount: total,
+          method: methodDb,
+          delivery_address: isDelivery ? address : undefined,
+        });
+        if (isDelivery) {
+          dispatchDeliveryFn({ data: { orderId: order.id } }).catch(() => {});
+        }
+        navigate({ to: "/orders/$id", params: { id: order.id } });
+        return;
       }
-      navigate({ to: "/orders/$id", params: { id: order.id } });
+
+      // Card / wallet payments → Bank of Georgia Hosted Payment Page.
+      // Server creates a PENDING order and returns the hosted redirect URL.
+      // Order flips to paid only after BOG's server-to-server callback is
+      // independently verified against BOG's API.
+      const { redirectUrl } = await startBogCheckoutFn({
+        data: {
+          offerId: offer.id,
+          storeId: offer.storeId,
+          amount: total,
+          method: methodDb,
+          deliveryAddress: isDelivery ? address : undefined,
+        },
+      });
+      window.location.href = redirectUrl;
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
