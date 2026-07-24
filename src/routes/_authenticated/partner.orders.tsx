@@ -43,7 +43,7 @@ function PartnerOrders() {
         <div className="mb-4 flex items-start gap-2 rounded-xl bg-primary/8 border border-primary/20 px-3 py-2.5 text-xs text-primary">
           <Info className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{L(
-            "დაასკანერეთ QR კოდი ან მონიშნეთ „გაცემულია" გატანისთანავე — თქვენი სტატისტიკა რეალურ დროში განახლდება.",
+            'დაასკანერეთ QR კოდი ან მონიშნეთ "გაცემულია" გატანისთანავე — თქვენი სტატისტიკა რეალურ დროში განახლდება.',
             "Scan the QR or tap 'Collected' as soon as pickup happens — keeps your stats accurate in real time.",
             "Отсканируйте QR или отметьте «Выдано» сразу после выдачи — статистика обновится в реальном времени."
           )}</span>
