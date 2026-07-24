@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.auto_complete_stale_paid_orders(int) FROM PUBLIC, anon, authenticated;

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle } from "lucide-react";
+import { CheckCircle2, Truck, ShoppingBag, Bell, QrCode, XCircle, Info } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useMyStores, useStoreOrders, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
@@ -11,7 +11,8 @@ export const Route = createFileRoute("/_authenticated/partner/orders")({
 });
 
 function PartnerOrders() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => language === "en" ? en : language === "ru" ? ru : ka;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
@@ -36,6 +37,18 @@ function PartnerOrders() {
           </button>
         )}
       </div>
+
+
+      {groups.active.some((o) => o.status === "paid") && (
+        <div className="mb-4 flex items-start gap-2 rounded-xl bg-primary/8 border border-primary/20 px-3 py-2.5 text-xs text-primary">
+          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{L(
+            'დაასკანერეთ QR კოდი ან მონიშნეთ "გაცემულია" გატანისთანავე — თქვენი სტატისტიკა რეალურ დროში განახლდება.',
+            "Scan the QR or tap 'Collected' as soon as pickup happens — keeps your stats accurate in real time.",
+            "Отсканируйте QR или отметьте «Выдано» сразу после выдачи — статистика обновится в реальном времени."
+          )}</span>
+        </div>
+      )}
 
       <Section title={t("activeSection")} count={groups.active.length}>
         {groups.active.map((o) => <OrderCard key={o.id} order={o} showActions />)}
