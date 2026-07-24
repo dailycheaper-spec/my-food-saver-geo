@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export type LocationStatus = "idle" | "prompting" | "granted" | "denied" | "unsupported" | "error";
 
@@ -27,6 +28,11 @@ interface Ctx {
 const LocationContext = createContext<Ctx | null>(null);
 
 export function UserLocationProvider({ children }: { children: ReactNode }) {
+  const { language } = useI18n();
+  const L = useCallback(
+    (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
+    [language],
+  );
   const [location, setLocation] = useState<UserLocation | null>(null);
   const [status, setStatus] = useState<LocationStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +42,15 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
   const askPermission = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setStatus("unsupported");
-      setError("თქვენი ბრაუზერი არ უჭერს მხარს მდებარეობის განსაზღვრას.");
+      setError(L(
+        "თქვენი ბრაუზერი არ უჭერს მხარს მდებარეობის განსაზღვრას.",
+        "Your browser does not support geolocation.",
+        "Ваш браузер не поддерживает геолокацию.",
+      ));
       return;
     }
     setExplaining(true);
-  }, []);
+  }, [L]);
 
   const cancel = useCallback(() => {
     setExplaining(false);
@@ -77,10 +87,18 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
         (err) => {
           if (err.code === err.PERMISSION_DENIED) {
             setStatus("denied");
-            setError("მდებარეობის წვდომა უარყოფილია. შეგიძლიათ ხელახლა სცადოთ.");
+            setError(L(
+              "მდებარეობის წვდომა უარყოფილია. შეგიძლიათ ხელახლა სცადოთ.",
+              "Location access denied. You can try again.",
+              "Доступ к геолокации отклонён. Можно попробовать снова.",
+            ));
           } else {
             setStatus("error");
-            setError("მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ ხელახლა.");
+            setError(L(
+              "მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ ხელახლა.",
+              "Could not determine your location. Please try again.",
+              "Не удалось определить местоположение. Попробуйте снова.",
+            ));
           }
           resolve(null);
         },
@@ -91,7 +109,7 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
     });
     inFlight.current = promise;
     return promise;
-  }, []);
+  }, [L]);
 
   const value = useMemo<Ctx>(
     () => ({ location, status, error, askPermission, request, cancel, isExplaining, clear }),
@@ -113,6 +131,8 @@ export function useUserLocation() {
 }
 
 function LocationExplainModal() {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { isExplaining, request, cancel } = useUserLocation();
   if (!isExplaining) return null;
   return (
@@ -127,10 +147,15 @@ function LocationExplainModal() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-4xl mb-2">📍</div>
-        <h3 className="font-display text-lg font-bold">მდებარეობის ჩართვა</h3>
+        <h3 className="font-display text-lg font-bold">
+          {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию")}
+        </h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები.
-          თქვენი კოორდინატები არსად არ ინახება.
+          {L(
+            "ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები. თქვენი კოორდინატები არსად არ ინახება.",
+            "Enable location so we can show offers near you. Your coordinates are not stored anywhere.",
+            "Включите геолокацию, чтобы показать предложения рядом. Ваши координаты нигде не сохраняются.",
+          )}
         </p>
         <div className="mt-5 flex flex-col gap-2">
           <button
@@ -138,14 +163,14 @@ function LocationExplainModal() {
             onClick={() => void request()}
             className="w-full h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm press"
           >
-            მდებარეობის ჩართვა
+            {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию")}
           </button>
           <button
             type="button"
             onClick={cancel}
             className="w-full h-11 rounded-2xl bg-secondary text-foreground font-semibold text-sm press"
           >
-            არა ახლა
+            {L("არა ახლა", "Not now", "Не сейчас")}
           </button>
         </div>
       </div>

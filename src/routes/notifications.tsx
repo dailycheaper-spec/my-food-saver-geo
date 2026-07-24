@@ -11,7 +11,8 @@ export const Route = createFileRoute("/notifications")({
 });
 
 function Notifications() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -39,8 +40,12 @@ function Notifications() {
   }
 
   function triggerDemo() {
-    const title = "🥖 ახალი პაკეტი 1.2 კმ-ში";
-    const body = `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`;
+    const title = L("🥖 ახალი პაკეტი 1.2 კმ-ში", "🥖 New bag 1.2 km away", "🥖 Новый пакет в 1.2 км");
+    const body = L(
+      `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`,
+      `Puri Guliani — surprise bag for 10 ${t("currency")}`,
+      `Пури Гулиани — сюрприз-пакет за 10 ${t("currency")}`,
+    );
     if (permission === "granted") {
       new Notification(title, { body, icon: "/favicon.ico" });
     }
@@ -96,7 +101,7 @@ function Notifications() {
           <div className="flex-1">
             <div className="font-semibold">{t("address")}</div>
             <div className="text-xs text-muted-foreground">
-              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : "ვერ ვხედავ შენს ლოკაციას"}
+              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : L("ვერ ვხედავ შენს ლოკაციას", "Location not available", "Местоположение недоступно")}
             </div>
           </div>
           <button onClick={requestLocation} className="px-4 py-2 rounded-full bg-card border border-border text-sm font-semibold">
@@ -109,7 +114,7 @@ function Notifications() {
       <div className="mt-3 bg-card rounded-2xl p-5 border border-border shadow-card">
         <div className="flex items-center justify-between mb-2">
           <div className="font-semibold">{t("radius")}</div>
-          <div className="text-sm font-bold text-primary">{settings.radiusKm} კმ</div>
+          <div className="text-sm font-bold text-primary">{settings.radiusKm} {t("km")}</div>
         </div>
         <input
           type="range" min={0.5} max={5} step={0.5}
@@ -118,7 +123,7 @@ function Notifications() {
           className="w-full accent-primary"
         />
         <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
-          <span>0.5 კმ</span><span>2 კმ</span><span>5 კმ</span>
+          <span>0.5 {t("km")}</span><span>2 {t("km")}</span><span>5 {t("km")}</span>
         </div>
       </div>
 
