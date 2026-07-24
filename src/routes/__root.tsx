@@ -146,7 +146,7 @@ function RootComponent() {
             >
               Skip to content
             </a>
-            <main id="content" className="min-h-dvh pb-24">
+            <main id="content" className="min-h-dvh pb-20 sm:pb-24">
               <Outlet />
             </main>
             <BottomNav />
