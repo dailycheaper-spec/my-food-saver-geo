@@ -64,7 +64,7 @@ function PartnerHome() {
 
 
   if (loading) {
-    return <div className="text-center py-16 text-muted-foreground">იტვირთება…</div>;
+    return <div className="text-center py-16 text-muted-foreground">{t("loading")}</div>;
   }
 
   if (!store) {
