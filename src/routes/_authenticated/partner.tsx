@@ -146,6 +146,16 @@ function PartnerLayout() {
                 <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">{newCount}</span>
               )}
             </button>
+            <button
+              onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
+              className="p-2 rounded-full hover:bg-muted/50"
+              aria-label={sound.enabled ? "ხმის გამორთვა" : "ხმის ჩართვა"}
+              title={sound.enabled ? "ხმა ჩართულია" : "ხმა გამორთულია"}
+            >
+              {sound.enabled
+                ? <Volume2 className="w-5 h-5 text-primary" />
+                : <VolumeX className="w-5 h-5 text-muted-foreground" />}
+            </button>
             <LanguageSwitcher compact />
             <Link to="/partner/profile" className="p-2 rounded-full hover:bg-muted/50 text-xs font-medium hidden sm:block">
               {!loading && store ? `${store.logo ?? "🏪"} ${store.name}` : t("profile")}
