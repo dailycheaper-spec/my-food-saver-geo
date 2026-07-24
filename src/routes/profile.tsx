@@ -151,10 +151,10 @@ function Profile() {
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
-        <Row icon={<Heart className="w-4 h-4" />} label={`${t("favorites")} (${favs.length})`} />
-        <Row icon={<ShoppingBag className="w-4 h-4" />} label={`${t("orderHistory")} (${orders.length})`} />
-        <Row icon={<Settings className="w-4 h-4" />} label={t("settings")} />
-        <Row icon={<HelpCircle className="w-4 h-4" />} label={t("help")} />
+        <Row to="/favorites" icon={<Heart className="w-4 h-4" />} label={`${t("favorites")} (${favs.length})`} />
+        <Row to="/orders" icon={<ShoppingBag className="w-4 h-4" />} label={`${t("orderHistory")} (${orders.length})`} />
+        <Row to="/notifications" icon={<Settings className="w-4 h-4" />} label={t("settings")} />
+        <Row href="mailto:dailycheaper@gmail.com" icon={<HelpCircle className="w-4 h-4" />} label={t("help")} />
         {user && (
           <button onClick={handleSignOut} className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium text-destructive hover:bg-muted/30 transition-colors">
             <span className="text-destructive"><LogOut className="w-4 h-4" /></span>
@@ -181,12 +181,16 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
   );
 }
 
-function Row({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <button className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
+function Row({ icon, label, to, href }: { icon: React.ReactNode; label: string; to?: string; href?: string }) {
+  const className = "w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors";
+  const content = (
+    <>
       <span className="text-muted-foreground">{icon}</span>
       <span className="flex-1">{label}</span>
       <span className="text-muted-foreground">›</span>
-    </button>
+    </>
   );
+  if (to) return <Link to={to} className={className}>{content}</Link>;
+  if (href) return <a href={href} className={className}>{content}</a>;
+  return <button className={className}>{content}</button>;
 }
