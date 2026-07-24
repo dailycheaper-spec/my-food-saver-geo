@@ -259,9 +259,10 @@ function OfferPage() {
         )}
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 -mt-6 relative space-y-4">
+      <div className="mx-auto max-w-2xl px-4 -mt-6 relative space-y-3 sm:space-y-4">
         {/* ---- Store header + title + meta ---- */}
-        <div className="bg-card rounded-3xl shadow-elevated p-5 border border-border">
+        <div className="bg-card rounded-3xl shadow-elevated p-4 sm:p-5 border border-border">
+
           <Link
             to="/store/$id"
             params={{ id: offer.storeId }}

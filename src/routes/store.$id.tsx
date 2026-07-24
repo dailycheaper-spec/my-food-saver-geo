@@ -292,7 +292,8 @@ function StorePage() {
               <Skeleton className="h-20 w-full" />
             </div>
           ) : reviews.length === 0 ? (
-            <div className="text-center py-10 bg-card rounded-2xl border border-border">
+            <div className="text-center py-8 sm:py-10 bg-card rounded-2xl border border-border">
+
               <div className="text-4xl mb-2">💬</div>
               <p className="text-sm text-muted-foreground">
                 {L("ჯერ არაფერი დაწერილა.", "No reviews yet.", "Пока нет отзывов.")}
@@ -310,7 +311,7 @@ function StorePage() {
           ) : (
             <div className="space-y-2">
               {reviews.map((r) => (
-                <div key={r.id} className="bg-card rounded-2xl border border-border p-4">
+                <div key={r.id} className="bg-card rounded-2xl border border-border p-3 sm:p-4">
                   <div className="flex items-center justify-between">
                     <div className="font-semibold text-sm">{r.author}</div>
                     <div className="flex items-center gap-0.5">
