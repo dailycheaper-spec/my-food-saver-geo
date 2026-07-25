@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet, Check, Clock, Download, PlayCircle } from "lucide-react";
+import { Wallet, Check, Clock, Download, PlayCircle, Copy, FileDown } from "lucide-react";
+import { toast } from "sonner";
 import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
 import { useAllPayouts, markPayoutPaid } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
@@ -123,7 +124,31 @@ function AdminPayments() {
 
       {payouts.length > 0 && (
         <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
-          <h3 className="font-display font-bold text-lg mb-4">გატანის მოთხოვნები</h3>
+          <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+            <h3 className="font-display font-bold text-lg">გატანის მოთხოვნები</h3>
+            <button
+              onClick={() => {
+                const pending = payouts.filter((p) => p.status !== "paid" && p.bank_iban);
+                if (pending.length === 0) { toast.info("ექსპორტისთვის მოლოდინში მყოფი გატანა IBAN-ით არ არის."); return; }
+                const rows = [["Store", "IBAN", "Account holder", "Amount (GEL)"]];
+                pending.forEach((p) => rows.push([
+                  (p.store_name ?? "").replace(/"/g, '""'),
+                  p.bank_iban ?? "",
+                  (p.account_holder ?? "").replace(/"/g, '""'),
+                  Number(p.amount).toFixed(2),
+                ]));
+                const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+                const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = `pending-payouts-${new Date().toISOString().slice(0, 10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-xs font-semibold hover:bg-muted">
+              <FileDown className="w-4 h-4" /> ყველას ექსპორტი (CSV)
+            </button>
+          </div>
           <div className="space-y-2">
             {payouts.map((p) => (
               <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-muted/30 flex-wrap">
@@ -133,11 +158,29 @@ function AdminPayments() {
                   {p.bank_iban ? (
                     <div className="text-xs mt-1 font-mono text-foreground">IBAN: {p.bank_iban}{p.account_holder ? ` · ${p.account_holder}` : ""}</div>
                   ) : (
-                    <div className="text-xs mt-1 text-destructive font-semibold">⚠ IBAN არაა — მოთხოვე პარტნიორს</div>
+                    <div className="text-xs mt-1 text-destructive font-semibold">⚠ IBAN არ არის მითითებული — მოთხოვე პარტნიორს</div>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
                   <div className="font-bold">{formatGel(Number(p.amount))}</div>
+                  {p.status !== "paid" && p.bank_iban && (
+                    <button
+                      onClick={async () => {
+                        const text = [
+                          `მაღაზია: ${p.store_name ?? ""}`,
+                          `IBAN: ${p.bank_iban}`,
+                          `მფლობელი: ${p.account_holder ?? p.store_name ?? ""}`,
+                          `თანხა: ${Number(p.amount).toFixed(2)} GEL`,
+                        ].join("\n");
+                        try {
+                          await navigator.clipboard.writeText(text);
+                          toast.success("დაკოპირდა");
+                        } catch { toast.error("კოპირება ვერ მოხერხდა"); }
+                      }}
+                      className="text-xs px-3 py-1.5 rounded-full bg-card border border-border font-semibold hover:bg-muted inline-flex items-center gap-1">
+                      <Copy className="w-3 h-3" /> მონაცემების კოპირება
+                    </button>
+                  )}
                   {p.status === "paid" ? (
                     <span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success font-semibold">გადახდილი</span>
                   ) : (

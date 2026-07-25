@@ -3,16 +3,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
-import { useStoresWithBank } from "@/lib/admin-db";
+import { useStoresBankDetailsMap, type StoreBankInfo } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
-import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus } from "@/lib/admin-store.functions";
+import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus, updateAdminStore } from "@/lib/admin-store.functions";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { StoreLocationPreview } from "@/components/StoreLocationPreview";
 import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
 import { StoreLogo } from "@/components/StoreLogo";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+import { isValidGeorgianIban } from "@/lib/bank-account";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {
@@ -60,9 +62,10 @@ function AdminPartners() {
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<DbStore | null>(null);
+  const [editingStore, setEditingStore] = useState<DbStore | null>(null);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
   const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
-  const storesWithBank = useStoresWithBank();
+  const bankMap = useStoresBankDetailsMap();
   const settings = loadAdminSettings();
 
   async function loadReports() {
@@ -208,8 +211,9 @@ function AdminPartners() {
             commissionPct={settings.commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
             activeOffers={activeOffersCount.get(s.id) ?? 0}
-            hasBank={storesWithBank.has(s.id)}
+            bank={bankMap.get(s.id) ?? null}
             onEditLocation={() => setEditingLocation(s)}
+            onEdit={() => setEditingStore(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
@@ -223,12 +227,19 @@ function AdminPartners() {
           onSaved={() => { setEditingLocation(null); reload(); }}
         />
       )}
+      {editingStore && (
+        <EditStoreModal
+          store={editingStore}
+          onClose={() => setEditingStore(null)}
+          onSaved={() => { setEditingStore(null); reload(); }}
+        />
+      )}
     </div>
   );
 
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, hasBank, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; hasBank: boolean; onEditLocation: () => void; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, bank, onEditLocation, onEdit, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; bank: StoreBankInfo | null; onEditLocation: () => void; onEdit: () => void; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
@@ -242,6 +253,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
       ? calculateDistanceKm(lat, lng, districtCenter[0], districtCenter[1]) > 15
       : false;
   const radiusMissing = visibility_radius_km == null;
+  const ibanValid = bank ? isValidGeorgianIban(bank.iban) : false;
 
   async function act(fn: () => Promise<void>) {
     setBusy(true);
@@ -255,9 +267,13 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>
             <StatusBadge status={store.status} />
-            {!hasBank && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-warm text-warm-foreground">
-                <AlertTriangle className="w-3 h-3" /> IBAN არაა
+            {ibanValid ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-success/15 text-success" title={`${bank!.iban}${bank!.account_holder ? " · " + bank!.account_holder : ""}`}>
+                <Check className="w-3 h-3" /> IBAN მითითებულია{bank?.account_holder ? ` · ${bank.account_holder}` : ""}
+              </span>
+            ) : (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-destructive/10 text-destructive">
+                <AlertTriangle className="w-3 h-3" /> IBAN არ არის მითითებული
               </span>
             )}
             {reportCount > 0 && (
@@ -277,6 +293,14 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={onEdit}
+          title="რედაქტირება"
+          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
+        >
+          <Pencil className="w-3 h-3" /> რედაქტ.
+        </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-2">
@@ -486,5 +510,155 @@ function FieldInput({ label, value, onChange, placeholder, required, type = "tex
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
         className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
     </label>
+  );
+}
+
+type EntityType = "company" | "individual_entrepreneur";
+
+function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: () => void; onSaved: () => void }) {
+  const s = store as unknown as Record<string, any>;
+  const [form, setForm] = useState({
+    name: store.name ?? "",
+    name_en: (s.name_en as string | null) ?? "",
+    name_ru: (s.name_ru as string | null) ?? "",
+    logo: store.logo ?? "🏪",
+    logo_url: (s.logo_url as string | null) ?? null,
+    entity_type: ((s.entity_type as EntityType) ?? "company") as EntityType,
+    company_id_number: store.company_id_number ?? "",
+    category: store.category ?? "restaurant",
+    city: (store.city ?? "თბილისი") as City,
+    district: store.district ?? "ვაკე",
+    address: store.address ?? "",
+    phone: store.phone ?? "",
+    contact_email: store.contact_email ?? "",
+    description: store.description ?? "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const updateFn = useServerFn(updateAdminStore);
+
+  const idMax = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr("");
+    try {
+      await updateFn({ data: { storeId: store.id, patch: {
+        name: form.name,
+        name_en: form.name_en || null,
+        name_ru: form.name_ru || null,
+        logo: form.logo || null,
+        logo_url: form.logo_url,
+        entity_type: form.entity_type,
+        company_id_number: form.company_id_number,
+        category: form.category,
+        city: form.city,
+        district: form.district,
+        address: form.address,
+        phone: form.phone || null,
+        contact_email: form.contact_email,
+        description: form.description || null,
+      } } });
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-bold">პარტნიორის რედაქტირება</h2>
+          <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <FieldInput label="სახელი (ქართული) *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+          <div className="grid grid-cols-2 gap-3">
+            <FieldInput label="სახელი (English)" value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
+            <FieldInput label="სახელი (Русский)" value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
+          </div>
+
+          <div>
+            <span className="text-xs font-medium text-muted-foreground">ლოგო</span>
+            <div className="mt-1">
+              <StoreLogoPicker
+                storeId={store.id}
+                logoUrl={form.logo_url}
+                logoEmoji={form.logo}
+                onChange={(next) => setForm((prev) => ({ ...prev, logo: next.logo ?? prev.logo, logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url }))}
+              />
+            </div>
+          </div>
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">ობიექტის ტიპი</span>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">იურიდიული ფორმა</span>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+                <button type="button" key={et}
+                  onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                  className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>
+                  {et === "company" ? "შპს / კომპანია" : "ინდივიდუალური მეწარმე"}
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <FieldInput
+            label={form.entity_type === "individual_entrepreneur" ? "პირადი ნომერი (11 ციფრი) *" : "საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
+            value={form.company_id_number}
+            onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, idMax) })}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">ქალაქი</span>
+              <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">უბანი</span>
+              <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {DISTRICTS.filter((d) => d !== "ყველა უბანი").map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+          </div>
+
+          <FieldInput label="მისამართი *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label="მეილი *" value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} type="email" required />
+          <FieldInput label="ტელეფონი" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">აღწერა</span>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
+          </label>
+
+          <p className="text-[11px] text-muted-foreground">
+            IBAN და ანგარიშის მფლობელი იცვლება პარტნიორის საბანკო დეტალების ცალკე ფლოუდან.
+          </p>
+
+          {err && <div className="text-sm text-destructive">{err}</div>}
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">გაუქმება</button>
+            <button type="submit" disabled={busy} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
+              {busy ? "ინახება…" : "შენახვა"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
