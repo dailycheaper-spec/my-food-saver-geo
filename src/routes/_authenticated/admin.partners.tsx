@@ -239,7 +239,7 @@ function AdminPartners() {
 
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, hasBank, onEditLocation, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; hasBank: boolean; onEditLocation: () => void; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, bank, onEditLocation, onEdit, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; bank: StoreBankInfo | null; onEditLocation: () => void; onEdit: () => void; onChange: () => void }) {
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
@@ -253,6 +253,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
       ? calculateDistanceKm(lat, lng, districtCenter[0], districtCenter[1]) > 15
       : false;
   const radiusMissing = visibility_radius_km == null;
+  const ibanValid = bank ? isValidGeorgianIban(bank.iban) : false;
 
   async function act(fn: () => Promise<void>) {
     setBusy(true);
@@ -266,9 +267,13 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>
             <StatusBadge status={store.status} />
-            {!hasBank && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-warm text-warm-foreground">
-                <AlertTriangle className="w-3 h-3" /> IBAN არაა
+            {ibanValid ? (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-success/15 text-success" title={`${bank!.iban}${bank!.account_holder ? " · " + bank!.account_holder : ""}`}>
+                <Check className="w-3 h-3" /> IBAN მითითებულია{bank?.account_holder ? ` · ${bank.account_holder}` : ""}
+              </span>
+            ) : (
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-destructive/10 text-destructive">
+                <AlertTriangle className="w-3 h-3" /> IBAN არ არის მითითებული
               </span>
             )}
             {reportCount > 0 && (
@@ -288,6 +293,14 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={onEdit}
+          title="რედაქტირება"
+          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
+        >
+          <Pencil className="w-3 h-3" /> რედაქტ.
+        </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-2">
