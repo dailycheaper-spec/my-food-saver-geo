@@ -1,14 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle, Sparkles, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
-import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
   head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
@@ -156,19 +155,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
-  const [genAi, setGenAi] = useState(false);
-  const generateImg = useServerFn(generateOfferImage);
 
-  async function aiGenerate() {
-    const prompt = form.title.trim() || form.description.trim();
-    if (!prompt) { alert(t("productName")); return; }
-    setGenAi(true);
-    try {
-      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
-      setForm((f) => ({ ...f, image_url: r.dataUrl }));
-    } catch (e: any) { alert("AI: " + e.message); }
-    setGenAi(false);
-  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -223,16 +210,12 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
           <Input label={t("descLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">{t("photo")}</div>
-            {form.image_url && <img src={form.image_url} alt="preview" className="mb-2 w-full h-32 object-cover rounded-xl" />}
-            <button
-              type="button"
-              onClick={aiGenerate}
-              disabled={genAi || !form.title.trim()}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
-            >
-              {genAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {genAi ? t("generating") : t("generateWithAi")}
-            </button>
+            <OfferPhotoPicker
+              value={form.image_url}
+              onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+              promptText={form.title || form.description}
+              compact
+            />
           </div>
           <DiscountFields
             original={form.original_price}
