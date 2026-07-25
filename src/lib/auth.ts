@@ -41,7 +41,10 @@ export function useAuth() {
 
   async function loadProfile(id: string) {
     const { data } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle();
-    if (data) setProfile(data as Profile);
+    if (!data) return;
+    const p = data as Profile;
+    p.avatar_url = await resolveAvatarUrl(p.avatar_url);
+    setProfile(p);
   }
 
   return { session, user, profile, loading, reloadProfile: () => user && loadProfile(user.id) };
