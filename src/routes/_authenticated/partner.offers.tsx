@@ -236,6 +236,15 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
             discounted={form.discounted_price}
             onChange={({ original, discounted }) => setForm({ ...form, original_price: original, discounted_price: discounted })}
           />
+          <details className="rounded-xl border border-border bg-card/40 p-3">
+            <summary className="cursor-pointer text-sm font-medium text-muted-foreground">🌐 {t("translationsOptional")}</summary>
+            <div className="mt-3 space-y-3">
+              <Input label={t("titleEnOptional")} value={form.title_en} onChange={(v) => setForm({ ...form, title_en: v })} />
+              <Input label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
+              <Input label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
+              <Input label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+            </div>
+          </details>
           <Input label={t("qtyLbl")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
           <div className="grid grid-cols-2 gap-3">
             <Input label={t("pickupStartLbl")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
