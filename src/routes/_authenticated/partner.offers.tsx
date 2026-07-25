@@ -136,8 +136,8 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 }
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
-  const { t } = useI18n();
-  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru", string | null>> | null;
+  const { t, language } = useI18n();
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru", string | null>> & { allergens?: string[] | null } | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     title_en: offerAny?.title_en ?? "",
@@ -153,6 +153,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     pickup_to: offer?.pickup_to?.slice(0,5) ?? "21:00",
     delivery_available: offer?.delivery_available ?? false,
     image_url: offer?.image_url ?? "",
+    allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
   const [genAi, setGenAi] = useState(false);
