@@ -17,7 +17,7 @@ function Profile() {
   const { t, language } = useI18n();
   const orders = useOrders();
   const favs = useFavorites();
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, reloadProfile } = useAuth();
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const { stores: followedStores } = useFollowedStores();
