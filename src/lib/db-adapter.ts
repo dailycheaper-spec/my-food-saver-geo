@@ -47,6 +47,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;
     visibility_radius_km?: number | null; city?: string | null;
+    logo_url?: string | null;
   });
   return {
     id: row.id,
@@ -54,7 +55,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     storeName: row.store?.name ?? "—",
     storeNameEn: storeAny?.name_en ?? undefined,
     storeNameRu: storeAny?.name_ru ?? undefined,
-    storeLogo: row.store?.logo ?? "🏪",
+    storeLogo: storeAny?.logo_url || row.store?.logo || "🏪",
     category: cat,
     title: row.title,
     titleEn: rowAny.title_en ?? undefined,
@@ -88,13 +89,13 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
 
 
 export function dbStoreToStore(row: DbStore): Store {
-  const anyRow = row as unknown as { name_en?: string | null; name_ru?: string | null };
+  const anyRow = row as unknown as { name_en?: string | null; name_ru?: string | null; logo_url?: string | null };
   return {
     id: row.id,
     name: row.name,
     nameEn: anyRow.name_en ?? undefined,
     nameRu: anyRow.name_ru ?? undefined,
-    logo: row.logo ?? "🏪",
+    logo: anyRow.logo_url || row.logo || "🏪",
     category: mapCategory(row.category),
     district: row.district ?? "",
     // No fake stats — components must hide zero rating / followers.
