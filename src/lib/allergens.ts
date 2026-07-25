@@ -1,6 +1,6 @@
 // Common allergen options — canonical value is the lowercase English key
 // stored in offers.allergens; labels are localized for display.
-import type { UiLanguage } from "@/lib/mock-data";
+import type { Language as UiLanguage } from "@/lib/i18n";
 
 export type AllergenKey =
   | "gluten"
