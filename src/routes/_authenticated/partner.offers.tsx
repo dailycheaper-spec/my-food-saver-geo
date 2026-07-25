@@ -253,6 +253,27 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
             <Input label={t("pickupStartLbl")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
             <Input label={t("pickupEndLbl")} type="time" value={form.pickup_to} onChange={(v) => setForm({ ...form, pickup_to: v })} />
           </div>
+          <div>
+            <div className="text-xs font-medium text-muted-foreground mb-1">{t("allergensLbl")}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {ALLERGEN_KEYS.map((k) => {
+                const active = form.allergens.includes(k);
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setForm((f) => ({
+                      ...f,
+                      allergens: active ? f.allergens.filter((x) => x !== k) : [...f.allergens, k],
+                    }))}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-medium border ${active ? "bg-amber-500 text-white border-amber-500" : "bg-card border-border text-muted-foreground"}`}
+                  >
+                    {active ? "✓ " : ""}{allergenLabel(k, language)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.delivery_available} onChange={(e) => setForm({ ...form, delivery_available: e.target.checked })} />
             {t("deliveryOption")}
