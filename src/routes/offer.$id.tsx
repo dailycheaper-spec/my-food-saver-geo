@@ -83,7 +83,7 @@ function OfferPage() {
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const soldOut = offer.itemsLeft <= 0;
 
-  const allergens = useMemo(() => {
+  const allergens = useMemo<string[]>(() => {
     if (offer.allergens && offer.allergens.length > 0) {
       return allergenLabels(offer.allergens, language);
     }
