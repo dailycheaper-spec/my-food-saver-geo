@@ -84,6 +84,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     createdAt,
     isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
     city: storeAny?.city ?? undefined,
+    allergens: ((row as unknown as { allergens?: string[] | null }).allergens) ?? undefined,
   };
 }
 
