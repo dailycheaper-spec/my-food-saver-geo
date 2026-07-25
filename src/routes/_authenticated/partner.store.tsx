@@ -28,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/partner/store")({
 
 type FormState = {
   name: string;
+  name_en: string;
+  name_ru: string;
   logo: string;
   category: string;
   district: string;
@@ -49,6 +51,8 @@ function StoreSettings() {
   const store = stores.find((s) => s.status === "active") ?? null;
   const [form, setForm] = useState<FormState>({
     name: "",
+    name_en: "",
+    name_ru: "",
     logo: "",
     category: "restaurant",
     district: "",
@@ -71,6 +75,8 @@ function StoreSettings() {
       const anyStore = store as unknown as Record<string, unknown>;
       setForm({
         name: store.name,
+        name_en: (anyStore.name_en as string | null) ?? "",
+        name_ru: (anyStore.name_ru as string | null) ?? "",
         logo: store.logo ?? "",
         category: store.category ?? "restaurant",
         district: store.district ?? "",
