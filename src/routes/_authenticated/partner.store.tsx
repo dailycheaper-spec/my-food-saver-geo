@@ -141,6 +141,8 @@ function StoreSettings() {
     }
     const payload = {
       name: form.name,
+      name_en: form.name_en.trim() || null,
+      name_ru: form.name_ru.trim() || null,
       logo: form.logo,
       category: form.category,
       district: form.district,
@@ -181,6 +183,8 @@ function StoreSettings() {
           </select>
         </label>
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+        <Field label={t("storeNameEnOptional")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
+        <Field label={t("storeNameRuOptional")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
         <Field label={t("districtLbl")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
         <Field label={t("addressLbl")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
