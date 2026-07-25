@@ -96,6 +96,29 @@ export function useStoresWithBank() {
   return ids;
 }
 
+export type StoreBankInfo = { iban: string; account_holder: string | null };
+
+// Full bank details keyed by store_id (admin view). Reuses realtime updates.
+export function useStoresBankDetailsMap() {
+  const [map, setMap] = useState<Map<string, StoreBankInfo>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      const { data } = await supabase.from("store_bank_accounts").select("store_id, iban, account_holder");
+      if (!alive) return;
+      const m = new Map<string, StoreBankInfo>();
+      (data ?? []).forEach((r: any) => m.set(r.store_id, { iban: r.iban, account_holder: r.account_holder ?? null }));
+      setMap(m);
+    }
+    load();
+    const ch = supabase.channel("admin-bank-details")
+      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, []);
+  return map;
+}
+
 export async function markPayoutPaid(id: string) {
   const { error } = await supabase.from("payouts").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
   if (error) throw error;
