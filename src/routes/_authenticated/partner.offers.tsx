@@ -155,19 +155,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
-  const [genAi, setGenAi] = useState(false);
-  const generateImg = useServerFn(generateOfferImage);
 
-  async function aiGenerate() {
-    const prompt = form.title.trim() || form.description.trim();
-    if (!prompt) { alert(t("productName")); return; }
-    setGenAi(true);
-    try {
-      const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
-      setForm((f) => ({ ...f, image_url: r.dataUrl }));
-    } catch (e: any) { alert("AI: " + e.message); }
-    setGenAi(false);
-  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
