@@ -31,7 +31,7 @@ export function DeliveryTracker({ orderId }: { orderId: string }) {
           {delivery.estimated_delivery_at && (
             <div className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end">
               <Clock className="w-3 h-3" />
-              {new Date(delivery.estimated_delivery_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              {new Date(delivery.estimated_delivery_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}
             </div>
           )}
         </div>

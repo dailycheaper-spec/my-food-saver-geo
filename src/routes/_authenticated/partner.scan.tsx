@@ -15,40 +15,56 @@ function ScanPage() {
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const scanningRef = useRef(false);
   const [scanning, setScanning] = useState(false);
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string; order?: { code: string; amount: number; title: string } } | null>(null);
 
+  function stopCamera() {
+    scanningRef.current = false;
+    setScanning(false);
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((tr) => tr.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) videoRef.current.srcObject = null;
+  }
+
   async function startCamera() {
     setResult(null);
     setScanning(true);
+    scanningRef.current = true;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
       // @ts-expect-error - BarcodeDetector is not in TS lib
-      if (typeof window.BarcodeDetector !== "undefined") {
-        // @ts-expect-error
-        const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
-        const tick = async () => {
-          if (!videoRef.current || !scanning) return;
-          try {
-            const codes = await detector.detect(videoRef.current);
-            if (codes.length > 0) {
-              stream.getTracks().forEach((tr) => tr.stop());
-              setScanning(false);
-              await handleCode(codes[0].rawValue);
-              return;
-            }
-          } catch {}
-          requestAnimationFrame(tick);
-        };
-        tick();
+      if (typeof window.BarcodeDetector === "undefined") {
+        setResult({ ok: false, msg: t("cameraAccessError") });
+        stopCamera();
+        return;
       }
+      // @ts-expect-error
+      const detector = new window.BarcodeDetector({ formats: ["qr_code"] });
+      const tick = async () => {
+        if (!scanningRef.current || !videoRef.current) return;
+        try {
+          const codes = await detector.detect(videoRef.current);
+          if (codes.length > 0 && codes[0].rawValue) {
+            stopCamera();
+            await handleCode(codes[0].rawValue);
+            return;
+          }
+        } catch { /* frame skip */ }
+        requestAnimationFrame(tick);
+      };
+      tick();
     } catch {
-      setScanning(false);
+      stopCamera();
       setResult({ ok: false, msg: t("cameraAccessError") });
     }
   }
@@ -58,8 +74,8 @@ function ScanPage() {
     let orderCode = raw.trim();
     try {
       const parsed = JSON.parse(raw);
-      if (parsed.code) orderCode = parsed.code;
-      else if (parsed.orderId) orderCode = parsed.orderId;
+      if (parsed.code) orderCode = String(parsed.code);
+      else if (parsed.orderId) orderCode = String(parsed.orderId);
     } catch {}
 
     const isUuid = /^[0-9a-f-]{36}$/i.test(orderCode);
@@ -83,11 +99,8 @@ function ScanPage() {
     setCode("");
   }
 
-  useEffect(() => () => {
-    if (videoRef.current?.srcObject) {
-      (videoRef.current.srcObject as MediaStream).getTracks().forEach((tr) => tr.stop());
-    }
-  }, []);
+  useEffect(() => () => { stopCamera(); }, []);
+
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
   if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;

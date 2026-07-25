@@ -10,6 +10,7 @@ import {
   getAllergens, getIngredients, getPickupInstructions, getSimilarOffers,
 } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
+import { allergenLabels } from "@/lib/allergens";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
@@ -82,7 +83,12 @@ function OfferPage() {
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const soldOut = offer.itemsLeft <= 0;
 
-  const allergens = useMemo(() => getAllergens(offer, language), [offer, language]);
+  const allergens = useMemo<string[]>(() => {
+    if (offer.allergens && offer.allergens.length > 0) {
+      return allergenLabels(offer.allergens, language);
+    }
+    return getAllergens(offer, language);
+  }, [offer, language]);
   const ingredients = useMemo(() => getIngredients(offer, language), [offer, language]);
   const pickupInstructions = useMemo(() => getPickupInstructions(offer, language), [offer, language]);
   const similar = useMemo(() => getSimilarOffers(offer, 4), [offer]);

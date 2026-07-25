@@ -43,6 +43,8 @@ export interface Offer {
   createdAt?: number; // epoch ms — used for NEW badge
   isSurprise?: boolean; // mystery bag — contents revealed at pickup
   city?: string; // store city ("თბილისი" | "ქუთაისი" | "ბათუმი")
+  /** Optional partner-declared allergen keys (see src/lib/allergens.ts). */
+  allergens?: string[];
 }
 
 

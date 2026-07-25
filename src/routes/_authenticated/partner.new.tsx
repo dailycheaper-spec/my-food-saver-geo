@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { ArrowLeft, Image as ImageIcon, Sparkles, Camera, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Sparkles, Camera, Upload, Loader2, AlertTriangle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateOfferImage } from "@/lib/ai-image.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
+import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
@@ -80,7 +81,9 @@ function NewOfferPage() {
     is_surprise: false,
     surprise_contents: "",
     surprise_value: "",
+    allergens: [] as string[],
   });
+  const [imgError, setImgError] = useState(false);
 
 
 
@@ -138,6 +141,7 @@ function NewOfferPage() {
       delivery_available: form.delivery_available,
       is_surprise: form.is_surprise,
       is_active: true,
+      allergens: form.allergens.length ? form.allergens : null,
     };
 
 
@@ -161,8 +165,20 @@ function NewOfferPage() {
       <form onSubmit={publish} className="space-y-4">
         <div>
           <Label>{t("photo")}</Label>
-          {form.image_url && (
-            <img src={form.image_url} alt="preview" className="mb-2 w-full h-48 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = "none")} />
+          {form.image_url && !imgError && (
+            <img
+              src={form.image_url}
+              alt="preview"
+              className="mb-2 w-full h-48 object-cover rounded-2xl"
+              onLoad={() => setImgError(false)}
+              onError={() => setImgError(true)}
+            />
+          )}
+          {imgError && form.image_url && (
+            <div className="mb-2 flex items-center gap-2 p-3 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>{t("imageLoadFailed")}</span>
+            </div>
           )}
           <div className="grid grid-cols-3 gap-2 mb-2">
             <button
@@ -191,13 +207,13 @@ function NewOfferPage() {
               {t("uploadPhoto")}
             </button>
           </div>
-          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
-          <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
+          <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
           <div className="relative">
             <ImageIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               value={form.image_url.startsWith("data:") ? "" : form.image_url}
-              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+              onChange={(e) => { setImgError(false); setForm({ ...form, image_url: e.target.value }); }}
               placeholder={t("orPasteUrl")}
               className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-muted/40 border border-border text-sm"
             />
@@ -307,6 +323,28 @@ function NewOfferPage() {
           </div>
         )}
 
+        <div>
+          <Label>{t("allergensLbl")}</Label>
+          <p className="text-[11px] text-muted-foreground mb-2">{t("allergensHint")}</p>
+          <div className="flex flex-wrap gap-2">
+            {ALLERGEN_KEYS.map((k) => {
+              const active = form.allergens.includes(k);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setForm((f) => ({
+                    ...f,
+                    allergens: active ? f.allergens.filter((x) => x !== k) : [...f.allergens, k],
+                  }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${active ? "bg-amber-500 text-white border-amber-500" : "bg-card border-border text-muted-foreground"}`}
+                >
+                  {active ? "✓ " : ""}{allergenLabel(k, language)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
 
         <button

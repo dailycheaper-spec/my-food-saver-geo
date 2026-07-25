@@ -2,8 +2,10 @@ import { useState } from "react";
 import { Star, ThumbsUp, RotateCcw } from "lucide-react";
 import { useReviews, addReview } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
 
 export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: string }) {
+  const { t } = useI18n();
   const reviews = useReviews(offerId);
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
@@ -20,7 +22,6 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
     e.preventDefault();
     if (!text.trim() || !author.trim()) return;
     addReview({ offerId, storeId, author: author.trim(), rating, text: text.trim(), worthIt, wouldBuyAgain });
-    // Negative reviews are reported to admins for moderation
     if (rating <= 2 || !worthIt) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -38,7 +39,7 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
     <div className="mt-4 bg-card rounded-2xl shadow-card p-5 border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <div className="font-semibold">შეფასებები ({reviews.length})</div>
+          <div className="font-semibold">{t("reviewsTitle")} ({reviews.length})</div>
           {reviews.length > 0 && (
             <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <Star className="w-3.5 h-3.5 fill-accent text-accent" />
@@ -50,7 +51,7 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
           onClick={() => setOpen((v) => !v)}
           className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full"
         >
-          {open ? "დახურვა" : "დაწერე შეფასება"}
+          {open ? t("closeBtn") : t("writeReviewBtn")}
         </button>
       </div>
 
@@ -59,12 +60,12 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
           <div className="bg-success/10 text-success rounded-xl p-2.5 text-center">
             <ThumbsUp className="w-4 h-4 mx-auto" />
             <div className="text-lg font-bold mt-1">{worthPct}%</div>
-            <div className="text-[10px] font-medium">ღირდა ფული</div>
+            <div className="text-[10px] font-medium">{t("recommendPct")}</div>
           </div>
           <div className="bg-primary/10 text-primary rounded-xl p-2.5 text-center">
             <RotateCcw className="w-4 h-4 mx-auto" />
             <div className="text-lg font-bold mt-1">{rebuyPct}%</div>
-            <div className="text-[10px] font-medium">ისევ იყიდიან</div>
+            <div className="text-[10px] font-medium">{t("buyAgainPct")}</div>
           </div>
         </div>
       )}
@@ -74,12 +75,12 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
           <input
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
-            placeholder="შენი სახელი"
+            placeholder={t("yourName")}
             maxLength={40}
             className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
           <div>
-            <div className="text-xs text-muted-foreground mb-1">Cheaper და ხარისხი</div>
+            <div className="text-xs text-muted-foreground mb-1">{t("qualityLbl")}</div>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} type="button" onClick={() => setRating(n)}>
@@ -91,28 +92,28 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="როგორი იყო პროდუქტი? აღწერე შენი გამოცდილება..."
+            placeholder={t("reviewPlaceholder")}
             rows={3}
             maxLength={500}
             className="w-full px-3 py-2 rounded-xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
           <div className="grid grid-cols-2 gap-2">
-            <Toggle label="ღირდა ფული?" value={worthIt} onChange={setWorthIt} />
-            <Toggle label="ისევ იყიდიდი?" value={wouldBuyAgain} onChange={setWouldBuyAgain} />
+            <Toggle label={t("recommendQ")} value={worthIt} onChange={setWorthIt} yesLabel={t("yes")} noLabel={t("no")} />
+            <Toggle label={t("buyAgainQ")} value={wouldBuyAgain} onChange={setWouldBuyAgain} yesLabel={t("yes")} noLabel={t("no")} />
           </div>
           <button
             type="submit"
             disabled={!text.trim() || !author.trim()}
             className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-50"
           >
-            გამოქვეყნება
+            {t("reviewSubmit")}
           </button>
         </form>
       )}
 
       <div className="mt-4 space-y-3">
         {reviews.length === 0 && !open && (
-          <p className="text-sm text-muted-foreground text-center py-4">ჯერ არაფერი შეფასებულა — იყავი პირველი!</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t("reviewFirst")}</p>
         )}
         {reviews.map((r) => (
           <div key={r.id} className="border-t border-border pt-3">
@@ -127,10 +128,10 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
             <p className="text-sm mt-1">{r.text}</p>
             <div className="flex gap-2 mt-2 text-[11px]">
               <span className={`px-2 py-0.5 rounded-full font-medium ${r.worthIt ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                {r.worthIt ? "✓ ღირდა" : "✗ არ ღირდა"}
+                {r.worthIt ? t("recommendYes") : t("recommendNo")}
               </span>
               <span className={`px-2 py-0.5 rounded-full font-medium ${r.wouldBuyAgain ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                {r.wouldBuyAgain ? "✓ ისევ იყიდიდა" : "✗ აღარ"}
+                {r.wouldBuyAgain ? t("buyAgainYes") : t("buyAgainNo")}
               </span>
             </div>
           </div>
@@ -140,7 +141,7 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
   );
 }
 
-function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ label, value, onChange, yesLabel, noLabel }: { label: string; value: boolean; onChange: (v: boolean) => void; yesLabel: string; noLabel: string }) {
   return (
     <div className="bg-muted/50 rounded-xl p-2.5">
       <div className="text-xs text-muted-foreground mb-1.5">{label}</div>
@@ -150,14 +151,14 @@ function Toggle({ label, value, onChange }: { label: string; value: boolean; onC
           onClick={() => onChange(true)}
           className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${value ? "bg-success text-success-foreground" : "bg-card border border-border"}`}
         >
-          კი
+          {yesLabel}
         </button>
         <button
           type="button"
           onClick={() => onChange(false)}
           className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors ${!value ? "bg-destructive text-destructive-foreground" : "bg-card border border-border"}`}
         >
-          არა
+          {noLabel}
         </button>
       </div>
     </div>

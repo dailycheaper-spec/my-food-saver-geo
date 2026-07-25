@@ -100,7 +100,7 @@ function OrderCard({ order, showActions }: { order: OrderWithRelations; showActi
         </div>
       </div>
       <div className="text-[11px] text-muted-foreground mt-2">
-        {new Date(order.created_at).toLocaleString(locale, { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short" })}
+        {new Date(order.created_at).toLocaleString(locale, { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short", hour12: false })}
       </div>
       {showActions && (
         <>
