@@ -81,7 +81,9 @@ function NewOfferPage() {
     is_surprise: false,
     surprise_contents: "",
     surprise_value: "",
+    allergens: [] as string[],
   });
+  const [imgError, setImgError] = useState(false);
 
 
 
