@@ -137,7 +137,12 @@ function PartnerApply() {
           <p className="text-sm text-muted-foreground mt-2">{body}</p>
           <div className="mt-4 rounded-xl bg-muted/40 border border-border p-3 text-left">
             <div className="text-xs text-muted-foreground">{submittedLabel}</div>
-            <div className="font-semibold">{pendingStore.logo} {pendingStore.name}</div>
+            <div className="font-semibold flex items-center gap-2">
+              <span className="w-8 h-8 grid place-items-center overflow-hidden rounded-lg bg-secondary">
+                <StoreLogo value={(pendingStore as unknown as { logo_url?: string | null }).logo_url || pendingStore.logo} emojiClassName="text-xl" />
+              </span>
+              {pendingStore.name}
+            </div>
           </div>
           <Link to="/" className="inline-block mt-5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">{backHome}</Link>
           <div className="text-xs text-muted-foreground mt-4">{supportLine} <a href="mailto:dailycheaper@gmail.com" className="underline">dailycheaper@gmail.com</a></div>
@@ -184,14 +189,34 @@ function PartnerApply() {
             placeholder={language === "en" ? "LLC Example" : language === "ru" ? "ООО Пример" : "შპს მაგალითი"}
             required
           />
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">{t("entityTypeLabel")}</span>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+                <button
+                  type="button"
+                  key={et}
+                  onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                  className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+                >
+                  {et === "company" ? t("entityCompany") : t("entityIndividual")}
+                </button>
+              ))}
+            </div>
+          </label>
           <Field
-            label={language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
+            label={form.entity_type === "individual_entrepreneur"
+              ? (language === "en" ? "Personal ID (11 digits) *" : language === "ru" ? "Личный номер (11 цифр) *" : "პირადი ნომერი (11 ციფრი) *")
+              : (language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *")}
             value={form.company_id_number}
-            onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, 9) })}
-            placeholder="123456789"
+            onChange={(v) => {
+              const max = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+              setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, max) });
+            }}
+            placeholder={form.entity_type === "individual_entrepreneur" ? "01234567890" : "123456789"}
             inputMode="numeric"
-            pattern="\d{9}"
-            maxLength={9}
+            pattern={form.entity_type === "individual_entrepreneur" ? "\\d{11}" : "\\d{9}"}
+            maxLength={form.entity_type === "individual_entrepreneur" ? 11 : 9}
             required
           />
           <Field
