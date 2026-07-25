@@ -36,10 +36,35 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string; lat: number | null; lng: number | null }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "", lat: null, lng: null });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [locBusy, setLocBusy] = useState(false);
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+
+  function useCurrentLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setMsg(L("თქვენი ბრაუზერი ლოკაციის ავტომატურ განსაზღვრას არ უჭერს მხარს.", "Your browser doesn't support automatic location.", "Ваш браузер не поддерживает автоматическое определение местоположения."));
+      return;
+    }
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocBusy(false);
+        setForm((f) => ({ ...f, lat: pos.coords.latitude, lng: pos.coords.longitude }));
+        setMsg(L("მდებარეობა წარმატებით განისაზღვრა.", "Location detected successfully.", "Местоположение определено."));
+      },
+      (err) => {
+        setLocBusy(false);
+        let text = L("მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ რუკაზე ხელით მონიშვნა.", "Couldn't detect location. Try picking it on the map.", "Не удалось определить местоположение. Отметьте на карте.");
+        if (err.code === err.PERMISSION_DENIED) text = L("ლოკაციაზე წვდომა არ არის ნებადართული. მონიშნეთ ობიექტი რუკაზე.", "Location access denied. Please pick the store on the map.", "Доступ к геолокации запрещён. Отметьте магазин на карте.");
+        else if (err.code === err.TIMEOUT) text = L("მდებარეობის განსაზღვრას ძალიან დიდი დრო დასჭირდა. სცადეთ ხელახლა.", "Location took too long. Try again.", "Определение местоположения заняло слишком много времени. Попробуйте снова.");
+        setMsg(text);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   useEffect(() => {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
