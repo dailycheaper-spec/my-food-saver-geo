@@ -143,9 +143,10 @@ function StoreSettings() {
     setSaving(true);
     setMsg(null);
     const cid = form.company_id_number.trim();
-    if (cid && !/^\d{9}$/.test(cid)) {
+    const idLen = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+    if (cid && !new RegExp(`^\\d{${idLen}}$`).test(cid)) {
       setSaving(false);
-      setMsg({ text: L("საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", "Company ID must be exactly 9 digits.", "Идентификационный номер должен состоять из 9 цифр."), kind: "err" });
+      setMsg({ text: t(idLen === 11 ? "idInvalid11" : "idInvalid9"), kind: "err" });
       return;
     }
     const payload = {
@@ -153,6 +154,8 @@ function StoreSettings() {
       name_en: form.name_en.trim() || null,
       name_ru: form.name_ru.trim() || null,
       logo: form.logo,
+      logo_url: form.logo_url,
+      entity_type: form.entity_type,
       category: form.category,
       district: form.district,
       address: form.address,
