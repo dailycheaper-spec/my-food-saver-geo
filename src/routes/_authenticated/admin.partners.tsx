@@ -512,3 +512,153 @@ function FieldInput({ label, value, onChange, placeholder, required, type = "tex
     </label>
   );
 }
+
+type EntityType = "company" | "individual_entrepreneur";
+
+function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: () => void; onSaved: () => void }) {
+  const s = store as unknown as Record<string, any>;
+  const [form, setForm] = useState({
+    name: store.name ?? "",
+    name_en: (s.name_en as string | null) ?? "",
+    name_ru: (s.name_ru as string | null) ?? "",
+    logo: store.logo ?? "🏪",
+    logo_url: (s.logo_url as string | null) ?? null,
+    entity_type: ((s.entity_type as EntityType) ?? "company") as EntityType,
+    company_id_number: store.company_id_number ?? "",
+    category: store.category ?? "restaurant",
+    city: (store.city ?? "თბილისი") as City,
+    district: store.district ?? "ვაკე",
+    address: store.address ?? "",
+    phone: store.phone ?? "",
+    contact_email: store.contact_email ?? "",
+    description: store.description ?? "",
+  });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const updateFn = useServerFn(updateAdminStore);
+
+  const idMax = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr("");
+    try {
+      await updateFn({ data: { storeId: store.id, patch: {
+        name: form.name,
+        name_en: form.name_en || null,
+        name_ru: form.name_ru || null,
+        logo: form.logo || null,
+        logo_url: form.logo_url,
+        entity_type: form.entity_type,
+        company_id_number: form.company_id_number,
+        category: form.category,
+        city: form.city,
+        district: form.district,
+        address: form.address,
+        phone: form.phone || null,
+        contact_email: form.contact_email,
+        description: form.description || null,
+      } } });
+      onSaved();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+      <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display text-xl font-bold">პარტნიორის რედაქტირება</h2>
+          <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <FieldInput label="სახელი (ქართული) *" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+          <div className="grid grid-cols-2 gap-3">
+            <FieldInput label="სახელი (English)" value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
+            <FieldInput label="სახელი (Русский)" value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
+          </div>
+
+          <div>
+            <span className="text-xs font-medium text-muted-foreground">ლოგო</span>
+            <div className="mt-1">
+              <StoreLogoPicker
+                storeId={store.id}
+                logoUrl={form.logo_url}
+                logoEmoji={form.logo}
+                onChange={(next) => setForm((prev) => ({ ...prev, logo: next.logo ?? prev.logo, logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url }))}
+              />
+            </div>
+          </div>
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">ობიექტის ტიპი</span>
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">იურიდიული ფორმა</span>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+                <button type="button" key={et}
+                  onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                  className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>
+                  {et === "company" ? "შპს / კომპანია" : "ინდივიდუალური მეწარმე"}
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <FieldInput
+            label={form.entity_type === "individual_entrepreneur" ? "პირადი ნომერი (11 ციფრი) *" : "საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
+            value={form.company_id_number}
+            onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, idMax) })}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">ქალაქი</span>
+              <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">უბანი</span>
+              <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
+                className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
+                {DISTRICTS.filter((d) => d !== "ყველა უბანი").map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+          </div>
+
+          <FieldInput label="მისამართი *" value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label="მეილი *" value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} type="email" required />
+          <FieldInput label="ტელეფონი" value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
+
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">აღწერა</span>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
+          </label>
+
+          <p className="text-[11px] text-muted-foreground">
+            IBAN და ანგარიშის მფლობელი იცვლება პარტნიორის საბანკო დეტალების ცალკე ფლოუდან.
+          </p>
+
+          {err && <div className="text-sm text-destructive">{err}</div>}
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">გაუქმება</button>
+            <button type="submit" disabled={busy} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
+              {busy ? "ინახება…" : "შენახვა"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
