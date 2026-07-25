@@ -100,18 +100,13 @@ export function StoreLogoPicker({ storeId, logoUrl, logoEmoji, onChange, onFileS
 
       {mode === "image" ? (
         <div>
-          <button type="button" disabled={busy || !storeId} onClick={() => inputRef.current?.click()}
+          <button type="button" disabled={busy || (!storeId && !onFileSelected)} onClick={() => inputRef.current?.click()}
             className="w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-dashed border-border text-sm flex items-center justify-center gap-2 disabled:opacity-60">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
             {t("logoUploadImage")} <span className="text-xs text-muted-foreground">(JPG/PNG/WebP, ≤3MB)</span>
           </button>
           <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
-          {!storeId && (
-            <div className="text-[11px] text-muted-foreground mt-1">
-              {t("logoUploadImage")}: {t("sending")}…
-            </div>
-          )}
         </div>
       ) : (
         <div className="grid grid-cols-8 sm:grid-cols-12 gap-1 p-2 rounded-xl bg-muted/40 border border-border max-h-40 overflow-y-auto">
