@@ -5,6 +5,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
 import { getCategoryLabel, getDistrictLabel } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),
@@ -57,7 +58,7 @@ function Favorites() {
             <div className="mt-3 grid grid-cols-1 gap-2">
               {favStores.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl p-3 border border-border shadow-soft">
-                  <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center text-2xl">{s.logo}</div>
+                  <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center overflow-hidden text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm">{s.name}</div>
                     <div className="text-xs text-muted-foreground">

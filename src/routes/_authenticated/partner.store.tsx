@@ -7,6 +7,9 @@ import { useI18n } from "@/lib/i18n";
 import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector";
 import { isValidLatLng } from "@/lib/geo";
 import { useStoreBankAccount, upsertStoreBankAccount, isValidGeorgianIban, normalizeIban } from "@/lib/bank-account";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+
+type EntityType = "company" | "individual_entrepreneur";
 
 const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
@@ -31,6 +34,8 @@ type FormState = {
   name_en: string;
   name_ru: string;
   logo: string;
+  logo_url: string | null;
+  entity_type: EntityType;
   category: string;
   district: string;
   address: string;
@@ -54,6 +59,8 @@ function StoreSettings() {
     name_en: "",
     name_ru: "",
     logo: "",
+    logo_url: null,
+    entity_type: "company",
     category: "restaurant",
     district: "",
     address: "",
@@ -78,6 +85,8 @@ function StoreSettings() {
         name_en: (anyStore.name_en as string | null) ?? "",
         name_ru: (anyStore.name_ru as string | null) ?? "",
         logo: store.logo ?? "",
+        logo_url: (anyStore.logo_url as string | null) ?? null,
+        entity_type: ((anyStore.entity_type as string | null) === "individual_entrepreneur" ? "individual_entrepreneur" : "company") as EntityType,
         category: store.category ?? "restaurant",
         district: store.district ?? "",
         address: store.address ?? "",
@@ -134,9 +143,10 @@ function StoreSettings() {
     setSaving(true);
     setMsg(null);
     const cid = form.company_id_number.trim();
-    if (cid && !/^\d{9}$/.test(cid)) {
+    const idLen = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+    if (cid && !new RegExp(`^\\d{${idLen}}$`).test(cid)) {
       setSaving(false);
-      setMsg({ text: L("საიდენტიფიკაციო ნომერი უნდა შედგებოდეს 9 ციფრისგან.", "Company ID must be exactly 9 digits.", "Идентификационный номер должен состоять из 9 цифр."), kind: "err" });
+      setMsg({ text: t(idLen === 11 ? "idInvalid11" : "idInvalid9"), kind: "err" });
       return;
     }
     const payload = {
@@ -144,6 +154,8 @@ function StoreSettings() {
       name_en: form.name_en.trim() || null,
       name_ru: form.name_ru.trim() || null,
       logo: form.logo,
+      logo_url: form.logo_url,
+      entity_type: form.entity_type,
       category: form.category,
       district: form.district,
       address: form.address,
@@ -185,7 +197,16 @@ function StoreSettings() {
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
         <Field label={t("storeNameEnOptional")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
         <Field label={t("storeNameRuOptional")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
-        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+        <StoreLogoPicker
+          storeId={store.id}
+          logoUrl={form.logo_url}
+          logoEmoji={form.logo || "🏪"}
+          onChange={(next) => setForm((prev) => ({
+            ...prev,
+            logo: next.logo ?? prev.logo,
+            logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url,
+          }))}
+        />
         <Field label={t("districtLbl")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
         <Field label={t("addressLbl")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
         <Field label={t("phoneLbl")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
@@ -196,13 +217,35 @@ function StoreSettings() {
         <h2 className="font-semibold">{L("კომპანიის მონაცემები", "Company details", "Данные компании")}</h2>
         <Field label={L("კომპანიის სახელი", "Company name", "Название компании")} value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder={L("შპს ...", "LLC ...", "ООО ...")} />
         <label className="block">
-          <span className="text-xs font-medium text-muted-foreground">{L("კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)", "Company ID number (9 digits)", "Идентификационный номер компании (9 цифр)")}</span>
+          <span className="text-xs font-medium text-muted-foreground">{t("entityTypeLabel")}</span>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+              <button
+                type="button"
+                key={et}
+                onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+              >
+                {et === "company" ? t("entityCompany") : t("entityIndividual")}
+              </button>
+            ))}
+          </div>
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">
+            {form.entity_type === "individual_entrepreneur"
+              ? L("პირადი ნომერი (11 ციფრი)", "Personal ID (11 digits)", "Личный номер (11 цифр)")
+              : L("კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)", "Company ID number (9 digits)", "Идентификационный номер компании (9 цифр)")}
+          </span>
           <input
             value={form.company_id_number}
-            onChange={(e) => setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, 9) })}
+            onChange={(e) => {
+              const max = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+              setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, max) });
+            }}
             inputMode="numeric"
-            maxLength={9}
-            placeholder="123456789"
+            maxLength={form.entity_type === "individual_entrepreneur" ? 11 : 9}
+            placeholder={form.entity_type === "individual_entrepreneur" ? "01234567890" : "123456789"}
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
           />
         </label>

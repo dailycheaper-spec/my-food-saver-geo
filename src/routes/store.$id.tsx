@@ -1,3 +1,4 @@
+import { StoreLogo } from "@/components/StoreLogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo, useState } from "react";
 import {
@@ -165,8 +166,8 @@ function StorePage() {
         <div className="bg-card rounded-3xl shadow-elevated border border-border p-4 sm:p-5">
 
           <div className="flex items-center gap-3">
-            <div className="w-16 h-16 rounded-2xl gradient-warm grid place-items-center text-3xl shrink-0 border-4 border-card -mt-10 shadow-card">
-              {store.logo}
+            <div className="w-16 h-16 rounded-2xl gradient-warm grid place-items-center overflow-hidden text-3xl shrink-0 border-4 border-card -mt-10 shadow-card">
+              <StoreLogo value={store.logo} emojiClassName="text-3xl" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 min-w-0">

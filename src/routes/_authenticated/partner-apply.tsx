@@ -7,6 +7,10 @@ import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { CITIES, cityLabel, type City } from "@/lib/city";
 import { usePartnerAccount } from "@/lib/db";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+import { StoreLogo } from "@/components/StoreLogo";
+
+type EntityType = "company" | "individual_entrepreneur";
 
 const STORE_TYPES = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
@@ -27,7 +31,8 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -47,8 +52,9 @@ function PartnerApply() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    if (!/^\d{9}$/.test(form.company_id_number)) {
-      setMsg(language === "en" ? "Company ID must be exactly 9 digits" : language === "ru" ? "Идентификационный номер компании должен содержать ровно 9 цифр" : "საიდენტიფიკაციო ნომერი უნდა იყოს ზუსტად 9 ციფრი");
+    const idDigits = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+    if (!new RegExp(`^\\d{${idDigits}}$`).test(form.company_id_number)) {
+      setMsg(t(idDigits === 11 ? "idInvalid11" : "idInvalid9"));
       return;
     }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
@@ -69,7 +75,8 @@ function PartnerApply() {
       setMsg(language === "en" ? "You already have a pending application." : language === "ru" ? "У вас уже есть заявка на рассмотрении." : "თქვენ უკვე გაქვთ განაცხადი განხილვის პროცესში.");
       return;
     }
-    const { bank_iban: _b, account_holder: _h, ...storePayload } = form;
+    // Strip fields that don't belong to `stores` and any preview blob url.
+    const { bank_iban: _b, account_holder: _h, logo_url: _lu, ...storePayload } = form;
     const { data: newStore, error } = await supabase.from("stores").insert({
       ...storePayload,
       owner_id: user.id,
@@ -79,6 +86,22 @@ function PartnerApply() {
       setSubmitting(false);
       setMsg("შეცდომა: " + (error?.message ?? ""));
       return;
+    }
+    // Upload logo image if one was selected during the form.
+    if (logoFile) {
+      try {
+        const path = `${newStore.id}/logo-${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("store-logos")
+          .upload(path, logoFile, { contentType: logoFile.type, upsert: true, cacheControl: "3600" });
+        if (!upErr) {
+          const { data: signed } = await supabase.storage
+            .from("store-logos").createSignedUrl(path, 60 * 60 * 24 * 365 * 100);
+          if (signed?.signedUrl) {
+            await supabase.from("stores").update({ logo_url: signed.signedUrl }).eq("id", newStore.id);
+          }
+        }
+      } catch (err) { console.error("logo upload failed", err); }
     }
     const { error: bankErr } = await supabase.from("store_bank_accounts").insert({
       store_id: newStore.id,
@@ -114,7 +137,12 @@ function PartnerApply() {
           <p className="text-sm text-muted-foreground mt-2">{body}</p>
           <div className="mt-4 rounded-xl bg-muted/40 border border-border p-3 text-left">
             <div className="text-xs text-muted-foreground">{submittedLabel}</div>
-            <div className="font-semibold">{pendingStore.logo} {pendingStore.name}</div>
+            <div className="font-semibold flex items-center gap-2">
+              <span className="w-8 h-8 grid place-items-center overflow-hidden rounded-lg bg-secondary">
+                <StoreLogo value={(pendingStore as unknown as { logo_url?: string | null }).logo_url || pendingStore.logo} emojiClassName="text-xl" />
+              </span>
+              {pendingStore.name}
+            </div>
           </div>
           <Link to="/" className="inline-block mt-5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm">{backHome}</Link>
           <div className="text-xs text-muted-foreground mt-4">{supportLine} <a href="mailto:dailycheaper@gmail.com" className="underline">dailycheaper@gmail.com</a></div>
@@ -161,14 +189,34 @@ function PartnerApply() {
             placeholder={language === "en" ? "LLC Example" : language === "ru" ? "ООО Пример" : "შპს მაგალითი"}
             required
           />
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">{t("entityTypeLabel")}</span>
+            <div className="mt-1 grid grid-cols-2 gap-2">
+              {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+                <button
+                  type="button"
+                  key={et}
+                  onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                  className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+                >
+                  {et === "company" ? t("entityCompany") : t("entityIndividual")}
+                </button>
+              ))}
+            </div>
+          </label>
           <Field
-            label={language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *"}
+            label={form.entity_type === "individual_entrepreneur"
+              ? (language === "en" ? "Personal ID (11 digits) *" : language === "ru" ? "Личный номер (11 цифр) *" : "პირადი ნომერი (11 ციფრი) *")
+              : (language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *")}
             value={form.company_id_number}
-            onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, 9) })}
-            placeholder="123456789"
+            onChange={(v) => {
+              const max = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+              setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, max) });
+            }}
+            placeholder={form.entity_type === "individual_entrepreneur" ? "01234567890" : "123456789"}
             inputMode="numeric"
-            pattern="\d{9}"
-            maxLength={9}
+            pattern={form.entity_type === "individual_entrepreneur" ? "\\d{11}" : "\\d{9}"}
+            maxLength={form.entity_type === "individual_entrepreneur" ? 11 : 9}
             required
           />
           <Field
@@ -201,7 +249,12 @@ function PartnerApply() {
         </label>
 
         <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
-        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+        <StoreLogoPicker
+          logoUrl={form.logo_url}
+          logoEmoji={form.logo}
+          onChange={(next) => setForm((prev) => ({ ...prev, ...next, logo: next.logo ?? prev.logo, logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url }))}
+          onFileSelected={setLogoFile}
+        />
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
