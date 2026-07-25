@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Store, ArrowLeft, Clock } from "lucide-react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { Store, ArrowLeft, Clock, MapPin, LocateFixed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
@@ -9,6 +9,11 @@ import { CITIES, cityLabel, type City } from "@/lib/city";
 import { usePartnerAccount } from "@/lib/db";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { StoreLogo } from "@/components/StoreLogo";
+import { isValidLatLng } from "@/lib/geo";
+
+const StoreLocationPicker = lazy(() =>
+  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
+);
 
 type EntityType = "company" | "individual_entrepreneur";
 
