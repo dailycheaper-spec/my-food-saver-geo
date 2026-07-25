@@ -443,7 +443,7 @@ function SearchPage() {
                     onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                   >
-                    <span className="text-xl">{s.logo}</span>
+                    <span className="w-6 h-6 grid place-items-center overflow-hidden text-xl"><StoreLogo value={s.logo} emojiClassName="text-xl" /></span>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold truncate">{getStoreName(s, language)}</div>
                       <div className="text-[11px] text-muted-foreground">
@@ -559,7 +559,7 @@ function SearchPage() {
                       onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
                       className="flex items-center gap-2 p-3 bg-card border border-border rounded-2xl text-left hover:bg-secondary transition-colors"
                     >
-                      <span className="text-2xl">{s.logo}</span>
+                      <span className="w-7 h-7 grid place-items-center overflow-hidden text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></span>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
                         {s.district && (

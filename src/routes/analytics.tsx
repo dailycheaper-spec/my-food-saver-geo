@@ -97,7 +97,7 @@ function Analytics() {
                 <div className={`w-7 h-7 rounded-full grid place-items-center text-xs font-bold ${i === 0 ? "bg-accent text-accent-foreground" : "bg-card border border-border"}`}>
                   {i + 1}
                 </div>
-                <div className="w-9 h-9 rounded-lg gradient-warm grid place-items-center text-lg">{s.logo}</div>
+                <div className="w-9 h-9 rounded-lg gradient-warm grid place-items-center overflow-hidden text-lg"><StoreLogo value={s.logo} emojiClassName="text-lg" /></div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm truncate">{s.name}</div>
                   <div className="text-[11px] text-muted-foreground">{s.count} შეკვეთა • {formatPrice(s.revenue)}</div>

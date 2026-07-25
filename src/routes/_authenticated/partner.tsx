@@ -163,7 +163,7 @@ function PartnerLayout() {
             </button>
             <LanguageSwitcher compact />
             <Link to="/partner/profile" className="p-2 rounded-full hover:bg-muted/50 text-xs font-medium hidden sm:block">
-              {!loading && store ? `${store.logo ?? "🏪"} ${store.name}` : t("profile")}
+              {!loading && store ? <span className="inline-flex items-center gap-1"><span className="w-5 h-5 inline-grid place-items-center overflow-hidden"><StoreLogo value={store.logo_url || store.logo} emojiClassName="text-base" /></span> {store.name}</span> : t("profile")}
             </Link>
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/" }); }}

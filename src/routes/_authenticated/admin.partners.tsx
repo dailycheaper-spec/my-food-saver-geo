@@ -249,7 +249,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
   return (
     <div className={`bg-card rounded-3xl border p-5 shadow-sm ${isFlagged ? "border-destructive/50 ring-2 ring-destructive/20" : "border-border"}`}>
       <div className="flex items-start gap-3">
-        <div className="w-14 h-14 rounded-2xl bg-muted grid place-items-center text-3xl shrink-0">{store.logo ?? "🏪"}</div>
+        <div className="w-14 h-14 rounded-2xl bg-muted grid place-items-center overflow-hidden text-3xl shrink-0"><StoreLogo value={(store as unknown as { logo_url?: string | null }).logo_url || store.logo} emojiClassName="text-3xl" /></div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>

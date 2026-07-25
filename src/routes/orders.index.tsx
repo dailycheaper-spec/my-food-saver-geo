@@ -148,11 +148,11 @@ function OrderRow({ order, language }: { order: OrderWithRelations; language: La
         {image ? (
           <img src={image} alt="" width={80} height={80} loading="lazy" className="w-20 h-20 rounded-xl object-cover shrink-0" />
         ) : (
-          <div className="w-20 h-20 rounded-xl bg-muted grid place-items-center text-3xl shrink-0">{order.store?.logo ?? "🏪"}</div>
+          <div className="w-20 h-20 rounded-xl bg-muted grid place-items-center overflow-hidden text-3xl shrink-0"><StoreLogo value={order.store?.logo_url || order.store?.logo} emojiClassName="text-3xl" /></div>
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-lg shrink-0">{order.store?.logo ?? "🏪"}</span>
+            <span className="w-5 h-5 grid place-items-center overflow-hidden text-lg shrink-0"><StoreLogo value={order.store?.logo_url || order.store?.logo} emojiClassName="text-lg" /></span>
             <span className="text-xs text-muted-foreground truncate">{storeName}</span>
             <span className={`ml-auto shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${chipCls}`}>
               {label(stage)}

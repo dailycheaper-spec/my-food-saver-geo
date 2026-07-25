@@ -57,7 +57,7 @@ function Favorites() {
             <div className="mt-3 grid grid-cols-1 gap-2">
               {favStores.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl p-3 border border-border shadow-soft">
-                  <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center text-2xl">{s.logo}</div>
+                  <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center overflow-hidden text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm">{s.name}</div>
                     <div className="text-xs text-muted-foreground">

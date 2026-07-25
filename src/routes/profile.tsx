@@ -106,7 +106,7 @@ function Profile() {
             {followedStores.map((s) => (
               <li key={s.id} className="flex items-center gap-3 p-3">
                 <Link to="/store/$id" params={{ id: s.id }} className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-secondary grid place-items-center text-xl shrink-0">{s.logo ?? "🏪"}</div>
+                  <div className="w-10 h-10 rounded-xl bg-secondary grid place-items-center overflow-hidden text-xl shrink-0"><StoreLogo value={s.logo} emojiClassName="text-xl" /></div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold truncate">{s.name}</div>
                     {s.district && <div className="text-xs text-muted-foreground truncate">{s.district}</div>}

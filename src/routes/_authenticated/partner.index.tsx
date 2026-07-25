@@ -85,7 +85,7 @@ function PartnerHome() {
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground uppercase tracking-wider">{t("hello")}</div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold truncate flex items-center gap-2">
-            <span>{store.logo ?? "🏪"}</span> {store.name}
+            <span className="w-8 h-8 inline-grid place-items-center overflow-hidden rounded-lg"><StoreLogo value={store.logo_url || store.logo} emojiClassName="text-2xl" /></span> {store.name}
           </h1>
         </div>
         <div className="shrink-0 text-right hidden sm:block">

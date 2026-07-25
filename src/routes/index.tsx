@@ -428,8 +428,8 @@ function Home() {
                 to="/search"
                 className="snap-start shrink-0 w-[120px] flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border hover:shadow-card transition-all active:scale-95"
               >
-                <div className="w-14 h-14 rounded-2xl bg-secondary grid place-items-center text-3xl">
-                  {s.logo}
+                <div className="w-14 h-14 rounded-2xl bg-secondary grid place-items-center overflow-hidden text-3xl">
+                  <StoreLogo value={s.logo} emojiClassName="text-3xl" />
                 </div>
                 <div className="text-center w-full">
                   <div className="text-xs font-bold truncate">{s.name}</div>
