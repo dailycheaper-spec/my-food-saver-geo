@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } f
 import { supabase } from "@/integrations/supabase/client";
 import { fetchOrder, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
+import { localizedField } from "@/lib/localized";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
 import { stageOfDbOrder, useStageLabel } from "./orders.index";
 
@@ -57,8 +58,8 @@ function OrderDetail() {
   const isDelivery = order.method === "delivery";
   const stage = stageOfDbOrder(order);
   const image = order.offer?.image_url ?? "";
-  const title = order.offer?.title ?? "—";
-  const storeName = order.store?.name ?? "—";
+  const title = localizedField(order.offer, "title", language) || "—";
+  const storeName = localizedField(order.store, "name", language) || "—";
   const storeLogo = order.store?.logo ?? "🏪";
   const from = String(order.offer?.pickup_from ?? "").slice(0, 5);
   const to = String(order.offer?.pickup_to ?? "").slice(0, 5);
