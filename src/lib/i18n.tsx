@@ -389,8 +389,6 @@ const labels: Record<Language, Record<string, string>> = {
     recommendNo: "✗ არ ურჩევს",
     buyAgainYes: "✓ ისევ შეიძენდა",
     buyAgainNo: "✗ აღარ",
-    yes: "კი",
-    no: "არა",
   },
 
   en: {
