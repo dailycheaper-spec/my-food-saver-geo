@@ -10,10 +10,19 @@ export interface Offer {
   id: string;
   storeId: string;
   storeName: string;
+  /** Optional partner-provided translations for storeName. */
+  storeNameEn?: string;
+  storeNameRu?: string;
   storeLogo: string;
   category: Category;
   title: string;
+  /** Optional partner-provided translations for title. */
+  titleEn?: string;
+  titleRu?: string;
   description: string;
+  /** Optional partner-provided translations for description. */
+  descriptionEn?: string;
+  descriptionRu?: string;
   image: string;
   originalPrice: number;
   price: number;
@@ -52,6 +61,9 @@ export const TBILISI_CENTER: [number, number] = [41.7151, 44.7873];
 export interface Store {
   id: string;
   name: string;
+  /** Optional partner-provided translations for name. */
+  nameEn?: string;
+  nameRu?: string;
   logo: string;
   category: Category;
   district: string;
@@ -259,14 +271,36 @@ export function getDistrictLabel(id: string, language: UiLanguage) {
   return DISTRICT_LABELS[id]?.[language] ?? id;
 }
 
-export function getStoreName(offerOrStore: Pick<Offer, "storeId" | "storeName"> | Pick<Store, "id" | "name">, language: UiLanguage) {
+export function getStoreName(
+  offerOrStore:
+    | Pick<Offer, "storeId" | "storeName"> & Partial<Pick<Offer, "storeNameEn" | "storeNameRu">>
+    | Pick<Store, "id" | "name"> & Partial<Pick<Store, "nameEn" | "nameRu">>,
+  language: UiLanguage,
+) {
   const id = "storeId" in offerOrStore ? offerOrStore.storeId : offerOrStore.id;
   const fallback = "storeName" in offerOrStore ? offerOrStore.storeName : offerOrStore.name;
-  return STORE_LABELS[id]?.[language] ?? fallback;
+  // Mock hardcoded translations win only for mock IDs (real DB uses uuids that never match).
+  const mock = STORE_LABELS[id]?.[language];
+  if (mock) return mock;
+  const en = "storeNameEn" in offerOrStore ? offerOrStore.storeNameEn : (offerOrStore as { nameEn?: string }).nameEn;
+  const ru = "storeNameRu" in offerOrStore ? offerOrStore.storeNameRu : (offerOrStore as { nameRu?: string }).nameRu;
+  if (language === "en" && en && en.trim()) return en;
+  if (language === "ru" && ru && ru.trim()) return ru;
+  return fallback;
 }
 
 export function getOfferText(offer: Offer, language: UiLanguage) {
-  return OFFER_TEXT[offer.id]?.[language] ?? { title: offer.title, description: offer.description };
+  const mock = OFFER_TEXT[offer.id]?.[language];
+  if (mock) return mock;
+  const title =
+    language === "en" ? (offer.titleEn?.trim() || offer.title)
+    : language === "ru" ? (offer.titleRu?.trim() || offer.title)
+    : offer.title;
+  const description =
+    language === "en" ? (offer.descriptionEn?.trim() || offer.description)
+    : language === "ru" ? (offer.descriptionRu?.trim() || offer.description)
+    : offer.description;
+  return { title, description };
 }
 
 // Multi-language keyword tags per offer — used by search so typing a food
@@ -293,7 +327,13 @@ export function offerMatchesQuery(offer: Offer, query: string): boolean {
     if (sn) parts.push(sn);
     parts.push(CATEGORY_LABELS[offer.category]?.[l] ?? "");
   }
-  parts.push(offer.title, offer.description, offer.storeName, offer.category);
+  // Partner-provided translations from DB rows.
+  parts.push(
+    offer.title, offer.description, offer.storeName, offer.category,
+    offer.titleEn ?? "", offer.titleRu ?? "",
+    offer.descriptionEn ?? "", offer.descriptionRu ?? "",
+    offer.storeNameEn ?? "", offer.storeNameRu ?? "",
+  );
   parts.push(...(OFFER_KEYWORDS[offer.id] ?? []));
   return parts.join(" \n ").toLowerCase().includes(q);
 }

@@ -28,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/partner/store")({
 
 type FormState = {
   name: string;
+  name_en: string;
+  name_ru: string;
   logo: string;
   category: string;
   district: string;
@@ -49,6 +51,8 @@ function StoreSettings() {
   const store = stores.find((s) => s.status === "active") ?? null;
   const [form, setForm] = useState<FormState>({
     name: "",
+    name_en: "",
+    name_ru: "",
     logo: "",
     category: "restaurant",
     district: "",
@@ -71,6 +75,8 @@ function StoreSettings() {
       const anyStore = store as unknown as Record<string, unknown>;
       setForm({
         name: store.name,
+        name_en: (anyStore.name_en as string | null) ?? "",
+        name_ru: (anyStore.name_ru as string | null) ?? "",
         logo: store.logo ?? "",
         category: store.category ?? "restaurant",
         district: store.district ?? "",
@@ -135,6 +141,8 @@ function StoreSettings() {
     }
     const payload = {
       name: form.name,
+      name_en: form.name_en.trim() || null,
+      name_ru: form.name_ru.trim() || null,
       logo: form.logo,
       category: form.category,
       district: form.district,
@@ -175,6 +183,8 @@ function StoreSettings() {
           </select>
         </label>
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
+        <Field label={t("storeNameEnOptional")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
+        <Field label={t("storeNameRuOptional")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
         <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
         <Field label={t("districtLbl")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
         <Field label={t("addressLbl")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} />

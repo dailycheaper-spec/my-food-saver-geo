@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ShoppingBag, Clock, Gift, Truck, QrCode } from "lucide-react";
 import { useMyOrders, formatGel, type OrderWithRelations } from "@/lib/db";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Language } from "@/lib/i18n";
+import { localizedField } from "@/lib/localized";
 import { OrderCardSkeleton } from "@/components/Skeleton";
 
 export const Route = createFileRoute("/orders/")({
@@ -115,14 +116,14 @@ function Orders() {
             <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">{t("firstPack")}</Link>
           </div>
         ) : (
-          filtered.map((o) => <OrderRow key={o.id} order={o} />)
+          filtered.map((o) => <OrderRow key={o.id} order={o} language={language} />)
         )}
       </div>
     </div>
   );
 }
 
-function OrderRow({ order }: { order: OrderWithRelations }) {
+function OrderRow({ order, language }: { order: OrderWithRelations; language: Language }) {
   const stage = stageOfDbOrder(order);
   const label = useStageLabel();
   const chipCls =
@@ -132,7 +133,8 @@ function OrderRow({ order }: { order: OrderWithRelations }) {
     : "bg-primary/10 text-primary";
   const isDelivery = order.method === "delivery";
   const image = order.offer?.image_url ?? "";
-  const title = order.offer?.title ?? "—";
+  const title = localizedField(order.offer, "title", language) || "—";
+  const storeName = localizedField(order.store, "name", language) || "—";
   const from = String(order.offer?.pickup_from ?? "").slice(0, 5);
   const to = String(order.offer?.pickup_to ?? "").slice(0, 5);
 
@@ -151,7 +153,7 @@ function OrderRow({ order }: { order: OrderWithRelations }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-lg shrink-0">{order.store?.logo ?? "🏪"}</span>
-            <span className="text-xs text-muted-foreground truncate">{order.store?.name ?? "—"}</span>
+            <span className="text-xs text-muted-foreground truncate">{storeName}</span>
             <span className={`ml-auto shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide ${chipCls}`}>
               {label(stage)}
             </span>

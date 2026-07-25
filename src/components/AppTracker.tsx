@@ -2,14 +2,17 @@ import { useEffect } from "react";
 import { OFFERS } from "@/lib/mock-data";
 import { trackVisit, getSeenOffers, markOffersSeen, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
+import { localizedField } from "@/lib/localized";
 import { supabase } from "@/integrations/supabase/client";
 
 type RealtimeOffer = {
   id: string;
   title: string;
+  title_en: string | null;
+  title_ru: string | null;
   discounted_price: number;
   category: string;
-  store: { name: string | null; lat: number | null; lng: number | null } | null;
+  store: { name: string | null; name_en: string | null; name_ru: string | null; lat: number | null; lng: number | null } | null;
 };
 
 function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
@@ -24,7 +27,7 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
 
 // Fires once on mount: tracks a visit, and notifies user about offers they haven't seen yet.
 export function AppTracker() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const notifs = useNotifSettings();
 
   useEffect(() => {
@@ -68,8 +71,10 @@ export function AppTracker() {
       if (notifs.categories.length && !notifs.categories.includes(offer.category)) return;
       if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return;
       try {
+        const storeName = localizedField(offer.store, "name", language) || "Cheaper";
+        const title = localizedField(offer, "title", language) || offer.title;
         new Notification(`🎉 ${t("newOffer")}`, {
-          body: `${offer.store?.name ?? "Cheaper"}: ${offer.title} — ${Number(offer.discounted_price).toFixed(2)} ${t("currency")}`,
+          body: `${storeName}: ${title} — ${Number(offer.discounted_price).toFixed(2)} ${t("currency")}`,
           tag: `cheaper-live-${offer.id}`,
           icon: "/icon-192.png",
         });
@@ -101,7 +106,7 @@ export function AppTracker() {
         if (!id) return;
         const { data } = await supabase
           .from("offers")
-          .select("id,title,discounted_price,category,store:stores(name,lat,lng)")
+          .select("id,title,title_en,title_ru,discounted_price,category,store:stores(name,name_en,name_ru,lat,lng)")
           .eq("id", id)
           .maybeSingle();
         if (data) shouldNotify(data as unknown as RealtimeOffer);
@@ -109,7 +114,7 @@ export function AppTracker() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [notifs.enabled, notifs.categories, notifs.radiusKm, t]);
+  }, [notifs.enabled, notifs.categories, notifs.radiusKm, t, language]);
 
   return null;
 }

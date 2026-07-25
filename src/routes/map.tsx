@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { ArrowLeft, ExternalLink, MapPin, Navigation, X, Search as SearchIcon, SlidersHorizontal, Percent, Clock, Sparkles, Heart, CheckCircle2, Store as StoreIcon, Utensils } from "lucide-react";
-import { TBILISI_CENTER, DISTRICTS, CATEGORIES, formatPrice, getDistrictLabel, getCategoryLabel, getOfferText, type Offer, type Category } from "@/lib/mock-data";
+import { TBILISI_CENTER, DISTRICTS, CATEGORIES, formatPrice, getDistrictLabel, getCategoryLabel, getOfferText, getStoreName, type Offer, type Category } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
@@ -37,6 +37,8 @@ export interface MapOffer extends Offer {
 export interface MapStore {
   storeId: string;
   storeName: string;
+  storeNameEn?: string;
+  storeNameRu?: string;
   storeLogo: string;
   lat: number;
   lng: number;
@@ -133,8 +135,9 @@ function MapPage() {
       if (categoryFilter !== "ყველა" && o.category !== categoryFilter) continue;
       if (q) {
         const { title: locTitle } = getOfferText(o, language);
+        const locStoreName = getStoreName(o, language);
         const catLabel = getCategoryLabel(o.category as Category, language);
-        const hay = `${o.storeName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)} ${o.category ?? ""} ${catLabel}`.toLowerCase();
+        const hay = `${o.storeName} ${locStoreName} ${o.title} ${locTitle} ${o.district ?? ""} ${getDistrictLabel(o.district ?? "", language)} ${o.category ?? ""} ${catLabel}`.toLowerCase();
         if (!hay.includes(q)) continue;
       }
       out.push({ ...(o as Offer & { lat: number; lng: number }), _distanceKm: d, _state: state });
@@ -151,7 +154,9 @@ function MapPage() {
       } else {
         map.set(o.storeId, {
           storeId: o.storeId,
-          storeName: o.storeName,
+          storeName: getStoreName(o, language),
+          storeNameEn: o.storeNameEn,
+          storeNameRu: o.storeNameRu,
           storeLogo: o.storeLogo,
           lat: o.lat,
           lng: o.lng,
@@ -203,7 +208,7 @@ function MapPage() {
       list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
     }
     return list;
-  }, [mappable, location, sortMode]);
+  }, [mappable, location, sortMode, language]);
 
   const selectedStore = useMemo(
     () => stores.find((s) => s.storeId === selectedStoreId) ?? null,
@@ -230,15 +235,16 @@ function MapPage() {
     const foods: { id: string; title: string; storeName: string; image: string }[] = [];
     for (const o of offers) {
       const { title: locTitle } = getOfferText(o, language);
-      if (!seenStores.has(o.storeId) && (o.storeName.toLowerCase().includes(q))) {
+      const locStoreName = getStoreName(o, language);
+      if (!seenStores.has(o.storeId) && (o.storeName.toLowerCase().includes(q) || locStoreName.toLowerCase().includes(q))) {
         seenStores.add(o.storeId);
-        partners.push({ id: o.storeId, name: o.storeName, logo: o.storeLogo });
+        partners.push({ id: o.storeId, name: locStoreName, logo: o.storeLogo });
       }
       if (
         (o.title.toLowerCase().includes(q) || locTitle.toLowerCase().includes(q)) &&
         foods.length < 4
       ) {
-        foods.push({ id: o.id, title: locTitle || o.title, storeName: o.storeName, image: o.image });
+        foods.push({ id: o.id, title: locTitle || o.title, storeName: locStoreName, image: o.image });
       }
       if (partners.length >= 3 && foods.length >= 4) break;
     }
@@ -602,7 +608,7 @@ function MapPage() {
                 params={{ id: selectedStore.storeId }}
                 className="font-bold text-sm truncate block hover:text-primary"
               >
-                {selectedStore.storeName}
+                {getStoreName(selectedStore, language)}
               </Link>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {selectedStore.activeCount > 0 ? (
