@@ -52,8 +52,9 @@ function PartnerApply() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
-    if (!/^\d{9}$/.test(form.company_id_number)) {
-      setMsg(language === "en" ? "Company ID must be exactly 9 digits" : language === "ru" ? "Идентификационный номер компании должен содержать ровно 9 цифр" : "საიდენტიფიკაციო ნომერი უნდა იყოს ზუსტად 9 ციფრი");
+    const idDigits = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+    if (!new RegExp(`^\\d{${idDigits}}$`).test(form.company_id_number)) {
+      setMsg(t(idDigits === 11 ? "idInvalid11" : "idInvalid9"));
       return;
     }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
@@ -74,7 +75,8 @@ function PartnerApply() {
       setMsg(language === "en" ? "You already have a pending application." : language === "ru" ? "У вас уже есть заявка на рассмотрении." : "თქვენ უკვე გაქვთ განაცხადი განხილვის პროცესში.");
       return;
     }
-    const { bank_iban: _b, account_holder: _h, ...storePayload } = form;
+    // Strip fields that don't belong to `stores` and any preview blob url.
+    const { bank_iban: _b, account_holder: _h, logo_url: _lu, ...storePayload } = form;
     const { data: newStore, error } = await supabase.from("stores").insert({
       ...storePayload,
       owner_id: user.id,
@@ -84,6 +86,22 @@ function PartnerApply() {
       setSubmitting(false);
       setMsg("შეცდომა: " + (error?.message ?? ""));
       return;
+    }
+    // Upload logo image if one was selected during the form.
+    if (logoFile) {
+      try {
+        const path = `${newStore.id}/logo-${Date.now()}.jpg`;
+        const { error: upErr } = await supabase.storage
+          .from("store-logos")
+          .upload(path, logoFile, { contentType: logoFile.type, upsert: true, cacheControl: "3600" });
+        if (!upErr) {
+          const { data: signed } = await supabase.storage
+            .from("store-logos").createSignedUrl(path, 60 * 60 * 24 * 365 * 100);
+          if (signed?.signedUrl) {
+            await supabase.from("stores").update({ logo_url: signed.signedUrl }).eq("id", newStore.id);
+          }
+        }
+      } catch (err) { console.error("logo upload failed", err); }
     }
     const { error: bankErr } = await supabase.from("store_bank_accounts").insert({
       store_id: newStore.id,
