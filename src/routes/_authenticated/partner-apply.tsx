@@ -312,6 +312,37 @@ function PartnerApply() {
         <Field label={t("phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
         <Field label={t("description")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
 
+        <div className="rounded-2xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            <h2 className="font-semibold text-sm">{L("ობიექტის მდებარეობა *", "Store location *", "Местоположение магазина *")}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={useCurrentLocation}
+            disabled={locBusy}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-medium disabled:opacity-60"
+          >
+            <LocateFixed className="w-4 h-4" />
+            {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
+          </button>
+          <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
+            <StoreLocationPicker
+              value={{ lat: form.lat, lng: form.lng }}
+              onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+              storageKey="cheaper-partner-apply-map"
+            />
+          </Suspense>
+          <div className="text-xs text-muted-foreground font-mono">
+            {form.lat != null && form.lng != null ? (
+              <>Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}</>
+            ) : (
+              <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
+            )}
+          </div>
+        </div>
+
+
         <button type="submit" disabled={submitting} className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
           {submitting ? t("sending") : t("submitApplication")}
         </button>
