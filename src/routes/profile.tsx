@@ -7,6 +7,7 @@ import { useMyRole } from "@/lib/db";
 import { useFollowedStores, unfollowStore, useFollowedStoreIds } from "@/lib/follows";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "პროფილი — Cheaper" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),

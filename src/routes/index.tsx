@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, useRef } from "react";
 import {
+import { StoreLogo } from "@/components/StoreLogo";
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronLeft, ChevronRight, Clock, Utensils, Gift, LogIn, User,
 } from "lucide-react";

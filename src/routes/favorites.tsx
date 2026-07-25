@@ -5,6 +5,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
 import { getCategoryLabel, getDistrictLabel } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/favorites")({
   head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),

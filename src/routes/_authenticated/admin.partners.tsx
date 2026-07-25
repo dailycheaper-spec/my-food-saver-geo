@@ -12,6 +12,7 @@ import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreSta
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { StoreLocationPreview } from "@/components/StoreLocationPreview";
 import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
+import { StoreLogo } from "@/components/StoreLogo";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {

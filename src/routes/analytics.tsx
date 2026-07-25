@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarChart3, Users, ShoppingCart, TrendingUp, Trophy, Eye, ArrowLeft } from "lucide-react";
 import { useAnalytics } from "@/lib/storage";
 import { OFFERS, formatPrice } from "@/lib/mock-data";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({

@@ -5,6 +5,7 @@ import { useMyOrders, formatGel, type OrderWithRelations } from "@/lib/db";
 import { useI18n, type Language } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { OrderCardSkeleton } from "@/components/Skeleton";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({

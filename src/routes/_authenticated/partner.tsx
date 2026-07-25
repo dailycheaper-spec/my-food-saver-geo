@@ -5,6 +5,7 @@ import { usePartnerAccount, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useNewOrderSound, useSoundPref } from "@/lib/partner-sound";
+import { StoreLogo } from "@/components/StoreLogo";
 
 
 export const Route = createFileRoute("/_authenticated/partner")({

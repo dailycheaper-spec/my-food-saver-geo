@@ -4,6 +4,7 @@ import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Zap, Sparkles, Coins, 
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute('/_authenticated/partner/')({
   head: () => ({ meta: [{ title: "პარტნიორის დაფა — Cheaper" }] }),
