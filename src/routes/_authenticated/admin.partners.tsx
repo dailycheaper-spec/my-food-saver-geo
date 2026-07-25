@@ -3,16 +3,18 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
-import { useStoresWithBank } from "@/lib/admin-db";
+import { useStoresBankDetailsMap, type StoreBankInfo } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
-import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus } from "@/lib/admin-store.functions";
+import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus, updateAdminStore } from "@/lib/admin-store.functions";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { StoreLocationPreview } from "@/components/StoreLocationPreview";
 import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
 import { StoreLogo } from "@/components/StoreLogo";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+import { isValidGeorgianIban } from "@/lib/bank-account";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {
@@ -60,9 +62,10 @@ function AdminPartners() {
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<DbStore | null>(null);
+  const [editingStore, setEditingStore] = useState<DbStore | null>(null);
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
   const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
-  const storesWithBank = useStoresWithBank();
+  const bankMap = useStoresBankDetailsMap();
   const settings = loadAdminSettings();
 
   async function loadReports() {
@@ -208,8 +211,9 @@ function AdminPartners() {
             commissionPct={settings.commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
             activeOffers={activeOffersCount.get(s.id) ?? 0}
-            hasBank={storesWithBank.has(s.id)}
+            bank={bankMap.get(s.id) ?? null}
             onEditLocation={() => setEditingLocation(s)}
+            onEdit={() => setEditingStore(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
         {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
@@ -221,6 +225,13 @@ function AdminPartners() {
           store={editingLocation}
           onClose={() => setEditingLocation(null)}
           onSaved={() => { setEditingLocation(null); reload(); }}
+        />
+      )}
+      {editingStore && (
+        <EditStoreModal
+          store={editingStore}
+          onClose={() => setEditingStore(null)}
+          onSaved={() => { setEditingStore(null); reload(); }}
         />
       )}
     </div>
