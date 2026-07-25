@@ -136,9 +136,14 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
   const { t } = useI18n();
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru", string | null>> | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
+    title_en: offerAny?.title_en ?? "",
+    title_ru: offerAny?.title_ru ?? "",
     description: offer?.description ?? "",
+    description_en: offerAny?.description_en ?? "",
+    description_ru: offerAny?.description_ru ?? "",
     category: offer?.category ?? "meal",
     original_price: offer?.original_price?.toString() ?? "20",
     discounted_price: offer?.discounted_price?.toString() ?? "7",
@@ -175,7 +180,11 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     const payload = {
       store_id: storeId,
       title: form.title,
+      title_en: form.title_en.trim() || null,
+      title_ru: form.title_ru.trim() || null,
       description: form.description,
+      description_en: form.description_en.trim() || null,
+      description_ru: form.description_ru.trim() || null,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
