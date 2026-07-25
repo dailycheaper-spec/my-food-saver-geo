@@ -138,59 +138,11 @@ function NewOfferPage() {
       <form onSubmit={publish} className="space-y-4">
         <div>
           <Label>{t("photo")}</Label>
-          {form.image_url && !imgError && (
-            <img
-              src={form.image_url}
-              alt="preview"
-              className="mb-2 w-full h-48 object-cover rounded-2xl"
-              onLoad={() => setImgError(false)}
-              onError={() => setImgError(true)}
-            />
-          )}
-          {imgError && form.image_url && (
-            <div className="mb-2 flex items-center gap-2 p-3 rounded-2xl bg-destructive/10 border border-destructive/30 text-destructive text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>{t("imageLoadFailed")}</span>
-            </div>
-          )}
-          <div className="grid grid-cols-3 gap-2 mb-2">
-            <button
-              type="button"
-              onClick={handleAiGenerate}
-              disabled={generatingImg}
-              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50"
-            >
-              {generatingImg ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-              {generatingImg ? t("generating") : t("generateWithAi")}
-            </button>
-            <button
-              type="button"
-              onClick={() => cameraRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
-            >
-              <Camera className="w-5 h-5" />
-              {t("takePhoto")}
-            </button>
-            <button
-              type="button"
-              onClick={() => uploadRef.current?.click()}
-              className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
-            >
-              <Upload className="w-5 h-5" />
-              {t("uploadPhoto")}
-            </button>
-          </div>
-          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
-          <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
-          <div className="relative">
-            <ImageIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={form.image_url.startsWith("data:") ? "" : form.image_url}
-              onChange={(e) => { setImgError(false); setForm({ ...form, image_url: e.target.value }); }}
-              placeholder={t("orPasteUrl")}
-              className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-muted/40 border border-border text-sm"
-            />
-          </div>
+          <OfferPhotoPicker
+            value={form.image_url}
+            onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+            promptText={form.title || form.description}
+          />
         </div>
 
 
