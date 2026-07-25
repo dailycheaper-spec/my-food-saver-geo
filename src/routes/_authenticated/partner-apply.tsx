@@ -87,6 +87,10 @@ function PartnerApply() {
       setMsg(t(idDigits === 11 ? "idInvalid11" : "idInvalid9"));
       return;
     }
+    if (!isValidLatLng(form.lat, form.lng)) {
+      setMsg(L("გთხოვთ, მონიშნოთ ობიექტის მდებარეობა რუკაზე.", "Please mark the store location on the map.", "Пожалуйста, отметьте местоположение магазина на карте."));
+      return;
+    }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
     if (!/^GE\d{2}[A-Z]{2}\d{16}$/.test(ibanNormalized)) {
       setMsg(language === "en" ? "Bank IBAN must be a valid Georgian IBAN (e.g. GE29NB0000000101904917)." : language === "ru" ? "IBAN должен быть в грузинском формате (напр. GE29NB0000000101904917)." : "საბანკო IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).");
