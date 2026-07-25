@@ -1,14 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle, Sparkles, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
-import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
   head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
