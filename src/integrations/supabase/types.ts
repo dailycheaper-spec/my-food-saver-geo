@@ -580,10 +580,12 @@ export type Database = {
           delivery_radius_km: number
           description: string | null
           district: string | null
+          entity_type: string
           id: string
           lat: number | null
           lng: number | null
           logo: string | null
+          logo_url: string | null
           min_order_for_delivery: number
           name: string
           name_en: string | null
@@ -609,10 +611,12 @@ export type Database = {
           delivery_radius_km?: number
           description?: string | null
           district?: string | null
+          entity_type?: string
           id?: string
           lat?: number | null
           lng?: number | null
           logo?: string | null
+          logo_url?: string | null
           min_order_for_delivery?: number
           name: string
           name_en?: string | null
@@ -638,10 +642,12 @@ export type Database = {
           delivery_radius_km?: number
           description?: string | null
           district?: string | null
+          entity_type?: string
           id?: string
           lat?: number | null
           lng?: number | null
           logo?: string | null
+          logo_url?: string | null
           min_order_for_delivery?: number
           name?: string
           name_en?: string | null
