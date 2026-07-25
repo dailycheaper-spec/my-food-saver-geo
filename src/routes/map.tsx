@@ -154,7 +154,7 @@ function MapPage() {
       } else {
         map.set(o.storeId, {
           storeId: o.storeId,
-          storeName: o.storeName,
+          storeName: getStoreName(o, language),
           storeNameEn: o.storeNameEn,
           storeNameRu: o.storeNameRu,
           storeLogo: o.storeLogo,
@@ -208,7 +208,7 @@ function MapPage() {
       list.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
     }
     return list;
-  }, [mappable, location, sortMode]);
+  }, [mappable, location, sortMode, language]);
 
   const selectedStore = useMemo(
     () => stores.find((s) => s.storeId === selectedStoreId) ?? null,
