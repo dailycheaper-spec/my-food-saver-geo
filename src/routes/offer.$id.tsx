@@ -82,7 +82,18 @@ function OfferPage() {
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const soldOut = offer.itemsLeft <= 0;
 
-  const allergens = useMemo(() => getAllergens(offer, language), [offer, language]);
+  const allergens = useMemo(() => {
+    // Prefer partner-declared allergens; fall back to category-based guess.
+    if (offer.allergens && offer.allergens.length > 0) {
+      // Localize keys → labels via the shared registry.
+      // Fallback path: getAllergens already returns localized strings.
+      // We inline the import to keep the change small.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { allergenLabels } = require("@/lib/allergens") as typeof import("@/lib/allergens");
+      return allergenLabels(offer.allergens, language);
+    }
+    return getAllergens(offer, language);
+  }, [offer, language]);
   const ingredients = useMemo(() => getIngredients(offer, language), [offer, language]);
   const pickupInstructions = useMemo(() => getPickupInstructions(offer, language), [offer, language]);
   const similar = useMemo(() => getSimilarOffers(offer, 4), [offer]);
