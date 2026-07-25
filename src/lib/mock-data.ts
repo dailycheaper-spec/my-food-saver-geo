@@ -430,7 +430,7 @@ export function getPickupInstructions(offer: Offer, language: UiLanguage): strin
   if (language === "ru") {
     return `Покажите QR-код на кассе ${store} с ${offer.pickupFrom} до ${offer.pickupTo}. Приходите вовремя — пакет готовится непосредственно перед выдачей.`;
   }
-  return `მიუტანე QR კოდი ${store}-ის კასაზე ${offer.pickupFrom}–${offer.pickupTo}. მოვედი დროულად — პაკეტი მზადდება აღების წინ.`;
+  return `მიუტანე QR კოდი ${store}-ის კასაზე ${offer.pickupFrom}–${offer.pickupTo}. მიბრძანდით დროულად — პაკეტი მზადდება აღების წინ.`;
 }
 
 export function getSimilarOffers(offer: Offer, limit = 4): Offer[] {
