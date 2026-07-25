@@ -21,10 +21,12 @@ const EMOJIS = [
 ];
 
 interface Props {
-  storeId?: string | null; // needed for upload; if missing, upload is disabled
+  storeId?: string | null; // needed for instant upload; if missing, use onFileSelected
   logoUrl: string | null;   // current image URL (or emoji)
   logoEmoji: string;        // current emoji fallback
   onChange: (next: { logo?: string; logo_url?: string | null }) => void;
+  /** Deferred-upload mode: return the picked File to caller instead of uploading. */
+  onFileSelected?: (file: File | null) => void;
 }
 
 async function compress(file: File): Promise<Blob> {
@@ -42,16 +44,22 @@ async function compress(file: File): Promise<Blob> {
   );
 }
 
-export function StoreLogoPicker({ storeId, logoUrl, logoEmoji, onChange }: Props) {
+export function StoreLogoPicker({ storeId, logoUrl, logoEmoji, onChange, onFileSelected }: Props) {
   const { t } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"image" | "emoji">(isLogoUrl(logoUrl) ? "image" : "emoji");
   const [busy, setBusy] = useState(false);
 
   async function handleFile(file: File) {
-    if (!storeId) { toast.error(t("uploadFailed")); return; }
     if (!ALLOWED.includes(file.type)) { toast.error(t("invalidImageType")); return; }
     if (file.size > MAX_BYTES) { toast.error(t("fileTooLarge")); return; }
+    if (onFileSelected) {
+      const preview = URL.createObjectURL(file);
+      onChange({ logo_url: preview });
+      onFileSelected(file);
+      return;
+    }
+    if (!storeId) { toast.error(t("uploadFailed")); return; }
     setBusy(true);
     try {
       const blob = await compress(file);
