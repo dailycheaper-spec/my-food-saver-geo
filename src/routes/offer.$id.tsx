@@ -83,13 +83,7 @@ function OfferPage() {
   const soldOut = offer.itemsLeft <= 0;
 
   const allergens = useMemo(() => {
-    // Prefer partner-declared allergens; fall back to category-based guess.
     if (offer.allergens && offer.allergens.length > 0) {
-      // Localize keys → labels via the shared registry.
-      // Fallback path: getAllergens already returns localized strings.
-      // We inline the import to keep the change small.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { allergenLabels } = require("@/lib/allergens") as typeof import("@/lib/allergens");
       return allergenLabels(offer.allergens, language);
     }
     return getAllergens(offer, language);
