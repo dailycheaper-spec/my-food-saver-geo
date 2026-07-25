@@ -10,6 +10,7 @@ import {
   getAllergens, getIngredients, getPickupInstructions, getSimilarOffers,
 } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
+import { allergenLabels } from "@/lib/allergens";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
