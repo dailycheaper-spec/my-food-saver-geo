@@ -64,7 +64,11 @@ function NewOfferPage() {
   const generateImg = useServerFn(generateOfferImage);
   const [form, setForm] = useState({
     title: "",
+    title_en: "",
+    title_ru: "",
     description: "",
+    description_en: "",
+    description_ru: "",
     category: "meal",
     original_price: "20",
     discounted_price: "7",
@@ -119,7 +123,11 @@ function NewOfferPage() {
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
+      title_en: form.title_en.trim() || null,
+      title_ru: form.title_ru.trim() || null,
       description: finalDesc,
+      description_en: form.description_en.trim() || null,
+      description_ru: form.description_ru.trim() || null,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -232,6 +240,19 @@ function NewOfferPage() {
         </div>
 
         <Field label={t("description")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
+
+        <details className="rounded-xl border border-border bg-card/40 p-3">
+          <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
+            🌐 {t("translationsOptional")}
+          </summary>
+          <div className="mt-3 space-y-3">
+            <Field label={t("titleEnOptional")} value={form.title_en} onChange={(v) => setForm({ ...form, title_en: v })} />
+            <Field label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
+            <Field label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
+            <Field label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+          </div>
+        </details>
+
 
         <label className="flex items-center gap-2 text-sm py-2">
           <input type="checkbox" checked={form.delivery_available} onChange={(e) => setForm({ ...form, delivery_available: e.target.checked })} className="w-5 h-5 rounded" />
