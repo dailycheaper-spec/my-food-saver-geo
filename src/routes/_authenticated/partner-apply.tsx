@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Store, ArrowLeft, Clock } from "lucide-react";
+import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { Store, ArrowLeft, Clock, MapPin, LocateFixed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { DISTRICTS } from "@/lib/mock-data";
@@ -9,6 +9,11 @@ import { CITIES, cityLabel, type City } from "@/lib/city";
 import { usePartnerAccount } from "@/lib/db";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { StoreLogo } from "@/components/StoreLogo";
+import { isValidLatLng } from "@/lib/geo";
+
+const StoreLocationPicker = lazy(() =>
+  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
+);
 
 type EntityType = "company" | "individual_entrepreneur";
 
@@ -31,10 +36,35 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string; lat: number | null; lng: number | null }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "", lat: null, lng: null });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
+  const [locBusy, setLocBusy] = useState(false);
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+
+  function useCurrentLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setMsg(L("თქვენი ბრაუზერი ლოკაციის ავტომატურ განსაზღვრას არ უჭერს მხარს.", "Your browser doesn't support automatic location.", "Ваш браузер не поддерживает автоматическое определение местоположения."));
+      return;
+    }
+    setLocBusy(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocBusy(false);
+        setForm((f) => ({ ...f, lat: pos.coords.latitude, lng: pos.coords.longitude }));
+        setMsg(L("მდებარეობა წარმატებით განისაზღვრა.", "Location detected successfully.", "Местоположение определено."));
+      },
+      (err) => {
+        setLocBusy(false);
+        let text = L("მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ რუკაზე ხელით მონიშვნა.", "Couldn't detect location. Try picking it on the map.", "Не удалось определить местоположение. Отметьте на карте.");
+        if (err.code === err.PERMISSION_DENIED) text = L("ლოკაციაზე წვდომა არ არის ნებადართული. მონიშნეთ ობიექტი რუკაზე.", "Location access denied. Please pick the store on the map.", "Доступ к геолокации запрещён. Отметьте магазин на карте.");
+        else if (err.code === err.TIMEOUT) text = L("მდებარეობის განსაზღვრას ძალიან დიდი დრო დასჭირდა. სცადეთ ხელახლა.", "Location took too long. Try again.", "Определение местоположения заняло слишком много времени. Попробуйте снова.");
+        setMsg(text);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
 
   useEffect(() => {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
@@ -55,6 +85,10 @@ function PartnerApply() {
     const idDigits = form.entity_type === "individual_entrepreneur" ? 11 : 9;
     if (!new RegExp(`^\\d{${idDigits}}$`).test(form.company_id_number)) {
       setMsg(t(idDigits === 11 ? "idInvalid11" : "idInvalid9"));
+      return;
+    }
+    if (!isValidLatLng(form.lat, form.lng)) {
+      setMsg(L("გთხოვთ, მონიშნოთ ობიექტის მდებარეობა რუკაზე.", "Please mark the store location on the map.", "Пожалуйста, отметьте местоположение магазина на карте."));
       return;
     }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
@@ -277,6 +311,37 @@ function PartnerApply() {
         <Field label={`${t("address")} *`} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
         <Field label={t("phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
         <Field label={t("description")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
+
+        <div className="rounded-2xl border border-border p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-primary" />
+            <h2 className="font-semibold text-sm">{L("ობიექტის მდებარეობა *", "Store location *", "Местоположение магазина *")}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={useCurrentLocation}
+            disabled={locBusy}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-medium disabled:opacity-60"
+          >
+            <LocateFixed className="w-4 h-4" />
+            {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
+          </button>
+          <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
+            <StoreLocationPicker
+              value={{ lat: form.lat, lng: form.lng }}
+              onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+              storageKey="cheaper-partner-apply-map"
+            />
+          </Suspense>
+          <div className="text-xs text-muted-foreground font-mono">
+            {form.lat != null && form.lng != null ? (
+              <>Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}</>
+            ) : (
+              <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
+            )}
+          </div>
+        </div>
+
 
         <button type="submit" disabled={submitting} className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
           {submitting ? t("sending") : t("submitApplication")}
