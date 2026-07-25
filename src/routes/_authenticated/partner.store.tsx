@@ -197,7 +197,16 @@ function StoreSettings() {
         <Field label={t("nameLbl")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
         <Field label={t("storeNameEnOptional")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
         <Field label={t("storeNameRuOptional")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
-        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+        <StoreLogoPicker
+          storeId={store.id}
+          logoUrl={form.logo_url}
+          logoEmoji={form.logo || "🏪"}
+          onChange={(next) => setForm((prev) => ({
+            ...prev,
+            logo: next.logo ?? prev.logo,
+            logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url,
+          }))}
+        />
         <Field label={t("districtLbl")} value={form.district} onChange={(v) => setForm({ ...form, district: v })} />
         <Field label={t("addressLbl")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} />
         <Field label={t("phoneLbl")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} />
@@ -208,13 +217,35 @@ function StoreSettings() {
         <h2 className="font-semibold">{L("კომპანიის მონაცემები", "Company details", "Данные компании")}</h2>
         <Field label={L("კომპანიის სახელი", "Company name", "Название компании")} value={form.company_name} onChange={(v) => setForm({ ...form, company_name: v })} placeholder={L("შპს ...", "LLC ...", "ООО ...")} />
         <label className="block">
-          <span className="text-xs font-medium text-muted-foreground">{L("კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)", "Company ID number (9 digits)", "Идентификационный номер компании (9 цифр)")}</span>
+          <span className="text-xs font-medium text-muted-foreground">{t("entityTypeLabel")}</span>
+          <div className="mt-1 grid grid-cols-2 gap-2">
+            {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
+              <button
+                type="button"
+                key={et}
+                onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
+                className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+              >
+                {et === "company" ? t("entityCompany") : t("entityIndividual")}
+              </button>
+            ))}
+          </div>
+        </label>
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">
+            {form.entity_type === "individual_entrepreneur"
+              ? L("პირადი ნომერი (11 ციფრი)", "Personal ID (11 digits)", "Личный номер (11 цифр)")
+              : L("კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი)", "Company ID number (9 digits)", "Идентификационный номер компании (9 цифр)")}
+          </span>
           <input
             value={form.company_id_number}
-            onChange={(e) => setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, 9) })}
+            onChange={(e) => {
+              const max = form.entity_type === "individual_entrepreneur" ? 11 : 9;
+              setForm({ ...form, company_id_number: e.target.value.replace(/\D/g, "").slice(0, max) });
+            }}
             inputMode="numeric"
-            maxLength={9}
-            placeholder="123456789"
+            maxLength={form.entity_type === "individual_entrepreneur" ? 11 : 9}
+            placeholder={form.entity_type === "individual_entrepreneur" ? "01234567890" : "123456789"}
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
           />
         </label>
