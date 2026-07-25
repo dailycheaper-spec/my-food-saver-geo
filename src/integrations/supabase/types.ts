@@ -123,6 +123,8 @@ export type Database = {
           created_at: string
           delivery_available: boolean
           description: string | null
+          description_en: string | null
+          description_ru: string | null
           discounted_price: number
           id: string
           image_url: string | null
@@ -136,6 +138,8 @@ export type Database = {
           quantity_sold: number
           store_id: string
           title: string
+          title_en: string | null
+          title_ru: string | null
           updated_at: string
         }
         Insert: {
@@ -144,6 +148,8 @@ export type Database = {
           created_at?: string
           delivery_available?: boolean
           description?: string | null
+          description_en?: string | null
+          description_ru?: string | null
           discounted_price: number
           id?: string
           image_url?: string | null
@@ -157,6 +163,8 @@ export type Database = {
           quantity_sold?: number
           store_id: string
           title: string
+          title_en?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Update: {
@@ -165,6 +173,8 @@ export type Database = {
           created_at?: string
           delivery_available?: boolean
           description?: string | null
+          description_en?: string | null
+          description_ru?: string | null
           discounted_price?: number
           id?: string
           image_url?: string | null
@@ -178,6 +188,8 @@ export type Database = {
           quantity_sold?: number
           store_id?: string
           title?: string
+          title_en?: string | null
+          title_ru?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -574,6 +586,8 @@ export type Database = {
           logo: string | null
           min_order_for_delivery: number
           name: string
+          name_en: string | null
+          name_ru: string | null
           owner_id: string | null
           phone: string | null
           status: Database["public"]["Enums"]["store_status"]
@@ -601,6 +615,8 @@ export type Database = {
           logo?: string | null
           min_order_for_delivery?: number
           name: string
+          name_en?: string | null
+          name_ru?: string | null
           owner_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["store_status"]
@@ -628,6 +644,8 @@ export type Database = {
           logo?: string | null
           min_order_for_delivery?: number
           name?: string
+          name_en?: string | null
+          name_ru?: string | null
           owner_id?: string | null
           phone?: string | null
           status?: Database["public"]["Enums"]["store_status"]
