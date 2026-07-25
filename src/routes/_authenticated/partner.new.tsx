@@ -165,8 +165,6 @@ function NewOfferPage() {
       <form onSubmit={publish} className="space-y-4">
         <div>
           <Label>{t("photo")}</Label>
-        <div>
-          <Label>{t("photo")}</Label>
           {form.image_url && !imgError && (
             <img
               src={form.image_url}
