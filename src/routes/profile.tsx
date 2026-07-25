@@ -49,13 +49,18 @@ function Profile() {
       <div className="mb-3 flex justify-end"><LanguageSwitcher /></div>
       <div className="bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full gradient-hero grid place-items-center text-primary-foreground text-2xl font-bold">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-            ) : (
-              initial
-            )}
-          </div>
+          {user ? (
+            <AvatarUploader
+              userId={user.id}
+              currentUrl={profile?.avatar_url ?? null}
+              fallback={initial}
+              onChanged={reloadProfile}
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full gradient-hero grid place-items-center text-primary-foreground text-2xl font-bold">
+              {initial}
+            </div>
+          )}
           <div className="flex-1">
             <div className="font-display text-xl font-bold">{displayName}</div>
             <div className="text-xs text-muted-foreground">{emailOrPhone || t("notSignedIn")}</div>
