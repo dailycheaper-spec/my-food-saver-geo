@@ -113,11 +113,13 @@ function OrderDetail() {
           {image ? (
             <img src={image} alt="" width={100} height={100} className="w-24 h-24 rounded-xl object-cover" />
           ) : (
-            <div className="w-24 h-24 rounded-xl bg-muted grid place-items-center text-4xl">{storeLogo}</div>
+            <div className="w-24 h-24 rounded-xl bg-muted grid place-items-center overflow-hidden">
+              <StoreLogo value={storeLogo} emojiClassName="text-4xl" />
+            </div>
           )}
           <div className="flex-1">
             <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="text-base">{storeLogo}</span> {storeName}
+              <span className="w-5 h-5 grid place-items-center overflow-hidden rounded"><StoreLogo value={storeLogo} emojiClassName="text-base" /></span> {storeName}
             </div>
             <div className="font-semibold mt-1">{title}</div>
             <div className="text-lg font-bold text-primary mt-1">{formatGel(Number(order.amount))}</div>
