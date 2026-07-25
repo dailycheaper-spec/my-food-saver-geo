@@ -195,6 +195,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       pickup_to: form.pickup_to,
       delivery_available: form.delivery_available,
       image_url: form.image_url.trim() || null,
+      allergens: form.allergens.length ? form.allergens : null,
     };
     if (offer) {
       await supabase.from("offers").update(payload).eq("id", offer.id);
