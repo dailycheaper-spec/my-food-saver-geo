@@ -60,7 +60,7 @@ function OrderDetail() {
   const image = order.offer?.image_url ?? "";
   const title = localizedField(order.offer, "title", language) || "—";
   const storeName = localizedField(order.store, "name", language) || "—";
-  const storeLogo = order.store?.logo ?? "🏪";
+  const storeLogo = (order.store as unknown as { logo_url?: string | null })?.logo_url || order.store?.logo || "🏪";
   const from = String(order.offer?.pickup_from ?? "").slice(0, 5);
   const to = String(order.offer?.pickup_to ?? "").slice(0, 5);
   const address = order.delivery_address ?? order.store?.address ?? "";
