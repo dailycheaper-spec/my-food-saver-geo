@@ -40,14 +40,28 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   const cat = mapCategory(row.category, row.store?.category, row.title, row.description);
   const itemsLeft = Math.max(0, (row.quantity_available ?? 0) - (row.quantity_sold ?? 0));
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : undefined;
+  const rowAny = row as unknown as {
+    title_en?: string | null; title_ru?: string | null;
+    description_en?: string | null; description_ru?: string | null;
+  };
+  const storeAny = row.store as unknown as (null | {
+    name_en?: string | null; name_ru?: string | null;
+    visibility_radius_km?: number | null; city?: string | null;
+  });
   return {
     id: row.id,
     storeId: row.store_id,
     storeName: row.store?.name ?? "—",
+    storeNameEn: storeAny?.name_en ?? undefined,
+    storeNameRu: storeAny?.name_ru ?? undefined,
     storeLogo: row.store?.logo ?? "🏪",
     category: cat,
     title: row.title,
+    titleEn: rowAny.title_en ?? undefined,
+    titleRu: rowAny.title_ru ?? undefined,
     description: row.description ?? "",
+    descriptionEn: rowAny.description_en ?? undefined,
+    descriptionRu: rowAny.description_ru ?? undefined,
     image: row.image_url || fallbackImage(cat),
     originalPrice: Number(row.original_price ?? 0),
     price: Number(row.discounted_price ?? 0),
@@ -65,18 +79,21 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     deliveryFee: Number(row.store?.delivery_fee_base ?? 0),
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
-    visibilityRadiusKm: (row.store as unknown as { visibility_radius_km?: number | null } | null)?.visibility_radius_km ?? undefined,
+    visibilityRadiusKm: storeAny?.visibility_radius_km ?? undefined,
     createdAt,
     isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
-    city: (row.store as unknown as { city?: string | null } | null)?.city ?? undefined,
+    city: storeAny?.city ?? undefined,
   };
 }
 
 
 export function dbStoreToStore(row: DbStore): Store {
+  const anyRow = row as unknown as { name_en?: string | null; name_ru?: string | null };
   return {
     id: row.id,
     name: row.name,
+    nameEn: anyRow.name_en ?? undefined,
+    nameRu: anyRow.name_ru ?? undefined,
     logo: row.logo ?? "🏪",
     category: mapCategory(row.category),
     district: row.district ?? "",
