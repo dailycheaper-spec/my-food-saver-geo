@@ -118,6 +118,7 @@ export type Database = {
       }
       offers: {
         Row: {
+          allergens: string[] | null
           available_date: string
           category: string
           created_at: string
@@ -143,6 +144,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allergens?: string[] | null
           available_date?: string
           category?: string
           created_at?: string
@@ -168,6 +170,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allergens?: string[] | null
           available_date?: string
           category?: string
           created_at?: string
