@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { ArrowLeft, Image as ImageIcon, Sparkles, Camera, Upload, Loader2, AlertTriangle } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
-import { generateOfferImage } from "@/lib/ai-image.functions";
+import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
