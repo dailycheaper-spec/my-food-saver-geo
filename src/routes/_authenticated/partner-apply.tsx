@@ -249,7 +249,12 @@ function PartnerApply() {
         </label>
 
         <Field label={t("storeName")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
-        <Field label={t("logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} placeholder="🥐" />
+        <StoreLogoPicker
+          logoUrl={form.logo_url}
+          logoEmoji={form.logo}
+          onChange={(next) => setForm((prev) => ({ ...prev, ...next, logo: next.logo ?? prev.logo, logo_url: next.logo_url === undefined ? prev.logo_url : next.logo_url }))}
+          onFileSelected={setLogoFile}
+        />
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
