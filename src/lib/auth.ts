@@ -53,3 +53,16 @@ export function useAuth() {
 export async function signOut() {
   await supabase.auth.signOut();
 }
+
+/**
+ * Resolve a stored avatar value into a displayable URL.
+ * - null / empty → null
+ * - full URL (http/https/data:) → return unchanged
+ * - storage path under the "avatars" bucket → signed URL (1 year)
+ */
+export async function resolveAvatarUrl(value: string | null | undefined): Promise<string | null> {
+  if (!value) return null;
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(value, 60 * 60 * 24 * 365);
+  return data?.signedUrl ?? null;
+}
