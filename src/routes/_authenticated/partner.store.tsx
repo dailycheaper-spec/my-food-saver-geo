@@ -7,6 +7,9 @@ import { useI18n } from "@/lib/i18n";
 import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector";
 import { isValidLatLng } from "@/lib/geo";
 import { useStoreBankAccount, upsertStoreBankAccount, isValidGeorgianIban, normalizeIban } from "@/lib/bank-account";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+
+type EntityType = "company" | "individual_entrepreneur";
 
 const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
@@ -31,6 +34,8 @@ type FormState = {
   name_en: string;
   name_ru: string;
   logo: string;
+  logo_url: string | null;
+  entity_type: EntityType;
   category: string;
   district: string;
   address: string;
@@ -54,6 +59,8 @@ function StoreSettings() {
     name_en: "",
     name_ru: "",
     logo: "",
+    logo_url: null,
+    entity_type: "company",
     category: "restaurant",
     district: "",
     address: "",
@@ -78,6 +85,8 @@ function StoreSettings() {
         name_en: (anyStore.name_en as string | null) ?? "",
         name_ru: (anyStore.name_ru as string | null) ?? "",
         logo: store.logo ?? "",
+        logo_url: (anyStore.logo_url as string | null) ?? null,
+        entity_type: ((anyStore.entity_type as string | null) === "individual_entrepreneur" ? "individual_entrepreneur" : "company") as EntityType,
         category: store.category ?? "restaurant",
         district: store.district ?? "",
         address: store.address ?? "",
