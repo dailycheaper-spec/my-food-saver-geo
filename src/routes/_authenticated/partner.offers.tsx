@@ -210,16 +210,12 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
           <Input label={t("descLbl")} value={form.description} onChange={(v) => setForm({ ...form, description: v })} />
           <div>
             <div className="text-xs font-medium text-muted-foreground mb-1.5">{t("photo")}</div>
-            {form.image_url && <img src={form.image_url} alt="preview" className="mb-2 w-full h-32 object-cover rounded-xl" />}
-            <button
-              type="button"
-              onClick={aiGenerate}
-              disabled={genAi || !form.title.trim()}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
-            >
-              {genAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              {genAi ? t("generating") : t("generateWithAi")}
-            </button>
+            <OfferPhotoPicker
+              value={form.image_url}
+              onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+              promptText={form.title || form.description}
+              compact
+            />
           </div>
           <DiscountFields
             original={form.original_price}
