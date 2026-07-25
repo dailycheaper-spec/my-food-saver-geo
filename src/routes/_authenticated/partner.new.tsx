@@ -141,6 +141,7 @@ function NewOfferPage() {
       delivery_available: form.delivery_available,
       is_surprise: form.is_surprise,
       is_active: true,
+      allergens: form.allergens.length ? form.allergens : null,
     };
 
 
