@@ -7,6 +7,7 @@ import { fetchOrder, updateOrderStatus, formatGel, type OrderWithRelations } fro
 import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
+import { StoreLogo } from "@/components/StoreLogo";
 import { stageOfDbOrder, useStageLabel } from "./orders.index";
 
 export const Route = createFileRoute("/orders/$id")({
