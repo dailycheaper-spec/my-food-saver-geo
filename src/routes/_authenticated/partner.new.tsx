@@ -323,6 +323,28 @@ function NewOfferPage() {
           </div>
         )}
 
+        <div>
+          <Label>{t("allergensLbl")}</Label>
+          <p className="text-[11px] text-muted-foreground mb-2">{t("allergensHint")}</p>
+          <div className="flex flex-wrap gap-2">
+            {ALLERGEN_KEYS.map((k) => {
+              const active = form.allergens.includes(k);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setForm((f) => ({
+                    ...f,
+                    allergens: active ? f.allergens.filter((x) => x !== k) : [...f.allergens, k],
+                  }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${active ? "bg-amber-500 text-white border-amber-500" : "bg-card border-border text-muted-foreground"}`}
+                >
+                  {active ? "✓ " : ""}{allergenLabel(k, language)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
 
         <button
