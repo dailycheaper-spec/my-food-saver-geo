@@ -7,6 +7,10 @@ import { DISTRICTS } from "@/lib/mock-data";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { CITIES, cityLabel, type City } from "@/lib/city";
 import { usePartnerAccount } from "@/lib/db";
+import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+import { StoreLogo } from "@/components/StoreLogo";
+
+type EntityType = "company" | "individual_entrepreneur";
 
 const STORE_TYPES = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
@@ -27,7 +31,8 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "" });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
