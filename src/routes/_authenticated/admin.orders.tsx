@@ -110,7 +110,7 @@ function AdminOrders() {
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted uppercase font-semibold">{o.status}</span>
                   </td>
                   <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                    {new Date(o.created_at).toLocaleString("ka-GE", { dateStyle: "short", timeStyle: "short" })}
+                    {new Date(o.created_at).toLocaleString("ka-GE", { dateStyle: "short", timeStyle: "short", hour12: false })}
                   </td>
                 </tr>
               ))}

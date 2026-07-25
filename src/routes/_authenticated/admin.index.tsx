@@ -92,7 +92,7 @@ function AdminOverview() {
                   <div className="w-10 h-10 rounded-2xl bg-primary/10 grid place-items-center text-xs font-mono font-bold text-primary shrink-0">#{o.code}</div>
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{o.offer?.title ?? "—"}</div>
-                    <div className="text-xs text-muted-foreground truncate">{o.store?.name ?? "—"} · {new Date(o.created_at).toLocaleTimeString("ka-GE", { hour: "2-digit", minute: "2-digit" })}</div>
+                    <div className="text-xs text-muted-foreground truncate">{o.store?.name ?? "—"} · {new Date(o.created_at).toLocaleTimeString("ka-GE", { hour: "2-digit", minute: "2-digit", hour12: false })}</div>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
@@ -117,7 +117,7 @@ function AdminOverview() {
                 <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${a.kind === "order" ? "bg-primary" : a.kind === "offer" ? "bg-warm-foreground" : "bg-success"}`} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate">{a.text}</div>
-                  <div className="text-[10px] text-muted-foreground">{new Date(a.time).toLocaleTimeString("ka-GE", { hour: "2-digit", minute: "2-digit" })}</div>
+                  <div className="text-[10px] text-muted-foreground">{new Date(a.time).toLocaleTimeString("ka-GE", { hour: "2-digit", minute: "2-digit", hour12: false })}</div>
                 </div>
               </div>
             ))}
