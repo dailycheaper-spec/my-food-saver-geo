@@ -7,6 +7,7 @@ import { fetchOrder, updateOrderStatus, formatGel, type OrderWithRelations } fro
 import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
+import { StoreLogo } from "@/components/StoreLogo";
 import { stageOfDbOrder, useStageLabel } from "./orders.index";
 
 export const Route = createFileRoute("/orders/$id")({
@@ -60,7 +61,7 @@ function OrderDetail() {
   const image = order.offer?.image_url ?? "";
   const title = localizedField(order.offer, "title", language) || "—";
   const storeName = localizedField(order.store, "name", language) || "—";
-  const storeLogo = order.store?.logo ?? "🏪";
+  const storeLogo = (order.store as unknown as { logo_url?: string | null })?.logo_url || order.store?.logo || "🏪";
   const from = String(order.offer?.pickup_from ?? "").slice(0, 5);
   const to = String(order.offer?.pickup_to ?? "").slice(0, 5);
   const address = order.delivery_address ?? order.store?.address ?? "";
@@ -112,11 +113,13 @@ function OrderDetail() {
           {image ? (
             <img src={image} alt="" width={100} height={100} className="w-24 h-24 rounded-xl object-cover" />
           ) : (
-            <div className="w-24 h-24 rounded-xl bg-muted grid place-items-center text-4xl">{storeLogo}</div>
+            <div className="w-24 h-24 rounded-xl bg-muted grid place-items-center overflow-hidden">
+              <StoreLogo value={storeLogo} emojiClassName="text-4xl" />
+            </div>
           )}
           <div className="flex-1">
             <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="text-base">{storeLogo}</span> {storeName}
+              <span className="w-5 h-5 grid place-items-center overflow-hidden rounded"><StoreLogo value={storeLogo} emojiClassName="text-base" /></span> {storeName}
             </div>
             <div className="font-semibold mt-1">{title}</div>
             <div className="text-lg font-bold text-primary mt-1">{formatGel(Number(order.amount))}</div>
