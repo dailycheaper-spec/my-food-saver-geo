@@ -217,8 +217,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
               onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
               promptText={form.title || form.description}
               compact
+              onValidityChange={setImgInvalid}
             />
           </div>
+
           <DiscountFields
             original={form.original_price}
             discounted={form.discounted_price}
