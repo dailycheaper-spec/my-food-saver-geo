@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.get_store_report_stats(uuid) FROM anon;
