@@ -143,8 +143,10 @@ function NewOfferPage() {
             value={form.image_url}
             onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
             promptText={form.title || form.description}
+            onValidityChange={setImgInvalid}
           />
         </div>
+
 
 
         <Field label={t("productName")} value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
