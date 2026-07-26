@@ -48,14 +48,13 @@ export function OfferCard({ offer }: { offer: Offer }) {
       className="group block rounded-3xl overflow-hidden bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-border/60 active:scale-[0.99]"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-        <img
+        <OfferImage
           src={offer.image}
           alt={offerText.title}
-          loading="lazy"
-          width={800}
-          height={600}
-          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${soldOut ? "grayscale opacity-70" : ""}`}
+          soldOut={soldOut}
+          fallbackLabel={getCategoryLabel(offer.category, language)}
         />
+
 
         {/* left badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[75%]">
