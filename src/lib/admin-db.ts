@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { currencyLabel, type OfferWithStore, type OrderWithRelations } from "@/lib/db";
+import { listAdminPayouts, type AdminPayoutRow } from "@/lib/payouts.functions";
 
 export type DbPayout = Database["public"]["Tables"]["payouts"]["Row"];
 export type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -44,25 +46,25 @@ export async function deleteOfferAdmin(id: string) {
 }
 
 // ────── PAYOUTS ──────
-export type AdminPayoutRow = DbPayout & { store_name?: string; bank_iban?: string | null; account_holder?: string | null };
-
 export function useAllPayouts() {
   const [payouts, setPayouts] = useState<AdminPayoutRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const fetchPayouts = useServerFn(listAdminPayouts);
 
-  async function load() {
-    const { data } = await supabase
-      .from("payouts")
-      .select("*, store:stores(name), bank:store_bank_accounts!store_bank_accounts_store_id_fkey(iban, account_holder)")
-      .order("created_at", { ascending: false });
-    if (data) setPayouts(data.map((p: any) => ({
-      ...p,
-      store_name: p.store?.name,
-      bank_iban: p.bank?.iban ?? null,
-      account_holder: p.bank?.account_holder ?? null,
-    })));
-    setLoading(false);
-  }
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await fetchPayouts();
+      setPayouts((data ?? []) as AdminPayoutRow[]);
+      setError(null);
+    } catch (e) {
+      setPayouts([]);
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchPayouts]);
 
   useEffect(() => {
     load();
@@ -71,9 +73,9 @@ export function useAllPayouts() {
       .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, () => load())
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [load]);
 
-  return { payouts, loading, reload: load };
+  return { payouts, loading, error, reload: load };
 }
 
 // Which stores have bank details on file (admin view — used to flag missing IBAN).
@@ -117,11 +119,6 @@ export function useStoresBankDetailsMap() {
     return () => { alive = false; supabase.removeChannel(ch); };
   }, []);
   return map;
-}
-
-export async function markPayoutPaid(id: string) {
-  const { error } = await supabase.from("payouts").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", id);
-  if (error) throw error;
 }
 
 // ────── CUSTOMERS ──────

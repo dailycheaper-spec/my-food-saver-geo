@@ -4,9 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { Wallet, Check, Clock, PlayCircle, Copy, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
-import { useAllPayouts, markPayoutPaid } from "@/lib/admin-db";
+import { useAllPayouts } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
-import { runPayoutGeneration } from "@/lib/payouts.functions";
+import { markAdminPayoutPaid, runPayoutGeneration } from "@/lib/payouts.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/payments")({
   head: () => ({ meta: [{ title: "გადახდები — ადმინი" }] }),
@@ -16,10 +16,11 @@ export const Route = createFileRoute("/_authenticated/admin/payments")({
 function AdminPayments() {
   const { orders } = useAllOrders();
   const { stores } = useAllStores();
-  const { payouts, reload } = useAllPayouts();
+  const { payouts, reload, error: payoutsError } = useAllPayouts();
   const settings = loadAdminSettings();
   const rate = settings.commissionPct / 100;
   const runPayouts = useServerFn(runPayoutGeneration);
+  const markPaid = useServerFn(markAdminPayoutPaid);
   const [generating, setGenerating] = useState(false);
   const [genMsg, setGenMsg] = useState<string | null>(null);
 
@@ -63,6 +64,7 @@ function AdminPayments() {
         </div>
       </div>
       {genMsg && <div className="text-sm text-muted-foreground">{genMsg}</div>}
+      {payoutsError && <div className="text-sm text-destructive">{payoutsError}</div>}
 
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -166,7 +168,7 @@ function AdminPayments() {
                   {p.status === "paid" ? (
                     <span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success font-semibold">გადახდილი</span>
                   ) : (
-                    <button onClick={async () => { await markPayoutPaid(p.id); reload(); }}
+                    <button onClick={async () => { await markPaid({ data: { payoutId: p.id } }); reload(); }}
                       disabled={!p.bank_iban}
                       title={!p.bank_iban ? "IBAN საჭიროა გადახდის დადასტურებამდე" : undefined}
                       className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
