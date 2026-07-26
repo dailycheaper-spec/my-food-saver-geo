@@ -21,9 +21,8 @@ export const runPayoutGeneration = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin.rpc("generate_pending_payouts", {
       _commission: 0.10,
-      // TEMP TEST VALUE: lowered from 5 GEL to 0.5 GEL so payouts can be generated
-      // with tiny test revenue. RESET TO 5 (or agreed production minimum) BEFORE LAUNCH.
-      _min_payout: 0.5,
+      // No minimum threshold — any store with positive net revenue gets a payout row.
+      _min_payout: 0,
       _generated_by: "manual",
     });
     if (error) throw new Error(error.message);
