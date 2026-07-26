@@ -58,6 +58,7 @@ function NewOfferPage() {
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [imgInvalid, setImgInvalid] = useState(false);
   const [form, setForm] = useState({
     title: "",
     title_en: "",
@@ -84,6 +85,7 @@ function NewOfferPage() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!store) return;
+    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
     const orig = Number(form.original_price);
     const disc = Number(form.discounted_price);
     if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
@@ -142,8 +144,10 @@ function NewOfferPage() {
             value={form.image_url}
             onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
             promptText={form.title || form.description}
+            onValidityChange={setImgInvalid}
           />
         </div>
+
 
 
         <Field label={t("productName")} value={form.title} onChange={(v) => setForm({ ...form, title: v })} required />
@@ -272,9 +276,12 @@ function NewOfferPage() {
         </div>
 
 
+        {imgInvalid && (
+          <p className="text-xs text-destructive text-center">{t("imageLoadFailed")}</p>
+        )}
         <button
           type="submit"
-          disabled={saving || !form.title}
+          disabled={saving || !form.title || imgInvalid}
           className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-lg shadow-lg disabled:opacity-50"
         >
           {saving ? t("creating") : `🚀 ${t("publish")}`}

@@ -155,6 +155,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
+  const [imgInvalid, setImgInvalid] = useState(false);
 
 
   async function save(e: React.FormEvent) {
@@ -165,6 +166,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       alert(t("minDiscount50"));
       return;
     }
+    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
     setSaving(true);
     const payload = {
       store_id: storeId,
@@ -215,8 +217,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
               onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
               promptText={form.title || form.description}
               compact
+              onValidityChange={setImgInvalid}
             />
           </div>
+
           <DiscountFields
             original={form.original_price}
             discounted={form.discounted_price}
@@ -263,7 +267,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
           </label>
         </div>
 
-        <button type="submit" disabled={saving} className="mt-5 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
+        {imgInvalid && (
+          <p className="mt-3 text-xs text-destructive text-center">{t("imageLoadFailed")}</p>
+        )}
+        <button type="submit" disabled={saving || imgInvalid} className="mt-5 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
           {saving ? t("savingProgress") : offer ? t("save") : t("createBtn")}
         </button>
       </form>

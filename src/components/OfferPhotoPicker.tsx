@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image as ImageIcon, Sparkles, Camera, Upload, Loader2, AlertTriangle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateOfferImage } from "@/lib/ai-image.functions";
@@ -9,11 +9,14 @@ export function OfferPhotoPicker({
   onChange,
   promptText,
   compact = false,
+  onValidityChange,
 }: {
   value: string;
   onChange: (url: string) => void;
   promptText: string;
   compact?: boolean;
+  /** Called with true when the current pasted URL fails to load (broken image). */
+  onValidityChange?: (invalid: boolean) => void;
 }) {
   const { t } = useI18n();
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -21,6 +24,16 @@ export function OfferPhotoPicker({
   const generateImg = useServerFn(generateOfferImage);
   const [genAi, setGenAi] = useState(false);
   const [imgError, setImgError] = useState(false);
+
+  // Report validity upward. data: URLs and empty values are always considered valid.
+  useEffect(() => {
+    onValidityChange?.(imgError && !!value && !value.startsWith("data:"));
+  }, [imgError, value, onValidityChange]);
+
+  // Reset error whenever the value changes (new load attempt).
+  useEffect(() => {
+    setImgError(false);
+  }, [value]);
 
   async function aiGenerate() {
     const prompt = promptText.trim();
@@ -87,13 +100,13 @@ export function OfferPhotoPicker({
           {t("uploadPhoto")}
         </button>
       </div>
-      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
-      <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setImgError(false); handleFile(e.target.files?.[0]); }} />
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+      <input ref={uploadRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
       <div className="relative">
         <ImageIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input
           value={value.startsWith("data:") ? "" : value}
-          onChange={(e) => { setImgError(false); onChange(e.target.value); }}
+          onChange={(e) => onChange(e.target.value)}
           placeholder={t("orPasteUrl")}
           className="w-full pl-9 pr-3 py-2.5 rounded-2xl bg-muted/40 border border-border text-sm"
         />
