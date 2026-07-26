@@ -13,7 +13,47 @@ function minutesUntil(hhmm: string): number {
   return Math.round((target.getTime() - now.getTime()) / 60000);
 }
 
-export function OfferCard({ offer }: { offer: Offer }) {
+function isLikelyImageUrl(src: string | undefined | null): boolean {
+  if (!src) return false;
+  const s = src.trim();
+  if (!s) return false;
+  if (s.startsWith("data:image/")) return true;
+  if (s.startsWith("blob:")) return true;
+  if (s.startsWith("/")) return true;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    // Reject search / non-image endpoints (e.g. google.com/search)
+    if (/\/search(\/|$|\?)/i.test(u.pathname + (u.search ? "?" : ""))) return false;
+    return true;
+  } catch { return false; }
+}
+
+function OfferImage({ src, alt, soldOut, fallbackLabel }: { src: string; alt: string; soldOut: boolean; fallbackLabel: string }) {
+  const [failed, setFailed] = useState(!isLikelyImageUrl(src));
+  useEffect(() => { setFailed(!isLikelyImageUrl(src)); }, [src]);
+  const base = `w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${soldOut ? "grayscale opacity-70" : ""}`;
+  if (failed) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-muted to-muted/40 text-muted-foreground">
+        <ImageOff className="w-10 h-10 opacity-60" />
+        <span className="text-xs font-medium">{fallbackLabel}</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      width={800}
+      height={600}
+      className={base}
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
   const { t, language } = useI18n();
   const favs = useFavorites();
   const [mounted, setMounted] = useState(false);
