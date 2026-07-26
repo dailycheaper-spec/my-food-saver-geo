@@ -155,6 +155,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
+  const [imgInvalid, setImgInvalid] = useState(false);
 
 
   async function save(e: React.FormEvent) {
@@ -165,6 +166,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       alert(t("minDiscount50"));
       return;
     }
+    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
     setSaving(true);
     const payload = {
       store_id: storeId,
