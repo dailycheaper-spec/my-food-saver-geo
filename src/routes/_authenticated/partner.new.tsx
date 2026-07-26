@@ -85,6 +85,7 @@ function NewOfferPage() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!store) return;
+    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
     const orig = Number(form.original_price);
     const disc = Number(form.discounted_price);
     if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
