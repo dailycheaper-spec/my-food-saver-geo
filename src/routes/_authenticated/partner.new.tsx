@@ -275,9 +275,12 @@ function NewOfferPage() {
         </div>
 
 
+        {imgInvalid && (
+          <p className="text-xs text-destructive text-center">{t("imageLoadFailed")}</p>
+        )}
         <button
           type="submit"
-          disabled={saving || !form.title}
+          disabled={saving || !form.title || imgInvalid}
           className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-lg shadow-lg disabled:opacity-50"
         >
           {saving ? t("creating") : `🚀 ${t("publish")}`}
