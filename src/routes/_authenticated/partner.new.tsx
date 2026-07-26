@@ -58,6 +58,7 @@ function NewOfferPage() {
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [imgInvalid, setImgInvalid] = useState(false);
   const [form, setForm] = useState({
     title: "",
     title_en: "",
