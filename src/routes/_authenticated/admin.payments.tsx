@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Wallet, Check, Clock, Download, PlayCircle, Copy, FileDown } from "lucide-react";
+import { Wallet, Check, Clock, PlayCircle, Copy, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
 import { useAllPayouts, markPayoutPaid } from "@/lib/admin-db";
@@ -35,21 +35,6 @@ function AdminPayments() {
     return { gross, commission, partnerNet, paidPayouts, pendingPayouts };
   }, [orders, payouts, rate]);
 
-  function exportCsv() {
-    const rows = [["Store", "Orders", "Gross", "Commission", "Net"]];
-    stores.forEach((s) => {
-      const oList = orders.filter((o) => o.store_id === s.id && o.status !== "cancelled");
-      const g = oList.reduce((sum, o) => sum + Number(o.amount), 0);
-      rows.push([s.name, String(oList.length), g.toFixed(2), (g * rate).toFixed(2), (g * (1 - rate)).toFixed(2)]);
-    });
-    const csv = rows.map((r) => r.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `payouts-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 
   return (
     <div className="space-y-6">
@@ -74,9 +59,6 @@ function AdminPayments() {
             className="px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-90 disabled:opacity-60"
           >
             <PlayCircle className="w-4 h-4" /> {generating ? "მიმდინარეობს…" : "გატანის დათვლა ახლა"}
-          </button>
-          <button onClick={exportCsv} className="px-4 py-2.5 rounded-2xl bg-foreground text-background text-sm font-semibold flex items-center gap-2 hover:opacity-90">
-            <Download className="w-4 h-4" /> ანგარიშის ექსპორტი
           </button>
         </div>
       </div>
