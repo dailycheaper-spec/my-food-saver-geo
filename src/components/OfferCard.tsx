@@ -54,7 +54,9 @@ function OfferImage({ src, alt, soldOut, fallbackLabel }: { src: string; alt: st
   );
 }
 
+export function OfferCard({ offer }: { offer: Offer }) {
   const { t, language } = useI18n();
+
   const favs = useFavorites();
   const [mounted, setMounted] = useState(false);
   const isFav = mounted && favs.includes(offer.storeId);
