@@ -709,6 +709,13 @@ export type Database = {
           store_id: string
         }[]
       }
+      get_store_report_stats: {
+        Args: { _store_id: string }
+        Returns: {
+          average_rating: number
+          report_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
