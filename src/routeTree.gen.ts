@@ -24,8 +24,10 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OrdersIndexRouteImport } from './routes/orders.index'
 import { Route as StoreIdRouteImport } from './routes/store.$id'
+import { Route as OrdersNativeReturnRouteImport } from './routes/orders.native-return'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
+import { Route as AuthNativeReturnRouteImport } from './routes/auth.native-return'
 import { Route as AuthenticatedPartnerApplyRouteImport } from './routes/_authenticated/partner-apply'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -129,6 +131,11 @@ const StoreIdRoute = StoreIdRouteImport.update({
   path: '/store/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrdersNativeReturnRoute = OrdersNativeReturnRouteImport.update({
+  id: '/orders/native-return',
+  path: '/orders/native-return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersIdRoute = OrdersIdRouteImport.update({
   id: '/orders/$id',
   path: '/orders/$id',
@@ -138,6 +145,11 @@ const OfferIdRoute = OfferIdRouteImport.update({
   id: '/offer/$id',
   path: '/offer/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthNativeReturnRoute = AuthNativeReturnRouteImport.update({
+  id: '/native-return',
+  path: '/native-return',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthenticatedPartnerApplyRoute =
   AuthenticatedPartnerApplyRouteImport.update({
@@ -302,7 +314,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -314,8 +326,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/partner': typeof AuthenticatedPartnerRouteWithChildren
   '/partner-apply': typeof AuthenticatedPartnerApplyRoute
+  '/auth/native-return': typeof AuthNativeReturnRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
@@ -348,7 +362,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -358,8 +372,10 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/partner-apply': typeof AuthenticatedPartnerApplyRoute
+  '/auth/native-return': typeof AuthNativeReturnRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders': typeof OrdersIndexRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
@@ -394,7 +410,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -406,8 +422,10 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/partner': typeof AuthenticatedPartnerRouteWithChildren
   '/_authenticated/partner-apply': typeof AuthenticatedPartnerApplyRoute
+  '/auth/native-return': typeof AuthNativeReturnRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
+  '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
@@ -454,8 +472,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/partner'
     | '/partner-apply'
+    | '/auth/native-return'
     | '/offer/$id'
     | '/orders/$id'
+    | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
     | '/admin/offers'
@@ -498,8 +518,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/terms'
     | '/partner-apply'
+    | '/auth/native-return'
     | '/offer/$id'
     | '/orders/$id'
+    | '/orders/native-return'
     | '/store/$id'
     | '/orders'
     | '/admin/offers'
@@ -545,8 +567,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/partner'
     | '/_authenticated/partner-apply'
+    | '/auth/native-return'
     | '/offer/$id'
     | '/orders/$id'
+    | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
     | '/_authenticated/admin/offers'
@@ -581,7 +605,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   FavoritesRoute: typeof FavoritesRoute
   MapRoute: typeof MapRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -592,6 +616,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   OfferIdRoute: typeof OfferIdRoute
   OrdersIdRoute: typeof OrdersIdRoute
+  OrdersNativeReturnRoute: typeof OrdersNativeReturnRoute
   StoreIdRoute: typeof StoreIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
   ApiPublicDeliveryBoltRoute: typeof ApiPublicDeliveryBoltRoute
@@ -707,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/orders/native-return': {
+      id: '/orders/native-return'
+      path: '/orders/native-return'
+      fullPath: '/orders/native-return'
+      preLoaderRoute: typeof OrdersNativeReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders/$id': {
       id: '/orders/$id'
       path: '/orders/$id'
@@ -720,6 +752,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/offer/$id'
       preLoaderRoute: typeof OfferIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/auth/native-return': {
+      id: '/auth/native-return'
+      path: '/native-return'
+      fullPath: '/auth/native-return'
+      preLoaderRoute: typeof AuthNativeReturnRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_authenticated/partner-apply': {
       id: '/_authenticated/partner-apply'
@@ -995,12 +1034,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthNativeReturnRoute: typeof AuthNativeReturnRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthNativeReturnRoute: AuthNativeReturnRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AnalyticsRoute: AnalyticsRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   FavoritesRoute: FavoritesRoute,
   MapRoute: MapRoute,
   NotificationsRoute: NotificationsRoute,
@@ -1011,6 +1060,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   OfferIdRoute: OfferIdRoute,
   OrdersIdRoute: OrdersIdRoute,
+  OrdersNativeReturnRoute: OrdersNativeReturnRoute,
   StoreIdRoute: StoreIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
   ApiPublicDeliveryBoltRoute: ApiPublicDeliveryBoltRoute,
@@ -1021,13 +1071,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>Cheaper</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+
+	<!-- Permission usage descriptions (Georgian + English) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Cheaper იყენებს კამერას QR კოდის სკანირებისთვის და შეთავაზების, ლოგოს და პროფილის ფოტოს გადასაღებად. / Cheaper uses the camera to scan pickup QR codes and to capture offer, store logo, and profile photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cheaper იყენებს ფოტოთეკას შეთავაზების, ლოგოს და პროფილის სურათის ასარჩევად. / Cheaper accesses your photo library to select offer, store logo, and profile pictures.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Cheaper ინახავს QR კვიტანციებს თქვენს ფოტოთეკაში. / Cheaper saves QR receipts to your photo library.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cheaper იყენებს მდებარეობას რუკაზე ახლომდებარე ფასდაკლებული შეთავაზებების საჩვენებლად და მიტანის მისამართისთვის. / Cheaper uses your location to show nearby discounted offers on the map and for delivery addressing.</string>
+
+	<!-- Deep-link scheme for OAuth and BOG payment returns (handled in src/routes/__root.tsx) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ge.cheaper.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ge.cheaper.app</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
