@@ -5,6 +5,7 @@ import type { Offer } from "@/lib/mock-data";
 import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
+import { StoreLogo } from "@/components/StoreLogo";
 
 function minutesUntil(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
