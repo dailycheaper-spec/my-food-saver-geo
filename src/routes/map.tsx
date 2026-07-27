@@ -732,7 +732,7 @@ function MapPage() {
                       )}
                       {o.originalPrice > o.price && !unavailable && (
                         <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full">
-                          {L("დაზოგე", "Save", "Экономия")} {formatPrice(o.originalPrice - o.price)}
+                          {t("map.save")} {formatPrice(o.originalPrice - o.price)}
                         </span>
                       )}
                     </div>
