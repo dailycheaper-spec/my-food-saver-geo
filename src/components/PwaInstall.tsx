@@ -177,39 +177,6 @@ export function PwaInstall() {
         </div>
       )}
 
-      {showAndroid && (
-        <div className="fixed inset-x-3 bottom-20 z-[90] rounded-2xl border border-border bg-card p-4 shadow-xl flex items-center gap-3">
-          <img src="/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
-          <div className="flex-1 text-sm">
-            <div className="font-semibold">{t.install}</div>
-            <div className="text-muted-foreground text-xs leading-relaxed">
-              {deferred ? "Cheaper" : t.androidBody}
-            </div>
-          </div>
-          <button
-            onClick={dismissAndroid}
-            className="rounded-md px-2 py-1 text-xs text-muted-foreground"
-          >
-            {t.later}
-          </button>
-          {deferred ? (
-            <button
-              onClick={doInstall}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            >
-              {t.installNow}
-            </button>
-          ) : (
-            <button
-              onClick={dismissAndroid}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            >
-              {t.gotIt}
-            </button>
-          )}
-        </div>
-      )}
-
       {showIos && (
         <div className="fixed inset-x-3 bottom-20 z-[90] rounded-2xl border border-border bg-card p-4 shadow-xl">
           <div className="flex items-start gap-3">
