@@ -13,7 +13,14 @@ import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 import MapLayerSelector, { type MapLayerId } from "@/components/map/MapLayerSelector";
-import { readStoredLayer } from "@/components/MapCanvas";
+
+const MAP_STORAGE_KEY = "cheaper-customer-map";
+function readInitialLayer(): MapLayerId {
+  if (typeof window === "undefined") return "standard";
+  const v = window.localStorage.getItem(`${MAP_STORAGE_KEY}:layer`);
+  return v === "standard" || v === "satellite" || v === "hybrid" ? v : "standard";
+}
+
 
 
 function localizedHead(): { title: string; description: string } {
