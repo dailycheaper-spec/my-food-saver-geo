@@ -3,11 +3,12 @@ import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, LayersContr
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapStore } from "@/routes/map";
-import StoreMarker from "./map/StoreMarker";
+import StoreMarker, { type MarkerAriaLabels } from "./map/StoreMarker";
 import UserLocationMarker from "./map/UserLocationMarker";
 import MapLayerSelector, { type MapLayerId } from "./map/MapLayerSelector";
 
 const ClusterLayer = lazy(() => import("./map/ClusterLayer"));
+
 
 function RecenterOn({ pos }: { pos: [number, number] | null }) {
   const map = useMap();
