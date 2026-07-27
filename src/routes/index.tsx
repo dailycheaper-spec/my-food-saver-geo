@@ -175,35 +175,40 @@ function Home() {
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
   return (
-    <div className="pb-4">
+    <div className="pb-24">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-2">
           <Link to="/" aria-label={t("brand")} className="shrink-0 press rounded-2xl focus-visible:outline-none">
-            <Logo />
+            <Logo compact />
           </Link>
 
-          <div className="mx-2 h-8 w-px bg-border/70 shrink-0" aria-hidden="true" />
+          <div className="mx-1 h-8 w-px bg-border/70 shrink-0 hidden sm:block" aria-hidden="true" />
 
-          <CitySelector variant="compact" />
+          <div className="min-w-0 flex-1">
+            <CitySelector variant="compact" />
+          </div>
 
-          <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <LanguageSwitcher compact />
             <Link
               to="/notifications"
               aria-label={t("navNotifications")}
-              className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
+              className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
             >
               <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             </Link>
             {!user && !rolesLoading && (
               <Link
                 to="/auth"
-                className="h-10 px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center gap-1.5 press shadow-sm"
+                aria-label={t("signIn")}
+                className="h-11 min-w-11 px-2.5 sm:px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-1.5 press shadow-sm"
               >
-                <LogIn className="w-4 h-4" aria-hidden="true" /> {t("signIn")}
+                <LogIn className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("signIn")}</span>
               </Link>
             )}
+
             {user && !rolesLoading && isAdmin && (
               <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1 press">
                 <Shield className="w-3.5 h-3.5" aria-hidden="true" /> {t("admin")}

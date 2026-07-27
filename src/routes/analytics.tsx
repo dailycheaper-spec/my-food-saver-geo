@@ -36,7 +36,7 @@ function Analytics() {
   const maxDaily = Math.max(1, ...daily.map(([, v]) => v));
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6 pb-8">
+    <div className="page-shell">
       <div className="flex items-center gap-3 mb-4">
         <Link to="/profile" className="w-9 h-9 rounded-full bg-card border border-border grid place-items-center">
           <ArrowLeft className="w-4 h-4" />

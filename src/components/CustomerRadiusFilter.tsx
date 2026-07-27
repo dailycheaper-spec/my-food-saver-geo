@@ -30,7 +30,7 @@ export function CustomerRadiusFilter({ value, onChange, onDebouncedChange }: Pro
             key={r}
             type="button"
             onClick={() => onChange(r)}
-            className={`px-3 h-8 rounded-full text-xs font-semibold border transition ${
+            className={`px-3 h-11 sm:h-8 rounded-full text-xs font-semibold border transition ${
               active
                 ? "bg-primary text-primary-foreground border-primary"
                 : "bg-card text-foreground border-border hover:bg-muted"

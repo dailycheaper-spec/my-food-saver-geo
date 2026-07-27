@@ -39,9 +39,9 @@ function AdminPayments() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">გადახდები</h1>
+      <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">გადახდები</h1>
           <p className="text-sm text-muted-foreground mt-1">კომისია {settings.commissionPct}% · პარტნიორების ბალანსი</p>
         </div>
         <div className="flex gap-2">

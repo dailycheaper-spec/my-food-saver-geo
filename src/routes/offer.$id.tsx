@@ -204,7 +204,7 @@ function OfferPage() {
   };
 
   return (
-    <div className="pb-6">
+    <div className="pb-32">
       {/* ---- Image "gallery" ---- */}
       <div className="relative aspect-[4/3] bg-muted">
         <img
