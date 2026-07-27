@@ -16,6 +16,7 @@ import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
 import { StoreLogo } from "@/components/StoreLogo";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { isValidGeorgianIban } from "@/lib/bank-account";
+import { useI18n } from "@/lib/i18n";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {
@@ -41,7 +42,11 @@ const STORE_TYPES = [
 ];
 
 export const Route = createFileRoute("/_authenticated/admin/partners")({
-  head: () => ({ meta: [{ title: "პარტნიორები — ადმინი" }] }),
+  head: () => {
+    const lang = typeof window !== "undefined" ? window.localStorage.getItem("cheaper-language") : null;
+    const title = lang === "en" ? "Partners — Admin" : lang === "ru" ? "Партнёры — Админ" : "პარტნიორები — ადმინი";
+    return { meta: [{ title }] };
+  },
   component: AdminPartners,
 });
 
@@ -56,6 +61,8 @@ const LOC_FILTERS = [
 type LocFilterKey = typeof LOC_FILTERS[number]["key"];
 
 function AdminPartners() {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
@@ -114,11 +121,11 @@ function AdminPartners() {
   const pendingCount = stores.filter((s) => s.status === "pending").length;
 
   const tabs = [
-    { key: "all", label: "ყველა" },
-    { key: "pending", label: "მოლოდინი" },
-    { key: "active", label: "აქტიური" },
-    { key: "suspended", label: "შეჩერებული" },
-    { key: "flagged", label: "🚩 გასაჩივრებული" },
+    { key: "all", label: L("ყველა", "All", "Все") },
+    { key: "pending", label: L("მოლოდინი", "Pending", "Ожидание") },
+    { key: "active", label: L("აქტიური", "Active", "Активные") },
+    { key: "suspended", label: L("შეჩერებული", "Suspended", "Приостановлены") },
+    { key: "flagged", label: "🚩 " + L("გასაჩივრებული", "Flagged", "С жалобами") },
   ] as const;
 
   function toggleLoc(k: LocFilterKey) {
@@ -136,25 +143,25 @@ function AdminPartners() {
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-destructive/10 border border-destructive/30">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div className="text-sm">
-            <div className="font-semibold text-destructive">{flaggedCount} ობიექტს დაუგროვდა {FLAG_THRESHOLD}+ უარყოფითი შეფასება</div>
-            <div className="text-muted-foreground mt-0.5">გადახედე „გასაჩივრებული" ტაბს და მიიღე გადაწყვეტილება (შეჩერება ან წაშლა).</div>
+            <div className="font-semibold text-destructive">{L(`${flaggedCount} ობიექტს დაუგროვდა ${FLAG_THRESHOLD}+ უარყოფითი შეფასება`, `${flaggedCount} place(s) have accumulated ${FLAG_THRESHOLD}+ negative reports`, `${flaggedCount} заведени${flaggedCount === 1 ? "е" : "й"} набрал${flaggedCount === 1 ? "о" : "и"} ${FLAG_THRESHOLD}+ негативных отзывов`)}</div>
+            <div className="text-muted-foreground mt-0.5">{L('gadaxede „gasachivrebuli" tabs da miighe gadatsqvetileba (shechereba an washla).', 'Review the "Flagged" tab and take a decision (suspend or delete).', 'Просмотрите вкладку «С жалобами» и примите решение (приостановить или удалить).')}</div>
           </div>
         </div>
       )}
 
       <div className="grid gap-3 sm:flex sm:items-start sm:justify-between sm:flex-wrap">
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
-          <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("პარტნიორები", "Partners", "Партнёры")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{L("მართე რესტორნები და საცხობები", "Manage restaurants and bakeries", "Управляйте ресторанами и пекарнями")}</p>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:flex-wrap">
           <button onClick={() => { reload(); loadActiveOffers(); loadReports(); }} disabled={loading}
             className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
-            <RefreshCcw className={`w-4 h-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> <span className="truncate">განაცხადების შემოწმება ({pendingCount})</span>
+            <RefreshCcw className={`w-4 h-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> <span className="truncate">{L("განაცხადების შემოწმება", "Check applications", "Проверить заявки")} ({pendingCount})</span>
           </button>
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
-            <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">პარტნიორის დამატება</span>
+            <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">{L("პარტნიორის დამატება", "Add partner", "Добавить партнёра")}</span>
           </button>
         </div>
       </div>
@@ -163,14 +170,14 @@ function AdminPartners() {
 
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          განაცხადების ჩატვირთვა ვერ მოხერხდა: {error}
+          {L("განაცხადების ჩატვირთვა ვერ მოხერხდა:", "Failed to load applications:", "Не удалось загрузить заявки:")} {error}
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ძებნა სახელით ან კატეგორიით…"
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა სახელით ან კატეგორიით…", "Search by name or category…", "Поиск по названию или категории…")}
             className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
@@ -189,7 +196,7 @@ function AdminPartners() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <span className="text-xs text-muted-foreground self-center mr-1">მდებარეობის ფილტრები:</span>
+        <span className="text-xs text-muted-foreground self-center mr-1">{L("მდებარეობის ფილტრები:", "Location filters:", "Фильтры местоположения:")}</span>
         {LOC_FILTERS.map((f) => {
           const active = locFilters.has(f.key);
           return (
@@ -202,7 +209,7 @@ function AdminPartners() {
         {locFilters.size > 0 && (
           <button onClick={() => setLocFilters(new Set())}
             className="px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground">
-            გასუფთავება
+            {L("გასუფთავება", "Clear", "Очистить")}
           </button>
         )}
       </div>
@@ -219,7 +226,7 @@ function AdminPartners() {
             onEdit={() => setEditingStore(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
-        {filtered.length === 0 && <p className="text-sm text-muted-foreground">ცარიელია.</p>}
+        {filtered.length === 0 && <p className="text-sm text-muted-foreground">{L("ცარიელია.", "Empty.", "Пусто.")}</p>}
       </div>
 
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}

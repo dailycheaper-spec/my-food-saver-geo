@@ -5,6 +5,7 @@ import { updateAdminStoreLocation } from "@/lib/admin-store.functions";
 import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector";
 import { evaluateStoreLocation, isValidLatLng, isWithinGeorgia } from "@/lib/geo";
 import type { DbStore } from "@/lib/db";
+import { useI18n } from "@/lib/i18n";
 
 const StoreLocationPicker = lazy(() =>
   import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const anyStore = store as unknown as Record<string, unknown>;
   const initialLat = typeof anyStore.lat === "number" ? (anyStore.lat as number) : null;
   const initialLng = typeof anyStore.lng === "number" ? (anyStore.lng as number) : null;
@@ -59,12 +62,14 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
 
   async function submit() {
     if (status !== "ok") {
-      setErr("გთხოვთ, აირჩიოთ სწორი კოორდინატები რუკაზე (საქართველოს ტერიტორია).");
+      setErr(L("გთხოვთ, აირჩიოთ სწორი კოორდინატები რუკაზე (საქართველოს ტერიტორია).", "Please pick valid coordinates on the map (within Georgia).", "Пожалуйста, выберите верные координаты на карте (в пределах Грузии)."));
       return;
     }
     if (hadInitialLocation) {
       const ok = window.confirm(
-        "დარწმუნებული ხართ, რომ გსურთ პარტნიორის მდებარეობის მონაცემების შეცვლა?"
+        L("დარწმუნებული ხართ, რომ გსურთ პარტნიორის მდებარეობის მონაცემების შეცვლა?",
+          "Are you sure you want to change this partner's location data?",
+          "Вы уверены, что хотите изменить данные о местоположении партнёра?")
       );
       if (!ok) return;
     }
@@ -98,7 +103,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-display text-xl font-bold">მდებარეობის რედაქტირება</h2>
+            <h2 className="font-display text-xl font-bold">{L("მდებარეობის რედაქტირება", "Edit location", "Редактировать местоположение")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">{store.name}</p>
           </div>
           <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
@@ -114,14 +119,14 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-semibold disabled:opacity-60"
           >
             <LocateFixed className="w-3.5 h-3.5" />
-            {locBusy ? "იძებნება…" : "ჩემი მდებარეობა"}
+            {locBusy ? L("იძებნება…", "Locating…", "Определяется…") : L("ჩემი მდებარეობა", "My location", "Моё местоположение")}
           </button>
           <button
             type="button"
             onClick={reset}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-muted hover:bg-muted/70 text-xs font-semibold"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> გასუფთავება
+            <RotateCcw className="w-3.5 h-3.5" /> {L("გასუფთავება", "Clear", "Очистить")}
           </button>
         </div>
 
@@ -138,7 +143,9 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
           />
         </Suspense>
         <p className="mt-2 text-xs text-muted-foreground">
-          მწვანე წრე გვიჩვენებს ტერიტორიას, სადაც ეს ობიექტი გამოჩნდება მომხმარებლების რუკაზე.
+          {L("მწვანე წრე გვიჩვენებს ტერიტორიას, სადაც ეს ობიექტი გამოჩნდება მომხმარებლების რუკაზე.",
+            "The green circle shows the area where this place will appear on customers' maps.",
+            "Зелёный круг показывает область, в которой это заведение будет отображаться на карте у клиентов.")}
         </p>
 
 
@@ -167,12 +174,14 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
 
         {outsideGeorgia && (
           <div className="mt-3 text-xs text-warm-foreground bg-warm/40 border border-warm rounded-xl p-3">
-            ⚠️ კოორდინატები საქართველოს სავარაუდო საზღვრებს გარეთ არის.
+            {L("⚠️ კოორდინატები საქართველოს სავარაუდო საზღვრებს გარეთ არის.",
+              "⚠️ Coordinates are outside Georgia's approximate borders.",
+              "⚠️ Координаты находятся за пределами приблизительных границ Грузии.")}
           </div>
         )}
 
         <div className="mt-4">
-          <h3 className="text-sm font-semibold mb-2">ხილვადობის რადიუსი</h3>
+          <h3 className="text-sm font-semibold mb-2">{L("ხილვადობის რადიუსი", "Visibility radius", "Радиус видимости")}</h3>
           <VisibilityRadiusSelector value={radius} onChange={setRadius} />
         </div>
 
@@ -184,7 +193,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
             onClick={onClose}
             className="flex-1 py-3 rounded-xl border border-border font-semibold"
           >
-            გაუქმება
+            {L("გაუქმება", "Cancel", "Отмена")}
           </button>
           <button
             type="button"
@@ -192,7 +201,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
             disabled={busy || status !== "ok"}
             className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            <Save className="w-4 h-4" /> {busy ? "შენახვა…" : "შენახვა"}
+            <Save className="w-4 h-4" /> {busy ? L("შენახვა…", "Saving…", "Сохранение…") : L("შენახვა", "Save", "Сохранить")}
           </button>
         </div>
       </div>

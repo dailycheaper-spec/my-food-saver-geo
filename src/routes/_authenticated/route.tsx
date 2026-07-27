@@ -45,11 +45,13 @@ async function waitForUser() {
 }
 
 function AuthGateLoading() {
+  const lang = typeof window !== "undefined" ? window.localStorage.getItem("cheaper-language") : null;
+  const text = lang === "en" ? "Loading…" : lang === "ru" ? "Загрузка…" : "იტვირთება…";
   return (
     <div className="min-h-screen bg-background grid place-items-center px-4">
       <div className="text-center">
         <div className="text-4xl mb-3">🥗</div>
-        <p className="font-display text-lg font-bold">იტვირთება…</p>
+        <p className="font-display text-lg font-bold">{text}</p>
       </div>
     </div>
   );
