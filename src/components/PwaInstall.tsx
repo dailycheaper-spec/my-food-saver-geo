@@ -95,70 +95,26 @@ const COPY = {
 export function PwaInstall() {
   const { language } = useI18n();
   const t = COPY[(language as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showMobileFallback, setShowMobileFallback] = useState(false);
   const [showIos, setShowIos] = useState(false);
   const [update, setUpdate] = useState<null | (() => void)>(null);
 
   useEffect(() => {
     if (isStandalone()) return;
-
-    const onBIP = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-      setShowMobileFallback(false);
-    };
-    window.addEventListener("beforeinstallprompt", onBIP);
-
-    const fallbackTimer = window.setTimeout(() => {
-      if (!isIosSafari() && isMobileBrowser() && !hasAndroidInstallDismissed()) {
-        setShowMobileFallback(true);
-      }
-    }, 1800);
-
     if (isIosSafari() && !localStorage.getItem(IOS_HINT_KEY)) {
-      const t = setTimeout(() => setShowIos(true), 3000);
-      return () => {
-        window.removeEventListener("beforeinstallprompt", onBIP);
-        clearTimeout(fallbackTimer);
-        clearTimeout(t);
-      };
+      const timer = setTimeout(() => setShowIos(true), 3000);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBIP);
-      clearTimeout(fallbackTimer);
-    };
   }, []);
 
   useEffect(() => {
     registerServiceWorker((reload) => setUpdate(() => reload));
   }, []);
 
-  const doInstall = async () => {
-    if (!deferred) return;
-    try {
-      await deferred.prompt();
-      await deferred.userChoice;
-    } finally {
-      setDeferred(null);
-    }
-  };
-
-  const dismissAndroid = () => {
-    dismissAndroidInstallForSession();
-    setDeferred(null);
-    setShowMobileFallback(false);
-  };
   const dismissIos = () => {
     localStorage.setItem(IOS_HINT_KEY, "1");
     setShowIos(false);
   };
 
-  const showAndroid =
-    (deferred || showMobileFallback) &&
-    typeof window !== "undefined" &&
-    !hasAndroidInstallDismissed();
 
   return (
     <>
