@@ -447,6 +447,7 @@ const labels: Record<Language, Record<string, string>> = {
     "map.openInMap": "რუკის გახსნა",
     "map.coordsInvalid": "კოორდინატები არასწორია",
     "map.locationMissing": "მდებარეობა არ არის მითითებული",
+    "map.save": "დაზოგე",
   },
 
   en: {

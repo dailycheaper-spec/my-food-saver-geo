@@ -204,6 +204,7 @@ function MapPage() {
       const active = s.offers.filter((o) => o._state !== "unavailable");
       s.activeCount = active.length;
       s.minPrice = active.length > 0 ? Math.min(...active.map((o) => o.price)) : 0;
+      s.minPriceLabel = active.length > 0 ? fmt("map.markerFromPrice", { price: `${s.minPrice.toFixed(0)}₾` }) : undefined;
       s.hasAlmost = active.some((o) => o._state === "almost");
       // Sort offers: available → almost → unavailable, then by price
       s.offers.sort((a, b) => {
