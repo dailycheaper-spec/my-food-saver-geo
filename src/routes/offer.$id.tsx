@@ -51,12 +51,15 @@ export const Route = createFileRoute("/offer/$id")({
       : [{ title: "შემოთავაზება — Cheaper" }, { name: "robots", content: "noindex" }],
   }),
   component: OfferPage,
-  notFoundComponent: () => (
-    <div className="p-8 text-center">
-      <p className="text-muted-foreground">შემოთავაზება ვერ მოიძებნა.</p>
-      <Link to="/" className="text-primary underline text-sm mt-2 inline-block">მთავარზე დაბრუნება</Link>
-    </div>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">{t("offer.notFound")}</p>
+        <Link to="/" className="text-primary underline text-sm mt-2 inline-block">{t("offer.backHome")}</Link>
+      </div>
+    );
+  },
 });
 
 function OfferPage() {
