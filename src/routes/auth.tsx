@@ -86,6 +86,28 @@ function AuthPage() {
     setLoading(true);
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
+
+    // Native (Capacitor): Google blocks OAuth inside embedded WebViews, so we
+    // open the authorize URL in the system browser (SFSafariViewController /
+    // Chrome Custom Tab) and let the /auth/native-return bounce page hand
+    // tokens back via the ge.cheaper.app:// deep-link scheme. The listener in
+    // __root.tsx calls supabase.auth.setSession() and navigates.
+    if (isNative()) {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const bounce = "https://cheaper.ge/auth/native-return";
+      const url =
+        `${supabaseUrl}/auth/v1/authorize?provider=${provider}` +
+        `&redirect_to=${encodeURIComponent(bounce)}`;
+      try {
+        await openExternal(url);
+      } catch {
+        setLoading(false);
+        setMsg({ type: "err", text: `${t("oauthFailed")} (${provider})` });
+      }
+      // Loading spinner clears when the deep-link listener finishes sign-in.
+      return;
+    }
+
     const { error } = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: `${window.location.origin}/auth`,
     });
