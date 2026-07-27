@@ -22,11 +22,6 @@ function isStandalone() {
 
 const COPY = {
   ka: {
-    install: "აპლიკაციის ინსტალაცია",
-    installNow: "დაინსტალირება",
-    later: "მოგვიანებით",
-    androidBody: "თუ ფანჯარა არ გაიხსნა, Chrome-ში გახსენი მენიუ ⋮ და აირჩიე Install app / Add to Home Screen.",
-    gotIt: "გასაგებია",
     iosTitle: "დაამატე Cheaper მთავარ ეკრანზე",
     iosBody: 'დააჭირე გაზიარებას ⬆︎ Safari-ში და აირჩიე "მთავარ ეკრანზე დამატება".',
     updateTitle: "ხელმისაწვდომია განახლება",
@@ -35,11 +30,6 @@ const COPY = {
     dismiss: "დახურვა",
   },
   en: {
-    install: "Install App",
-    installNow: "Install",
-    later: "Later",
-    androidBody: "If the install window does not open, use Chrome menu ⋮ and choose Install app / Add to Home Screen.",
-    gotIt: "Got it",
     iosTitle: "Add Cheaper to your Home Screen",
     iosBody: 'Tap the Share icon ⬆︎ in Safari, then choose "Add to Home Screen".',
     updateTitle: "Update available",
@@ -48,11 +38,6 @@ const COPY = {
     dismiss: "Dismiss",
   },
   ru: {
-    install: "Установить приложение",
-    installNow: "Установить",
-    later: "Позже",
-    androidBody: "Если окно установки не открылось, откройте меню Chrome ⋮ и выберите Install app / Add to Home Screen.",
-    gotIt: "Понятно",
     iosTitle: "Добавьте Cheaper на главный экран",
     iosBody: 'Нажмите «Поделиться» ⬆︎ в Safari и выберите «На экран «Домой»».',
     updateTitle: "Доступно обновление",
