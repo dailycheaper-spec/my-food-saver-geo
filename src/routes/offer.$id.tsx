@@ -14,6 +14,7 @@ import { allergenLabels } from "@/lib/allergens";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
+import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
@@ -154,9 +155,10 @@ function OfferPage() {
           amount: total,
           method: methodDb,
           deliveryAddress: isDelivery ? address : undefined,
+          nativeReturn: isNative(),
         },
       });
-      window.location.href = redirectUrl;
+      await openExternal(redirectUrl);
     } catch (e) {
       alert(e instanceof Error ? e.message : String(e));
     }
@@ -478,13 +480,14 @@ function OfferPage() {
                         method: isDelivery ? "delivery" : "pickup",
                         deliveryAddress: isDelivery ? address : undefined,
                         googlePayToken,
+                        nativeReturn: isNative(),
                       },
                     });
                     // 3DS challenge required — hand off to BOG. Otherwise
                     // land on the order page; the callback webhook will
                     // flip status to `paid` after server-to-server verify.
                     if (redirectUrl) {
-                      window.location.href = redirectUrl;
+                      await openExternal(redirectUrl);
                     } else {
                       navigate({ to: "/orders/$id", params: { id: orderId } });
                     }
