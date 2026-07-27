@@ -585,7 +585,7 @@ function MapPage() {
 
       <div className="flex-1 relative">
         {!location && status !== "prompting" && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-28 z-[1000] pointer-events-auto bg-card/95 backdrop-blur border border-border rounded-full shadow-elevated pl-3 pr-1 py-1 flex items-center gap-2 max-w-[92%]">
+          <div className="absolute right-3 bottom-24 z-[1000] pointer-events-auto bg-card/95 backdrop-blur border border-border rounded-full shadow-elevated pl-3 pr-1 py-1 flex items-center gap-2 max-w-[92%]">
             <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
             <p className="text-[11px] font-semibold text-foreground truncate">{t("map.locationOff")}</p>
             <button
