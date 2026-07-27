@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { PwaInstall } from "@/components/PwaInstall";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
 import { CityProvider } from "@/lib/city";
@@ -188,6 +189,7 @@ function RootComponent() {
             <BottomNav />
             <AppTracker />
             <PwaInstall />
+            <UpdatePrompt />
           </UserLocationProvider>
         </CityProvider>
       </I18nProvider>
