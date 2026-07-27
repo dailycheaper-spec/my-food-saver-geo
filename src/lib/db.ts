@@ -77,18 +77,22 @@ async function getCurrentUserIdentity(): Promise<{ id: string; email: string | n
 export function useLiveOffers() {
   const [offers, setOffers] = useState<OfferWithStore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     async function load() {
-      const { data } = await supabase
+      const { data, error: err } = await supabase
         .from("offers")
         .select("*, store:stores!inner(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .eq("is_active", true)
         .eq("store.status", "active")
         .order("created_at", { ascending: false });
-      if (alive && data) setOffers(data as OfferWithStore[]);
-      if (alive) setLoading(false);
+      if (alive) {
+        if (err) setError(err.message);
+        else { setOffers((data ?? []) as OfferWithStore[]); setError(null); }
+        setLoading(false);
+      }
     }
     load();
 
@@ -100,7 +104,7 @@ export function useLiveOffers() {
     return () => { alive = false; supabase.removeChannel(channel); };
   }, []);
 
-  return { offers, loading };
+  return { offers, loading, error };
 }
 
 export async function fetchOffer(id: string): Promise<OfferWithStore | null> {
@@ -116,18 +120,22 @@ export async function fetchOffer(id: string): Promise<OfferWithStore | null> {
 export function useMyOrders() {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     async function load() {
       const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) { if (alive) { setOrders([]); setLoading(false); } return; }
-      const { data } = await supabase
+      if (!sess.session) { if (alive) { setOrders([]); setLoading(false); setError(null); } return; }
+      const { data, error: err } = await supabase
         .from("orders")
         .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .order("created_at", { ascending: false });
-      if (alive && data) setOrders(data as OrderWithRelations[]);
-      if (alive) setLoading(false);
+      if (alive) {
+        if (err) setError(err.message);
+        else { setOrders((data ?? []) as OrderWithRelations[]); setError(null); }
+        setLoading(false);
+      }
     }
     load();
 
@@ -139,15 +147,16 @@ export function useMyOrders() {
     const { data: sub } = supabase.auth.onAuthStateChange(() => load());
     return () => { alive = false; supabase.removeChannel(channel); sub.subscription.unsubscribe(); };
   }, []);
-  return { orders, loading };
+  return { orders, loading, error };
 }
 
 export async function fetchOrder(id: string): Promise<OrderWithRelations | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("orders")
     .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
     .eq("id", id)
     .maybeSingle();
+  if (error) throw new Error(error.message);
   return (data as OrderWithRelations) ?? null;
 }
 
@@ -155,6 +164,7 @@ export async function createOrder(input: {
   offer_id: string;
   store_id: string;
   amount: number;
+  quantity: number;
   method: "pickup" | "delivery";
   delivery_address?: string;
 }) {
@@ -355,13 +365,17 @@ export function usePartnerAccount() {
 export function useStoreOffers(storeId: string | null) {
   const [offers, setOffers] = useState<DbOffer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    if (!storeId) { setOffers([]); setLoading(false); return; }
+    if (!storeId) { setOffers([]); setLoading(false); setError(null); return; }
     let alive = true;
     async function load() {
-      const { data } = await supabase.from("offers").select("*").eq("store_id", storeId!).order("created_at", { ascending: false });
-      if (alive && data) setOffers(data);
-      if (alive) setLoading(false);
+      const { data, error: err } = await supabase.from("offers").select("*").eq("store_id", storeId!).order("created_at", { ascending: false });
+      if (alive) {
+        if (err) setError(err.message);
+        else { setOffers(data ?? []); setError(null); }
+        setLoading(false);
+      }
     }
     load();
     const channel = supabase
@@ -370,26 +384,30 @@ export function useStoreOffers(storeId: string | null) {
       .subscribe();
     return () => { alive = false; supabase.removeChannel(channel); };
   }, [storeId]);
-  return { offers, loading };
+  return { offers, loading, error };
 }
 
 export function useStoreOrders(storeId: string | null) {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [newCount, setNewCount] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!storeId) { setOrders([]); setLoading(false); return; }
+    if (!storeId) { setOrders([]); setLoading(false); setError(null); return; }
     let alive = true;
     const channelTopic = `store-orders-${storeId}-${Date.now()}-${++realtimeChannelCounter}`;
     async function load() {
-      const { data } = await supabase
+      const { data, error: err } = await supabase
         .from("orders")
         .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
-      if (alive && data) setOrders(data as OrderWithRelations[]);
-      if (alive) setLoading(false);
+      if (alive) {
+        if (err) setError(err.message);
+        else { setOrders((data ?? []) as OrderWithRelations[]); setError(null); }
+        setLoading(false);
+      }
     }
     load();
     try {
@@ -409,7 +427,7 @@ export function useStoreOrders(storeId: string | null) {
     }
   }, [storeId]);
 
-  return { orders, loading, newCount, resetNewCount: () => setNewCount(0) };
+  return { orders, loading, newCount, error, resetNewCount: () => setNewCount(0) };
 }
 
 // ────── ADMIN QUERIES ──────
@@ -445,16 +463,20 @@ export function useAllStores() {
 export function useAllOrders() {
   const [orders, setOrders] = useState<OrderWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
     async function load() {
-      const { data } = await supabase
+      const { data, error: err } = await supabase
         .from("orders")
         .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .order("created_at", { ascending: false })
         .limit(200);
-      if (alive && data) setOrders(data as OrderWithRelations[]);
-      if (alive) setLoading(false);
+      if (alive) {
+        if (err) setError(err.message);
+        else { setOrders((data ?? []) as OrderWithRelations[]); setError(null); }
+        setLoading(false);
+      }
     }
     load();
     const channel = supabase
@@ -463,7 +485,7 @@ export function useAllOrders() {
       .subscribe();
     return () => { alive = false; supabase.removeChannel(channel); };
   }, []);
-  return { orders, loading };
+  return { orders, loading, error };
 }
 
 export async function approveStore(storeId: string, ownerId: string) {

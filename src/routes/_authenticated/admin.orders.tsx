@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin/orders")({
 const STATUSES = ["all", "pending", "paid", "ready", "collected", "gifted", "cancelled"] as const;
 
 function AdminOrders() {
-  const { orders } = useAllOrders();
+  const { orders, error: ordersError } = useAllOrders();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("all");
   const [method, setMethod] = useState<"all" | "pickup" | "delivery">("all");
@@ -45,6 +45,12 @@ function AdminOrders() {
         <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">შეკვეთები</h1>
         <p className="text-sm text-muted-foreground mt-1">{filtered.length} შეკვეთა · Realtime</p>
       </div>
+
+      {ordersError && (
+        <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-4 text-center text-sm text-destructive">
+          შეკვეთების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.
+        </div>
+      )}
 
       <div className="bg-card rounded-3xl border border-border p-4 shadow-sm space-y-3">
         <div className="relative">

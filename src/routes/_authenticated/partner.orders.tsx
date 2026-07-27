@@ -15,7 +15,7 @@ function PartnerOrders() {
   const L = (ka: string, en: string, ru: string) => language === "en" ? en : language === "ru" ? ru : ka;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
-  const { orders, newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
+  const { orders, newCount, resetNewCount, error: ordersError } = useStoreOrders(store?.id ?? null);
 
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
@@ -50,15 +50,28 @@ function PartnerOrders() {
         </div>
       )}
 
-      <Section title={t("activeSection")} count={groups.active.length}>
-        {groups.active.map((o) => <OrderCard key={o.id} order={o} showActions />)}
-      </Section>
-      <Section title={t("completedSection")} count={groups.completed.length}>
-        {groups.completed.slice(0, 10).map((o) => <OrderCard key={o.id} order={o} />)}
-      </Section>
-      <Section title={t("cancelledGiftedSection")} count={groups.cancelled.length}>
-        {groups.cancelled.slice(0, 5).map((o) => <OrderCard key={o.id} order={o} />)}
-      </Section>
+      {ordersError ? (
+        <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-8 text-center">
+          <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="bg-card rounded-2xl border border-border p-8 text-center">
+          <div className="text-4xl mb-3">📭</div>
+          <p className="text-sm text-muted-foreground">{L("შეკვეთები ჯერ არ არის.", "No orders yet.", "Пока нет заказов.")}</p>
+        </div>
+      ) : (
+        <>
+          <Section title={t("activeSection")} count={groups.active.length}>
+            {groups.active.map((o) => <OrderCard key={o.id} order={o} showActions />)}
+          </Section>
+          <Section title={t("completedSection")} count={groups.completed.length}>
+            {groups.completed.slice(0, 10).map((o) => <OrderCard key={o.id} order={o} />)}
+          </Section>
+          <Section title={t("cancelledGiftedSection")} count={groups.cancelled.length}>
+            {groups.cancelled.slice(0, 5).map((o) => <OrderCard key={o.id} order={o} />)}
+          </Section>
+        </>
+      )}
     </div>
   );
 }

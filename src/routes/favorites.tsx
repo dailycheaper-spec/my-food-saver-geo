@@ -16,7 +16,7 @@ function Favorites() {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const favs = useFavorites();
-  const { stores } = useLiveStores();
+  const { stores, error: storesError } = useLiveStores();
   const { offers } = useLiveDbCardOffers();
   const favStores = stores.filter((s) => favs.includes(s.id));
   const favOffers = offers.filter((o) => favs.includes(o.storeId));
@@ -32,7 +32,11 @@ function Favorites() {
         )}
       </p>
 
-      {favStores.length === 0 ? (
+      {storesError ? (
+        <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-destructive/30">
+          <p className="text-sm text-destructive">{L("მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.", "Couldn't load data. Please try again.", "Не удалось загрузить данные. Попробуйте снова.")}</p>
+        </div>
+      ) : favStores.length === 0 ? (
         <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-border">
           <Heart className="w-10 h-10 mx-auto text-muted-foreground" />
           <p className="text-sm text-muted-foreground mt-3">

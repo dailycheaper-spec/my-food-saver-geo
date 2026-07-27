@@ -106,15 +106,15 @@ export function dbStoreToStore(row: DbStore): Store {
 }
 
 /** Live DB offers converted to the same Offer shape used by mock data + OfferCard. */
-export function useLiveDbCardOffers(): { offers: Offer[]; loading: boolean } {
-  const { offers, loading } = useLiveOffers();
+export function useLiveDbCardOffers(): { offers: Offer[]; loading: boolean; error: string | null } {
+  const { offers, loading, error } = useLiveOffers();
   const mapped = useMemo(() => offers.map(dbOfferToCardOffer), [offers]);
-  return { offers: mapped, loading };
+  return { offers: mapped, loading, error };
 }
 
 /** Live active stores derived from active offers (public, no admin call). */
-export function useLiveStores(): { stores: Store[]; loading: boolean } {
-  const { offers, loading } = useLiveOffers();
+export function useLiveStores(): { stores: Store[]; loading: boolean; error: string | null } {
+  const { offers, loading, error } = useLiveOffers();
   const stores = useMemo(() => {
     const map = new Map<string, Store>();
     for (const o of offers) {
@@ -124,34 +124,41 @@ export function useLiveStores(): { stores: Store[]; loading: boolean } {
     }
     return Array.from(map.values());
   }, [offers]);
-  return { stores, loading };
+  return { stores, loading, error };
 }
 
 /** Fetch one active store by id (public read; RLS allows active stores). */
-export function useDbStore(id: string): { store: Store | null; raw: DbStore | null; loading: boolean; notFound: boolean } {
+export function useDbStore(id: string): { store: Store | null; raw: DbStore | null; loading: boolean; notFound: boolean; error: string | null } {
   const [raw, setRaw] = useState<DbStore | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setNotFound(false);
+    setError(null);
     (async () => {
-      const { data } = await supabase
+      const { data, error: err } = await supabase
         .from("stores")
         .select(STORE_PUBLIC_COLUMNS)
         .eq("id", id)
         .eq("status", "active")
         .maybeSingle();
       if (!alive) return;
-      if (!data) setNotFound(true);
-      setRaw((data as DbStore) ?? null);
+      if (err) {
+        setError(err.message);
+      } else if (!data) {
+        setNotFound(true);
+      } else {
+        setRaw(data as DbStore);
+      }
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [id]);
 
   const store = useMemo(() => (raw ? dbStoreToStore(raw) : null), [raw]);
-  return { store, raw, loading, notFound };
+  return { store, raw, loading, notFound, error };
 }

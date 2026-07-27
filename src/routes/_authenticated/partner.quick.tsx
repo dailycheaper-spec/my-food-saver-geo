@@ -7,6 +7,7 @@ import { useSavedProducts, upsertSavedProduct, deleteSavedProduct, type SavedPro
 import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/quick")({
   head: () => ({ meta: [{ title: "Quick Offer — Cheaper" }] }),
@@ -95,7 +96,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
       is_active: true,
     });
     setSaving(false);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     onDone();
   }
 
@@ -144,12 +145,12 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
   const generateImg = useServerFn(generateOfferImage);
 
   async function aiGenerate() {
-    if (!name.trim()) { alert(t("productNamePlaceholder")); return; }
+    if (!name.trim()) { toast.error(t("productNamePlaceholder")); return; }
     setGenAi(true);
     try {
       const r = (await generateImg({ data: { prompt: name.trim() } })) as { dataUrl: string };
       setImg(r.dataUrl);
-    } catch (e: any) { alert("AI: " + e.message); }
+    } catch (e: any) { toast.error("AI: " + e.message); }
     setGenAi(false);
   }
 
@@ -165,7 +166,7 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
         image_url: image_url.trim() || null,
       });
       onClose();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { toast.error(e.message); }
     setSaving(false);
   }
 

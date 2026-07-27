@@ -7,6 +7,7 @@ import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/Disco
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
@@ -85,11 +86,11 @@ function NewOfferPage() {
   async function publish(e: React.FormEvent) {
     e.preventDefault();
     if (!store) return;
-    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
+    if (imgInvalid) { toast.error(t("imageLoadFailed")); return; }
     const orig = Number(form.original_price);
     const disc = Number(form.discounted_price);
     if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
-      alert(t("minDiscount50"));
+      toast.error(t("minDiscount50"));
       return;
     }
     setSaving(true);
@@ -122,7 +123,7 @@ function NewOfferPage() {
 
     const { error } = await supabase.from("offers").insert(payload);
     setSaving(false);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     navigate({ to: "/partner/offers" });
   }
 

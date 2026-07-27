@@ -15,8 +15,9 @@ function PartnerHome() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
-  const { offers } = useStoreOffers(store?.id ?? null);
-  const { orders } = useStoreOrders(store?.id ?? null);
+  const { offers, error: offersError } = useStoreOffers(store?.id ?? null);
+  const { orders, error: ordersError } = useStoreOrders(store?.id ?? null);
+  const dataError = offersError || ordersError;
   const [dupMsg, setDupMsg] = useState<string | null>(null);
   const [dupBusy, setDupBusy] = useState(false);
 
@@ -81,6 +82,11 @@ function PartnerHome() {
 
   return (
     <div className="space-y-6">
+      {dataError && (
+        <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-4 text-center">
+          <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
+        </div>
+      )}
       {/* Greeting */}
       <div className="flex items-center justify-between">
         <div className="min-w-0">

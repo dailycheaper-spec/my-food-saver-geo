@@ -59,6 +59,7 @@ interface OrderInput {
   offerId: string;
   storeId: string;
   amount: number;
+  quantity: number;
   method: "pickup" | "delivery";
   deliveryAddress?: string;
 }
@@ -76,12 +77,13 @@ async function createPendingOrder(
       offer_id: data.offerId,
       store_id: data.storeId,
       amount: data.amount,
+      quantity: data.quantity,
       method: data.method,
       delivery_address: data.deliveryAddress ?? null,
       user_id: userId,
       status: "pending",
     })
-    .select("id, amount")
+    .select("id, amount, quantity")
     .single();
   if (error || !order) throw new Error(error?.message ?? "Failed to create order");
   return order;
@@ -117,7 +119,7 @@ export const startBogCheckout = createServerFn({ method: "POST" })
         currency: "GEL",
         total_amount: Number(order.amount),
         basket: [
-          { quantity: 1, unit_price: Number(order.amount), product_id: data.offerId },
+          { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
       redirect_urls: {
@@ -194,7 +196,7 @@ export const startBogGooglePayCheckout = createServerFn({ method: "POST" })
         currency: "GEL",
         total_amount: Number(order.amount),
         basket: [
-          { quantity: 1, unit_price: Number(order.amount), product_id: data.offerId },
+          { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
       redirect_urls: {

@@ -10,6 +10,7 @@ import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
 import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus, updateAdminStore } from "@/lib/admin-store.functions";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
+import { toast } from "sonner";
 import { StoreLocationPreview } from "@/components/StoreLocationPreview";
 import { AdminStoreLocationModal } from "@/components/AdminStoreLocationModal";
 import { StoreLogo } from "@/components/StoreLogo";
@@ -257,7 +258,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
 
   async function act(fn: () => Promise<void>) {
     setBusy(true);
-    try { await fn(); onChange(); } catch (e) { alert(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
+    try { await fn(); onChange(); } catch (e) { toast.error(e instanceof Error ? e.message : String(e)); } finally { setBusy(false); }
   }
   return (
     <div className={`bg-card rounded-3xl border p-5 shadow-sm ${isFlagged ? "border-destructive/50 ring-2 ring-destructive/20" : "border-border"}`}>

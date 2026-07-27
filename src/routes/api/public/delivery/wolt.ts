@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createHmac, timingSafeEqual } from "crypto";
 import { getProvider } from "@/lib/delivery/registry";
 import type { DeliveryProviderId } from "@/lib/delivery/types";
 
@@ -13,6 +12,7 @@ async function handleProviderWebhook(
   const body = await request.text();
 
   if (secret) {
+    const { createHmac, timingSafeEqual } = await import("crypto");
     const signature = request.headers.get(sigHeader) ?? "";
     const expected = createHmac("sha256", secret).update(body).digest("hex");
     const sig = Buffer.from(signature);

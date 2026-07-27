@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
 import { CityProvider } from "@/lib/city";
 import { UserLocationProvider } from "@/hooks/use-user-location";
+import { Toaster } from "@/components/ui/sonner";
 
 
 function NotFoundComponent() {
@@ -152,6 +153,7 @@ function RootComponent() {
             <BottomNav />
             <AppTracker />
             <PwaInstall />
+            <Toaster position="top-center" richColors />
           </UserLocationProvider>
         </CityProvider>
       </I18nProvider>

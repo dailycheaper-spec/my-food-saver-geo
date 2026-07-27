@@ -44,7 +44,7 @@ function StorePage() {
   const { language } = useI18n();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { store, raw, loading, notFound } = useDbStore(id);
+  const { store, raw, loading, notFound, error: storeError } = useDbStore(id);
   const { offers } = useLiveDbCardOffers();
   const hydrated = useHydrated();
   const favs = useFavorites();
@@ -83,6 +83,14 @@ function StorePage() {
         <Skeleton className="h-40 w-full rounded-3xl" />
         <Skeleton className="h-24 w-full rounded-2xl" />
         <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (storeError) {
+    return (
+      <div className="p-8 text-center text-destructive text-sm">
+        {language === "en" ? "Couldn't load data. Please try again." : language === "ru" ? "Не удалось загрузить данные. Попробуйте снова." : "მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან."}
       </div>
     );
   }

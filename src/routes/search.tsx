@@ -63,7 +63,7 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
-  const { offers: OFFERS } = useLiveDbCardOffers();
+  const { offers: OFFERS, error: offersError } = useLiveDbCardOffers();
   const { stores: STORES } = useLiveStores();
 
   const [q, setQ] = useState("");
@@ -589,7 +589,12 @@ function SearchPage() {
                 </button>
               )}
             </div>
-            {filtered.length === 0 ? (
+            {offersError ? (
+              <div className="text-center py-16 bg-card rounded-3xl border border-destructive/30">
+                <div className="text-5xl mb-3">⚠️</div>
+                <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="text-center py-16 bg-card rounded-3xl border border-border">
                 <div className="text-5xl mb-3">🔍</div>
                 <p className="text-sm text-muted-foreground">{t("noResults")}</p>

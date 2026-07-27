@@ -20,6 +20,7 @@ import { OfferCard } from "@/components/OfferCard";
 import { GooglePayButton } from "@/components/GooglePayButton";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/offer/$id")({
   loader: async ({ params }) => {
@@ -108,7 +109,7 @@ function OfferPage() {
   async function handleReserve() {
     if (soldOut) return;
     if (!realDb) {
-      alert(language === "en"
+      toast.error(language === "en"
         ? "This is a demo listing — not available for purchase."
         : language === "ru"
         ? "Это демо-предложение — покупка недоступна."
@@ -133,6 +134,7 @@ function OfferPage() {
           offer_id: offer.id,
           store_id: offer.storeId,
           amount: total,
+          quantity,
           method: methodDb,
           delivery_address: isDelivery ? address : undefined,
         });
@@ -152,13 +154,14 @@ function OfferPage() {
           offerId: offer.id,
           storeId: offer.storeId,
           amount: total,
+          quantity,
           method: methodDb,
           deliveryAddress: isDelivery ? address : undefined,
         },
       });
       window.location.href = redirectUrl;
     } catch (e) {
-      alert(e instanceof Error ? e.message : String(e));
+      toast.error(e instanceof Error ? e.message : String(e));
     }
   }
 
@@ -456,7 +459,7 @@ function OfferPage() {
                 disabled={soldOut || (method === "მიტანა" && address.length < 3)}
                 onPaymentAuthorized={async (googlePayToken) => {
                   if (!realDb) {
-                    alert(language === "en"
+                    toast.error(language === "en"
                       ? "This is a demo listing — not available for purchase."
                       : language === "ru"
                       ? "Это демо-предложение — покупка недоступна."
@@ -475,6 +478,7 @@ function OfferPage() {
                         offerId: offer.id,
                         storeId: offer.storeId,
                         amount: total,
+                        quantity,
                         method: isDelivery ? "delivery" : "pickup",
                         deliveryAddress: isDelivery ? address : undefined,
                         googlePayToken,
@@ -489,7 +493,7 @@ function OfferPage() {
                       navigate({ to: "/orders/$id", params: { id: orderId } });
                     }
                   } catch (e) {
-                    alert(e instanceof Error ? e.message : String(e));
+                    toast.error(e instanceof Error ? e.message : String(e));
                   }
                 }}
                 onFallback={() => setPayment("BOG")}

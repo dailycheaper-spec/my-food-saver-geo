@@ -6,6 +6,7 @@ import { parseOfferText } from "@/lib/ai-offer.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/ai")({
   head: () => ({ meta: [{ title: "AI Mode — Cheaper" }] }),
@@ -42,14 +43,14 @@ function AiOfferPage() {
       const r = (await parse({ data: { text } })) as Draft;
       setDraft(r);
     } catch (e: any) {
-      alert("AI: " + e.message);
+      toast.error("AI: " + e.message);
     }
     setLoading(false);
   }
 
   function toggleMic() {
     const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-    if (!SR) { alert(t("unsupported")); return; }
+    if (!SR) { toast.error(t("unsupported")); return; }
     if (listening) { setListening(false); return; }
     const rec = new SR();
     rec.lang = "ka-GE";
@@ -81,7 +82,7 @@ function AiOfferPage() {
       is_active: true,
     });
     setPublishing(false);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     navigate({ to: "/partner/offers" });
   }
 

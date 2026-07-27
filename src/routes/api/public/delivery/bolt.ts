@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createHmac, timingSafeEqual } from "crypto";
 import { getProvider } from "@/lib/delivery/registry";
 
 export const Route = createFileRoute("/api/public/delivery/bolt")({
@@ -10,6 +9,7 @@ export const Route = createFileRoute("/api/public/delivery/bolt")({
         const body = await request.text();
         if (!secret) return new Response("Provider not configured", { status: 501 });
 
+        const { createHmac, timingSafeEqual } = await import("crypto");
         const signature = request.headers.get("x-bolt-signature") ?? "";
         const expected = createHmac("sha256", secret).update(body).digest("hex");
         const a = Buffer.from(signature), b = Buffer.from(expected);

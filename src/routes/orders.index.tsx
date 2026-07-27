@@ -54,7 +54,7 @@ export function useStageLabel(): (s: Stage) => string {
 
 function Orders() {
   const { t, language } = useI18n();
-  const { orders, loading } = useMyOrders();
+  const { orders, loading, error } = useMyOrders();
   const [tab, setTab] = useState<Stage | "all">("all");
   const stageLabel = useStageLabel();
 
@@ -102,6 +102,12 @@ function Orders() {
           );
         })}
       </div>
+
+      {error && (
+        <div className="mt-4 bg-destructive/10 text-destructive text-sm rounded-2xl border border-destructive/30 p-4">
+          {t("loadErrorGeneric")}
+        </div>
+      )}
 
       <div className="mt-4 space-y-2 sm:mt-5 sm:space-y-3">
         {loading ? (

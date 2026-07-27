@@ -43,7 +43,7 @@ function Home() {
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
   const hydrated = useHydrated();
-  const { offers: dbOffers } = useLiveDbCardOffers();
+  const { offers: dbOffers, error: offersError } = useLiveDbCardOffers();
   const { city } = useCity();
 
   // Real offers only — filtered to the currently selected city.
@@ -343,7 +343,12 @@ function Home() {
           <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
         </div>
 
-        {nearby.length === 0 ? (
+        {offersError ? (
+          <div className="text-center py-10 sm:py-14 bg-card rounded-3xl border border-destructive/30">
+            <div className="text-4xl mb-2">⚠️</div>
+            <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
+          </div>
+        ) : nearby.length === 0 ? (
           <div className="text-center py-10 sm:py-14 bg-card rounded-3xl border border-border">
             <div className="text-4xl mb-2">🥲</div>
             <p className="text-sm text-muted-foreground">{t("noResults")}</p>

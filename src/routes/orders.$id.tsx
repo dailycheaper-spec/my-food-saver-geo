@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
 import { StoreLogo } from "@/components/StoreLogo";
+import { OrderCardSkeleton } from "@/components/Skeleton";
 import { stageOfDbOrder, useStageLabel } from "./orders.index";
 
 export const Route = createFileRoute("/orders/$id")({
@@ -25,6 +26,7 @@ function OrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<OrderWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showGift, setShowGift] = useState(false);
   const [giftName, setGiftName] = useState("");
   const [giftMode, setGiftMode] = useState<"friend" | "charity">("friend");
@@ -33,8 +35,12 @@ function OrderDetail() {
   useEffect(() => {
     let alive = true;
     async function load() {
-      const row = await fetchOrder(id);
-      if (alive) { setOrder(row); setLoading(false); }
+      try {
+        const row = await fetchOrder(id);
+        if (alive) { setOrder(row); setLoadError(null); setLoading(false); }
+      } catch (e) {
+        if (alive) { setLoadError(e instanceof Error ? e.message : String(e)); setLoading(false); }
+      }
     }
     load();
     const channel = supabase
@@ -45,7 +51,19 @@ function OrderDetail() {
   }, [id]);
 
   if (loading) {
-    return <div className="p-8 text-center text-sm text-muted-foreground">…</div>;
+    return (
+      <div className="mx-auto max-w-2xl px-4 pt-6">
+        <OrderCardSkeleton />
+      </div>
+    );
+  }
+  if (loadError) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-destructive text-sm">{t("loadErrorGeneric")}</p>
+        <Link to="/orders" className="text-primary underline text-sm mt-2 inline-block">{t("myOrders")}</Link>
+      </div>
+    );
   }
   if (!order) {
     return (

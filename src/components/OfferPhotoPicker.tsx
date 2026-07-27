@@ -3,6 +3,7 @@ import { Image as ImageIcon, Sparkles, Camera, Upload, Loader2, AlertTriangle } 
 import { useServerFn } from "@tanstack/react-start";
 import { generateOfferImage } from "@/lib/ai-image.functions";
 import { useI18n } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export function OfferPhotoPicker({
   value,
@@ -37,13 +38,13 @@ export function OfferPhotoPicker({
 
   async function aiGenerate() {
     const prompt = promptText.trim();
-    if (!prompt) { alert(t("productName")); return; }
+    if (!prompt) { toast.error(t("productName")); return; }
     setGenAi(true);
     try {
       const r = (await generateImg({ data: { prompt } })) as { dataUrl: string };
       setImgError(false);
       onChange(r.dataUrl);
-    } catch (e: any) { alert("AI: " + e.message); }
+    } catch (e: any) { toast.error("AI: " + e.message); }
     setGenAi(false);
   }
 

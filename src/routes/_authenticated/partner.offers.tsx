@@ -8,6 +8,7 @@ import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/Disco
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
   head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
@@ -18,7 +19,7 @@ function OffersPage() {
   const { t } = useI18n();
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
-  const { offers } = useStoreOffers(store?.id ?? null);
+  const { offers, error: offersError } = useStoreOffers(store?.id ?? null);
   const [editing, setEditing] = useState<DbOffer | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -37,7 +38,11 @@ function OffersPage() {
         </div>
       </div>
 
-      {offers.length === 0 ? (
+      {offersError ? (
+        <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-8 text-center">
+          <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
+        </div>
+      ) : offers.length === 0 ? (
         <div className="bg-card rounded-2xl border border-border p-8 text-center">
           <div className="text-4xl mb-3">📦</div>
           <p className="text-sm text-muted-foreground">{t("noOffersYet")}</p>
@@ -163,10 +168,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     const orig = Number(form.original_price);
     const disc = Number(form.discounted_price);
     if (computePct(orig, disc) < MIN_DISCOUNT_PCT) {
-      alert(t("minDiscount50"));
+      toast.error(t("minDiscount50"));
       return;
     }
-    if (imgInvalid) { alert(t("imageLoadFailed")); return; }
+    if (imgInvalid) { toast.error(t("imageLoadFailed")); return; }
     setSaving(true);
     const payload = {
       store_id: storeId,

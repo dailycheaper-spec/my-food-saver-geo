@@ -20,7 +20,7 @@ function Profile() {
   const favs = useFavorites();
   const { user, profile, loading, reloadProfile } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
+  const { isAdmin, isPartner, loading: rolesLoading, error: rolesError } = useMyRole();
   const { stores: followedStores } = useFollowedStores();
   const { refresh: refreshFollows } = useFollowedStoreIds();
   async function handleUnfollow(storeId: string) {
@@ -137,14 +137,19 @@ function Profile() {
             <span className="flex-1">{t("permissionsLoading")}</span>
           </div>
         )}
-        {user && !rolesLoading && (isPartner || isAdmin) && (
+        {user && !rolesLoading && rolesError && (
+          <div className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium text-destructive">
+            <span className="flex-1">{t("permissionsLoadError")}</span>
+          </div>
+        )}
+        {user && !rolesLoading && !rolesError && (isPartner || isAdmin) && (
           <Link to="/partner" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-primary"><Store className="w-4 h-4" /></span>
             <span className="flex-1">{t("partnerPanel")}</span>
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
-        {user && !rolesLoading && !isPartner && !isAdmin && (
+        {user && !rolesLoading && !rolesError && !isPartner && !isAdmin && (
           <Link to="/partner-apply" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-primary"><Store className="w-4 h-4" /></span>
             <span className="flex-1">{t("becomePartnerShort")}</span>
