@@ -890,6 +890,7 @@ const labels: Record<Language, Record<string, string>> = {
     "map.openInMap": "Open in map",
     "map.coordsInvalid": "Invalid coordinates",
     "map.locationMissing": "Location not set",
+    "map.save": "Save",
   },
 
   ru: {
@@ -1332,6 +1333,7 @@ const labels: Record<Language, Record<string, string>> = {
     "map.openInMap": "Открыть на карте",
     "map.coordsInvalid": "Неверные координаты",
     "map.locationMissing": "Местоположение не указано",
+    "map.save": "Экономия",
   },
 };
 
