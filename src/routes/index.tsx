@@ -11,6 +11,7 @@ import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
+import { UserMenu } from "@/components/UserMenu";
 import { ScrollableRow } from "@/components/ScrollableRow";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
@@ -222,9 +223,7 @@ function Home() {
               </Link>
             )}
             {user && !rolesLoading && !isAdmin && !isPartner && (
-              <Link to="/profile" className="h-10 w-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none" aria-label={t("profile")}>
-                <User className="w-[18px] h-[18px]" aria-hidden="true" />
-              </Link>
+              <UserMenu />
             )}
           </div>
         </div>
