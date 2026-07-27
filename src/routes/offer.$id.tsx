@@ -18,7 +18,6 @@ import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
-import { StoreLogo } from "@/components/StoreLogo";
 import { GooglePayButton } from "@/components/GooglePayButton";
 import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
