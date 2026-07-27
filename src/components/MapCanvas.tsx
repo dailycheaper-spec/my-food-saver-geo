@@ -80,7 +80,7 @@ function HybridReferenceOverlay() {
   );
 }
 
-function readStoredLayer(key: string): MapLayerId {
+export function readStoredLayer(key: string): MapLayerId {
   if (typeof window === "undefined") return "standard";
   const v = window.localStorage.getItem(`${key}:layer`);
   if (v === "standard" || v === "satellite" || v === "hybrid") return v;
@@ -92,6 +92,7 @@ function readStoredZoom(key: string, fallback: number): number {
   const n = raw != null ? Number(raw) : NaN;
   return Number.isFinite(n) && n >= 3 && n <= 20 ? n : fallback;
 }
+
 
 export default function MapCanvas({
   center,
