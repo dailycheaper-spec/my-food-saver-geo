@@ -353,7 +353,7 @@ const labels: Record<Language, Record<string, string>> = {
     surpriseMe: "გამაკვირვე",
     badgeNew: "ახალი",
     badgeEndingSoon: "იწურება",
-    badgeAlmostGone: "ბოლო ცალები",
+    badgeAlmostGone: "ბოლო ერთეული",
     badgeTrusted: "სანდო პარტნიორი",
     badgeFavStore: "საყვარელი მაღაზია",
     badgeSurprise: "სიურპრიზი",

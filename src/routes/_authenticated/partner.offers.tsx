@@ -220,7 +220,6 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
             <OfferPhotoPicker
               value={form.image_url}
               onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
-              promptText={form.title || form.description}
               compact
               onValidityChange={setImgInvalid}
             />

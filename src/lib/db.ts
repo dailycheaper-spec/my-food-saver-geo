@@ -41,17 +41,16 @@ function sortPartnerStores(stores: DbStore[]): DbStore[] {
   });
 }
 
+// getSession() awaits the Supabase client's own storage-init promise
+// internally, so a single call already waits for the session to be readable
+// from localStorage — no need to poll it in a loop. Falls back to getUser()
+// (a network round-trip) only when no local session was found at all.
 async function getCurrentUserId(): Promise<string | null> {
   try {
-    for (let i = 0; i < 8; i += 1) {
-      const { data } = await supabase.auth.getSession();
-      const id = data.session?.user.id;
-      if (id) return id;
-      await new Promise((resolve) => setTimeout(resolve, 125));
-    }
-
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id ?? null;
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user.id) return data.session.user.id;
+    const { data: userData } = await supabase.auth.getUser();
+    return userData.user?.id ?? null;
   } catch {
     return null;
   }
@@ -59,15 +58,11 @@ async function getCurrentUserId(): Promise<string | null> {
 
 async function getCurrentUserIdentity(): Promise<{ id: string; email: string | null } | null> {
   try {
-    for (let i = 0; i < 8; i += 1) {
-      const { data } = await supabase.auth.getSession();
-      const user = data.session?.user;
-      if (user?.id) return { id: user.id, email: user.email?.trim().toLowerCase() ?? null };
-      await new Promise((resolve) => setTimeout(resolve, 125));
-    }
-
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id ? { id: data.user.id, email: data.user.email?.trim().toLowerCase() ?? null } : null;
+    const { data } = await supabase.auth.getSession();
+    const sessionUser = data.session?.user;
+    if (sessionUser?.id) return { id: sessionUser.id, email: sessionUser.email?.trim().toLowerCase() ?? null };
+    const { data: userData } = await supabase.auth.getUser();
+    return userData.user?.id ? { id: userData.user.id, email: userData.user.email?.trim().toLowerCase() ?? null } : null;
   } catch {
     return null;
   }

@@ -5,6 +5,7 @@ import type { Offer } from "@/lib/mock-data";
 import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
+import { StoreLogo } from "@/components/StoreLogo";
 
 function minutesUntil(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
@@ -152,8 +153,8 @@ export function OfferCard({ offer }: { offer: Offer }) {
 
         {/* bottom pill */}
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
-          <div className="w-9 h-9 rounded-full bg-card grid place-items-center text-lg shadow-soft shrink-0">
-            {offer.storeLogo}
+          <div className="w-9 h-9 rounded-full bg-card grid place-items-center text-lg shadow-soft shrink-0 overflow-hidden">
+            <StoreLogo value={offer.storeLogo} emojiClassName="text-lg" />
           </div>
           <div className="flex-1 min-w-0 text-card-foreground bg-card/95 rounded-xl px-2.5 py-1.5">
             <div className="text-xs font-bold truncate flex items-center gap-1">

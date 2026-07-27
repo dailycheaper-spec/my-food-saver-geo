@@ -85,8 +85,8 @@ export function DiscountFields({ original, discounted, onChange, variant = "grid
 
 function FieldBox({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
-      <div className="text-xs font-medium text-muted-foreground mb-1.5">{label}</div>
+    <label className="flex flex-col">
+      <div className="text-xs font-medium text-muted-foreground mb-1.5 leading-tight min-h-[2rem] flex items-end">{label}</div>
       {children}
     </label>
   );

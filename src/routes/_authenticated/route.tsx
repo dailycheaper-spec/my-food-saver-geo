@@ -19,29 +19,23 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 async function waitForUser() {
-  const sessionResult = await supabase.auth.getSession();
-  if (!sessionResult.data.session?.user) {
-    return { data: { user: null }, error: null };
+  // getSession() reads the persisted session from localStorage (refreshing it
+  // first if it's expired) without a round-trip to validate it server-side.
+  // That's fine here: this only gates which UI to show. Every actual data
+  // request still goes through Supabase RLS, which independently verifies the
+  // JWT on the server, so a tampered/forged local session can't read or write
+  // anything regardless of what this check decides.
+  //
+  // The previous version additionally required auth.getUser() (a real network
+  // round-trip) to succeed, and retried it up to 15 times / 200ms apart when
+  // it didn't — adding up to 3s of blocking delay to every single navigation
+  // into an authenticated route, most noticeably right after switching back
+  // to the tab (when the token is most likely to need a refresh).
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.user) {
+    return { data: { user: null }, error };
   }
-
-  let lastResult = await supabase.auth.getUser();
-
-  for (let i = 0; i < 15; i += 1) {
-    if (lastResult.data.user) return lastResult;
-
-    const refreshedSession = await supabase.auth.getSession();
-    if (refreshedSession.data.session?.user) {
-      lastResult = await supabase.auth.getUser();
-      if (lastResult.data.user || !isMissingSessionError(lastResult.error)) return lastResult;
-    } else if (lastResult.error && !isMissingSessionError(lastResult.error)) {
-      return lastResult;
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    lastResult = await supabase.auth.getUser();
-  }
-
-  return lastResult;
+  return { data: { user: data.session.user }, error: null };
 }
 
 function AuthGateLoading() {
@@ -53,9 +47,4 @@ function AuthGateLoading() {
       </div>
     </div>
   );
-}
-
-function isMissingSessionError(error: unknown) {
-  if (!error || typeof error !== "object" || !("message" in error)) return false;
-  return String(error.message).toLowerCase().includes("session");
 }

@@ -144,7 +144,6 @@ function NewOfferPage() {
           <OfferPhotoPicker
             value={form.image_url}
             onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
-            promptText={form.title || form.description}
             onValidityChange={setImgInvalid}
           />
         </div>

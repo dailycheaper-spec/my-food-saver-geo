@@ -19,6 +19,7 @@ import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
 import { GooglePayButton } from "@/components/GooglePayButton";
+import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -279,7 +280,7 @@ function OfferPage() {
             params={{ id: offer.storeId }}
             className="flex items-center gap-3 -m-1 p-1 rounded-2xl hover:bg-secondary/50 transition-colors"
           >
-            <div className="w-12 h-12 rounded-2xl gradient-warm grid place-items-center text-2xl shrink-0">{offer.storeLogo}</div>
+            <div className="w-12 h-12 rounded-2xl gradient-warm grid place-items-center text-2xl shrink-0 overflow-hidden"><StoreLogo value={offer.storeLogo} emojiClassName="text-2xl" /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1 min-w-0">
                 <div className="font-bold truncate">{storeName}</div>
@@ -521,8 +522,8 @@ function OfferPage() {
         {/* ---- Partner information ---- */}
         <SectionCard icon={<Shield className="w-4 h-4 text-primary" />} title={L.aboutStore}>
           <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl gradient-warm grid place-items-center text-3xl shrink-0">
-              {offer.storeLogo}
+            <div className="w-14 h-14 rounded-2xl gradient-warm grid place-items-center text-3xl shrink-0 overflow-hidden">
+              <StoreLogo value={offer.storeLogo} emojiClassName="text-3xl" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold flex items-center gap-1.5">
