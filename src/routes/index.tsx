@@ -571,6 +571,30 @@ function Home() {
         </div>
       </section>
 
+      {/* -------- Restaurant partner CTA (hidden once already a partner/admin) -------- */}
+      {!(user && !rolesLoading && (isAdmin || isPartner)) && (
+        <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-primary to-emerald-500 p-4 sm:p-5 shadow-elevated">
+            <div className="absolute -bottom-8 -right-6 opacity-20 select-none pointer-events-none">
+              <Store className="w-32 h-32 sm:w-36 sm:h-36" />
+            </div>
+            <div className="relative text-white">
+              <div className="flex items-center gap-2">
+                <Store className="w-5 h-5" />
+                <h2 className="font-display text-lg font-bold">{t("becomePartner")}</h2>
+              </div>
+              <p className="text-white/90 text-xs mt-1 max-w-[85%]">{t("partnerApplyText")}</p>
+              <Link
+                to="/partner-apply"
+                className="mt-3 inline-flex items-center gap-1.5 bg-white text-foreground text-sm font-bold px-4 py-2 rounded-full active:scale-95 transition-transform"
+              >
+                {t("becomePartnerShort")} <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* -------- Footer -------- */}
       <footer className="mx-auto max-w-6xl px-4 pt-8 pb-4 text-center sm:pt-10">
         <div className="flex justify-center mb-4">
