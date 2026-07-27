@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
+import { AndroidBackHandler } from "@/components/AndroidBackHandler";
 import { PwaInstall } from "@/components/PwaInstall";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
@@ -191,6 +192,7 @@ function RootComponent() {
             </main>
             <BottomNav />
             <AppTracker />
+            <AndroidBackHandler />
             <PwaInstall />
             <Toaster position="top-center" richColors />
             <UpdatePrompt />
