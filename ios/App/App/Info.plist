@@ -47,5 +47,28 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+
+	<!-- Permission usage descriptions (Georgian + English) -->
+	<key>NSCameraUsageDescription</key>
+	<string>Cheaper იყენებს კამერას QR კოდის სკანირებისთვის და შეთავაზების, ლოგოს და პროფილის ფოტოს გადასაღებად. / Cheaper uses the camera to scan pickup QR codes and to capture offer, store logo, and profile photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Cheaper იყენებს ფოტოთეკას შეთავაზების, ლოგოს და პროფილის სურათის ასარჩევად. / Cheaper accesses your photo library to select offer, store logo, and profile pictures.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Cheaper ინახავს QR კვიტანციებს თქვენს ფოტოთეკაში. / Cheaper saves QR receipts to your photo library.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cheaper იყენებს მდებარეობას რუკაზე ახლომდებარე ფასდაკლებული შეთავაზებების საჩვენებლად და მიტანის მისამართისთვის. / Cheaper uses your location to show nearby discounted offers on the map and for delivery addressing.</string>
+
+	<!-- Deep-link scheme for OAuth and BOG payment returns (handled in src/routes/__root.tsx) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ge.cheaper.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ge.cheaper.app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
