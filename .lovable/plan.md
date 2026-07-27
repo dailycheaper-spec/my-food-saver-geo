@@ -1,29 +1,81 @@
-## 1. Smoother drag on horizontal carousels
 
-`ScrollableRow` in `src/routes/index.tsx` handles mouse drag by writing `scrollLeft` directly on every pointer move, with no inertia and no momentum after release — so dragging feels sticky and stops dead. It's also defined inline in the homepage file, so other routes can't reuse it.
+## Goal
 
-Changes:
-- Extract it to `src/components/ScrollableRow.tsx` and import it in `index.tsx` (and reuse it later wherever card rows exist).
-- Drive scroll position inside `requestAnimationFrame` instead of on each pointer event, so updates land once per frame (no jitter on high-rate mice/trackpads).
-- Add release momentum: track pointer velocity over the last few frames and glide with exponential decay after pointer-up, clamped at the row edges, cancelled on a new pointer-down.
-- Add `cursor-grab` / `active:cursor-grabbing`, and `touch-action: pan-x` plus `overscroll-behavior-x: contain` so a horizontal drag never fights vertical page scroll.
-- Keep touch/pen on native scrolling (already correct — native momentum is better), keep the existing click-suppression-after-drag guard.
-- Respect `prefers-reduced-motion`: skip the momentum glide.
+Eliminate all hardcoded Georgian strings inside the map experience and make every visible label switch instantly with the app language (ka / en / ru), using the existing `useI18n()` system in `src/lib/i18n.tsx`. Add locale-aware distance and radius formatting helpers.
 
-## 2. Top bar — compact icons only (mobile fix)
+## Files updated
 
-The screenshot shows the city label colliding with the ქარ/EN/РУ segmented switcher: logo + city + 3 language pills + bell + login exceed 394px, so text overlaps the pills.
+**Translation source**
+- `src/lib/i18n.tsx` — add a `map.*` group of keys under each of `ka/en/ru`. New keys (grouped, dot-namespaced) cover:
+  - Layers: `map.layer.standard`, `map.layer.satellite`, `map.layer.hybrid`, `map.layer.aria`, `map.layer.menu`
+  - Controls: `map.locate`, `map.myLocation`, `map.locationOff`, `map.enable`, `map.retry`, `map.loading`, `map.close`, `map.clear`, `map.clearSearch`, `map.filter`, `map.filterActive`
+  - Search: `map.searchPlaceholder`, `map.searchAria`, `map.partners`, `map.dishes`, `map.categories`, `map.districts`
+  - Filters: `map.sort`, `map.category`, `map.district`, `map.filters`, `map.sortNearest`, `map.sortMaxDiscount`, `map.sortEndingSoon`, `map.new`, `map.favorites`, `map.availableNow`, `map.unavailable`
+  - Popup: `map.activeOffers`, `map.currentlyUnavailable`, `map.pricesFrom`, `map.directions`, `map.favorite`, `map.almostGone`, `map.soldOut`, `map.left`, `map.expandRadius`, `map.noOffersRadius`
+  - SEO: `map.metaTitle`, `map.metaDescription`
+  - Distance/radius suffixes: `map.unit.m`, `map.unit.km`, `map.radiusCityWide`, `map.visibilityCityHint`, `map.visibilityRadiusHint`
+  - Store picker/mini-map: `map.locationOnMap`, `map.openInMap`, `map.storeMarkerFromPrice` (the `X₾-დან` suffix — split into a locale-aware `formatFromPrice` helper)
 
-Changes in `src/routes/index.tsx` header and `src/lib/i18n.tsx`:
-- Replace the 3-pill switcher on mobile with a single globe icon button (44×44) that opens a small dropdown listing ქართული / English / Русский with a check on the active one. The segmented pills stay at `sm:` and above.
-- City selector keeps `min-w-0 flex-1` and its label truncates; hide the "ქალაქი" caption line on very narrow widths so the city name gets the space.
-- Give the action cluster `shrink-0` and a uniform 44px icon-button size (bell, globe, profile/login) with `gap-1`.
-- Same treatment on the other headers using `LanguageSwitcher` (`profile.tsx`, `partner.tsx`, `partner-apply.tsx`, `auth.tsx`) so the switcher behaves identically everywhere.
+**Geo helpers (locale-aware formatting)**
+- `src/lib/geo.ts` — extend with:
+  - `formatDistanceLocalized(km, language)` returning `320 მ` / `320 m` / `320 м`, `1.2 კმ` / `1.2 km` / `1,2 км` (Russian uses `,` decimal via `Intl.NumberFormat("ru-RU")`).
+  - `formatRadiusLabel(km, language)` returning `500 მ` / `1 კმ` / `1 km` / `1 км`. Handles sub-1 km values so we can add a `0.5 km` option later without new strings.
+  - Keep existing `formatDistance` for back-compat but mark deprecated so nothing else silently uses Georgian units.
 
-## 3. Verification
+**Map components**
+- `src/routes/map.tsx`
+  - Localize `head.meta` (title + description) via `map.metaTitle` / `map.metaDescription` (route `head()` can't call hooks, so read from a small module-level `getLocalizedHead()` that inspects the persisted language from `localStorage`; falls back to Georgian on SSR). Component still updates all in-view text through `t()`.
+  - Replace every `L("...", "...", "...")` inline literal with `t("map.*")` keys. Remove the local `L` helper.
+  - Replace `formatDistance(...)` calls with `formatDistanceLocalized(..., language)`.
+  - Replace the hardcoded `-დან` suffix on `formatPrice(selectedStore.minPrice) + "-დან"` with `t("map.pricesFrom")` used as a prefix in all languages (drop the KA-only postfix hack).
+  - Keep district/category filters using existing helpers (already localized).
 
-Playwright at 390px and 320px width on `/`, `/search`, `/map`, `/profile`: confirm `document.documentElement.scrollWidth` equals the viewport width (no horizontal overflow), the top bar has no overlapping boxes, and a drag on the category row scrolls smoothly and coasts. Then run the typecheck to zero errors.
+- `src/components/MapCanvas.tsx` — no visible strings today, but pass through `language` prop only if needed. No changes expected other than importing `formatDistanceLocalized` if it ever renders distance (it doesn't right now).
 
-### Technical notes
-- No backend, data, or business-logic changes — presentation and interaction only.
-- Momentum uses plain rAF, no new dependency.
+- `src/components/map/MapLayerSelector.tsx`
+  - Use `useI18n()` and read layer labels from `t("map.layer.standard|satellite|hybrid")`. Replace `aria-label="რუკის ფენა"` with `t("map.layer.menu")`.
+
+- `src/components/map/LocationButton.tsx`
+  - Default `label` fallback becomes `t("map.myLocation")` via `useI18n()` instead of hardcoded `"My location"`.
+
+- `src/components/map/StoreMarker.tsx`
+  - The `X₾-დან` string baked into the DivIcon HTML is Georgian-only. Accept `fromPriceLabel` (already-localized string like `"1.20₾+"` in EN/RU, `"1.20₾-დან"` in KA) from `map.tsx` via `MapStore` (new field `minPriceLabel: string`) so the marker never needs to know the language. Build the label in `map.tsx` using `t("map.pricesFrom")` + `formatPrice`.
+
+- `src/components/CustomerRadiusFilter.tsx`
+  - Use `useI18n()` and render `formatRadiusLabel(r, language)` instead of `` `${r} კმ` ``.
+
+- `src/components/VisibilityRadiusSelector.tsx`
+  - Options render with `formatRadiusLabel`. The "50 = whole city" option label uses `t("map.radiusCityWide")`. Helper text uses `t("map.visibilityCityHint")` / `t("map.visibilityRadiusHint")` (with `{value}` interpolation via a small `format(str, vars)` util already suitable for the plain `.replace("{value}", …)` pattern used elsewhere).
+
+- `src/components/OfferMiniMap.tsx`
+  - Localize section title (`map.locationOnMap`), external-link aria (`map.openInMap`), "my location" chip (already can reuse `map.myLocation`), and distance formatting via `formatDistanceLocalized`.
+
+- `src/components/StoreLocationPreview.tsx`
+  - Localize `"კოორდინატები არასწორია"` and `"მდებარეობა არ არის მითითებული"` (new keys `map.coordsInvalid`, `map.locationMissing`).
+
+- `src/components/StoreLocationPicker.tsx`
+  - No user-visible Georgian strings today; keep as-is except forwarding `useI18n` if we later add hints. No change this pass.
+
+## Non-goals
+
+- No visual/layout changes.
+- No changes to filter logic, clustering, geolocation, or persisted keys.
+- No new languages, no new translation infra (reuse `useI18n` + `t()` + flat keys with `map.` prefix; nested/dot keys are just strings in the flat map, matching the existing convention).
+- No changes to `hooks/use-user-location.tsx` (already localized).
+
+## Technical notes
+
+- `map.tsx` `Route.head()` runs outside React, so it can't use `useI18n()`. We read `localStorage.getItem("cheaper-language")` inside `head()` and pick the matching title/description from a small object. This mirrors how other localized routes handle head meta.
+- Russian decimal separator: use `new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 }).format(km)` for `km >= 1`. English uses `en-US`. Georgian keeps `toFixed(1)` (dot separator matches current UI).
+- No key concatenation of translated strings — the "Filter (N active)" aria-label is composed via a single template key `map.filterActive` that takes `{count}`, e.g. `"ფილტრი ({count} აქტიური)"`.
+
+## Quality check checklist (executed after implementation)
+
+1. `rg -n "კმ|რუკ|მდებარეობ|ფენ" src/components/ src/routes/map.tsx src/lib/geo.ts` returns zero hits outside `i18n.tsx`.
+2. `bunx tsgo --noEmit` clean.
+3. Manual switch ka → en → ru on `/map` updates: layer selector, radius chips, filter chips, search placeholder, empty state, selected-store popup (distance format, "from" price, directions, favorite), "Location off" banner, loading fallback, and the SEO title (on next full navigation).
+
+## Future work (out of scope, called out)
+
+- `MapCanvas` and `StoreMarker` DivIcon HTML still contains inline `⏳ / ✕` glyphs and no textual "almost gone / sold out" tooltip. Adding an accessible tooltip layer would let us localize those. Tracked but not done here.
+- Toast notifications ("Location updated", "Layer changed", etc.) — the app currently has no toast on layer/radius change; adding them is a UX addition, not an i18n fix, so out of scope.
