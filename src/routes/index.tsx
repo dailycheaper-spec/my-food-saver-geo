@@ -11,6 +11,7 @@ import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
+import { UserMenu } from "@/components/UserMenu";
 import { ScrollableRow } from "@/components/ScrollableRow";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
