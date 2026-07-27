@@ -81,6 +81,22 @@ function Profile() {
         )}
       </div>
 
+      {(!user || (!rolesLoading && !rolesError && !isPartner && !isAdmin)) && (
+        <Link
+          to="/partner-apply"
+          className="mt-4 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-emerald-600 via-primary to-emerald-500 text-white p-4 shadow-card active:scale-[0.99] transition-transform"
+        >
+          <div className="w-11 h-11 rounded-xl bg-white/15 grid place-items-center shrink-0">
+            <Store className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm">{t("becomePartner")}</div>
+            <div className="text-xs text-white/85 mt-0.5 line-clamp-2">{t("partnerApplyText")}</div>
+          </div>
+          <span className="text-white/80 text-lg shrink-0">›</span>
+        </Link>
+      )}
+
       <div className="mt-4 grid grid-cols-3 gap-2">
         <Stat icon={<PiggyBank className="w-4 h-4" />} label={t("moneySaved")} value={formatPrice(moneySaved)} />
         <Stat icon={<ShoppingBag className="w-4 h-4" />} label={t("ordersCompleted")} value={String(completed)} />
@@ -146,13 +162,6 @@ function Profile() {
           <Link to="/partner" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
             <span className="text-primary"><Store className="w-4 h-4" /></span>
             <span className="flex-1">{t("partnerPanel")}</span>
-            <span className="text-muted-foreground">›</span>
-          </Link>
-        )}
-        {user && !rolesLoading && !rolesError && !isPartner && !isAdmin && (
-          <Link to="/partner-apply" className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors">
-            <span className="text-primary"><Store className="w-4 h-4" /></span>
-            <span className="flex-1">{t("becomePartnerShort")}</span>
             <span className="text-muted-foreground">›</span>
           </Link>
         )}
