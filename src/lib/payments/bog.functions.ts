@@ -123,10 +123,15 @@ export const startBogCheckout = createServerFn({ method: "POST" })
           { quantity: 1, unit_price: Number(order.amount), product_id: data.offerId },
         ],
       },
-      redirect_urls: {
-        success: `${origin}/orders/${order.id}?payment=processing`,
-        fail: `${origin}/orders/${order.id}?payment=failed`,
-      },
+      redirect_urls: data.nativeReturn
+        ? {
+            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
+            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
+          }
+        : {
+            success: `${origin}/orders/${order.id}?payment=processing`,
+            fail: `${origin}/orders/${order.id}?payment=failed`,
+          },
     };
 
     const createRes = await fetch(`${BOG_API_BASE}/ecommerce/orders`, {
@@ -200,10 +205,15 @@ export const startBogGooglePayCheckout = createServerFn({ method: "POST" })
           { quantity: 1, unit_price: Number(order.amount), product_id: data.offerId },
         ],
       },
-      redirect_urls: {
-        success: `${origin}/orders/${order.id}?payment=processing`,
-        fail: `${origin}/orders/${order.id}?payment=failed`,
-      },
+      redirect_urls: data.nativeReturn
+        ? {
+            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
+            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
+          }
+        : {
+            success: `${origin}/orders/${order.id}?payment=processing`,
+            fail: `${origin}/orders/${order.id}?payment=failed`,
+          },
     };
 
     // BOG "External Google Pay Order" endpoint — see docs link at top.
