@@ -308,18 +308,31 @@ function MapPage() {
 
   return (
     <div className="fixed inset-0 top-0 bottom-16 flex flex-col bg-background">
-      <div className="absolute top-0 inset-x-0 z-[1000] p-3 flex items-center justify-between gap-2 pointer-events-none">
+      {/* Back button (top-left) */}
+      <div className="absolute top-3 left-3 z-[1000] pointer-events-none">
         <Link to="/" className="pointer-events-auto w-10 h-10 rounded-full bg-card shadow-elevated grid place-items-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="pointer-events-auto bg-card shadow-elevated rounded-full px-4 py-2 text-sm font-semibold flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-primary" /> {t("mapView")} · {stores.length}
-        </div>
-        <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
       </div>
 
-      <div className="absolute top-14 inset-x-0 z-[1000] px-3 pointer-events-none space-y-1.5">
-        <div ref={searchWrapRef} className="relative max-w-md mx-auto">
+      {/* Top-right floating control cluster */}
+      <div className="absolute top-3 right-3 z-[1000] flex flex-col items-end gap-2 pointer-events-none max-w-[calc(100vw-4.5rem)]">
+        <div className="flex items-center gap-2 flex-row-reverse pointer-events-auto">
+          <LocationButton onClick={askOrRefresh} label={t("myLocation")} />
+          <div
+            className="h-10 px-3 rounded-full bg-card shadow-elevated inline-flex items-center gap-1.5 text-sm font-semibold"
+            aria-label={fmt("map.activeOffers", { count: stores.length })}
+          >
+            <StoreIcon className="w-4 h-4 text-primary" aria-hidden="true" />
+            <span>{stores.length}</span>
+          </div>
+        </div>
+
+        <div className="pointer-events-auto">
+          <MapLayerSelector value={layer} onChange={setLayer} />
+        </div>
+
+        <div ref={searchWrapRef} className="relative w-[min(calc(100vw-2rem),20rem)] sm:w-80">
           <div className="pointer-events-auto bg-card/95 backdrop-blur shadow-elevated rounded-full p-1 flex items-center gap-1">
             <div className="flex-1 relative">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
@@ -458,9 +471,8 @@ function MapPage() {
           )}
         </div>
 
-
         {showFilters && (
-          <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in">
+          <div className="pointer-events-auto bg-card shadow-elevated rounded-2xl p-2 space-y-2 animate-fade-in w-[min(92vw,28rem)]">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
               <label className="shrink-0 text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5 pr-1 whitespace-nowrap">
@@ -566,10 +578,10 @@ function MapPage() {
                 </button>
               )}
             </div>
-
           </div>
         )}
       </div>
+
 
       <div className="flex-1 relative">
         {!location && status !== "prompting" && (
