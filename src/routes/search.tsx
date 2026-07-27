@@ -526,7 +526,7 @@ function SearchPage() {
                     <button
                       key={r}
                       onClick={() => setQ(r)}
-                      className="px-3 py-1.5 rounded-full bg-secondary text-xs font-medium hover:bg-muted"
+                      className="px-3 min-h-11 sm:min-h-0 py-1.5 inline-flex items-center rounded-full bg-secondary text-xs font-medium hover:bg-muted"
                     >
                       {r}
                     </button>
@@ -542,7 +542,7 @@ function SearchPage() {
                   <button
                     key={term}
                     onClick={() => { setQ(term); saveRecent(term); }}
-                    className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/15 active:scale-95 transition-all"
+                    className="px-4 min-h-11 sm:min-h-0 py-2 inline-flex items-center rounded-full bg-primary/10 text-primary text-sm font-semibold hover:bg-primary/15 active:scale-95 transition-all"
                   >
                     {term}
                   </button>
