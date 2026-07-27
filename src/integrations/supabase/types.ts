@@ -221,7 +221,6 @@ export type Database = {
           notes: string | null
           offer_id: string
           payout_id: string | null
-          quantity: number
           status: Database["public"]["Enums"]["order_status"]
           store_id: string
           updated_at: string
@@ -242,7 +241,6 @@ export type Database = {
           notes?: string | null
           offer_id: string
           payout_id?: string | null
-          quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
           store_id: string
           updated_at?: string
@@ -263,7 +261,6 @@ export type Database = {
           notes?: string | null
           offer_id?: string
           payout_id?: string | null
-          quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
           store_id?: string
           updated_at?: string
