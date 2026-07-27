@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ExternalLink, Navigation } from "lucide-react";
 import { DISTRICT_COORDS, TBILISI_CENTER, type Offer } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
+import { formatDistanceLocalized } from "@/lib/geo";
 
 function hashOffset(id: string): [number, number] {
   let h = 0;
@@ -27,6 +29,7 @@ function osmLink([lat, lng]: [number, number]) {
 }
 
 export function OfferMiniMap({ offer }: { offer: Offer }) {
+  const { t, language } = useI18n();
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const pos = offerCoords(offer);
 
@@ -42,18 +45,18 @@ export function OfferMiniMap({ offer }: { offer: Offer }) {
   return (
     <div className="mt-4 bg-card rounded-2xl shadow-card border border-border overflow-hidden">
       <div className="flex items-center justify-between px-5 pt-4 pb-2">
-        <div className="font-semibold">მდებარეობა რუკაზე</div>
+        <div className="font-semibold">{t("map.locationOnMap")}</div>
         <div className="flex items-center gap-3">
           <button onClick={locate} className="text-xs font-medium text-primary hover:underline">
-            📍 ჩემი მდებარეობა
+            📍 {t("map.myLocation")}
           </button>
-          <a href={osmLink(pos)} target="_blank" rel="noreferrer" className="text-primary" aria-label="რუკის გახსნა">
+          <a href={osmLink(pos)} target="_blank" rel="noreferrer" className="text-primary" aria-label={t("map.openInMap")}>
             <ExternalLink className="h-4 w-4" />
           </a>
         </div>
       </div>
       <div className="relative h-64 w-full bg-muted overflow-hidden">
-        <iframe title={`${offer.storeName} რუკაზე`} src={osmEmbed(pos)} className="h-full w-full border-0" loading="lazy" />
+        <iframe title={`${offer.storeName} — ${t("map.locationOnMap")}`} src={osmEmbed(pos)} className="h-full w-full border-0" loading="lazy" />
         {userPos && (
           <a
             href={osmLink(userPos)}
@@ -61,13 +64,13 @@ export function OfferMiniMap({ offer }: { offer: Offer }) {
             rel="noreferrer"
             className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-elevated"
           >
-            <Navigation className="h-3.5 w-3.5" /> ჩემი მდებარეობა
+            <Navigation className="h-3.5 w-3.5" /> {t("map.myLocation")}
           </a>
         )}
       </div>
       <div className="px-5 py-3 text-xs text-muted-foreground flex items-center justify-between">
         <span>{offer.address}, {offer.district}</span>
-        <span>~{offer.distanceKm} კმ</span>
+        <span>~{formatDistanceLocalized(offer.distanceKm, language)}</span>
       </div>
     </div>
   );
