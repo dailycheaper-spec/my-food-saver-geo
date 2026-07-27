@@ -107,20 +107,21 @@ function AdminLayout() {
       </aside>
 
       {/* Mobile header */}
-      <header className="lg:hidden sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border">
-        <div className="px-4 h-14 flex items-center justify-between gap-2">
-          <button onClick={() => setMobileOpen(true)} aria-label="Menu" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+      <header className="lg:hidden sticky top-0 z-30 bg-card/95 backdrop-blur border-b border-border pt-safe">
+        <div className="px-4 min-h-14 flex items-center justify-between gap-2">
+          <button onClick={() => setMobileOpen(true)} aria-label="Menu" className="tap-target grid place-items-center rounded-xl hover:bg-muted shrink-0">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-display font-bold truncate">Cheaper · ადმინი</div>
-          <div className="flex items-center gap-1.5">
+          <div className="font-display font-bold truncate min-w-0">Cheaper · ადმინი</div>
+          <div className="flex items-center gap-1.5 shrink-0">
             <CitySelector variant="pill" />
-            <button onClick={toggleTheme} aria-label="Theme" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted">
+            <button onClick={toggleTheme} aria-label="Theme" className="tap-target grid place-items-center rounded-xl hover:bg-muted">
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           </div>
         </div>
       </header>
+
 
       {/* Mobile drawer */}
       {mobileOpen && (
@@ -151,10 +152,11 @@ function AdminLayout() {
       )}
 
       <main className="lg:pl-64">
-        <div className="mx-auto max-w-7xl px-4 lg:px-8 py-6 lg:py-10">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8 pt-4 pb-24 lg:py-10">
           <Outlet />
         </div>
       </main>
+
     </div>
   );
 }

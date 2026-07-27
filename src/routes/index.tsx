@@ -1,15 +1,17 @@
 import { StoreLogo } from "@/components/StoreLogo";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
-  ChevronLeft, ChevronRight, Clock, Utensils, Gift, LogIn, User,
+  ChevronRight, Clock, Utensils, Gift, LogIn, User,
+
 } from "lucide-react";
 import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
 import { CitySelector } from "@/components/CitySelector";
+import { ScrollableRow } from "@/components/ScrollableRow";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
@@ -175,35 +177,40 @@ function Home() {
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
   return (
-    <div className="pb-4">
+    <div className="pb-24">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-2">
           <Link to="/" aria-label={t("brand")} className="shrink-0 press rounded-2xl focus-visible:outline-none">
-            <Logo />
+            <Logo compact />
           </Link>
 
-          <div className="mx-2 h-8 w-px bg-border/70 shrink-0" aria-hidden="true" />
+          <div className="mx-1 h-8 w-px bg-border/70 shrink-0 hidden sm:block" aria-hidden="true" />
 
-          <CitySelector variant="compact" />
+          <div className="min-w-0 flex-1">
+            <CitySelector variant="compact" />
+          </div>
 
-          <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <LanguageSwitcher compact />
             <Link
               to="/notifications"
               aria-label={t("navNotifications")}
-              className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
+              className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
             >
               <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
             </Link>
             {!user && !rolesLoading && (
               <Link
                 to="/auth"
-                className="h-10 px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center gap-1.5 press shadow-sm"
+                aria-label={t("signIn")}
+                className="h-11 min-w-11 px-2.5 sm:px-4 rounded-full bg-primary text-primary-foreground font-bold text-sm inline-flex items-center justify-center gap-1.5 press shadow-sm"
               >
-                <LogIn className="w-4 h-4" aria-hidden="true" /> {t("signIn")}
+                <LogIn className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span className="hidden sm:inline">{t("signIn")}</span>
               </Link>
             )}
+
             {user && !rolesLoading && isAdmin && (
               <Link to="/admin" className="h-10 px-3 rounded-full bg-destructive text-destructive-foreground font-semibold text-xs inline-flex items-center gap-1 press">
                 <Shield className="w-3.5 h-3.5" aria-hidden="true" /> {t("admin")}
@@ -624,142 +631,6 @@ function SectionHeader({
       </div>
       {children}
     </section>
-  );
-}
-
-function ScrollableRow({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({ canPrev: false, canNext: false });
-  const drag = useRef({
-    active: false,
-    pointerId: -1,
-    startX: 0,
-    scrollLeft: 0,
-    moved: false,
-  });
-
-  const stopDrag = (element: HTMLDivElement, pointerId: number) => {
-    drag.current.active = false;
-    try {
-      if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
-    } catch {}
-  };
-
-  const updateScrollState = () => {
-    const element = ref.current;
-    if (!element) return;
-    const maxScroll = element.scrollWidth - element.clientWidth;
-    setScrollState({
-      canPrev: element.scrollLeft > 4,
-      canNext: element.scrollLeft < maxScroll - 4,
-    });
-  };
-
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    updateScrollState();
-    element.addEventListener("scroll", updateScrollState, { passive: true });
-    window.addEventListener("resize", updateScrollState);
-    return () => {
-      element.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("resize", updateScrollState);
-    };
-  }, [children]);
-
-  const scrollByPage = (direction: -1 | 1) => {
-    const element = ref.current;
-    if (!element) return;
-    element.scrollBy({ left: direction * Math.max(180, element.clientWidth * 0.8), behavior: "smooth" });
-    window.setTimeout(updateScrollState, 320);
-  };
-
-  return (
-    <div className="relative">
-      <div
-        ref={ref}
-        draggable={false}
-        className={`flex gap-3 overflow-x-auto scrollbar-hide horizontal-scroll ${className}`}
-        onWheel={(event) => {
-          const element = event.currentTarget;
-          const maxScroll = element.scrollWidth - element.clientWidth;
-          if (maxScroll <= 0) return;
-
-          const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY);
-          const shiftWheel = event.shiftKey && Math.abs(event.deltaY) > 0;
-          if (!horizontalIntent && !shiftWheel) return;
-
-          const delta = horizontalIntent ? event.deltaX : event.deltaY;
-          const next = Math.max(0, Math.min(maxScroll, element.scrollLeft + delta));
-          if (next !== element.scrollLeft) {
-            event.preventDefault();
-            element.scrollLeft = next;
-          }
-        }}
-        onPointerDownCapture={(event) => {
-          // Only handle click-drag for mouse. Touch/pen use native scrolling.
-          if (event.pointerType !== "mouse" || event.button !== 0) return;
-          const element = event.currentTarget;
-          if (element.scrollWidth <= element.clientWidth) return;
-
-          drag.current = {
-            active: true,
-            pointerId: event.pointerId,
-            startX: event.clientX,
-            scrollLeft: element.scrollLeft,
-            moved: false,
-          };
-        }}
-        onPointerMoveCapture={(event) => {
-          const state = drag.current;
-          if (!state.active || state.pointerId !== event.pointerId) return;
-          if (event.pointerType !== "mouse") return;
-
-          const deltaX = event.clientX - state.startX;
-          if (!state.moved && Math.abs(deltaX) > 14) {
-            state.moved = true;
-            event.currentTarget.setPointerCapture(event.pointerId);
-          }
-          if (state.moved) event.preventDefault();
-          event.currentTarget.scrollLeft = state.scrollLeft - deltaX;
-        }}
-        onDragStart={(event) => event.preventDefault()}
-        onPointerUpCapture={(event) => stopDrag(event.currentTarget, event.pointerId)}
-        onPointerCancelCapture={(event) => stopDrag(event.currentTarget, event.pointerId)}
-        onClickCapture={(event) => {
-          if (!drag.current.moved) return;
-          drag.current.moved = false;
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-      >
-        {children}
-        <div className="w-12 shrink-0 snap-none" aria-hidden="true" />
-      </div>
-
-      {scrollState.canPrev && (
-        <button
-          type="button"
-          aria-label="Previous"
-          onClick={() => scrollByPage(-1)}
-          className="absolute left-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur sm:grid"
-        >
-          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-        </button>
-      )}
-
-      {scrollState.canNext && (
-        <button
-          type="button"
-          aria-label="Next"
-          onClick={() => scrollByPage(1)}
-          className="absolute right-2 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-card/95 text-foreground shadow-card backdrop-blur sm:grid"
-        >
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
-        </button>
-      )}
-    </div>
   );
 }
 

@@ -47,7 +47,7 @@ function Profile() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6">
+    <div className="page-shell">
       <div className="mb-3 flex justify-end"><LanguageSwitcher /></div>
       <div className="bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-4">

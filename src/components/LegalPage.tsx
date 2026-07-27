@@ -7,7 +7,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
+    <div className="page-shell">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground mb-4">
         <ArrowLeft className="w-4 h-4" /> {doc.back}
       </Link>

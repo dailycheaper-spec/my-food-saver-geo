@@ -7,8 +7,18 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Unique id per build, baked into the client + server bundles so the running
+// app can detect that a newer web build has been published (see src/lib/build-id.ts).
+const BUILD_ID =
+  process.env.LOVABLE_BUILD_ID ||
+  process.env.CF_PAGES_COMMIT_SHA ||
+  Date.now().toString(36);
+
 export default defineConfig({
   vite: {
+    define: {
+      __APP_BUILD_ID__: JSON.stringify(BUILD_ID),
+    },
     optimizeDeps: {
       exclude: ["@lovable.dev/cloud-auth-js"],
     },

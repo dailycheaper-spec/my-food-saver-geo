@@ -36,9 +36,9 @@ function AdminOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">მთავარი</h1>
+      <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">მთავარი</h1>
           <p className="text-sm text-muted-foreground mt-1">დღევანდელი მიმოხილვა და რეალურ დროში აქტივობა</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold">

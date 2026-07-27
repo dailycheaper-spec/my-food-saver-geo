@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ka">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Cheaper</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #3d7a4a; color: #fff;
+        font-family: -apple-system, "Noto Sans Georgian", system-ui, sans-serif; }
+      .wrap { min-height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; }
+      .badge { width: 96px; height: 96px; border-radius: 24px; background: #ffffff22;
+        display: grid; place-items: center; font-size: 48px; font-weight: 800; margin: 0 auto 16px; }
+      p { opacity: .85; margin: 8px 0 0; }
+      button { margin-top: 20px; padding: 12px 20px; border-radius: 14px; border: 0;
+        background: #fff; color: #3d7a4a; font-weight: 700; font-size: 15px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <div class="badge">C</div>
+        <h1 style="margin:0;font-size:22px">Cheaper</h1>
+        <p>ინტერნეტთან კავშირი აღდგება…<br />Reconnecting…</p>
+        <button onclick="location.href='https://cheaper.ge/'">თავიდან ცდა · Retry</button>
+      </div>
+    </div>
+    <script>
+      // Auto-retry the live site every few seconds until it responds.
+      (function () {
+        var tries = 0;
+        function ping() {
+          tries++;
+          fetch("https://cheaper.ge/", { method: "HEAD", mode: "no-cors", cache: "no-store" })
+            .then(function () { location.href = "https://cheaper.ge/"; })
+            .catch(function () { if (tries < 60) setTimeout(ping, 3000); });
+        }
+        setTimeout(ping, 1500);
+      })();
+    </script>
+  </body>
+</html>

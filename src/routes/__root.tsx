@@ -13,6 +13,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { PwaInstall } from "@/components/PwaInstall";
+import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
 import { I18nProvider } from "@/lib/i18n";
 import { CityProvider } from "@/lib/city";
@@ -92,12 +93,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@600;700;800&display=swap",
-      },
+
       { rel: "icon", href: "/icon-512.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -133,7 +129,48 @@ function RootComponent() {
       if (event === "SIGNED_OUT") queryClient.clear();
     });
 
-    return () => data.subscription.unsubscribe();
+    // Native (Capacitor) deep-link handler for the ge.cheaper.app:// scheme.
+    // Handles both OAuth return (/auth-callback) and BOG payment return
+    // (/order-return). No-op in the browser.
+    let unsubscribeDeepLink: (() => void) | null = null;
+    void (async () => {
+      const { registerDeepLinkHandler, closeExternal } = await import("@/lib/native");
+      unsubscribeDeepLink = await registerDeepLinkHandler(async ({ url }) => {
+        try {
+          const u = new URL(url);
+          const host = u.host || u.pathname.replace(/^\/+/, "");
+          if (host.startsWith("auth-callback")) {
+            // Tokens arrive in the hash (implicit flow) or query.
+            const raw = (u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash) || u.search.replace(/^\?/, "");
+            const params = new URLSearchParams(raw);
+            const access_token = params.get("access_token");
+            const refresh_token = params.get("refresh_token");
+            if (access_token && refresh_token) {
+              await supabase.auth.setSession({ access_token, refresh_token });
+            }
+            await closeExternal();
+            const target = sessionStorage.getItem("auth_redirect") || "/";
+            router.navigate({ to: target });
+          } else if (host.startsWith("order-return")) {
+            const p = u.searchParams;
+            const orderId = p.get("orderId");
+            const payment = p.get("payment") || "processing";
+            await closeExternal();
+            if (orderId) {
+              router.navigate({ to: "/orders/$id", params: { id: orderId }, search: { payment } as never });
+            }
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("[deep-link] failed to handle", url, err);
+        }
+      });
+    })();
+
+    return () => {
+      data.subscription.unsubscribe();
+      unsubscribeDeepLink?.();
+    };
   }, [queryClient, router]);
 
   return (
@@ -147,13 +184,14 @@ function RootComponent() {
             >
               Skip to content
             </a>
-            <main id="content" className="pb-20 sm:pb-24">
+            <main id="content" className="pb-[env(safe-area-inset-bottom,0px)]">
               <Outlet />
             </main>
             <BottomNav />
             <AppTracker />
             <PwaInstall />
             <Toaster position="top-center" richColors />
+            <UpdatePrompt />
           </UserLocationProvider>
         </CityProvider>
       </I18nProvider>

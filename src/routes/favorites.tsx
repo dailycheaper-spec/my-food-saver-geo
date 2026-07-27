@@ -22,7 +22,7 @@ function Favorites() {
   const favOffers = offers.filter((o) => favs.includes(o.storeId));
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6">
+    <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{L("ფავორიტები", "Favorites", "Избранное")}</h1>
       <p className="text-sm text-muted-foreground mt-1">
         {L(

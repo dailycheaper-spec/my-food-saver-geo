@@ -122,7 +122,7 @@ function StorePage() {
   const phone = raw.phone ?? "";
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="min-h-screen pb-24">
       {/* Cover */}
       <div className="relative h-52 sm:h-64 w-full bg-muted overflow-hidden">
         {cover ? (

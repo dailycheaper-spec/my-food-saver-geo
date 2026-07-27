@@ -48,14 +48,15 @@ export function CitySelector({
           <MapPin className="w-4 h-4 text-primary" aria-hidden="true" />
         </div>
         <div className="min-w-0 text-left">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+          <div className="hidden sm:block text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
             {labelText}
           </div>
-          <div className="text-sm font-bold truncate leading-tight flex items-center gap-1">
-            {cityLabel(city, language)}
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+          <div className="text-sm font-bold leading-tight flex items-center gap-1 min-w-0">
+            <span className="truncate">{cityLabel(city, language)}</span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
           </div>
         </div>
+
       </button>
     ) : variant === "pill" ? (
       <button

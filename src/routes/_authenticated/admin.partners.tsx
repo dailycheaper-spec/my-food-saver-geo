@@ -142,22 +142,24 @@ function AdminPartners() {
         </div>
       )}
 
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
+      <div className="grid gap-3 sm:flex sm:items-start sm:justify-between sm:flex-wrap">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">პარტნიორები</h1>
           <p className="text-sm text-muted-foreground mt-1">მართე რესტორნები და საცხობები</p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:flex-wrap">
           <button onClick={() => { reload(); loadActiveOffers(); loadReports(); }} disabled={loading}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
-            <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> განაცხადების შემოწმება ({pendingCount})
+            className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
+            <RefreshCcw className={`w-4 h-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> <span className="truncate">განაცხადების შემოწმება ({pendingCount})</span>
           </button>
           <button onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
-            <Plus className="w-4 h-4" /> პარტნიორის დამატება
+            className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
+            <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">პარტნიორის დამატება</span>
           </button>
         </div>
       </div>
+
+
 
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">

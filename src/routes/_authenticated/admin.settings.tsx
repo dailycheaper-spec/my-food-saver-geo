@@ -21,7 +21,7 @@ function AdminSettingsPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">პარამეტრები</h1>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">პარამეტრები</h1>
         <p className="text-sm text-muted-foreground mt-1">პლატფორმის კონფიგურაცია</p>
       </div>
 

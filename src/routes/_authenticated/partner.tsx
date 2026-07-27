@@ -132,19 +132,19 @@ function PartnerLayout() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-24 md:pb-0">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
-        <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
-          <Link to="/partner" className="flex items-center gap-2">
-            <span className="text-xl">🥗</span>
-            <span className="font-display font-bold text-lg">{t("brand")}</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40 pt-safe">
+        <div className="mx-auto max-w-6xl px-4 min-h-14 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+          <Link to="/partner" className="flex min-w-0 items-center gap-2">
+            <span className="text-xl shrink-0">🥗</span>
+            <span className="font-display font-bold text-lg truncate">{t("brand")}</span>
+            <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold uppercase tracking-wider">
               {role === "admin" ? t("admin") : t("partner")}
             </span>
           </Link>
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-0.5">
             <button
               onClick={() => { setNotifOpen(true); resetNewCount(); if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }}
-              className="relative p-2 rounded-full hover:bg-muted/50"
+              className="relative grid place-items-center tap-target rounded-full hover:bg-muted/50"
               aria-label={t("notificationsTitle")}
             >
               <Bell className="w-5 h-5 text-muted-foreground" />
@@ -154,7 +154,7 @@ function PartnerLayout() {
             </button>
             <button
               onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
-              className="p-2 rounded-full hover:bg-muted/50"
+              className="grid place-items-center tap-target rounded-full hover:bg-muted/50"
               aria-label={sound.enabled ? L("ხმის გამორთვა", "Turn sound off", "Выключить звук") : L("ხმის ჩართვა", "Turn sound on", "Включить звук")}
               title={sound.enabled ? L("ხმა ჩართულია", "Sound on", "Звук включён") : L("ხმა გამორთულია", "Sound off", "Звук выключен")}
             >
@@ -163,12 +163,12 @@ function PartnerLayout() {
                 : <VolumeX className="w-5 h-5 text-muted-foreground" />}
             </button>
             <LanguageSwitcher compact />
-            <Link to="/partner/profile" className="p-2 rounded-full hover:bg-muted/50 text-xs font-medium hidden sm:block">
-              {!loading && store ? <span className="inline-flex items-center gap-1"><span className="w-5 h-5 inline-grid place-items-center overflow-hidden"><StoreLogo value={store.logo_url || store.logo} emojiClassName="text-base" /></span> {store.name}</span> : t("profile")}
+            <Link to="/partner/profile" className="hidden sm:flex items-center tap-target px-2 rounded-full hover:bg-muted/50 text-xs font-medium max-w-[10rem]">
+              {!loading && store ? <span className="inline-flex min-w-0 items-center gap-1"><span className="w-5 h-5 shrink-0 inline-grid place-items-center overflow-hidden"><StoreLogo value={store.logo_url || store.logo} emojiClassName="text-base" /></span> <span className="truncate">{store.name}</span></span> : t("profile")}
             </Link>
             <button
               onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/" }); }}
-              className="p-2 rounded-full hover:bg-muted/50"
+              className="grid place-items-center tap-target rounded-full hover:bg-muted/50"
               aria-label={t("signOut")}
             >
               <LogOut className="w-4 h-4 text-muted-foreground" />
@@ -176,6 +176,7 @@ function PartnerLayout() {
 
           </div>
         </div>
+
         {/* Desktop side nav strip */}
         <nav className="hidden md:flex mx-auto max-w-6xl px-4 gap-1 pb-1">
           {nav.map((n) => {
@@ -217,7 +218,7 @@ function PartnerLayout() {
       </main>
 
       {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/90 backdrop-blur-xl border-t border-border/40 pb-safe">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-background/90 backdrop-blur-xl border-t border-border/40 pb-safe px-safe">
         <div className="grid grid-cols-5">
           {nav.map((n) => {
             const active = n.exact ? path === n.to : path.startsWith(n.to);
@@ -225,11 +226,12 @@ function PartnerLayout() {
               <Link
                 key={n.to}
                 to={n.to}
-                className={`flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium relative ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-2 min-h-11 text-[11px] font-medium relative ${
                   active ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <n.icon className={`w-6 h-6 ${active ? "scale-110" : ""} transition-transform`} />
+
                 {n.label}
                 {n.badge ? <span className="absolute top-1 right-6 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">{n.badge}</span> : null}
               </Link>

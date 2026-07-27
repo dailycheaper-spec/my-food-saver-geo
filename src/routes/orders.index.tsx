@@ -76,7 +76,7 @@ function Orders() {
   }, [orders, tab]);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-4 pb-4 sm:pt-6 sm:pb-6">
+    <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{t("myOrders")}</h1>
 
       <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">

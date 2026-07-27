@@ -62,6 +62,9 @@ interface OrderInput {
   quantity: number;
   method: "pickup" | "delivery";
   deliveryAddress?: string;
+  // When true, redirect_urls point at the /orders/native-return bounce page so
+  // the Capacitor shell can pull the user back into the app via deep link.
+  nativeReturn?: boolean;
 }
 
 // Shared: create the pending order under the caller's RLS session so the
@@ -122,10 +125,15 @@ export const startBogCheckout = createServerFn({ method: "POST" })
           { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
-      redirect_urls: {
-        success: `${origin}/orders/${order.id}?payment=processing`,
-        fail: `${origin}/orders/${order.id}?payment=failed`,
-      },
+      redirect_urls: data.nativeReturn
+        ? {
+            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
+            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
+          }
+        : {
+            success: `${origin}/orders/${order.id}?payment=processing`,
+            fail: `${origin}/orders/${order.id}?payment=failed`,
+          },
     };
 
     const createRes = await fetch(`${BOG_API_BASE}/ecommerce/orders`, {
@@ -199,10 +207,15 @@ export const startBogGooglePayCheckout = createServerFn({ method: "POST" })
           { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
-      redirect_urls: {
-        success: `${origin}/orders/${order.id}?payment=processing`,
-        fail: `${origin}/orders/${order.id}?payment=failed`,
-      },
+      redirect_urls: data.nativeReturn
+        ? {
+            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
+            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
+          }
+        : {
+            success: `${origin}/orders/${order.id}?payment=processing`,
+            fail: `${origin}/orders/${order.id}?payment=failed`,
+          },
     };
 
     // BOG "External Google Pay Order" endpoint — see docs link at top.
