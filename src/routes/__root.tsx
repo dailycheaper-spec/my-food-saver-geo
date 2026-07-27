@@ -132,7 +132,48 @@ function RootComponent() {
       if (event === "SIGNED_OUT") queryClient.clear();
     });
 
-    return () => data.subscription.unsubscribe();
+    // Native (Capacitor) deep-link handler for the ge.cheaper.app:// scheme.
+    // Handles both OAuth return (/auth-callback) and BOG payment return
+    // (/order-return). No-op in the browser.
+    let unsubscribeDeepLink: (() => void) | null = null;
+    void (async () => {
+      const { registerDeepLinkHandler, closeExternal } = await import("@/lib/native");
+      unsubscribeDeepLink = await registerDeepLinkHandler(async ({ url }) => {
+        try {
+          const u = new URL(url);
+          const host = u.host || u.pathname.replace(/^\/+/, "");
+          if (host.startsWith("auth-callback")) {
+            // Tokens arrive in the hash (implicit flow) or query.
+            const raw = (u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash) || u.search.replace(/^\?/, "");
+            const params = new URLSearchParams(raw);
+            const access_token = params.get("access_token");
+            const refresh_token = params.get("refresh_token");
+            if (access_token && refresh_token) {
+              await supabase.auth.setSession({ access_token, refresh_token });
+            }
+            await closeExternal();
+            const target = sessionStorage.getItem("auth_redirect") || "/";
+            router.navigate({ to: target });
+          } else if (host.startsWith("order-return")) {
+            const p = u.searchParams;
+            const orderId = p.get("orderId");
+            const payment = p.get("payment") || "processing";
+            await closeExternal();
+            if (orderId) {
+              router.navigate({ to: "/orders/$id", params: { id: orderId }, search: { payment } as never });
+            }
+          }
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.warn("[deep-link] failed to handle", url, err);
+        }
+      });
+    })();
+
+    return () => {
+      data.subscription.unsubscribe();
+      unsubscribeDeepLink?.();
+    };
   }, [queryClient, router]);
 
   return (
