@@ -1,179 +1,123 @@
-## მიზანი
+# Capacitor packaging plan for Cheaper
 
-ავაწყოთ დელივერის სისტემა Cheaper-ისთვის ისე, რომ **ერთი და იგივე კოდი** მუშაობდეს:
-- **მაღაზიის საკუთარ კურიერზე** (in-house)
-- **Cheaper-ის კურიერების აპზე** (მოგვიანებით)
-- **გარე პროვაიდერებზე** — Wolt Drive, Bolt Food, Glovo Courier, GT-Taxi, ლოკალური კურიერული სამსახურები
+This project is a TanStack Start SSR app built with nitro targeting Cloudflare (not a static SPA), so there is no meaningful client-only `dist/` to ship inside the binary. The whole app — routes, server functions, BOG payments, delivery dispatch, payouts, admin — must keep running on https://cheaper.ge. Capacitor will be used as a **thin native shell** that loads the live site via `server.url`, plus a tiny local `webDir` placeholder (Capacitor requires one) that only shows if the network is unreachable before the remote loads.
 
-გასაღები: **Provider Adapter Pattern** — ყველა კურიერი (საკუთარიც და გარეც) იმალება ერთი interface-ის უკან. მაღაზია/მომხმარებელი არაფერს გრძნობს.
+Everything is staged. I'll stop after each stage, show you the diff / command output, and wait for your OK before continuing.
 
 ---
 
-## არქიტექტურა (მარტივი დიაგრამა)
+## Stage 1 — Core Capacitor setup
 
-```text
-[Order created]
-      │
-      ▼
-┌────────────────────────┐
-│  Delivery Router       │  ← წესები: მანძილი, ფასი, ხელმისაწვდომობა
-│  (გადაწყვეტს ვინ იტანს) │
-└─────────┬──────────────┘
-          │
-   ┌──────┼──────┬────────┬────────┐
-   ▼      ▼      ▼        ▼        ▼
-[in-house][Cheaper][Wolt][Bolt][Manual/Store]
-   │      │      │        │        │
-   └──────┴──────┴────┬───┴────────┘
-                     ▼
-            [Delivery Adapter Interface]
-   create() • status() • cancel() • webhook()
-                     ▼
-              [deliveries table]
-                     ▼
-        [Realtime → მომხმარებელი + პარტნიორი + ადმინი]
-```
+**App ID recommendation:** `ge.cheaper.app`.
+- Matches the `.ge` brand domain, is a valid reverse-DNS identifier on both stores, and stays consistent with the `cheaper.ge` origin. `com.cheaper.app` would also be fine but `ge.` reads more naturally for a Georgia-first product. Once chosen it's effectively permanent on the stores, so I'll only proceed after you confirm this ID.
+- App display name: `Cheaper`.
 
----
+**webDir:** create `capacitor-webdir/` with a minimal `index.html` (Cheaper logo + "იტვირთება…" message + auto-reload). This is only ever shown if `https://cheaper.ge` is unreachable at cold start; `server.url` takes over immediately once online. Using the real `.output/` from nitro would ship a Cloudflare Worker SSR bundle that can't run inside the WebView, which is why we don't point `webDir` at the build output.
 
-## რას ვაშენებ
-
-### 1. Database schema (მიგრაცია)
-
-**ახალი ცხრილი: `deliveries`**
-- `id`, `order_id` (FK), `store_id`
-- `provider` — enum: `in_house` | `cheaper_fleet` | `wolt` | `bolt` | `glovo` | `manual` | `external_generic`
-- `provider_delivery_id` — გარე სისტემის ID (tracking-ისთვის)
-- `status` — enum: `pending` | `assigned` | `picked_up` | `on_the_way` | `delivered` | `failed` | `cancelled`
-- `courier_name`, `courier_phone`, `courier_lat`, `courier_lng` — realtime location
-- `pickup_address`, `dropoff_address`, `dropoff_lat`, `dropoff_lng`
-- `fee` (ლარი), `paid_by` — `customer` | `store` | `cheaper`
-- `estimated_pickup_at`, `estimated_delivery_at`, `delivered_at`
-- `provider_payload` (jsonb) — გარე API-ს raw response
-- `notes`, `created_at`, `updated_at`
-
-RLS: მომხმარებელი ხედავს თავისს, პარტნიორი — თავისი მაღაზიის, ადმინი — ყველას.
-Realtime: enabled → live tracking.
-
-**`stores`-ს ვამატებ:**
-- `delivery_enabled` (bool)
-- `delivery_radius_km`, `delivery_fee_base`, `delivery_fee_per_km`
-- `delivery_providers` (text[]) — რომელი პროვაიდერები აქვს ჩართული
-- `min_order_for_delivery`
-
-**`orders`-ს ვამატებ:** `delivery_id` (FK → deliveries, nullable).
-
-### 2. Provider Adapter Interface (კოდი)
-
-`src/lib/delivery/types.ts` — ერთი TypeScript interface:
-
+**`capacitor.config.ts`:**
 ```ts
-interface DeliveryProvider {
-  id: 'in_house' | 'cheaper_fleet' | 'wolt' | 'bolt' | 'glovo' | 'manual'
-  createDelivery(input): Promise<{ providerDeliveryId, fee, eta }>
-  getStatus(providerDeliveryId): Promise<DeliveryStatus>
-  cancelDelivery(providerDeliveryId): Promise<void>
-  handleWebhook?(payload): Promise<void>
-}
+import type { CapacitorConfig } from '@capacitor/cli';
+const config: CapacitorConfig = {
+  appId: 'ge.cheaper.app',
+  appName: 'Cheaper',
+  webDir: 'capacitor-webdir',
+  server: {
+    url: 'https://cheaper.ge',
+    cleartext: false,
+    androidScheme: 'https',
+    allowNavigation: [
+      'cheaper.ge', '*.cheaper.ge',
+      'creaijcvpqerdxdazdqt.supabase.co',
+      'accounts.google.com',           // fallback only; OAuth actually opens externally
+      'payment.bog.ge', '*.bog.ge',    // fallback only; BOG actually opens externally
+    ],
+  },
+  ios: { contentInset: 'always' },
+  android: { allowMixedContent: false },
+};
+export default config;
 ```
 
-`src/lib/delivery/providers/`:
-- `in-house.ts` — მაღაზიის კურიერი (მარტივი: მხოლოდ status update-ები)
-- `manual.ts` — მაღაზია თვითონ არკვევს (ტელეფონით უწოდებს კურიერს)
-- `wolt.ts`, `bolt.ts`, `glovo.ts` — **stub** ფაილები TODO-ებით, ინტერფეისის სრული იმპლემენტაცია, `throw new Error('Not configured')`-ით. მოგვიანებით რომ ხელშეკრულება იყოს, მხოლოდ 1 ფაილს ვავსებთ და ვმატებთ API key-ს secrets-ში.
-- `cheaper-fleet.ts` — მოამზადებს ჩვენი კურიერების აპისთვის (როცა გავაკეთებთ)
+**Deps to add:** `@capacitor/core`, `@capacitor/cli`, `@capacitor/android`, `@capacitor/ios`, `@capacitor/browser`, `@capacitor/app`, `@capacitor/assets` (dev).
 
-`src/lib/delivery/registry.ts` — რეესტრი: provider ID → adapter. მაღაზია არჩევს რომელს რთავს.
-
-### 3. Delivery Router (Server Function)
-
-`src/lib/delivery/dispatch.functions.ts` — `createServerFn` რომელიც:
-1. კითხულობს `store.delivery_providers` (რომელი პროვაიდერები აქვს ჩართული)
-2. თანმიმდევრობით ცდის: **პრიორიტეტი** = in_house → cheaper_fleet → wolt → bolt → manual
-3. პირველი წარმატებული = winner. ქმნის `deliveries` row-ს.
-4. თუ ყველა ვერ მოახერხა → order → `delivery_failed`, ადმინს notification.
-
-### 4. Webhook route-ები (გარე პროვაიდერების სტატუსების მისაღებად)
-
-`src/routes/api/public/delivery/wolt.ts`
-`src/routes/api/public/delivery/bolt.ts`
-`src/routes/api/public/delivery/glovo.ts`
-
-თითოეული:
-- HMAC signature verification (secret env var-იდან)
-- ვპოულობთ `deliveries` row-ს `provider_delivery_id`-თ
-- ვანახლებთ სტატუსს + courier location
-- Realtime ავტომატურად ეცნობება მომხმარებელს
-
-ახლა ეს webhook-ები **მზადაა და მიდის 501** — მაგრამ URL-ები სტაბილურია, პროვაიდერს ერთადერთი რაც სჭირდება. ხელშეკრულების შემდეგ: secret-ს ვამატებთ + provider adapter-ს ვავსებთ. **კოდი აღარ იცვლება.**
-
-### 5. UI — მინიმალური, მაგრამ სრული
-
-**პარტნიორის პანელი** (`/partner/store` → Delivery Settings ტაბი):
-- ჩართე/გამორთე მიტანა
-- აირჩიე პროვაიდერები (checkbox: In-house, Cheaper Fleet [coming soon], Wolt [beta], Bolt [beta])
-- რადიუსი, ბაზისური ფასი, ფასი/კმ, მინიმალური შეკვეთა
-
-**პარტნიორის Orders გვერდი**:
-- delivery order-ს ეწერება badge: "🚴 Wolt • ETA 20 წთ" ან "🏠 თქვენი კურიერი"
-- In-house-ისთვის: ღილაკები (Assigned → Picked up → Delivered)
-- გარე პროვაიდერისთვის: read-only tracking (მათ webhook-ები აახლებენ სტატუსს ავტომატურად)
-
-**მომხმარებელი** (`/orders/$id`):
-- Live delivery card: სტატუსი, ETA, კურიერის სახელი+ტელეფონი, რუკაზე მარკერი (თუ lat/lng გვაქვს)
-- Realtime subscription `deliveries` table-ზე
-
-**ადმინის პანელი** (`/admin` → ახალი ტაბი "Deliveries"):
-- ყველა აქტიური delivery, პროვაიდერის მიხედვით ფილტრი
-- Failed deliveries → manual reassign
-- პროვაიდერის კონფიგურაცია (რომელი პროვაიდერი გლობალურად ჩართულია, API keys status)
-
-### 6. i18n
-
-ყველა ახალი label — KA/EN/RU სამივე ენაზე (`src/lib/i18n.tsx`).
-ვალუტა უკვე დინამიური.
+**Verification:** `npx cap init` (non-interactive with the values above) → `npx cap add android` → `npx cap add ios` → `npx cap sync`. Report the output.
 
 ---
 
-## რას **არ** ვაკეთებ ახლა (მოგვიანებით, კონტრაქტის შემდეგ)
+## Stage 2 — Google Sign-In in native shell
 
-- რეალური Wolt/Bolt/Glovo API calls — მხოლოდ stub-ები. როცა ხელშეკრულებას გააფორმებ, ვამატებთ API key-ს (`add_secret`) და ვავსებთ ერთ adapter ფაილს (~50 ხაზი კოდი, 30 წუთი).
-- Cheaper-ის საკუთარი კურიერების მობილური აპი — ცალკე პროექტი. ახლა schema მზადდება (`cheaper_fleet` provider ID), მაგრამ UI არ იშენება.
-- Live courier GPS tracking WebSocket — მონაცემები ბაზაში მოდის webhook-ებით (5-10 წამში ერთხელ ახლდება), რაც სავსებით საკმარისია. Real-time GPS მოგვიანებით.
+Google refuses OAuth inside embedded WebViews. Fix by branching only when `Capacitor.isNativePlatform()`:
 
----
+1. In `src/integrations/lovable/index.ts` (or a small wrapper next to it — I'll pick whichever avoids editing auto-generated files; if `index.ts` is auto-generated, I'll add `src/lib/native-oauth.ts` and route the button through it), detect native and instead of the current in-WebView flow:
+   - Build the same authorize URL the Lovable auth SDK would use, but set its `redirect_uri` to a **public bounce page on cheaper.ge** (e.g. `https://cheaper.ge/auth/native-return`) that we add as a small TanStack route. That page reads the `#access_token` / `?code` from the URL and immediately redirects to `ge.cheaper.app://auth-callback?...` (custom scheme).
+   - Open the authorize URL with `Browser.open({ url })` — this uses SFSafariViewController / Chrome Custom Tab, which Google accepts.
+2. Register the custom scheme `ge.cheaper.app` in `AndroidManifest.xml` (`<intent-filter>` with `BROWSABLE`) and iOS `Info.plist` (`CFBundleURLTypes`).
+3. In `src/routes/__root.tsx`, add a `useEffect` that, when native, subscribes to `App.addListener('appUrlOpen', …)`, parses the returning URL, calls `supabase.auth.setSession()` (mirroring what `lovable.signInWithOAuth` does today), calls `Browser.close()`, and navigates to the intended post-login route.
+4. Web path is untouched — the existing `lovable.auth.signInWithOAuth` continues to work in the browser.
 
-## რატომ ეს არქიტექტურა?
+The same `appUrlOpen` listener + custom scheme is reused for Stage 3, so there is only one deep-link handler.
 
-1. **მარტივი გაფართოება** — ახალი პროვაიდერი = 1 ახალი ფაილი `providers/`-ში + 1 webhook route. სხვა კოდი უცვლელი.
-2. **Fallback logic** — თუ Wolt დაკავებულია, ავტომატურად ცდის Bolt-ს, თუ ისიც — მაღაზიის კურიერს.
-3. **Vendor lock-in ნულოვანია** — ხვალ თუ Wolt ფასს გაზრდის, გამორთავ checkbox-ს და Bolt-ს ჩართავ.
-4. **მაღაზიისთვის უცვლელი გამოცდილება** — არ ადარდებს ვინ იტანს, ხედავს ერთ UI-ს.
-5. **მომხმარებელი ერთსა და იმავე tracking-ს ხედავს** ყველა პროვაიდერისთვის.
-
----
-
-## ტექნიკური ცხრილი (developer-ისთვის)
-
-| ფაილი | დანიშნულება |
-|---|---|
-| `supabase/migrations/*_deliveries.sql` | schema + RLS + GRANTs + realtime |
-| `src/lib/delivery/types.ts` | Interface + enum-ები |
-| `src/lib/delivery/registry.ts` | Provider registry (Map) |
-| `src/lib/delivery/providers/in-house.ts` | სრული იმპლემენტაცია |
-| `src/lib/delivery/providers/manual.ts` | სრული იმპლემენტაცია |
-| `src/lib/delivery/providers/{wolt,bolt,glovo,cheaper-fleet}.ts` | Stub-ები, TODO markers |
-| `src/lib/delivery/dispatch.functions.ts` | `createServerFn` + `requireSupabaseAuth` |
-| `src/lib/delivery/hooks.ts` | `useDelivery(orderId)`, `useStoreDeliveries(storeId)` |
-| `src/routes/api/public/delivery/{wolt,bolt,glovo}.ts` | Webhook endpoints (signature-verified) |
-| `src/routes/_authenticated/partner.delivery.tsx` | Settings UI |
-| `src/routes/_authenticated/admin.deliveries.tsx` | ადმინის overview |
-| `src/components/DeliveryTracker.tsx` | მომხმარებლის live tracking card |
-
-**შეფასებული სამუშაო**: ~2-3 საათი მთელი infrastructure + UI. გარე პროვაიდერების **რეალური** ინტეგრაცია მოგვიანებით: ~30 წუთი თითოეულზე კონტრაქტის შემდეგ.
+**Verification I can do here:** typecheck + build. Actual OAuth round-trip needs a real emulator/device and you toggling to your own Google credentials — I'll flag this explicitly.
 
 ---
 
-## შეკითხვა დაწყებამდე
+## Stage 3 — BOG payment redirect in native shell
 
-უნდა დავიწყო ახლავე მთელი ეს scope-ით (schema + adapter framework + UI + stub-webhook-ები), თუ ჯერ მხოლოდ **ბირთვი** ავაწყო (schema + in-house adapter + partner settings + tracking UI), ხოლო Wolt/Bolt stub-ები მოგვიანებით დავამატო?
+`startBogCheckout` returns `{ redirectUrl }` and the client currently does `window.location.href = redirectUrl`. Change **only that client-side redirect** (in `src/routes/offer.$id.tsx` and the Google Pay path in `GooglePayButton.tsx` / wherever it navigates) so that when native:
+
+1. Server-side: extend `getPublicOrigin()` / the `redirect_urls` in `bog.functions.ts` to accept an optional `returnBase` from the caller. When native, the client passes `returnBase = "https://cheaper.ge/orders/{id}/native-return"` — a small public route that, exactly like Stage 2, immediately 302s to `ge.cheaper.app://order-return?orderId=…&payment=success|failed|processing`.
+2. Client: `await Browser.open({ url: redirectUrl })` instead of `window.location.href`.
+3. The single `appUrlOpen` listener from Stage 2 handles `order-return` too — closes the in-app browser tab and navigates to `/orders/$id?payment=…`. Success, failure, and user-cancel (Browser dismiss event) all resolve back into the app.
+
+Server-to-server BOG callback (`/api/public/payments/bog-callback`) is unaffected — that's a webhook, not a redirect.
+
+**Verification I can do here:** typecheck + build. Actual BOG round-trip requires a real card / emulator and BOG sandbox — flagged.
+
+---
+
+## Stage 4 — Native permissions
+
+- **iOS `Info.plist`** (bilingual, specific):
+  - `NSCameraUsageDescription` = "Cheaper იყენებს კამერას QR კოდის სკანირებისთვის და შეთავაზების/ლოგოს/პროფილის ფოტოს გადასაღებად. / Cheaper uses the camera to scan pickup QR codes and to capture offer, store logo, and profile photos."
+  - `NSPhotoLibraryUsageDescription` (needed alongside camera for save/attach flows) with matching bilingual text.
+  - `NSLocationWhenInUseUsageDescription` = "Cheaper იყენებს მდებარეობას რუკაზე ახლომდებარე ფასდაკლებული შეთავაზებების საჩვენებლად. / Cheaper uses your location to show nearby discounted offers on the map."
+- **Android `AndroidManifest.xml`:** `CAMERA`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, plus `INTERNET` (default) and the custom-scheme intent filter from Stage 2.
+
+**Existing code compatibility (answer to your explicit question):**
+- **Geolocation** (`use-user-location.tsx`, `StoreLocationPicker.tsx`): uses `navigator.geolocation`, which works in both iOS WKWebView and Android WebView as long as the OS permission strings above are present and iOS granted. **No code change needed**, only the manifests.
+- **QR scanner** (`partner.scan.tsx`): uses `getUserMedia` / `<video>`. Works in iOS WKWebView from iOS 14.3+ and modern Android WebViews **only if** the WebView is served over HTTPS (it is — `server.url` is https) and iOS Info.plist has `NSCameraUsageDescription`. **No code change strictly needed**, but for reliability I recommend adding `@capacitor/camera` as a fallback in a follow-up if you hit issues on older Androids — I will NOT add it in this pass since you asked to keep the change surface tight.
+- **Offer/logo/avatar photo capture**: same `getUserMedia` / `<input type="file" capture>` story — works as-is with manifest permissions.
+
+I'll call out any device-specific issue if verification surfaces one.
+
+---
+
+## Stage 5 — Icons and splash
+
+`npx capacitor-assets generate --iconBackgroundColor '#3d7a4a' --splashBackgroundColor '#3d7a4a' --assetPath public/brand-icon-1024.png` — generates every required Android + iOS icon and splash size from the existing logo. No new artwork.
+
+---
+
+## Verification & handoff
+
+Before I hand back, I will:
+- Run `bun run build` and `npx cap sync` and paste the output.
+- Give you exact local run commands:
+  - Android: `npx cap open android` → run from Android Studio (or `npx cap run android`).
+  - iOS: `npx cap open ios` → run from Xcode (or `npx cap run ios`; requires macOS + CocoaPods installed, `cd ios/App && pod install` on first setup).
+- Provide a per-stage changelog of every created/changed file, one sentence each.
+- **Explicitly flag things I cannot verify from the sandbox:**
+  - Google OAuth round-trip on a real device (needs Play Services / signed-in Google account).
+  - BOG payment full round-trip (needs real card + your BOG merchant environment).
+  - iOS build/codesign (requires macOS + Xcode + Apple Developer account).
+  - Android Play Services quirks on older API levels.
+  - Camera behavior on individual Android OEM WebViews.
+
+## Technical notes
+
+- We deliberately do **not** ship the nitro build output as `webDir`; it's a Worker SSR bundle, not a static site. The tiny placeholder `capacitor-webdir/index.html` exists only to satisfy Capacitor's requirement and to show a friendly offline message.
+- `server.url` locks the app to the live origin — every server function, RLS check, cron, and webhook keeps running exactly where it does today.
+- The single deep-link scheme `ge.cheaper.app://` handles both auth return and payment return via one `appUrlOpen` listener in `__root.tsx`.
+- No changes to auto-generated Supabase files, and no changes to the web sign-in path.
+
+**Please confirm the `ge.cheaper.app` App ID (or give an alternative) before I start Stage 1** — this is the one value that's costly to change later.
