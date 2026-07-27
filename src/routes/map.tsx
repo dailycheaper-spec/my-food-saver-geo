@@ -612,7 +612,11 @@ function MapPage() {
               onSelect={setSelectedStoreId}
               onHover={setHoveredId}
               searchRadiusKm={location ? effectiveRadius : undefined}
-              storageKey="cheaper-customer-map"
+              storageKey={MAP_STORAGE_KEY}
+              layer={layer}
+              onLayerChange={setLayer}
+              markerAriaLabels={{ almost: t("map.almostGone"), soldOut: t("map.soldOut") }}
+
             />
 
           </Suspense>
