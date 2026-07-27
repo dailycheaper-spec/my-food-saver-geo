@@ -31,7 +31,7 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
     : active
     ? "hsl(var(--primary-foreground))"
     : "hsl(var(--foreground))";
-  const priceHtml = allUnavailable ? "—" : `${s.minPrice.toFixed(0)}₾-დან`;
+  const priceHtml = allUnavailable ? "—" : (s.minPriceLabel ?? `${s.minPrice.toFixed(0)}₾`);
 
   // Compact view: small price/discount pill only
   if (compact && !hovered && !selected) {
