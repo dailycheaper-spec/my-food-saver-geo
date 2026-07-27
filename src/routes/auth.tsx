@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Mail, Lock, Phone, User as UserIcon, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, Lock, Phone, User as UserIcon, ArrowLeft, Loader2, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
@@ -21,7 +21,8 @@ function AuthPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  const [mode, setMode] = useState<Mode>("signin");
+  const isPartnerFlow = typeof redirect === "string" && redirect.startsWith("/partner-apply");
+  const [mode, setMode] = useState<Mode>(isPartnerFlow ? "signup" : "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -159,6 +160,18 @@ function AuthPage() {
         </div>
 
         <div className="flex justify-center mb-6"><Logo /></div>
+
+        {isPartnerFlow && (
+          <div className="mb-4 flex items-center gap-3 rounded-2xl bg-gradient-to-br from-emerald-600 via-primary to-emerald-500 text-white p-4 shadow-card">
+            <div className="w-10 h-10 rounded-xl bg-white/15 grid place-items-center shrink-0">
+              <Store className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm">{t("becomePartner")}</div>
+              <div className="text-xs text-white/85 mt-0.5">{t("partnerApplyText")}</div>
+            </div>
+          </div>
+        )}
 
         <div className="bg-card rounded-3xl border border-border shadow-elevated p-6">
           <h1 className="font-display text-2xl font-bold text-center">
