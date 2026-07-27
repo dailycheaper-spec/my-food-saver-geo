@@ -7,6 +7,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { CitySelector } from "@/components/CitySelector";
 import { loadTheme, saveTheme } from "@/lib/admin-settings";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -35,18 +36,23 @@ async function waitForUser() {
 }
 
 type NavItem = { to: string; label: string; icon: React.ElementType; exact?: boolean };
-const NAV: NavItem[] = [
-  { to: "/admin", label: "მთავარი", icon: LayoutDashboard, exact: true },
-  { to: "/admin/partners", label: "პარტნიორები", icon: Store },
-  { to: "/admin/offers", label: "შემოთავაზებები", icon: Package },
-  { to: "/admin/orders", label: "შეკვეთები", icon: ShoppingBag },
-  { to: "/admin/payments", label: "გადახდები", icon: Wallet },
-  { to: "/admin/users", label: "მომხმარებლები", icon: Users },
-  { to: "/admin/stats", label: "სტატისტიკა", icon: BarChart3 },
-  { to: "/admin/settings", label: "პარამეტრები", icon: Settings },
-];
+function useNav(L: (ka: string, en: string, ru: string) => string): NavItem[] {
+  return [
+    { to: "/admin", label: L("მთავარი", "Home", "Главная"), icon: LayoutDashboard, exact: true },
+    { to: "/admin/partners", label: L("პარტნიორები", "Partners", "Партнёры"), icon: Store },
+    { to: "/admin/offers", label: L("შემოთავაზებები", "Offers", "Предложения"), icon: Package },
+    { to: "/admin/orders", label: L("შეკვეთები", "Orders", "Заказы"), icon: ShoppingBag },
+    { to: "/admin/payments", label: L("გადახდები", "Payments", "Платежи"), icon: Wallet },
+    { to: "/admin/users", label: L("მომხმარებლები", "Users", "Пользователи"), icon: Users },
+    { to: "/admin/stats", label: L("სტატისტიკა", "Statistics", "Статистика"), icon: BarChart3 },
+    { to: "/admin/settings", label: L("პარამეტრები", "Settings", "Настройки"), icon: Settings },
+  ];
+}
 
 function AdminLayout() {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const NAV = useNav(L);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -75,7 +81,7 @@ function AdminLayout() {
             <div className="w-9 h-9 rounded-2xl bg-primary text-primary-foreground grid place-items-center font-display font-bold">C</div>
             <div>
               <div className="font-display font-bold text-lg leading-none">Cheaper</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1"><Shield className="w-3 h-3" /> ადმინი</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1"><Shield className="w-3 h-3" /> {L("ადმინი", "Admin", "Админ")}</div>
             </div>
           </Link>
         </div>
@@ -97,11 +103,11 @@ function AdminLayout() {
           <button onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-foreground/70 hover:bg-muted">
             {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            {theme === "dark" ? "ღია რეჟიმი" : "მუქი რეჟიმი"}
+            {theme === "dark" ? L("ღია რეჟიმი", "Light mode", "Светлый режим") : L("მუქი რეჟიმი", "Dark mode", "Тёмный режим")}
           </button>
           <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-destructive hover:bg-destructive/10">
-            <LogOut className="w-4 h-4" /> გასვლა
+            <LogOut className="w-4 h-4" /> {L("გასვლა", "Log out", "Выйти")}
           </button>
         </div>
       </aside>
@@ -112,7 +118,7 @@ function AdminLayout() {
           <button onClick={() => setMobileOpen(true)} aria-label="Menu" className="tap-target grid place-items-center rounded-xl hover:bg-muted shrink-0">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="font-display font-bold truncate min-w-0">Cheaper · ადმინი</div>
+          <div className="font-display font-bold truncate min-w-0">Cheaper · {L("ადმინი", "Admin", "Админ")}</div>
           <div className="flex items-center gap-1.5 shrink-0">
             <CitySelector variant="pill" />
             <button onClick={toggleTheme} aria-label="Theme" className="tap-target grid place-items-center rounded-xl hover:bg-muted">
@@ -129,7 +135,7 @@ function AdminLayout() {
           <div className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" />
           <div className="absolute left-0 top-0 bottom-0 w-72 bg-card border-r border-border p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <div className="font-display font-bold">მენიუ</div>
+              <div className="font-display font-bold">{L("მენიუ", "Menu", "Меню")}</div>
               <button onClick={() => setMobileOpen(false)} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
             </div>
             <nav className="space-y-1">
@@ -144,7 +150,7 @@ function AdminLayout() {
               })}
               <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/"; }}
                 className="w-full mt-4 flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium text-destructive hover:bg-destructive/10">
-                <LogOut className="w-4 h-4" /> გასვლა
+                <LogOut className="w-4 h-4" /> {L("გასვლა", "Log out", "Выйти")}
               </button>
             </nav>
           </div>
