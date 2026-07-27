@@ -12,6 +12,9 @@ import { useFavorites, toggleFavorite } from "@/lib/storage";
 import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
+import MapLayerSelector, { type MapLayerId } from "@/components/map/MapLayerSelector";
+import { readStoredLayer } from "@/components/MapCanvas";
+
 
 function localizedHead(): { title: string; description: string } {
   const fallback = {
