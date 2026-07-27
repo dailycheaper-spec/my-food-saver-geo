@@ -8,7 +8,7 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const IOS_HINT_KEY = "cheaper.iosInstallHintDismissed";
-const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v2";
+const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v3";
 
 function hasAndroidInstallDismissed() {
   if (typeof window === "undefined") return false;
