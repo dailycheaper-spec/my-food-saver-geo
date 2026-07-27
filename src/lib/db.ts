@@ -273,6 +273,12 @@ export function useMyStores() {
   const reload = useCallback(async () => {
     setLoading(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        setStores(cachePartnerStores([]));
+        setError(null);
+        return;
+      }
       const access = await fetchPartnerAccess();
       setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
       setError(null);
