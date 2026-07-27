@@ -312,7 +312,7 @@
   max-width: 42rem;
   padding-inline: 1rem;
   padding-top: 1rem;
-  padding-bottom: 6rem;
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Row that scrolls sideways on its own instead of the whole page */
