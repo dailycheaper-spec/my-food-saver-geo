@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
+import { isNative, openExternal } from "@/lib/native";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — Cheaper" }, { name: "robots", content: "noindex" }] }),

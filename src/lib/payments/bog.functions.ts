@@ -61,6 +61,9 @@ interface OrderInput {
   amount: number;
   method: "pickup" | "delivery";
   deliveryAddress?: string;
+  // When true, redirect_urls point at the /orders/native-return bounce page so
+  // the Capacitor shell can pull the user back into the app via deep link.
+  nativeReturn?: boolean;
 }
 
 // Shared: create the pending order under the caller's RLS session so the
