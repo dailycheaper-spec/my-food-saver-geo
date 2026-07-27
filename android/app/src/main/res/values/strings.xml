@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cheaper</string>
+    <string name="title_activity_main">Cheaper</string>
+    <string name="package_name">ge.cheaper.app</string>
+    <string name="custom_url_scheme">ge.cheaper.app</string>
+</resources>
