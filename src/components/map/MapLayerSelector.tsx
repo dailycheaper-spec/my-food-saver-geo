@@ -1,18 +1,8 @@
 import { Layers } from "lucide-react";
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export type MapLayerId = "standard" | "satellite" | "hybrid";
-
-interface Option {
-  id: MapLayerId;
-  label: string;
-}
-
-const OPTIONS: Option[] = [
-  { id: "standard", label: "სტანდარტული" },
-  { id: "satellite", label: "სატელიტი" },
-  { id: "hybrid", label: "ჰიბრიდი" },
-];
 
 interface Props {
   value: MapLayerId;
@@ -20,6 +10,12 @@ interface Props {
 }
 
 export default function MapLayerSelector({ value, onChange }: Props) {
+  const { t } = useI18n();
+  const OPTIONS: { id: MapLayerId; label: string }[] = [
+    { id: "standard", label: t("map.layer.standard") },
+    { id: "satellite", label: t("map.layer.satellite") },
+    { id: "hybrid", label: t("map.layer.hybrid") },
+  ];
   const [open, setOpen] = useState(false);
   const current = OPTIONS.find((o) => o.id === value) ?? OPTIONS[0];
   return (
@@ -28,7 +24,7 @@ export default function MapLayerSelector({ value, onChange }: Props) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="h-10 pl-3 pr-4 rounded-full bg-card shadow-elevated grid grid-flow-col items-center gap-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        aria-label={`რუკის ფენა: ${current.label}`}
+        aria-label={t("map.layer.aria").replace("{label}", current.label)}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
@@ -46,7 +42,7 @@ export default function MapLayerSelector({ value, onChange }: Props) {
           />
           <div
             role="listbox"
-            aria-label="რუკის ფენა"
+            aria-label={t("map.layer.menu")}
             className="absolute right-0 mt-2 z-[1600] bg-card border border-border rounded-2xl shadow-elevated overflow-hidden min-w-[160px]"
           >
             {OPTIONS.map((o) => (

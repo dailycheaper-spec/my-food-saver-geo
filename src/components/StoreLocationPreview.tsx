@@ -1,4 +1,5 @@
 import { evaluateStoreLocation } from "@/lib/geo";
+import { useI18n } from "@/lib/i18n";
 
 interface Props {
   lat: number | null | undefined;
@@ -12,6 +13,7 @@ function osmEmbed(lat: number, lng: number) {
 }
 
 export function StoreLocationPreview({ lat, lng, height = 140 }: Props) {
+  const { t } = useI18n();
   const status = evaluateStoreLocation(lat, lng);
   if (status !== "ok" || lat == null || lng == null) {
     return (
@@ -19,7 +21,7 @@ export function StoreLocationPreview({ lat, lng, height = 140 }: Props) {
         className="rounded-2xl bg-muted/40 border border-dashed border-border grid place-items-center text-xs text-muted-foreground"
         style={{ height }}
       >
-        {status === "invalid" ? "კოორდინატები არასწორია" : "მდებარეობა არ არის მითითებული"}
+        {status === "invalid" ? t("map.coordsInvalid") : t("map.locationMissing")}
       </div>
     );
   }
