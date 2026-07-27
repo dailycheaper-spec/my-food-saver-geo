@@ -33,6 +33,7 @@ import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicVersionRouteImport } from './routes/api/public/version'
 import { Route as AuthenticatedPartnerStoreRouteImport } from './routes/_authenticated/partner.store'
 import { Route as AuthenticatedPartnerStatsRouteImport } from './routes/_authenticated/partner.stats'
 import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
@@ -177,6 +178,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const ApiPublicVersionRoute = ApiPublicVersionRouteImport.update({
+  id: '/api/public/version',
+  path: '/api/public/version',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPartnerStoreRoute =
   AuthenticatedPartnerStoreRouteImport.update({
@@ -351,6 +357,7 @@ export interface FileRoutesByFullPath {
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/version': typeof ApiPublicVersionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
   '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByTo {
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/version': typeof ApiPublicVersionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
   '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
@@ -447,6 +455,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/_authenticated/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/version': typeof ApiPublicVersionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
   '/api/public/delivery/bolt': typeof ApiPublicDeliveryBoltRoute
@@ -497,6 +506,7 @@ export interface FileRouteTypes {
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
+    | '/api/public/version'
     | '/admin/'
     | '/partner/'
     | '/api/public/delivery/bolt'
@@ -543,6 +553,7 @@ export interface FileRouteTypes {
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
+    | '/api/public/version'
     | '/admin'
     | '/partner'
     | '/api/public/delivery/bolt'
@@ -592,6 +603,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/scan'
     | '/_authenticated/partner/stats'
     | '/_authenticated/partner/store'
+    | '/api/public/version'
     | '/_authenticated/admin/'
     | '/_authenticated/partner/'
     | '/api/public/delivery/bolt'
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   OrdersNativeReturnRoute: typeof OrdersNativeReturnRoute
   StoreIdRoute: typeof StoreIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
+  ApiPublicVersionRoute: typeof ApiPublicVersionRoute
   ApiPublicDeliveryBoltRoute: typeof ApiPublicDeliveryBoltRoute
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
   ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
@@ -794,6 +807,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/version': {
+      id: '/api/public/version'
+      path: '/api/public/version'
+      fullPath: '/api/public/version'
+      preLoaderRoute: typeof ApiPublicVersionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/partner/store': {
       id: '/_authenticated/partner/store'
@@ -1063,6 +1083,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersNativeReturnRoute: OrdersNativeReturnRoute,
   StoreIdRoute: StoreIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
+  ApiPublicVersionRoute: ApiPublicVersionRoute,
   ApiPublicDeliveryBoltRoute: ApiPublicDeliveryBoltRoute,
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
   ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
@@ -1071,13 +1092,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
