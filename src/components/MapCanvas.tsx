@@ -105,8 +105,14 @@ export default function MapCanvas({
   onHover,
   searchRadiusKm,
   storageKey = "cheaper-customer-map",
+  layer: layerProp,
+  onLayerChange,
+  markerAriaLabels,
 }: Props) {
-  const [layer, setLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+  const [internalLayer, setInternalLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+  const layer = layerProp ?? internalLayer;
+  const setLayer = onLayerChange ?? setInternalLayer;
+  const showInternalSelector = layerProp === undefined;
   const initialZoom = useMemo(() => readStoredZoom(storageKey, 12), [storageKey]);
   const [zoom, setZoom] = useState(initialZoom);
   const compact = zoom < 13;
@@ -142,11 +148,14 @@ export default function MapCanvas({
       <ZoomControl position="bottomright" />
       <RecenterOn pos={userPos} />
 
-      <div className="leaflet-top leaflet-right" style={{ pointerEvents: "none" }}>
-        <div className="leaflet-control" style={{ marginTop: 60, marginRight: 12 }}>
-          <MapLayerSelector value={layer} onChange={setLayer} />
+      {showInternalSelector && (
+        <div className="leaflet-top leaflet-right" style={{ pointerEvents: "none" }}>
+          <div className="leaflet-control" style={{ marginTop: 60, marginRight: 12 }}>
+            <MapLayerSelector value={layer} onChange={setLayer} />
+          </div>
         </div>
-      </div>
+      )}
+
 
       {userPos && searchRadiusKm && searchRadiusKm > 0 && (
         <Circle
