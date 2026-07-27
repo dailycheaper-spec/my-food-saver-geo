@@ -3,6 +3,11 @@ import L from "leaflet";
 import { memo, useMemo } from "react";
 import type { MapStore } from "@/routes/map";
 
+export interface MarkerAriaLabels {
+  almost: string;
+  soldOut: string;
+}
+
 interface Props {
   store: MapStore;
   selected: boolean;
@@ -10,9 +15,20 @@ interface Props {
   compact: boolean;
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
+  ariaLabels?: MarkerAriaLabels;
 }
 
-function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: boolean): L.DivIcon {
+function escapeAttr(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildIcon(
+  s: MapStore,
+  selected: boolean,
+  hovered: boolean,
+  compact: boolean,
+  aria: MarkerAriaLabels,
+): L.DivIcon {
   const active = selected || hovered;
   const allUnavailable = s.activeCount === 0;
   const hasAlmost = s.hasAlmost;
@@ -33,14 +49,19 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
     : "hsl(var(--foreground))";
   const priceHtml = allUnavailable ? "—" : (s.minPriceLabel ?? `${s.minPrice.toFixed(0)}₾`);
 
+  const stateLabel = allUnavailable ? aria.soldOut : hasAlmost ? aria.almost : s.storeName;
+  const ariaAttr = `role="img" aria-label="${escapeAttr(stateLabel)}"`;
+  const almostBadgeAttrs = `title="${escapeAttr(aria.almost)}" aria-hidden="true"`;
+  const soldBadgeAttrs = `title="${escapeAttr(aria.soldOut)}" aria-hidden="true"`;
+
   // Compact view: small price/discount pill only
   if (compact && !hovered && !selected) {
-    const html = `<div class="store-marker-in store-marker-compact" style="position:relative;transform:translate(-50%,-100%);border:2px solid ${borderColor};background:${bg};color:${fg};padding:2px 8px;border-radius:9999px;font-weight:800;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,.2);line-height:1;white-space:nowrap;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease">${priceHtml}${
+    const html = `<div ${ariaAttr} class="store-marker-in store-marker-compact" style="position:relative;transform:translate(-50%,-100%);border:2px solid ${borderColor};background:${bg};color:${fg};padding:2px 8px;border-radius:9999px;font-weight:800;font-size:11px;box-shadow:0 4px 10px rgba(0,0,0,.2);line-height:1;white-space:nowrap;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease">${priceHtml}${
       s.activeCount > 1
         ? `<span style="margin-left:4px;opacity:.75;font-size:9px">×${s.activeCount}</span>`
         : ""
-    }${hasAlmost ? `<span style="margin-left:4px">⏳</span>` : ""}${
-      allUnavailable ? `<span style="margin-left:4px">✕</span>` : ""
+    }${hasAlmost ? `<span ${almostBadgeAttrs} style="margin-left:4px">⏳</span>` : ""}${
+      allUnavailable ? `<span ${soldBadgeAttrs} style="margin-left:4px">✕</span>` : ""
     }</div>
     <style>.store-marker-in{animation:markerIn .22s cubic-bezier(.22,1,.36,1) both}.store-marker-compact:hover{transform:translate(-50%,-100%) scale(1.08);box-shadow:0 8px 18px rgba(0,0,0,.28)}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
     return L.divIcon({ html, className: "", iconSize: [0, 0] });
@@ -63,20 +84,23 @@ function buildIcon(s: MapStore, selected: boolean, hovered: boolean, compact: bo
       ? `<div style="position:absolute;top:-8px;right:-10px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:10px;font-weight:800;padding:2px 6px;border-radius:9999px;border:2px solid hsl(var(--card));white-space:nowrap;line-height:1">×${s.activeCount}</div>`
       : "";
   const stateBadge = allUnavailable
-    ? `<div style="position:absolute;top:-8px;left:-8px;background:hsl(var(--muted-foreground));color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:9999px;border:2px solid hsl(var(--card));line-height:1">✕</div>`
+    ? `<div ${soldBadgeAttrs} style="position:absolute;top:-8px;left:-8px;background:hsl(var(--muted-foreground));color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:9999px;border:2px solid hsl(var(--card));line-height:1">✕</div>`
     : hasAlmost
-    ? `<div style="position:absolute;top:-8px;left:-8px;background:#f59e0b;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:9999px;border:2px solid hsl(var(--card));line-height:1">⏳</div>`
+    ? `<div ${almostBadgeAttrs} style="position:absolute;top:-8px;left:-8px;background:#f59e0b;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:9999px;border:2px solid hsl(var(--card));line-height:1">⏳</div>`
     : "";
   const liftShadow = hovered || selected ? "0 14px 26px rgba(0,0,0,.32)" : "0 6px 16px rgba(0,0,0,.22)";
-  const html = `<div class="store-marker-in store-marker-full" style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid ${borderColor};background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:${liftShadow};line-height:1;display:inline-flex;align-items:center;gap:6px;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,padding .2s ease,font-size .2s ease">${logoHtml}${nameHtml}<span>${priceHtml}</span>${countBadge}${stateBadge}</div>
+  const html = `<div ${ariaAttr} class="store-marker-in store-marker-full" style="position:relative;transform:translate(-50%,-100%);white-space:nowrap;border:2px solid ${borderColor};background:${bg};color:${fg};padding:3px 12px 3px 3px;border-radius:9999px;font-weight:800;font-size:${fontSize}px;box-shadow:${liftShadow};line-height:1;display:inline-flex;align-items:center;gap:6px;transition:transform .2s cubic-bezier(.22,1,.36,1),box-shadow .2s ease,padding .2s ease,font-size .2s ease">${logoHtml}${nameHtml}<span>${priceHtml}</span>${countBadge}${stateBadge}</div>
   <style>.store-marker-in{animation:markerIn .22s cubic-bezier(.22,1,.36,1) both}.store-marker-full:hover{transform:translate(-50%,-100%) scale(1.05);box-shadow:0 14px 26px rgba(0,0,0,.32)}@keyframes markerIn{from{opacity:0;transform:translate(-50%,-100%) scale(.85)}to{opacity:1;transform:translate(-50%,-100%) scale(1)}}</style>`;
   return L.divIcon({ html, className: "", iconSize: [0, 0] });
 }
 
-function StoreMarkerImpl({ store, selected, hovered, compact, onSelect, onHover }: Props) {
+const DEFAULT_LABELS: MarkerAriaLabels = { almost: "Almost gone", soldOut: "Sold out" };
+
+function StoreMarkerImpl({ store, selected, hovered, compact, onSelect, onHover, ariaLabels }: Props) {
+  const labels = ariaLabels ?? DEFAULT_LABELS;
   const icon = useMemo(
-    () => buildIcon(store, selected, hovered, compact),
-    [store, selected, hovered, compact],
+    () => buildIcon(store, selected, hovered, compact, labels),
+    [store, selected, hovered, compact, labels],
   );
   // Tag the underlying Leaflet marker with store metadata so ClusterLayer's
   // iconCreateFunction can aggregate total offer counts across the cluster.
@@ -102,3 +126,4 @@ function StoreMarkerImpl({ store, selected, hovered, compact, onSelect, onHover 
 // recreate every marker's DivIcon HTML. Only markers whose props actually
 // change re-render.
 export default memo(StoreMarkerImpl);
+

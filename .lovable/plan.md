@@ -1,81 +1,82 @@
+## 0. Build status (verified before planning)
 
-## Goal
+Ran `bun run build` — it completes cleanly. Full tail:
 
-Eliminate all hardcoded Georgian strings inside the map experience and make every visible label switch instantly with the app language (ka / en / ru), using the existing `useI18n()` system in `src/lib/i18n.tsx`. Add locale-aware distance and radius formatting helpers.
+```
+✓ built in 1.09s
+PWA v1.3.0
+mode      generateSW
+precache  152 entries (3480.43 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-bdb082da.js
+[nitro] ✔ You can preview this build using npx vite preview
+[nitro] ✔ You can deploy this build using npx nitro deploy --prebuilt
+```
 
-## Files updated
+No TypeScript or Vite errors. Whatever the "Build unsuccessful" surface was pointing at is not reproducible in the current source tree. I'll re-run and paste the tail again after each map change so you see it directly, not just "clean."
 
-**Translation source**
-- `src/lib/i18n.tsx` — add a `map.*` group of keys under each of `ka/en/ru`. New keys (grouped, dot-namespaced) cover:
-  - Layers: `map.layer.standard`, `map.layer.satellite`, `map.layer.hybrid`, `map.layer.aria`, `map.layer.menu`
-  - Controls: `map.locate`, `map.myLocation`, `map.locationOff`, `map.enable`, `map.retry`, `map.loading`, `map.close`, `map.clear`, `map.clearSearch`, `map.filter`, `map.filterActive`
-  - Search: `map.searchPlaceholder`, `map.searchAria`, `map.partners`, `map.dishes`, `map.categories`, `map.districts`
-  - Filters: `map.sort`, `map.category`, `map.district`, `map.filters`, `map.sortNearest`, `map.sortMaxDiscount`, `map.sortEndingSoon`, `map.new`, `map.favorites`, `map.availableNow`, `map.unavailable`
-  - Popup: `map.activeOffers`, `map.currentlyUnavailable`, `map.pricesFrom`, `map.directions`, `map.favorite`, `map.almostGone`, `map.soldOut`, `map.left`, `map.expandRadius`, `map.noOffersRadius`
-  - SEO: `map.metaTitle`, `map.metaDescription`
-  - Distance/radius suffixes: `map.unit.m`, `map.unit.km`, `map.radiusCityWide`, `map.visibilityCityHint`, `map.visibilityRadiusHint`
-  - Store picker/mini-map: `map.locationOnMap`, `map.openInMap`, `map.storeMarkerFromPrice` (the `X₾-დან` suffix — split into a locale-aware `formatFromPrice` helper)
+## 1. Top bar — drop "Map View" label, keep the count
 
-**Geo helpers (locale-aware formatting)**
-- `src/lib/geo.ts` — extend with:
-  - `formatDistanceLocalized(km, language)` returning `320 მ` / `320 m` / `320 м`, `1.2 კმ` / `1.2 km` / `1,2 км` (Russian uses `,` decimal via `Intl.NumberFormat("ru-RU")`).
-  - `formatRadiusLabel(km, language)` returning `500 მ` / `1 კმ` / `1 km` / `1 км`. Handles sub-1 km values so we can add a `0.5 km` option later without new strings.
-  - Keep existing `formatDistance` for back-compat but mark deprecated so nothing else silently uses Georgian units.
+`src/routes/map.tsx` currently renders one pill:
 
-**Map components**
-- `src/routes/map.tsx`
-  - Localize `head.meta` (title + description) via `map.metaTitle` / `map.metaDescription` (route `head()` can't call hooks, so read from a small module-level `getLocalizedHead()` that inspects the persisted language from `localStorage`; falls back to Georgian on SSR). Component still updates all in-view text through `t()`.
-  - Replace every `L("...", "...", "...")` inline literal with `t("map.*")` keys. Remove the local `L` helper.
-  - Replace `formatDistance(...)` calls with `formatDistanceLocalized(..., language)`.
-  - Replace the hardcoded `-დან` suffix on `formatPrice(selectedStore.minPrice) + "-დან"` with `t("map.pricesFrom")` used as a prefix in all languages (drop the KA-only postfix hack).
-  - Keep district/category filters using existing helpers (already localized).
+```
+<MapPin/> {t("mapView")} · {stores.length}
+```
 
-- `src/components/MapCanvas.tsx` — no visible strings today, but pass through `language` prop only if needed. No changes expected other than importing `formatDistanceLocalized` if it ever renders distance (it doesn't right now).
+Replace it with a compact icon+number pill (`Store` icon from lucide + `{stores.length}`), sized to match the back button (h-10, rounded-full). Add `aria-label={fmt("map.activeOffers", { count: stores.length })}` so screen readers still hear "N offers". No empty container is left behind — the pill fully replaces the old element.
 
-- `src/components/map/MapLayerSelector.tsx`
-  - Use `useI18n()` and read layer labels from `t("map.layer.standard|satellite|hybrid")`. Replace `aria-label="რუკის ფენა"` with `t("map.layer.menu")`.
+## 2. Move search + filter to the top-right group
 
-- `src/components/map/LocationButton.tsx`
-  - Default `label` fallback becomes `t("map.myLocation")` via `useI18n()` instead of hardcoded `"My location"`.
+Today the search sits below the top bar as a centered `max-w-md mx-auto` row. Restructure the overlay so:
 
-- `src/components/map/StoreMarker.tsx`
-  - The `X₾-დან` string baked into the DivIcon HTML is Georgian-only. Accept `fromPriceLabel` (already-localized string like `"1.20₾+"` in EN/RU, `"1.20₾-დან"` in KA) from `map.tsx` via `MapStore` (new field `minPriceLabel: string`) so the marker never needs to know the language. Build the label in `map.tsx` using `t("map.pricesFrom")` + `formatPrice`.
+- **Top-left:** back arrow (unchanged position).
+- **Top-right:** vertical stack (`flex flex-col items-end gap-2`) containing, from top to bottom:
+  1. **Row A (row-reverse):** location button + store-count pill.
+  2. **Row B:** map layer selector (see step 3).
+  3. **Row C:** search + filter pill (same internal component/logic — I only change the wrapper).
 
-- `src/components/CustomerRadiusFilter.tsx`
-  - Use `useI18n()` and render `formatRadiusLabel(r, language)` instead of `` `${r} კმ` ``.
+Search wrapper sizing:
+- Mobile: `w-[calc(100vw-1.5rem-2.5rem-1rem)]` capped at `max-w-[18rem]`, so it never touches screen edges and never overlaps the back button; the suggestions dropdown stays anchored to the field (already `absolute inset-x-0 top-[calc(100%+6px)]` — that keeps working because the wrapper is still relative).
+- Desktop (sm+): `sm:w-80`.
 
-- `src/components/VisibilityRadiusSelector.tsx`
-  - Options render with `formatRadiusLabel`. The "50 = whole city" option label uses `t("map.radiusCityWide")`. Helper text uses `t("map.visibilityCityHint")` / `t("map.visibilityRadiusHint")` (with `{value}` interpolation via a small `format(str, vars)` util already suitable for the plain `.replace("{value}", …)` pattern used elsewhere).
+The filters accordion (`showFilters && …`) stays where it is functionally but re-anchors under the search wrapper (aligned right, `w-[min(92vw,28rem)]`) so the horizontally-scrolling chip rows don't push into the viewport edge. Debounce, suggestion matching, and dual-radius filtering logic are untouched — only the outer container className/positioning changes.
 
-- `src/components/OfferMiniMap.tsx`
-  - Localize section title (`map.locationOnMap`), external-link aria (`map.openInMap`), "my location" chip (already can reuse `map.myLocation`), and distance formatting via `formatDistanceLocalized`.
+## 3. Lift MapLayerSelector into the top-right cluster
 
-- `src/components/StoreLocationPreview.tsx`
-  - Localize `"კოორდინატები არასწორია"` and `"მდებარეობა არ არის მითითებული"` (new keys `map.coordsInvalid`, `map.locationMissing`).
+Right now `MapLayerSelector` is rendered inside `MapCanvas` via a Leaflet `leaflet-top leaflet-right` control at `marginTop:60`. That prevents grouping it with the other floating controls in `map.tsx`. Plan:
 
-- `src/components/StoreLocationPicker.tsx`
-  - No user-visible Georgian strings today; keep as-is except forwarding `useI18n` if we later add hints. No change this pass.
+- Lift layer state up: `MapCanvas` accepts optional `layer` / `onLayerChange` props; when provided it uses them and skips its internal `MapLayerSelector` render. Fallback to internal state if props are absent (keeps `OfferMiniMap`/other consumers working).
+- `map.tsx` owns `const [layer, setLayer] = useState<MapLayerId>(...)`, initialising from the same `readStoredLayer` helper (exported from `MapCanvas.tsx` or reimplemented locally — one small helper).
+- Render `<MapLayerSelector value={layer} onChange={setLayer} />` inside the top-right cluster.
 
-## Non-goals
+Result: search, filter, layer, location, and count pill all sit in one visually consistent floating group with matching rounded shapes, shadow, and z-index (`z-[1000]` on the group container, matching current values; layer selector already opens at `z-[1600]` so it stays above).
 
-- No visual/layout changes.
-- No changes to filter logic, clustering, geolocation, or persisted keys.
-- No new languages, no new translation infra (reuse `useI18n` + `t()` + flat keys with `map.` prefix; nested/dot keys are just strings in the flat map, matching the existing convention).
-- No changes to `hooks/use-user-location.tsx` (already localized).
+## 4. Popup no longer covers controls
 
-## Technical notes
+The store-preview card is `absolute bottom-20 inset-x-3 z-[1000]` — bottom-anchored, so it does not touch the top-right cluster. I'll double-check the "location off" pill (`top-28`) doesn't collide with the new stack; if it does, move it a bit down (`top-32`) or narrow it. No changes to popup logic, dual-radius filtering, or the mobile bottom-card pattern.
 
-- `map.tsx` `Route.head()` runs outside React, so it can't use `useI18n()`. We read `localStorage.getItem("cheaper-language")` inside `head()` and pick the matching title/description from a small object. This mirrors how other localized routes handle head meta.
-- Russian decimal separator: use `new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 }).format(km)` for `km >= 1`. English uses `en-US`. Georgian keeps `toFixed(1)` (dot separator matches current UI).
-- No key concatenation of translated strings — the "Filter (N active)" aria-label is composed via a single template key `map.filterActive` that takes `{count}`, e.g. `"ფილტრი ({count} აქტიური)"`.
+## 5. Marker accessibility (⏳ / ✕)
 
-## Quality check checklist (executed after implementation)
+In `src/components/map/StoreMarker.tsx`'s `buildIcon`:
 
-1. `rg -n "კმ|რუკ|მდებარეობ|ფენ" src/components/ src/routes/map.tsx src/lib/geo.ts` returns zero hits outside `i18n.tsx`.
-2. `bunx tsgo --noEmit` clean.
-3. Manual switch ka → en → ru on `/map` updates: layer selector, radius chips, filter chips, search placeholder, empty state, selected-store popup (distance format, "from" price, directions, favorite), "Location off" banner, loading fallback, and the SEO title (on next full navigation).
+- Wrap the outer div with `role="img"` and add `aria-label` computed from state, using existing i18n keys — passed in as a prop from `map.tsx` (so the DivIcon HTML is language-aware without importing i18n into the marker):
+  - `almost` → `t("map.almostGone")`
+  - `unavailable` → `t("map.soldOut")`
+  - available → `s.storeName` (or the localized name already in `store.storeName`).
+- Add matching `title="…"` on the ⏳ and ✕ badges so hover tooltips also convey state. Visual glyphs, colors, sizes, and the ref-based cluster aggregation are untouched.
 
-## Future work (out of scope, called out)
+`StoreMarker` gains one new optional prop `ariaLabels: { almost: string; soldOut: string }`; `MapCanvas` forwards it; `map.tsx` fills it with `t()` calls.
 
-- `MapCanvas` and `StoreMarker` DivIcon HTML still contains inline `⏳ / ✕` glyphs and no textual "almost gone / sold out" tooltip. Adding an accessible tooltip layer would let us localize those. Tracked but not done here.
-- Toast notifications ("Location updated", "Layer changed", etc.) — the app currently has no toast on layer/radius change; adding them is a UX addition, not an i18n fix, so out of scope.
+## 6. Verification (I run and paste)
+
+After the edits:
+- `bunx tsgo --noEmit` — paste tail.
+- `bun run build` — paste tail (full "✓ built" line + PWA/Nitro summary, same shape as section 0).
+- Reduced-motion, debounce, dual-radius, cluster aggregation, and timezone-aware pickup circle are code-unchanged; I'll re-grep to confirm no accidental edits leaked into those blocks.
+
+## Explicit non-goals
+
+- Do not rename or restructure `map.*` translation keys.
+- Do not touch `ClusterLayer` aggregation, radius-circle timezone logic, search debounce, reduced-motion handling, or dual-radius filtering.
+- No changes to `OfferMiniMap`, `StoreLocationPreview`, or any non-map consumer of `MapCanvas`.
