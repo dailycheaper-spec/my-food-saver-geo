@@ -167,7 +167,16 @@ function OfferPage() {
       });
       await openExternal(redirectUrl);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("Store staff cannot place orders on their own store")) {
+        toast.error(language === "en"
+          ? "You can't order from your own store."
+          : language === "ru"
+          ? "Нельзя заказывать в своём собственном магазине."
+          : "საკუთარი მაღაზიიდან შეკვეთის გაკეთება არ შეიძლება.");
+      } else {
+        toast.error(msg);
+      }
     }
   }
 
