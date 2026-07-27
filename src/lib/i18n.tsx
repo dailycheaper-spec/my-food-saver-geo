@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Check, Globe } from "lucide-react";
 
 export type Language = "ka" | "en" | "ru";
 
@@ -1217,17 +1218,34 @@ export function useI18n() {
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage, t } = useI18n();
-  const options: { value: Language; label: string }[] = [
-    { value: "ka", label: "ქარ" },
-    { value: "en", label: "EN" },
-    { value: "ru", label: "РУ" },
+  const options: { value: Language; label: string; short: string }[] = [
+    { value: "ka", label: "ქართული", short: "ქარ" },
+    { value: "en", label: "English", short: "EN" },
+    { value: "ru", label: "Русский", short: "РУ" },
   ];
 
-  return (
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const pills = (
     <div
       role="group"
       aria-label={t("language")}
-      className="inline-flex items-center rounded-full border border-border bg-card p-0.5 shadow-soft gap-0.5"
+      className={`${compact ? "hidden sm:inline-flex" : "inline-flex"} items-center rounded-full border border-border bg-card p-0.5 shadow-soft gap-0.5`}
     >
       {options.map((option) => {
         const active = language === option.value;
@@ -1249,10 +1267,55 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
                 : "text-foreground hover:bg-muted"
             }`}
           >
-            {option.label}
+            {option.short}
           </button>
         );
       })}
     </div>
+  );
+
+  if (!compact) return pills;
+
+  return (
+    <>
+      {pills}
+      <div ref={ref} className="relative sm:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          aria-label={t("language")}
+          className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
+        >
+          <Globe className="w-[18px] h-[18px]" aria-hidden="true" />
+        </button>
+        {open && (
+          <div
+            role="listbox"
+            className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[160px] rounded-2xl border border-border bg-card p-1 shadow-elevated animate-scale-in"
+          >
+            {options.map((option) => {
+              const active = language === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => { setLanguage(option.value); setOpen(false); }}
+                  className={`w-full min-h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-semibold transition-colors ${
+                    active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                  }`}
+                >
+                  {option.label}
+                  {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
