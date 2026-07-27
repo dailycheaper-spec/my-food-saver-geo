@@ -73,9 +73,9 @@ function AdminStats() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-end justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">სტატისტიკა</h1>
+      <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">სტატისტიკა</h1>
           <p className="text-sm text-muted-foreground mt-1">{days === 1 ? "ბოლო 24 საათი" : days === 7 ? "ბოლო 7 დღე" : "ბოლო 30 დღე"}</p>
         </div>
         <div className="flex gap-1 p-1 rounded-2xl bg-muted">

@@ -432,7 +432,7 @@ function SearchPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 pt-4 pb-6">
+      <div className="page-shell">
         {/* Instant suggestions */}
         {showSuggestions && (
           <div className="mb-4 bg-card border border-border rounded-2xl overflow-hidden animate-fade-in">

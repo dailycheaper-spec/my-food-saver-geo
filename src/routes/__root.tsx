@@ -91,12 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800&family=Noto+Serif+Georgian:wght@600;700;800&display=swap",
-      },
+
       { rel: "icon", href: "/icon-512.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -187,7 +182,7 @@ function RootComponent() {
             >
               Skip to content
             </a>
-            <main id="content" className="pb-20 sm:pb-24">
+            <main id="content" className="pb-[env(safe-area-inset-bottom,0px)]">
               <Outlet />
             </main>
             <BottomNav />

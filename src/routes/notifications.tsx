@@ -62,7 +62,7 @@ function Notifications() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6">
+    <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{t("notificationsTitle")}</h1>
       <p className="text-sm text-muted-foreground mt-1">
         {t("notificationsText")}

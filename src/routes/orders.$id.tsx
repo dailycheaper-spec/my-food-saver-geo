@@ -100,7 +100,7 @@ function OrderDetail() {
     : "bg-primary/10 text-primary";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 pt-6">
+    <div className="page-shell">
       <div className="flex items-center gap-3 mb-4">
         <button onClick={() => history.back()} className="w-10 h-10 rounded-full bg-card border border-border grid place-items-center">
           <ArrowLeft className="w-5 h-5" />
