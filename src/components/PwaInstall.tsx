@@ -2,37 +2,7 @@ import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/pwa/register-sw";
 import { useI18n } from "@/lib/i18n";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
 const IOS_HINT_KEY = "cheaper.iosInstallHintDismissed";
-const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v3";
-
-function hasAndroidInstallDismissed() {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.sessionStorage.getItem(ANDROID_HINT_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function dismissAndroidInstallForSession() {
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(ANDROID_HINT_KEY, "1");
-  } catch {
-    /* noop */
-  }
-}
-
-function isMobileBrowser() {
-  if (typeof navigator === "undefined") return false;
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-}
-
 function isIosSafari() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
