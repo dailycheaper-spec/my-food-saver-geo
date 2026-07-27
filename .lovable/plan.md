@@ -1,29 +1,28 @@
-## პრობლემა
+## Android back-to-exit confirmation
 
-ინსტალაციის ფანჯარა აღარ იხსნება არც მობილურზე და არც დესკტოპზე იმიტომ, რომ `public/manifest.webmanifest`-ში ხატულების ბილიკები გატეხილია:
+Implement the standard Android pattern: press back at root → native confirm dialog → OK exits app; anywhere else → normal in-app back navigation. No effect on web or iOS.
 
-- ყველა `src` არის `"../icons/icon-XX.webp"` — რაც `/manifest.webmanifest`-დან იშლება როგორც `/icons/icon-XX.webp`, ეს ფაილები **არ არსებობს** (`public/`-ში გვაქვს `/icon-192.png`, `/icon-512.png`, `/icon-maskable-512.png`).
-- `type: "image/png"` მითითებულია `.webp` გაფართოებაზე — ორმაგი შეუსაბამობა.
+### Files
 
-Chrome/Edge/Samsung Internet აქტიურებენ `beforeinstallprompt`-ს **მხოლოდ მაშინ, თუ ვალიდური ხატულა (მინ. 192px და 512px) ხელმისაწვდომია**. ვინაიდან ვერცერთი icon ვერ იტვირთება, install criteria ვერ სრულდება და ივენთი აღარ ისვრება — ამიტომ `PwaInstall.tsx` `deferred` prompt-ს ვერ იღებს და desktop-ზეც არაფერი გამოდის.
+1. **`package.json`** — add `@capacitor/dialog` (^8.x). Runs `bun add`.
 
-## გამოსავალი
+2. **`src/lib/i18n.tsx`** — add three keys in `ka`, `en`, `ru` blocks:
+   - `exitApp.title` → "Cheaper-ის დახურვა" / "Close Cheaper" / "Закрыть Cheaper"
+   - `exitApp.message` → "დარწმუნებული ხართ, რომ გსურთ გასვლა?" / "Are you sure you want to exit?" / "Вы уверены, что хотите выйти?"
+   - `exitApp.ok` → "კი" / "Yes" / "Да"
+   - (reuse existing `cancel` key for the Cancel button)
 
-### 1. `public/manifest.webmanifest` — შევასწოროთ icons
-- გამოვიყენოთ რეალურად არსებული ფაილები `/icon-192.png`, `/icon-512.png`, `/icon-maskable-512.png` (+ `/apple-touch-icon.png`).
-- `type` შევუსაბამოთ გაფართოებას (`image/png`).
-- `purpose`-ები გავყოთ სწორად: 192/512 = `"any"`, ცალკე ჩანაწერი `icon-maskable-512.png` = `"maskable"` (გაერთიანებული `"any maskable"` ხშირად ხატულის სივრცის შემცირებას იწვევს — გავყოთ).
+3. **`src/components/AndroidBackHandler.tsx`** (new) — client component, returns `null`. On mount:
+   - Guard: `if (!isNative() || Capacitor.getPlatform() !== "android") return;`
+   - `App.addListener("backButton", async ({ canGoBack }) => { ... })`.
+   - Determine "at root" by combining Capacitor's `canGoBack` flag with `router.history.length <= 1` (via `useRouter()` from `@tanstack/react-router`) — this uses the router's history state, not the URL, so a user who navigated to `/` from elsewhere still has back-history and gets normal back nav.
+   - If at root: `Dialog.confirm({ title: t("exitApp.title"), message: t("exitApp.message"), okButtonTitle: t("exitApp.ok"), cancelButtonTitle: t("cancel") })`. On `{ value: true }` → `App.exitApp()`. On cancel → no-op.
+   - If not at root: `router.history.back()`.
+   - Cleanup: `sub.remove()` in effect return.
 
-### 2. `src/components/PwaInstall.tsx` — მცირე გაუმჯობესებები
-- დესკტოპისთვისაც ვაჩვენოთ install ბანერი, როცა `beforeinstallprompt` მოვა (ამჟამად `showAndroid` ლოგიკა მოითხოვს `isMobileBrowser()`, თუ deferred არაა — მაგრამ თუ deferred **არის**, უკვე ჩნდება; მაინც დავამატოთ desktop-friendly სტილი).
-- გავასუფთაოთ ძველი dismissed session flag ერთხელ (v3 გასაღები), რომ ისინი, ვინც უკვე დახურეს, ხელახლა ნახონ.
+4. **`src/routes/__root.tsx`** — mount `<AndroidBackHandler />` once inside the providers tree (below `I18nProvider`, alongside `AppTracker`), so `useI18n()` and `useRouter()` are available. No other changes.
 
-### 3. ვერიფიკაცია
-- Preview-ში DevTools → Application → Manifest — შემოწმდეს რომ ხატულები იტვირთება უპრობლემოდ.
-- Console → `beforeinstallprompt`-ის დაფიქსირება.
-- Publish შემდეგ cheaper.ge-ზე Chrome desktop-ის მისამართის ზოლში install ღილაკი უნდა გამოჩნდეს, ხოლო Android Chrome-ზე ჩვენი ბოტომ ბანერი „Install"-ით.
-
-## რას არ ვცვლი
-- `vite.config.ts` PWA workbox კონფიგი — ის სწორად აქვს.
-- Service worker რეგისტრაცია — უკვე მუშაობს.
-- Native (Capacitor) shell — ეს PWA install პრობლემა მას არ ეხება.
+### Verification
+- `bun run build` and `tsgo` — zero errors.
+- Web/iOS: listener never registers; behavior unchanged.
+- Android APK: back at `/` → native AlertDialog with Georgian text (or current language), Cancel closes it, OK calls `App.exitApp()`. Back on any inner route → normal back navigation.
