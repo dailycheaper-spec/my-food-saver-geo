@@ -42,7 +42,13 @@ interface Props {
   searchRadiusKm?: number;
   /** localStorage key namespace for persisting layer + zoom. */
   storageKey?: string;
+  /** When provided, layer state is lifted to the parent and the internal layer selector is hidden. */
+  layer?: MapLayerId;
+  onLayerChange?: (id: MapLayerId) => void;
+  /** Localized aria labels for marker state glyphs. */
+  markerAriaLabels?: MarkerAriaLabels;
 }
+
 
 function StandardTiles() {
   return (
