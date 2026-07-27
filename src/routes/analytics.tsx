@@ -3,6 +3,7 @@ import { BarChart3, Users, ShoppingCart, TrendingUp, Trophy, Eye, ArrowLeft } fr
 import { useAnalytics } from "@/lib/storage";
 import { OFFERS, formatPrice } from "@/lib/mock-data";
 import { StoreLogo } from "@/components/StoreLogo";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/analytics")({
 });
 
 function Analytics() {
+  const { t } = useI18n();
   const a = useAnalytics();
 
   const topStores = Object.entries(a.storeSales)
@@ -42,27 +44,27 @@ function Analytics() {
           <ArrowLeft className="w-4 h-4" />
         </Link>
         <div>
-          <h1 className="font-display text-2xl font-bold">ანალიტიკა</h1>
-          <p className="text-xs text-muted-foreground">პლატფორმის სტატისტიკა რეალურ დროში</p>
+          <h1 className="font-display text-2xl font-bold">{t("analytics.title")}</h1>
+          <p className="text-xs text-muted-foreground">{t("analytics.subtitle")}</p>
         </div>
       </div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3">
-        <Kpi icon={<Users className="w-4 h-4" />} label="ვიზიტორები" value={a.visits.toLocaleString("ka-GE")} tint="bg-primary/10 text-primary" />
-        <Kpi icon={<ShoppingCart className="w-4 h-4" />} label="შეკვეთები" value={a.purchases.toLocaleString("ka-GE")} tint="bg-accent/20 text-accent-foreground" />
-        <Kpi icon={<TrendingUp className="w-4 h-4" />} label="კონვერსია" value={`${conversionRate}%`} tint="bg-success/10 text-success" />
-        <Kpi icon={<BarChart3 className="w-4 h-4" />} label="ბრუნვა" value={formatPrice(totalRevenue)} tint="bg-warm text-warm-foreground" />
+        <Kpi icon={<Users className="w-4 h-4" />} label={t("analytics.visitors")} value={a.visits.toLocaleString("ka-GE")} tint="bg-primary/10 text-primary" />
+        <Kpi icon={<ShoppingCart className="w-4 h-4" />} label={t("analytics.orders")} value={a.purchases.toLocaleString("ka-GE")} tint="bg-accent/20 text-accent-foreground" />
+        <Kpi icon={<TrendingUp className="w-4 h-4" />} label={t("analytics.conversion")} value={`${conversionRate}%`} tint="bg-success/10 text-success" />
+        <Kpi icon={<BarChart3 className="w-4 h-4" />} label={t("analytics.revenue")} value={formatPrice(totalRevenue)} tint="bg-warm text-warm-foreground" />
       </div>
 
       {/* Daily visits chart */}
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center justify-between mb-3">
-          <div className="font-semibold">ვიზიტები (7 დღე)</div>
+          <div className="font-semibold">{t("analytics.visitsChart")}</div>
           <BarChart3 className="w-4 h-4 text-muted-foreground" />
         </div>
         {daily.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">მონაცემები ჯერ არ არის.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t("analytics.noDataYet")}</p>
         ) : (
           <div className="flex items-end gap-2 h-32">
             {daily.map(([date, count]) => {
@@ -87,10 +89,10 @@ function Analytics() {
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-2 mb-3">
           <Trophy className="w-4 h-4 text-accent" />
-          <div className="font-semibold">ტოპ მაღაზიები გაყიდვებით</div>
+          <div className="font-semibold">{t("analytics.topStores")}</div>
         </div>
         {topStores.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">ჯერ არაფერი გაყიდულა.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t("analytics.nothingSoldYet")}</p>
         ) : (
           <div className="space-y-2">
             {topStores.map((s, i) => (
@@ -101,7 +103,7 @@ function Analytics() {
                 <div className="w-9 h-9 rounded-lg gradient-warm grid place-items-center overflow-hidden text-lg"><StoreLogo value={s.logo} emojiClassName="text-lg" /></div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm truncate">{s.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{s.count} შეკვეთა • {formatPrice(s.revenue)}</div>
+                  <div className="text-[11px] text-muted-foreground">{s.count} {t("analytics.orderCount")} • {formatPrice(s.revenue)}</div>
                 </div>
               </div>
             ))}
@@ -113,10 +115,10 @@ function Analytics() {
       <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-2 mb-3">
           <Eye className="w-4 h-4 text-primary" />
-          <div className="font-semibold">ყველაზე ნახული შემოთავაზებები</div>
+          <div className="font-semibold">{t("analytics.topViewedOffers")}</div>
         </div>
         {topOffers.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">ჯერ არავის უნახავს.</p>
+          <p className="text-sm text-muted-foreground text-center py-6">{t("analytics.noViewsYet")}</p>
         ) : (
           <div className="space-y-2">
             {topOffers.map(({ offer, views }) => (
@@ -133,7 +135,7 @@ function Analytics() {
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-primary text-sm">{views}</div>
-                  <div className="text-[10px] text-muted-foreground">ნახვა</div>
+                  <div className="text-[10px] text-muted-foreground">{t("analytics.views")}</div>
                 </div>
               </Link>
             ))}

@@ -18,6 +18,7 @@ import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
 import { OfferCard } from "@/components/OfferCard";
+import { StoreLogo } from "@/components/StoreLogo";
 import { GooglePayButton } from "@/components/GooglePayButton";
 import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
@@ -52,12 +53,15 @@ export const Route = createFileRoute("/offer/$id")({
       : [{ title: "შემოთავაზება — Cheaper" }, { name: "robots", content: "noindex" }],
   }),
   component: OfferPage,
-  notFoundComponent: () => (
-    <div className="p-8 text-center">
-      <p className="text-muted-foreground">შემოთავაზება ვერ მოიძებნა.</p>
-      <Link to="/" className="text-primary underline text-sm mt-2 inline-block">მთავარზე დაბრუნება</Link>
-    </div>
-  ),
+  notFoundComponent: () => {
+    const { t } = useI18n();
+    return (
+      <div className="p-8 text-center">
+        <p className="text-muted-foreground">{t("offer.notFound")}</p>
+        <Link to="/" className="text-primary underline text-sm mt-2 inline-block">{t("offer.backHome")}</Link>
+      </div>
+    );
+  },
 });
 
 function OfferPage() {
@@ -280,7 +284,7 @@ function OfferPage() {
             params={{ id: offer.storeId }}
             className="flex items-center gap-3 -m-1 p-1 rounded-2xl hover:bg-secondary/50 transition-colors"
           >
-            <div className="w-12 h-12 rounded-2xl gradient-warm grid place-items-center text-2xl shrink-0 overflow-hidden"><StoreLogo value={offer.storeLogo} emojiClassName="text-2xl" /></div>
+            <div className="w-12 h-12 rounded-2xl gradient-warm grid place-items-center text-2xl shrink-0 overflow-hidden"><StoreLogo value={offer.storeLogo} emojiClassName="text-2xl" alt={storeName} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1 min-w-0">
                 <div className="font-bold truncate">{storeName}</div>
@@ -523,7 +527,7 @@ function OfferPage() {
         <SectionCard icon={<Shield className="w-4 h-4 text-primary" />} title={L.aboutStore}>
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 rounded-2xl gradient-warm grid place-items-center text-3xl shrink-0 overflow-hidden">
-              <StoreLogo value={offer.storeLogo} emojiClassName="text-3xl" />
+              <StoreLogo value={offer.storeLogo} emojiClassName="text-3xl" alt={storeName} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold flex items-center gap-1.5">

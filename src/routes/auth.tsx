@@ -61,7 +61,7 @@ function AuthPage() {
     sessionStorage.setItem("auth_redirect", redirectTarget);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    if (error) return setMsg({ type: "err", text: translateAuthError(error.message, t) });
     await waitForUser();
     navigateToRedirect(navigate, redirect);
   }
@@ -79,7 +79,7 @@ function AuthPage() {
       },
     });
     setLoading(false);
-    if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    if (error) return setMsg({ type: "err", text: translateAuthError(error.message, t) });
     setMsg({ type: "ok", text: t("signupSuccess") });
   }
 
@@ -133,7 +133,7 @@ function AuthPage() {
     setMsg(null);
     const { error } = await supabase.auth.signInWithOtp({ phone });
     setLoading(false);
-    if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    if (error) return setMsg({ type: "err", text: translateAuthError(error.message, t) });
     setOtpSent(true);
     setMsg({ type: "ok", text: t("smsSent") });
   }
@@ -144,7 +144,7 @@ function AuthPage() {
     setMsg(null);
     const { error } = await supabase.auth.verifyOtp({ phone, token: otp, type: "sms" });
     setLoading(false);
-    if (error) return setMsg({ type: "err", text: translateAuthError(error.message) });
+    if (error) return setMsg({ type: "err", text: translateAuthError(error.message, t) });
     navigateToRedirect(navigate, redirect);
   }
 
@@ -169,7 +169,7 @@ function AuthPage() {
           </p>
 
           {/* Mode tabs */}
-          <div className="mt-5 grid grid-cols-3 gap-1 bg-muted/40 p-1 rounded-xl text-xs font-semibold">
+          <div className="mt-5 grid grid-cols-3 gap-1.5 bg-muted/40 p-1 rounded-xl font-semibold">
             <TabBtn active={mode === "signin"} onClick={() => { setMode("signin"); setMsg(null); }}>{t("signIn")}</TabBtn>
             <TabBtn active={mode === "signup"} onClick={() => { setMode("signup"); setMsg(null); }}>{t("signup")}</TabBtn>
             <TabBtn active={mode === "phone"} onClick={() => { setMode("phone"); setMsg(null); }}>{t("phoneTab")}</TabBtn>
@@ -209,19 +209,19 @@ function AuthPage() {
               <Field icon={<Phone className="w-4 h-4" />} type="tel" placeholder="+995 555 12 34 56" value={phone} onChange={setPhone} required />
               <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-soft disabled:opacity-60 flex items-center justify-center gap-2">
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                კოდის მიღება SMS-ით
+                {t("auth.smsOtpButton")}
               </button>
             </form>
           )}
           {mode === "phone" && otpSent && (
             <form onSubmit={handleVerifyOtp} className="mt-5 space-y-3">
-              <Field icon={<Lock className="w-4 h-4" />} placeholder="6-ნიშნა კოდი" value={otp} onChange={setOtp} required maxLength={6} />
+              <Field icon={<Lock className="w-4 h-4" />} placeholder={t("auth.otpPlaceholder")} value={otp} onChange={setOtp} required maxLength={6} />
               <button type="submit" disabled={loading} className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold shadow-soft disabled:opacity-60 flex items-center justify-center gap-2">
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                კოდის დადასტურება
+                {t("auth.verifyOtpButton")}
               </button>
               <button type="button" onClick={() => { setOtpSent(false); setOtp(""); }} className="w-full text-xs text-muted-foreground">
-                სხვა ნომრით ცდა
+                {t("auth.tryOtherNumber")}
               </button>
             </form>
           )}
@@ -292,7 +292,11 @@ async function waitForUser() {
 
 function TabBtn({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`py-2 rounded-lg transition-colors ${active ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-11 px-1 rounded-lg text-[11px] sm:text-xs leading-tight text-center break-words transition-colors ${active ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}
+    >
       {children}
     </button>
   );
@@ -313,15 +317,15 @@ function Field({ icon, value, onChange, ...rest }: FieldProps) {
   );
 }
 
-function translateAuthError(msg: string): string {
+function translateAuthError(msg: string, t: (key: string) => string): string {
   const m = msg.toLowerCase();
-  if (m.includes("invalid login")) return "არასწორი ელფოსტა ან პაროლი";
-  if (m.includes("already registered") || m.includes("user already")) return "ეს ელფოსტა უკვე დარეგისტრირებულია";
-  if (m.includes("password")) return "პაროლი უნდა იყოს მინ. 6 სიმბოლო";
-  if (m.includes("email")) return "ელფოსტის ფორმატი არასწორია";
-  if (m.includes("otp") || m.includes("token")) return "კოდი არასწორია ან ვადაგასულია";
-  if (m.includes("phone")) return "ტელეფონის ფორმატი არასწორია (მაგ. +995...)";
-  if (m.includes("rate")) return "ძალიან ბევრი მცდელობა. სცადე მოგვიანებით.";
+  if (m.includes("invalid login")) return t("auth.err.invalidLogin");
+  if (m.includes("already registered") || m.includes("user already")) return t("auth.err.alreadyRegistered");
+  if (m.includes("password")) return t("auth.err.password");
+  if (m.includes("email")) return t("auth.err.email");
+  if (m.includes("otp") || m.includes("token")) return t("auth.err.otp");
+  if (m.includes("phone")) return t("auth.err.phone");
+  if (m.includes("rate")) return t("auth.err.rate");
   return msg;
 }
 

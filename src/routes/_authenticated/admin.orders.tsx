@@ -2,15 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { Truck, ShoppingBag, Search } from "lucide-react";
 import { useAllOrders, formatGel } from "@/lib/db";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({
-  head: () => ({ meta: [{ title: "შეკვეთები — ადმინი" }] }),
+  head: () => ({ meta: [{ title: "Orders — Admin" }] }),
   component: AdminOrders,
 });
 
 const STATUSES = ["all", "pending", "paid", "ready", "collected", "gifted", "cancelled"] as const;
 
 function AdminOrders() {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { orders, error: ordersError } = useAllOrders();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("all");
@@ -42,39 +45,39 @@ function AdminOrders() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">შეკვეთები</h1>
-        <p className="text-sm text-muted-foreground mt-1">{filtered.length} შეკვეთა · Realtime</p>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("შეკვეთები", "Orders", "Заказы")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {L("შეკვეთა", "orders", "заказов")} · Realtime</p>
       </div>
 
       {ordersError && (
         <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-4 text-center text-sm text-destructive">
-          შეკვეთების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.
+          {L("შეკვეთების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.", "Could not load orders. Please try again.", "Не удалось загрузить заказы. Попробуйте снова.")}
         </div>
       )}
 
       <div className="bg-card rounded-3xl border border-border p-4 shadow-sm space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ძებნა კოდით, პროდუქტით, მაღაზიით…"
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა კოდით, პროდუქტით, მაღაზიით…", "Search by code, product, store…", "Поиск по коду, товару, магазину…")}
             className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <select value={status} onChange={(e) => setStatus(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            {STATUSES.map((s) => <option key={s} value={s}>{s === "all" ? "ყველა სტატუსი" : s}</option>)}
+            {STATUSES.map((s) => <option key={s} value={s}>{s === "all" ? L("ყველა სტატუსი", "All statuses", "Все статусы") : s}</option>)}
           </select>
           <select value={method} onChange={(e) => setMethod(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            <option value="all">ყველა ტიპი</option>
-            <option value="pickup">აღება</option>
-            <option value="delivery">მიტანა</option>
+            <option value="all">{L("ყველა ტიპი", "All types", "Все типы")}</option>
+            <option value="pickup">{L("აღება", "Pickup", "Самовывоз")}</option>
+            <option value="delivery">{L("მიტანა", "Delivery", "Доставка")}</option>
           </select>
           <select value={range} onChange={(e) => setRange(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            <option value="all">ყველა დრო</option>
-            <option value="today">დღეს</option>
-            <option value="week">7 დღე</option>
-            <option value="month">30 დღე</option>
+            <option value="all">{L("ყველა დრო", "All time", "Всё время")}</option>
+            <option value="today">{L("დღეს", "Today", "Сегодня")}</option>
+            <option value="week">{L("7 დღე", "7 days", "7 дней")}</option>
+            <option value="month">{L("30 დღე", "30 days", "30 дней")}</option>
           </select>
         </div>
       </div>
@@ -84,14 +87,14 @@ function AdminOrders() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="text-left p-3 font-semibold">კოდი</th>
-                <th className="text-left p-3 font-semibold">მაღაზია</th>
-                <th className="text-left p-3 font-semibold">პროდუქტი</th>
-                <th className="text-left p-3 font-semibold">ტიპი</th>
-                <th className="text-right p-3 font-semibold">თანხა</th>
-                <th className="text-left p-3 font-semibold">გადახდა</th>
-                <th className="text-left p-3 font-semibold">სტატუსი</th>
-                <th className="text-left p-3 font-semibold">დრო</th>
+                <th className="text-left p-3 font-semibold">{L("კოდი", "Code", "Код")}</th>
+                <th className="text-left p-3 font-semibold">{L("მაღაზია", "Store", "Магазин")}</th>
+                <th className="text-left p-3 font-semibold">{L("პროდუქტი", "Product", "Товар")}</th>
+                <th className="text-left p-3 font-semibold">{L("ტიპი", "Type", "Тип")}</th>
+                <th className="text-right p-3 font-semibold">{L("თანხა", "Amount", "Сумма")}</th>
+                <th className="text-left p-3 font-semibold">{L("გადახდა", "Payment", "Оплата")}</th>
+                <th className="text-left p-3 font-semibold">{L("სტატუსი", "Status", "Статус")}</th>
+                <th className="text-left p-3 font-semibold">{L("დრო", "Time", "Время")}</th>
               </tr>
             </thead>
             <tbody>
@@ -103,13 +106,13 @@ function AdminOrders() {
                   <td className="p-3">
                     <span className="inline-flex items-center gap-1 text-xs">
                       {o.method === "delivery" ? <Truck className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
-                      {o.method === "delivery" ? "მიტანა" : "აღება"}
+                      {o.method === "delivery" ? L("მიტანა", "Delivery", "Доставка") : L("აღება", "Pickup", "Самовывоз")}
                     </span>
                   </td>
                   <td className="p-3 text-right font-semibold">{formatGel(Number(o.amount))}</td>
                   <td className="p-3">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${["paid", "collected", "ready", "gifted"].includes(o.status) ? "bg-success/15 text-success" : o.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-warm text-warm-foreground"}`}>
-                      {["paid", "collected", "ready", "gifted"].includes(o.status) ? "გადახდილი" : o.status === "cancelled" ? "გაუქმდა" : "მოლოდინი"}
+                      {["paid", "collected", "ready", "gifted"].includes(o.status) ? L("გადახდილი", "Paid", "Оплачено") : o.status === "cancelled" ? L("გაუქმდა", "Cancelled", "Отменено") : L("მოლოდინი", "Pending", "Ожидание")}
                     </span>
                   </td>
                   <td className="p-3">
@@ -123,7 +126,7 @@ function AdminOrders() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">შეკვეთა არ მოიძებნა.</p>}
+        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{L("შეკვეთა არ მოიძებნა.", "No orders found.", "Заказы не найдены.")}</p>}
       </div>
     </div>
   );

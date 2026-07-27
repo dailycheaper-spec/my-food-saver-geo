@@ -118,7 +118,7 @@ function PartnerApply() {
     }).select("id").single();
     if (error || !newStore) {
       setSubmitting(false);
-      setMsg("შეცდომა: " + (error?.message ?? ""));
+      setMsg((language === "en" ? "Error: " : language === "ru" ? "Ошибка: " : "შეცდომა: ") + (error?.message ?? ""));
       return;
     }
     // Upload logo image if one was selected during the form.
@@ -143,7 +143,7 @@ function PartnerApply() {
       account_holder: form.account_holder.trim() || form.company_name.trim() || null,
     });
     setSubmitting(false);
-    if (bankErr) setMsg("შეცდომა: " + bankErr.message);
+    if (bankErr) setMsg((language === "en" ? "Error: " : language === "ru" ? "Ошибка: " : "შეცდომა: ") + bankErr.message);
     else {
       setMsg(t("applicationSent"));
       setTimeout(() => navigate({ to: "/partner" }), 1000);

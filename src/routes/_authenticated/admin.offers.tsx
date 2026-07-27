@@ -3,13 +3,16 @@ import { useState, useMemo } from "react";
 import { Trash2, Eye, EyeOff, Search, Filter } from "lucide-react";
 import { useAllOffers, updateOfferAdmin, deleteOfferAdmin } from "@/lib/admin-db";
 import { formatGel, timeShort } from "@/lib/db";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/offers")({
-  head: () => ({ meta: [{ title: "შემოთავაზებები — ადმინი" }] }),
+  head: () => ({ meta: [{ title: "Offers — Admin" }] }),
   component: AdminOffers,
 });
 
 function AdminOffers() {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { offers } = useAllOffers();
   const [q, setQ] = useState("");
   const [store, setStore] = useState("all");
@@ -34,22 +37,22 @@ function AdminOffers() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">შემოთავაზებები</h1>
-        <p className="text-sm text-muted-foreground mt-1">{filtered.length} შემოთავაზება</p>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("შემოთავაზებები", "Offers", "Предложения")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {L("შემოთავაზება", "offers", "предложений")}</p>
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><Filter className="w-4 h-4" /> ფილტრები</div>
+        <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><Filter className="w-4 h-4" /> {L("ფილტრები", "Filters", "Фильтры")}</div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ძებნა…"
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა…", "Search…", "Поиск…")}
               className="w-full pl-10 pr-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
-          <Select value={store} onChange={setStore} options={[["all", "ყველა მაღაზია"], ...stores.map((s) => [s, s] as [string, string])]} />
-          <Select value={city} onChange={setCity} options={[["all", "ყველა უბანი"], ...cities.map((c) => [c, c] as [string, string])]} />
-          <Select value={category} onChange={setCategory} options={[["all", "ყველა კატეგორია"], ...categories.map((c) => [c, c] as [string, string])]} />
-          <Select value={status} onChange={(v) => setStatus(v as any)} options={[["all", "სტატუსი"], ["active", "აქტიური"], ["inactive", "გამორთული"]]} />
+          <Select value={store} onChange={setStore} options={[["all", L("ყველა მაღაზია", "All stores", "Все магазины")], ...stores.map((s) => [s, s] as [string, string])]} />
+          <Select value={city} onChange={setCity} options={[["all", L("ყველა უბანი", "All districts", "Все районы")], ...cities.map((c) => [c, c] as [string, string])]} />
+          <Select value={category} onChange={setCategory} options={[["all", L("ყველა კატეგორია", "All categories", "Все категории")], ...categories.map((c) => [c, c] as [string, string])]} />
+          <Select value={status} onChange={(v) => setStatus(v as any)} options={[["all", L("სტატუსი", "Status", "Статус")], ["active", L("აქტიური", "Active", "Активно")], ["inactive", L("გამორთული", "Inactive", "Отключено")]]} />
         </div>
       </div>
 
@@ -58,13 +61,13 @@ function AdminOffers() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="text-left p-3 font-semibold">დასახელება</th>
-                <th className="text-left p-3 font-semibold">მაღაზია</th>
-                <th className="text-left p-3 font-semibold">ვადა</th>
-                <th className="text-right p-3 font-semibold">ფასი</th>
-                <th className="text-right p-3 font-semibold">ხელმისაწვდ.</th>
-                <th className="text-left p-3 font-semibold">სტატუსი</th>
-                <th className="text-right p-3 font-semibold">მოქმედება</th>
+                <th className="text-left p-3 font-semibold">{L("დასახელება", "Title", "Название")}</th>
+                <th className="text-left p-3 font-semibold">{L("მაღაზია", "Store", "Магазин")}</th>
+                <th className="text-left p-3 font-semibold">{L("ვადა", "Window", "Период")}</th>
+                <th className="text-right p-3 font-semibold">{L("ფასი", "Price", "Цена")}</th>
+                <th className="text-right p-3 font-semibold">{L("ხელმისაწვდ.", "Avail.", "Доступно")}</th>
+                <th className="text-left p-3 font-semibold">{L("სტატუსი", "Status", "Статус")}</th>
+                <th className="text-right p-3 font-semibold">{L("მოქმედება", "Action", "Действие")}</th>
               </tr>
             </thead>
             <tbody>
@@ -83,17 +86,17 @@ function AdminOffers() {
                   <td className="p-3 text-right">{o.quantity_available - o.quantity_sold}/{o.quantity_available}</td>
                   <td className="p-3">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${o.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                      {o.is_active ? "აქტიური" : "გამორთული"}
+                      {o.is_active ? L("აქტიური", "Active", "Активно") : L("გამორთული", "Inactive", "Отключено")}
                     </span>
                   </td>
                   <td className="p-3">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => updateOfferAdmin(o.id, { is_active: !o.is_active })}
-                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-muted" title={o.is_active ? "გამორთვა" : "ჩართვა"}>
+                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-muted" title={o.is_active ? L("გამორთვა", "Turn off", "Отключить") : L("ჩართვა", "Turn on", "Включить")}>
                         {o.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      <button onClick={() => { if (confirm("წავშალო?")) deleteOfferAdmin(o.id); }}
-                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-destructive/10 text-destructive" title="წაშლა">
+                      <button onClick={() => { if (confirm(L("წავშალო?", "Delete?", "Удалить?"))) deleteOfferAdmin(o.id); }}
+                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-destructive/10 text-destructive" title={L("წაშლა", "Delete", "Удалить")}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -103,7 +106,7 @@ function AdminOffers() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">არაფერი მოიძებნა.</p>}
+        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{L("არაფერი მოიძებნა.", "Nothing found.", "Ничего не найдено.")}</p>}
       </div>
     </div>
   );

@@ -3,11 +3,12 @@ import { MapContainer, TileLayer, ZoomControl, useMap, useMapEvents, LayersContr
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { MapStore } from "@/routes/map";
-import StoreMarker from "./map/StoreMarker";
+import StoreMarker, { type MarkerAriaLabels } from "./map/StoreMarker";
 import UserLocationMarker from "./map/UserLocationMarker";
 import MapLayerSelector, { type MapLayerId } from "./map/MapLayerSelector";
 
 const ClusterLayer = lazy(() => import("./map/ClusterLayer"));
+
 
 function RecenterOn({ pos }: { pos: [number, number] | null }) {
   const map = useMap();
@@ -41,7 +42,13 @@ interface Props {
   searchRadiusKm?: number;
   /** localStorage key namespace for persisting layer + zoom. */
   storageKey?: string;
+  /** When provided, layer state is lifted to the parent and the internal layer selector is hidden. */
+  layer?: MapLayerId;
+  onLayerChange?: (id: MapLayerId) => void;
+  /** Localized aria labels for marker state glyphs. */
+  markerAriaLabels?: MarkerAriaLabels;
 }
+
 
 function StandardTiles() {
   return (
@@ -73,7 +80,7 @@ function HybridReferenceOverlay() {
   );
 }
 
-function readStoredLayer(key: string): MapLayerId {
+export function readStoredLayer(key: string): MapLayerId {
   if (typeof window === "undefined") return "standard";
   const v = window.localStorage.getItem(`${key}:layer`);
   if (v === "standard" || v === "satellite" || v === "hybrid") return v;
@@ -86,6 +93,7 @@ function readStoredZoom(key: string, fallback: number): number {
   return Number.isFinite(n) && n >= 3 && n <= 20 ? n : fallback;
 }
 
+
 export default function MapCanvas({
   center,
   userPos,
@@ -97,8 +105,14 @@ export default function MapCanvas({
   onHover,
   searchRadiusKm,
   storageKey = "cheaper-customer-map",
+  layer: layerProp,
+  onLayerChange,
+  markerAriaLabels,
 }: Props) {
-  const [layer, setLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+  const [internalLayer, setInternalLayer] = useState<MapLayerId>(() => readStoredLayer(storageKey));
+  const layer = layerProp ?? internalLayer;
+  const setLayer = onLayerChange ?? setInternalLayer;
+  const showInternalSelector = layerProp === undefined;
   const initialZoom = useMemo(() => readStoredZoom(storageKey, 12), [storageKey]);
   const [zoom, setZoom] = useState(initialZoom);
   const compact = zoom < 13;
@@ -134,11 +148,14 @@ export default function MapCanvas({
       <ZoomControl position="bottomright" />
       <RecenterOn pos={userPos} />
 
-      <div className="leaflet-top leaflet-right" style={{ pointerEvents: "none" }}>
-        <div className="leaflet-control" style={{ marginTop: 60, marginRight: 12 }}>
-          <MapLayerSelector value={layer} onChange={setLayer} />
+      {showInternalSelector && (
+        <div className="leaflet-top leaflet-right" style={{ pointerEvents: "none" }}>
+          <div className="leaflet-control" style={{ marginTop: 60, marginRight: 12 }}>
+            <MapLayerSelector value={layer} onChange={setLayer} />
+          </div>
         </div>
-      </div>
+      )}
+
 
       {userPos && searchRadiusKm && searchRadiusKm > 0 && (
         <Circle
@@ -184,7 +201,9 @@ export default function MapCanvas({
               compact={compact}
               onSelect={onSelect}
               onHover={onHover}
+              ariaLabels={markerAriaLabels}
             />
+
           ))}
         </ClusterLayer>
       </Suspense>

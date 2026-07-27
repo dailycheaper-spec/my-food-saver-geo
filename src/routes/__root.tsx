@@ -12,29 +12,31 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
+import { AndroidBackHandler } from "@/components/AndroidBackHandler";
 import { PwaInstall } from "@/components/PwaInstall";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider, useI18n } from "@/lib/i18n";
 import { CityProvider } from "@/lib/city";
 import { UserLocationProvider } from "@/hooks/use-user-location";
 import { Toaster } from "@/components/ui/sonner";
 
 
 function NotFoundComponent() {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 animate-fade-in">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">გვერდი ვერ მოიძებნა · Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold">{t("notFound.title")}</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          გვერდი, რომელსაც ეძებთ, არ არსებობს ან გადატანილია.
+          {t("notFound.text")}
         </p>
         <a
           href="/"
           className="mt-6 inline-flex items-center justify-center rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft press hover:opacity-95"
         >
-          მთავარზე დაბრუნება
+          {t("notFound.backHome")}
         </a>
       </div>
     </div>
@@ -43,24 +45,25 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const { t } = useI18n();
   useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 animate-fade-in" role="alert">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold">გვერდი ვერ ჩაიტვირთა</h1>
-        <p className="mt-2 text-sm text-muted-foreground">რაღაც შეცდომაა. სცადეთ თავიდან.</p>
+        <h1 className="text-xl font-semibold">{t("errorBoundary.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("errorBoundary.text")}</p>
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={() => { router.invalidate(); reset(); }}
             className="rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground press hover:opacity-95"
           >
-            თავიდან ცდა
+            {t("errorBoundary.retry")}
           </button>
           <a
             href="/"
             className="rounded-2xl border border-input px-5 py-2.5 text-sm font-semibold hover:bg-accent hover:text-accent-foreground press"
           >
-            მთავარი
+            {t("errorBoundary.home")}
           </a>
         </div>
       </div>
@@ -189,6 +192,7 @@ function RootComponent() {
             </main>
             <BottomNav />
             <AppTracker />
+            <AndroidBackHandler />
             <PwaInstall />
             <Toaster position="top-center" richColors />
             <UpdatePrompt />

@@ -4,6 +4,7 @@
 // custom scheme so the packaged shell can finish sign-in.
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth/native-return")({
   head: () => ({ meta: [{ title: "შესვლა · Cheaper" }, { name: "robots", content: "noindex" }] }),
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/auth/native-return")({
 });
 
 function NativeAuthReturn() {
+  const { t } = useI18n();
   useEffect(() => {
     const hash = window.location.hash || "";
     const search = window.location.search || "";
@@ -22,10 +24,10 @@ function NativeAuthReturn() {
     <div className="min-h-dvh grid place-items-center bg-background text-center px-4">
       <div>
         <div className="text-3xl mb-2">🥗</div>
-        <p className="font-display font-bold">ვამოწმებთ შესვლას…</p>
+        <p className="font-display font-bold">{t("auth.native.title")}</p>
         <p className="text-sm text-muted-foreground mt-2">
-          თუ აპლიკაცია არ გაიხსნა ავტომატურად,{" "}
-          <a href="ge.cheaper.app://auth-callback" className="underline">გახსენით ხელით</a>.
+          {t("auth.native.notOpened")}{" "}
+          <a href="ge.cheaper.app://auth-callback" className="underline">{t("auth.native.openManually")}</a>.
         </p>
       </div>
     </div>
