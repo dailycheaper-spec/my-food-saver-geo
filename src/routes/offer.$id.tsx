@@ -74,7 +74,7 @@ function OfferPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const favs = useFavorites();
-  const isFav = favs.includes(offer.storeId);
+  const isFav = favs.includes(offer.id);
   const [mounted, setMounted] = useState(false);
   const trusted = mounted && isTrustedPartner(offer.storeId);
 
@@ -250,7 +250,7 @@ function OfferPage() {
             <Share2 className="w-5 h-5" />
           </button>
           <button
-            onClick={() => toggleFavorite(offer.storeId)}
+            onClick={() => toggleFavorite(offer.id)}
             className="w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform"
             aria-label="favorite"
           >

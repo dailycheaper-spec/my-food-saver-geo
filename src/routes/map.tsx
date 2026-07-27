@@ -8,7 +8,7 @@ import { useUserLocation } from "@/hooks/use-user-location";
 import { calculateDistanceKm, formatDistanceLocalized, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
-import { useFavorites, toggleFavorite } from "@/lib/storage";
+import { useFavorites } from "@/lib/storage";
 import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
@@ -169,7 +169,7 @@ function MapPage() {
       else if (o.itemsLeft <= 2) state = "almost";
       if (state === "unavailable" && !showUnavailable) continue;
       if (availableOnly && (state === "unavailable" || !isOpenNow(o))) continue;
-      if (favoritesOnly && !favSet.has(o.storeId)) continue;
+      if (favoritesOnly && !favSet.has(o.id)) continue;
       if (newPartnersOnly) {
         if (!o.createdAt || Date.now() - o.createdAt > NEW_PARTNER_MS) continue;
       }
@@ -697,19 +697,6 @@ function MapPage() {
                 <ExternalLink className="h-3 w-3" /> {t("map.directions")}
               </a>
               <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => toggleFavorite(selectedStore.storeId)}
-                  className={`flex-1 border px-2.5 py-1.5 rounded-lg text-[11px] font-bold inline-flex items-center justify-center gap-1 transition-colors ${
-                    favorites.includes(selectedStore.storeId)
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border bg-background"
-                  }`}
-                  aria-label={t("map.favorite")}
-                  aria-pressed={favorites.includes(selectedStore.storeId)}
-                >
-                  <Heart className={`h-3 w-3 ${favorites.includes(selectedStore.storeId) ? "fill-current" : ""}`} />
-                </button>
                 <button
                   type="button"
                   onClick={() => setSelectedStoreId(null)}

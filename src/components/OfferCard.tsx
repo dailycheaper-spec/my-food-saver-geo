@@ -60,7 +60,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
 
   const favs = useFavorites();
   const [mounted, setMounted] = useState(false);
-  const isFav = mounted && favs.includes(offer.storeId);
+  const isFav = mounted && favs.includes(offer.id);
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
@@ -129,7 +129,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
         {/* right badges */}
         <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
           <button
-            onClick={(e) => { e.preventDefault(); toggleFavorite(offer.storeId); }}
+            onClick={(e) => { e.preventDefault(); toggleFavorite(offer.id); }}
             className="w-9 h-9 rounded-full bg-card/95 grid place-items-center hover:scale-110 active:scale-95 transition-transform shadow-soft"
             aria-label="favorite"
           >
@@ -160,7 +160,6 @@ export function OfferCard({ offer }: { offer: Offer }) {
             <div className="text-xs font-bold truncate flex items-center gap-1">
               {storeName}
               {trusted ? <ShieldCheck className="w-3 h-3 text-primary shrink-0" aria-label={t("badgeTrusted")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
-              {isFav ? <Heart className="w-3 h-3 fill-destructive text-destructive shrink-0" aria-label={t("badgeFavStore")} /> : <span className="w-3 h-3 shrink-0" aria-hidden="true" />}
             </div>
           </div>
         </div>

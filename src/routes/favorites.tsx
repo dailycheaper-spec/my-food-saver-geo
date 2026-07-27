@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
-import { toggleFavorite, useFavorites } from "@/lib/storage";
+import { useFavorites } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
-import { useLiveDbData } from "@/lib/db-adapter";
-import { getCategoryLabel, getDistrictLabel } from "@/lib/mock-data";
+import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useI18n } from "@/lib/i18n";
-import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/favorites")({
-  head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "შენი ფავორიტი მაღაზიები და საცხობები." }] }),
+  head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "პროდუქტები, რომლებიც მოგწონს." }] }),
   component: Favorites,
 });
 
@@ -16,82 +14,45 @@ function Favorites() {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const favs = useFavorites();
-  const { stores, offers, error: storesError } = useLiveDbData();
-  const favStores = stores.filter((s) => favs.includes(s.id));
-  const favOffers = offers.filter((o) => favs.includes(o.storeId));
+  const { offers, error: offersError } = useLiveDbCardOffers();
+  const favOffers = offers.filter((o) => favs.includes(o.id));
 
   return (
     <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{L("ფავორიტები", "Favorites", "Избранное")}</h1>
       <p className="text-sm text-muted-foreground mt-1">
         {L(
-          "გამოიწერე ფავორიტი მაღაზიები — მიიღე პირველი შეტყობინება ახალ პაკეტზე.",
-          "Follow your favorite shops and be the first to hear about new bags.",
-          "Подпишись на любимые магазины — получай уведомления первым.",
+          "პროდუქტები, რომლებიც მოგწონს — ყველა ერთ ადგილას.",
+          "Products you've liked — all in one place.",
+          "Товары, которые тебе понравились — все в одном месте.",
         )}
       </p>
 
-      {storesError ? (
+      {offersError ? (
         <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-destructive/30">
           <p className="text-sm text-destructive">{L("მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.", "Couldn't load data. Please try again.", "Не удалось загрузить данные. Попробуйте снова.")}</p>
         </div>
-      ) : favStores.length === 0 ? (
+      ) : favOffers.length === 0 ? (
         <div className="mt-8 text-center py-14 bg-card rounded-2xl border border-border">
           <Heart className="w-10 h-10 mx-auto text-muted-foreground" />
           <p className="text-sm text-muted-foreground mt-3">
-            {L("ჯერ არავინ გამოგიწერია.", "You haven't followed anyone yet.", "Пока никого не добавили.")}
+            {L("ჯერ არაფერი მოგწონს.", "Nothing liked yet.", "Пока ничего не понравилось.")}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             {L(
-              "დააჭირე ♡ შემოთავაზების ბარათზე მაღაზიის გამოსაწერად.",
-              "Tap ♡ on an offer card to follow that shop.",
-              "Нажми ♡ на карточке предложения, чтобы подписаться.",
+              "დააჭირე ♡ შემოთავაზების ბარათზე მოწონებისთვის.",
+              "Tap ♡ on an offer card to like it.",
+              "Нажми ♡ на карточке предложения, чтобы добавить его.",
             )}
           </p>
           <Link to="/" className="mt-4 inline-block text-sm text-primary font-medium">
-            {L("მაღაზიების ნახვა", "Browse shops", "Смотреть магазины")}
+            {L("შემოთავაზებების ნახვა", "Browse offers", "Смотреть предложения")}
           </Link>
         </div>
       ) : (
-        <>
-          <section className="mt-5">
-            <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-              {L("გამოწერილი მაღაზიები", "Followed shops", "Отслеживаемые магазины")}
-            </h2>
-            <div className="mt-3 grid grid-cols-1 gap-2">
-              {favStores.map((s) => (
-                <div key={s.id} className="flex items-center gap-3 bg-card rounded-2xl p-3 border border-border shadow-soft">
-                  <div className="w-12 h-12 rounded-xl gradient-warm grid place-items-center overflow-hidden text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {getCategoryLabel(s.category, language)}
-                      {s.district ? ` • ${getDistrictLabel(s.district, language)}` : ""}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => toggleFavorite(s.id)}
-                    className="w-9 h-9 rounded-full bg-muted grid place-items-center"
-                    aria-label={L("ამოღება", "Remove", "Убрать")}
-                  >
-                    <Heart className="w-4 h-4 fill-destructive text-destructive" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {favOffers.length > 0 && (
-            <section className="mt-8">
-              <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
-                {L("მათი აქტიური შემოთავაზებები", "Their active offers", "Их активные предложения")}
-              </h2>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {favOffers.map((o) => <OfferCard key={o.id} offer={o} />)}
-              </div>
-            </section>
-          )}
-        </>
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {favOffers.map((o) => <OfferCard key={o.id} offer={o} />)}
+        </div>
       )}
     </div>
   );

@@ -2,14 +2,14 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo, useState } from "react";
 import {
-  ArrowLeft, Star, MapPin, Clock, Heart, Share2, Phone, Shield, Bell, BellOff,
+  ArrowLeft, Star, MapPin, Clock, Share2, Phone, Shield, Bell, BellOff,
 } from "lucide-react";
 import {
   DISTRICT_COORDS,
   getStoreName, getCategoryLabel, getDistrictLabel,
 } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
-import { useFavorites, toggleFavorite, useReviews, useHydrated } from "@/lib/storage";
+import { useReviews, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Skeleton } from "@/components/Skeleton";
 import { useDbStore, useLiveDbCardOffers } from "@/lib/db-adapter";
@@ -47,7 +47,6 @@ function StorePage() {
   const { store, raw, loading, notFound, error: storeError } = useDbStore(id);
   const { offers } = useLiveDbCardOffers();
   const hydrated = useHydrated();
-  const favs = useFavorites();
   const allReviews = useReviews();
   const { ids: followedIds, refresh: refreshFollows } = useFollowedStoreIds();
   const followerCount = useStoreFollowerCount(store?.id);
@@ -99,7 +98,6 @@ function StorePage() {
     return <div className="p-8 text-center text-muted-foreground">Store not found.</div>;
   }
 
-  const isFav = favs.includes(store.id);
   const storeName = getStoreName(store, language);
 
   const L = (ka: string, en: string, ru: string) =>
@@ -157,13 +155,6 @@ function StorePage() {
               aria-label="Share"
             >
               <Share2 className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => toggleFavorite(store.id)}
-              className="w-10 h-10 rounded-full bg-background/90 backdrop-blur grid place-items-center shadow-soft"
-              aria-label="Favorite"
-            >
-              <Heart className={`w-5 h-5 ${isFav ? "fill-destructive text-destructive" : ""}`} />
             </button>
           </div>
         </div>

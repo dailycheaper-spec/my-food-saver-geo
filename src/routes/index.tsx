@@ -125,7 +125,9 @@ function Home() {
   const recommended = useMemo(() => {
     const pool = ALL_OFFERS.filter(inCat);
     if (!hydrated) return pool.slice(0, 4);
-    const favMatches = pool.filter((o) => favs.includes(o.storeId));
+    // Prioritize offers from stores whose products the user has liked before.
+    const favStoreIds = new Set(ALL_OFFERS.filter((o) => favs.includes(o.id)).map((o) => o.storeId));
+    const favMatches = pool.filter((o) => favStoreIds.has(o.storeId));
     if (favMatches.length > 0) return favMatches.slice(0, 6);
     return pool
       .slice()
