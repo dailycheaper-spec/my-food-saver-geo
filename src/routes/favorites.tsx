@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart } from "lucide-react";
 import { toggleFavorite, useFavorites } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
-import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
+import { useLiveDbData } from "@/lib/db-adapter";
 import { getCategoryLabel, getDistrictLabel } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { StoreLogo } from "@/components/StoreLogo";
@@ -16,8 +16,7 @@ function Favorites() {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const favs = useFavorites();
-  const { stores, error: storesError } = useLiveStores();
-  const { offers } = useLiveDbCardOffers();
+  const { stores, offers, error: storesError } = useLiveDbData();
   const favStores = stores.filter((s) => favs.includes(s.id));
   const favOffers = offers.filter((o) => favs.includes(o.storeId));
 

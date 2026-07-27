@@ -13,7 +13,7 @@ import {
 } from "@/lib/mock-data";
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
-import { useLiveDbCardOffers, useLiveStores } from "@/lib/db-adapter";
+import { useLiveDbData } from "@/lib/db-adapter";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -63,8 +63,7 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
-  const { offers: OFFERS, error: offersError } = useLiveDbCardOffers();
-  const { stores: STORES } = useLiveStores();
+  const { offers: OFFERS, stores: STORES, error: offersError } = useLiveDbData();
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");

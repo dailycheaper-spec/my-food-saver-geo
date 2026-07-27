@@ -112,19 +112,33 @@ export function useLiveDbCardOffers(): { offers: Offer[]; loading: boolean; erro
   return { offers: mapped, loading, error };
 }
 
+function storesFromOffers(offers: OfferWithStore[]): Store[] {
+  const map = new Map<string, Store>();
+  for (const o of offers) {
+    if (o.store && !map.has(o.store.id)) {
+      map.set(o.store.id, dbStoreToStore(o.store));
+    }
+  }
+  return Array.from(map.values());
+}
+
 /** Live active stores derived from active offers (public, no admin call). */
 export function useLiveStores(): { stores: Store[]; loading: boolean; error: string | null } {
   const { offers, loading, error } = useLiveOffers();
-  const stores = useMemo(() => {
-    const map = new Map<string, Store>();
-    for (const o of offers) {
-      if (o.store && !map.has(o.store.id)) {
-        map.set(o.store.id, dbStoreToStore(o.store));
-      }
-    }
-    return Array.from(map.values());
-  }, [offers]);
+  const stores = useMemo(() => storesFromOffers(offers), [offers]);
   return { stores, loading, error };
+}
+
+/**
+ * Same underlying data as useLiveDbCardOffers + useLiveStores, but backed by a
+ * single useLiveOffers() fetch/subscription instead of two independent ones.
+ * Use this when a page needs both offers and stores together.
+ */
+export function useLiveDbData(): { offers: Offer[]; stores: Store[]; loading: boolean; error: string | null } {
+  const { offers, loading, error } = useLiveOffers();
+  const mapped = useMemo(() => offers.map(dbOfferToCardOffer), [offers]);
+  const stores = useMemo(() => storesFromOffers(offers), [offers]);
+  return { offers: mapped, stores, loading, error };
 }
 
 /** Fetch one active store by id (public read; RLS allows active stores). */
