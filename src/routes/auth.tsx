@@ -169,7 +169,7 @@ function AuthPage() {
           </p>
 
           {/* Mode tabs */}
-          <div className="mt-5 grid grid-cols-3 gap-1 bg-muted/40 p-1 rounded-xl text-xs font-semibold">
+          <div className="mt-5 grid grid-cols-3 gap-1.5 bg-muted/40 p-1 rounded-xl font-semibold">
             <TabBtn active={mode === "signin"} onClick={() => { setMode("signin"); setMsg(null); }}>{t("signIn")}</TabBtn>
             <TabBtn active={mode === "signup"} onClick={() => { setMode("signup"); setMsg(null); }}>{t("signup")}</TabBtn>
             <TabBtn active={mode === "phone"} onClick={() => { setMode("phone"); setMsg(null); }}>{t("phoneTab")}</TabBtn>
@@ -292,7 +292,11 @@ async function waitForUser() {
 
 function TabBtn({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className={`py-2 rounded-lg transition-colors ${active ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`min-h-11 px-1 rounded-lg text-[11px] sm:text-xs leading-tight text-center break-words transition-colors ${active ? "bg-card shadow-soft text-foreground" : "text-muted-foreground"}`}
+    >
       {children}
     </button>
   );
