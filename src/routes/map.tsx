@@ -5,7 +5,7 @@ import { TBILISI_CENTER, DISTRICTS, CATEGORIES, formatPrice, getDistrictLabel, g
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useUserLocation } from "@/hooks/use-user-location";
-import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
+import { calculateDistanceKm, formatDistanceLocalized, isValidLatLng } from "@/lib/geo";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import LocationButton from "@/components/map/LocationButton";
 import { useFavorites, toggleFavorite } from "@/lib/storage";
@@ -13,13 +13,38 @@ import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 
+function localizedHead(): { title: string; description: string } {
+  const fallback = {
+    title: "რუკა — ახლომდებარე შემოთავაზებები | Cheaper",
+    description: "იხილე შემოთავაზებები რუკაზე, გაიგე ზუსტი მდებარეობა და მანძილი.",
+  };
+  if (typeof window === "undefined") return fallback;
+  const lang = window.localStorage.getItem("cheaper-language");
+  if (lang === "en") {
+    return {
+      title: "Map — Nearby offers | Cheaper",
+      description: "Browse offers on the map with exact location and distance.",
+    };
+  }
+  if (lang === "ru") {
+    return {
+      title: "Карта — Ближайшие предложения | Cheaper",
+      description: "Смотрите предложения на карте с точным местоположением и расстоянием.",
+    };
+  }
+  return fallback;
+}
+
 export const Route = createFileRoute("/map")({
-  head: () => ({
-    meta: [
-      { title: "რუკა — ახლომდებარე შემოთავაზებები | Cheaper" },
-      { name: "description", content: "იხილე შემოთავაზებები რუკაზე, გაიგე ზუსტი მდებარეობა და მანძილი." },
-    ],
-  }),
+  head: () => {
+    const h = localizedHead();
+    return {
+      meta: [
+        { title: h.title },
+        { name: "description", content: h.description },
+      ],
+    };
+  },
   component: MapPage,
 });
 
@@ -47,6 +72,7 @@ export interface MapStore {
   offers: MapOffer[];
   activeCount: number;
   minPrice: number;
+  minPriceLabel?: string;
   hasAlmost: boolean;
 }
 
