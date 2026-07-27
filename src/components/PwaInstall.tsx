@@ -2,37 +2,7 @@ import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/pwa/register-sw";
 import { useI18n } from "@/lib/i18n";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
 const IOS_HINT_KEY = "cheaper.iosInstallHintDismissed";
-const ANDROID_HINT_KEY = "cheaper.androidInstallDismissed.session.v3";
-
-function hasAndroidInstallDismissed() {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.sessionStorage.getItem(ANDROID_HINT_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function dismissAndroidInstallForSession() {
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(ANDROID_HINT_KEY, "1");
-  } catch {
-    /* noop */
-  }
-}
-
-function isMobileBrowser() {
-  if (typeof navigator === "undefined") return false;
-  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-}
-
 function isIosSafari() {
   if (typeof navigator === "undefined") return false;
   const ua = navigator.userAgent;
@@ -95,70 +65,26 @@ const COPY = {
 export function PwaInstall() {
   const { language } = useI18n();
   const t = COPY[(language as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showMobileFallback, setShowMobileFallback] = useState(false);
   const [showIos, setShowIos] = useState(false);
   const [update, setUpdate] = useState<null | (() => void)>(null);
 
   useEffect(() => {
     if (isStandalone()) return;
-
-    const onBIP = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-      setShowMobileFallback(false);
-    };
-    window.addEventListener("beforeinstallprompt", onBIP);
-
-    const fallbackTimer = window.setTimeout(() => {
-      if (!isIosSafari() && isMobileBrowser() && !hasAndroidInstallDismissed()) {
-        setShowMobileFallback(true);
-      }
-    }, 1800);
-
     if (isIosSafari() && !localStorage.getItem(IOS_HINT_KEY)) {
-      const t = setTimeout(() => setShowIos(true), 3000);
-      return () => {
-        window.removeEventListener("beforeinstallprompt", onBIP);
-        clearTimeout(fallbackTimer);
-        clearTimeout(t);
-      };
+      const timer = setTimeout(() => setShowIos(true), 3000);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onBIP);
-      clearTimeout(fallbackTimer);
-    };
   }, []);
 
   useEffect(() => {
     registerServiceWorker((reload) => setUpdate(() => reload));
   }, []);
 
-  const doInstall = async () => {
-    if (!deferred) return;
-    try {
-      await deferred.prompt();
-      await deferred.userChoice;
-    } finally {
-      setDeferred(null);
-    }
-  };
-
-  const dismissAndroid = () => {
-    dismissAndroidInstallForSession();
-    setDeferred(null);
-    setShowMobileFallback(false);
-  };
   const dismissIos = () => {
     localStorage.setItem(IOS_HINT_KEY, "1");
     setShowIos(false);
   };
 
-  const showAndroid =
-    (deferred || showMobileFallback) &&
-    typeof window !== "undefined" &&
-    !hasAndroidInstallDismissed();
 
   return (
     <>
@@ -174,39 +100,6 @@ export function PwaInstall() {
           >
             {t.reload}
           </button>
-        </div>
-      )}
-
-      {showAndroid && (
-        <div className="fixed inset-x-3 bottom-20 z-[90] rounded-2xl border border-border bg-card p-4 shadow-xl flex items-center gap-3">
-          <img src="/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
-          <div className="flex-1 text-sm">
-            <div className="font-semibold">{t.install}</div>
-            <div className="text-muted-foreground text-xs leading-relaxed">
-              {deferred ? "Cheaper" : t.androidBody}
-            </div>
-          </div>
-          <button
-            onClick={dismissAndroid}
-            className="rounded-md px-2 py-1 text-xs text-muted-foreground"
-          >
-            {t.later}
-          </button>
-          {deferred ? (
-            <button
-              onClick={doInstall}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            >
-              {t.installNow}
-            </button>
-          ) : (
-            <button
-              onClick={dismissAndroid}
-              className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-            >
-              {t.gotIt}
-            </button>
-          )}
         </div>
       )}
 
