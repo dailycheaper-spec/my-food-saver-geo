@@ -1,8 +1,13 @@
 # Handoff Notes — Cheaper.ge (dailycheaper-spec/my-food-saver-geo)
 
-A QA/bugfix pass was done against this repo (cloned fresh on 2026-07-27). Everything below is **local, uncommitted** — nothing has been pushed to GitHub and no SQL has been run against the live Supabase database. This file exists so whoever picks it up next (or pushes it) knows exactly what changed and why, and has the exact SQL to run.
+A QA/bugfix pass was done against this repo starting 2026-07-27, continuing into 2026-07-28. **All code below has been pushed to `main` on GitHub.** As of this writing, two things still have NOT happened and need a human:
 
-## ⚠️ Run these 3 migrations first — in order
+1. **Lovable → Publish** hasn't been clicked, so none of this is live on cheaper.ge yet.
+2. **None of the 4 SQL migrations listed below have been run** against the live Supabase database.
+
+This file exists so whoever picks it up next knows exactly what changed and why, and has the exact SQL to run.
+
+## ⚠️ Run these 4 migrations first — in order
 
 They're already written as files in `supabase/migrations/`. Apply via the Supabase SQL editor (or `supabase db push` if the CLI is linked with real credentials), in this order:
 
@@ -15,7 +20,10 @@ They're already written as files in `supabase/migrations/`. Apply via the Supaba
 3. **`20260727170000_prevent_illegal_order_status_transitions.sql`** — **high priority, real fraud vector**
    The "Customers can cancel or gift own orders" RLS policy only checks the *new* status is `cancelled`/`gifted` — it never checks the *old* status. Concretely: after a partner scans a customer's QR and marks an order `collected` (food handed over), the customer can still call `updateOrderStatus(id, "cancelled")` themselves from the browser — nothing stops it server-side (the UI hides the button, but that's not enforcement). `admin.payments.tsx` and `generate_pending_payouts()` (the real payout function, confirmed by reading it) both exclude `status = 'cancelled'` orders from revenue — so a customer could receive the food and then zero out the partner's payout for that order. This migration adds a trigger that rejects status changes away from `collected`/`cancelled`/`gifted` for ordinary users; admins and server-side calls (BOG callback, delivery webhooks — anything running without `auth.uid()`) are exempt.
 
-## What was fixed in code this session
+4. **`20260728120000_prevent_store_staff_self_orders.sql`** — **high priority, real fraud vector**
+   The "Users create own orders" INSERT policy (unchanged since the very first migration) only checks that the order's `user_id` matches the logged-in user — it never checks whether that user is staff of the `store_id` being ordered from. Concretely: a restaurant owner (or anyone added to `store_members` for that store) could place — and then mark "collected" — orders against their own offers, either to get their own discounted food for personal use or to artificially inflate sold/popularity numbers, both of which undermine the discount program and any customer-facing trust signals. This migration adds a trigger rejecting any order insert where the placing user is staff of the target store. Matching client-side change: `offer.$id.tsx` now shows a friendly localized toast for this specific rejection instead of the raw Postgres error text.
+
+## What was fixed in code (2026-07-27 session)
 
 **Root-cause client crash (same bug found and fixed in an earlier local copy of this project, but present again in this fresher clone):** `crypto` (Node-only) was statically imported at the top of `src/routes/api/public/delivery/{wolt,bolt,glovo}.ts`. Since these are pulled into the route tree, this broke the client bundle on every page load — **no button/form/interaction worked anywhere**, though SSR made pages look fine. Fixed by moving the import to `await import("crypto")` inside the handler (same pattern already used for `supabaseAdmin` in those files). Verified live: hydration and interactivity work correctly after the fix.
 
@@ -28,6 +36,20 @@ They're already written as files in `supabase/migrations/`. Apply via the Supaba
 Whoever has been actively developing this (very recent commits, as late as today) already fixed, on their own, several things an earlier QA pass on an older local copy had flagged: real-data wiring for `/search`, `/map`, `/favorites`, `/store/$id` (all previously fell back to static mock data and silently ignored the real database), the dead buttons on the Profile page, and the `stores` RLS policy for authenticated users (see migration `20260722105359`, which is a well-written fix with its own guardrail check). None of that needed to be redone.
 
 They've also started real feature work not present in the earlier snapshot: Bank of Georgia payment integration (`src/lib/payments/bog.functions.ts`, hosted checkout + Google Pay, with proper server-to-server payment verification — reviewed, looks solid apart from the quantity issue above), a store follow/follower system (`src/lib/follows.ts` — reviewed, no bugs found), a "near you" geolocation feature (`src/hooks/use-user-location.tsx` — reviewed, no bugs found), and partner photo upload (`src/components/OfferPhotoPicker.tsx` — reviewed, works, still stores images as base64 data URLs rather than in Supabase Storage, which is functional but inefficient).
+
+## What was fixed in code (2026-07-28 session)
+
+**Favorites/search pages fetched offers+stores twice in parallel:** `favorites.tsx` and `search.tsx` each called both `useLiveStores()` and `useLiveDbCardOffers()`, and each of those hooks independently runs its own full Supabase query *and* opens its own realtime subscription — so both pages fired the same expensive query twice on every load (reported by the project owner as "favorites always takes 5 seconds to load"). Added `useLiveDbData()` in `db-adapter.ts`, a single hook both pages now share.
+
+**Store logo/photo URL rendered as raw text to customers:** `offer.storeLogo` can be a real uploaded photo URL (not just an emoji), but `OfferCard.tsx` and `offer.$id.tsx` interpolated it directly as text (`{offer.storeLogo}`) instead of rendering it as an image — customers were seeing the raw signed URL as visible text on offer cards and in "About the partner." Fixed by routing through the existing `StoreLogo` component everywhere. (The other active developer on this repo independently started fixing the same bug in parallel — merged cleanly.)
+
+**Every authenticated page took 3-4s to load, worse right after switching tabs:** `_authenticated/route.tsx`'s `beforeLoad` required `auth.getUser()` (a live network round-trip to Supabase's auth server) to succeed before rendering anything, retrying up to 15×/200ms (3s worst case) when it didn't. Simplified to trust `getSession()` (already-verified local session — the Supabase client awaits its own storage-init internally, so no retry loop is needed). Real data access is still fully enforced by RLS regardless of this UI-level gate. Same fix applied to the duplicate polling loop in `getCurrentUserId`/`getCurrentUserIdentity` in `db.ts`.
+
+**Partner-related UX/copy fixes:** removed the AI photo-generation button from `OfferPhotoPicker.tsx` (kept camera/upload); fixed `DiscountFields.tsx` price/discount input labels wrapping to different line counts and misaligning their inputs on narrow screens; changed "ბოლო ცალები" → "ბოლო ერთეული".
+
+**No visible way to become a partner without signing up as a customer first:** the only entry point was buried in the Profile menu, itself gated behind being already logged in. Added a "Become a partner" banner at the top of the Profile page (visible to guests too, right under the sign-in button, no scrolling needed) linking to `/partner-apply`; guests get bounced through `/auth` and land back on the form automatically via the existing `redirect` search param. Also differentiated the `/auth` screen itself when arriving via this flow: shows a "become a partner" banner and defaults to the registration tab instead of sign-in. Regular customer auth is untouched.
+
+**Store staff could order from their own store (fraud):** see migration `20260728120000` above.
 
 ## Known gaps not addressed (explicitly out of scope this session, per the project owner)
 
@@ -42,4 +64,4 @@ They've also started real feature work not present in the earlier snapshot: Bank
 
 ## What to tell whoever applies this
 
-> Read this file fully before doing anything. Run the 3 migrations in `supabase/migrations/` dated 2026-07-27 in order (details and exact impact of each are above) — #2 and #3 are live, real bugs (inventory undercounting + a way for customers to zero out a partner's payout after receiving their order), not hypothetical. Then review the code diff (`git status`/`git diff`) before committing — it's about 27 files, all either bug fixes or defensive error-handling, no feature changes. After pushing, re-test as both a guest and a signed-in user: home feed, checkout (all three payment methods), and the partner dashboard.
+> Read this file fully before doing anything. All the code is already on GitHub `main` — what's left is (1) clicking Publish in Lovable so it actually goes live, and (2) running the 4 migrations in `supabase/migrations/` dated 2026-07-27 and 2026-07-28, in order (details and exact impact of each are above) — #2, #3, and #4 are live, real bugs/fraud vectors (inventory undercounting, a way for customers to zero out a partner's payout after receiving their order, and store staff ordering from their own store), not hypothetical. After publishing, re-test as a guest, a signed-in customer, and a store owner: home feed, favorites load speed, checkout (all three payment methods), the partner dashboard, and the new partner sign-up entry point on the Profile page.
