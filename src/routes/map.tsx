@@ -97,7 +97,11 @@ const NEW_PARTNER_MS = 7 * 24 * 60 * 60 * 1000;
 
 function MapPage() {
   const { t, language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const fmt = (key: string, vars: Record<string, string | number>) => {
+    let s = t(key);
+    for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+    return s;
+  };
   const { offers: allOffers } = useLiveDbCardOffers();
   const { city } = useCity();
   const offers = useMemo(
