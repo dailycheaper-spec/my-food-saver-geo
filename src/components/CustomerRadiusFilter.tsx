@@ -1,4 +1,6 @@
 import { useEffect, useRef } from "react";
+import { useI18n } from "@/lib/i18n";
+import { formatRadiusLabel } from "@/lib/geo";
 
 export const RADIUS_OPTIONS = [1, 3, 5, 10, 20] as const;
 export type RadiusOption = (typeof RADIUS_OPTIONS)[number];
@@ -11,6 +13,7 @@ interface Props {
 }
 
 export function CustomerRadiusFilter({ value, onChange, onDebouncedChange }: Props) {
+  const { language } = useI18n();
   const timer = useRef<number | null>(null);
   useEffect(() => {
     if (!onDebouncedChange) return;
@@ -36,7 +39,7 @@ export function CustomerRadiusFilter({ value, onChange, onDebouncedChange }: Pro
                 : "bg-card text-foreground border-border hover:bg-muted"
             }`}
           >
-            {r} კმ
+            {formatRadiusLabel(r, language)}
           </button>
         );
       })}
