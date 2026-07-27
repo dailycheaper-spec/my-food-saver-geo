@@ -201,7 +201,9 @@ export default function MapCanvas({
               compact={compact}
               onSelect={onSelect}
               onHover={onHover}
+              ariaLabels={markerAriaLabels}
             />
+
           ))}
         </ClusterLayer>
       </Suspense>
