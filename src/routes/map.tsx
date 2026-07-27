@@ -135,6 +135,8 @@ function MapPage() {
   const [availableOnly, setAvailableOnly] = useState(false);
   const [districtFilter, setDistrictFilter] = useState<string>("ყველა უბანი");
   const [categoryFilter, setCategoryFilter] = useState<Category | "ყველა">("ყველა");
+  const [layer, setLayer] = useState<MapLayerId>(() => readInitialLayer());
+
   const searchWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
