@@ -137,6 +137,8 @@ function RootComponent() {
     // (/order-return). No-op in the browser.
     let unsubscribeDeepLink: (() => void) | null = null;
     void (async () => {
+      const { startNativeSessionPersistence } = await import("@/lib/native-session");
+      await startNativeSessionPersistence();
       const { registerDeepLinkHandler, closeExternal } = await import("@/lib/native");
       unsubscribeDeepLink = await registerDeepLinkHandler(async ({ url }) => {
         try {
