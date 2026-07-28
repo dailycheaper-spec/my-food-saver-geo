@@ -729,6 +729,7 @@ const labels: Record<Language, Record<string, string>> = {
     signupSuccess: "Registered successfully! Please check your email.",
     oauthFailed: "Sign in failed",
     signInComplete: "Sign in complete. Please wait for redirect…",
+    openInNewTab: "Google sign-in opened in a new tab. Continue there.",
     smsSent: "Code sent by SMS",
     orderNotFound: "Order not found.",
     order: "Order",
