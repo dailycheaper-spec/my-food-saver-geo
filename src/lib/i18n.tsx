@@ -1213,6 +1213,7 @@ const labels: Record<Language, Record<string, string>> = {
     signupSuccess: "Регистрация успешна! Проверь почту.",
     oauthFailed: "Вход не удался",
     signInComplete: "Вход завершён. Подожди перенаправления…",
+    openInNewTab: "Вход через Google открыт в новой вкладке. Продолжите там.",
     smsSent: "Код отправлен SMS",
     orderNotFound: "Заказ не найден.",
     order: "Заказ",
