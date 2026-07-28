@@ -112,9 +112,18 @@ function AuthPage() {
 
     // Web: go through Supabase directly so Google receives the Supabase
     // callback as redirect_uri (required for our BYOC Google OAuth client).
-    // Using the Lovable broker helper here would send Google
-    // https://www.cheaper.ge/~oauth/callback instead, which belongs to the
-    // Lovable-managed client and triggers redirect_uri_mismatch on BYOC.
+    const inIframe = typeof window !== "undefined" && window.self !== window.top;
+    if (inIframe) {
+      // Editor preview runs in an iframe; Google refuses to load in iframes
+      // (X-Frame-Options: DENY). Open preview URL in a top-level tab so OAuth
+      // full-page redirect works.
+      try {
+        window.open(window.location.href, "_blank", "noopener,noreferrer");
+      } catch {}
+      setLoading(false);
+      setMsg({ type: "ok", text: t("openInNewTab") });
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth` },
