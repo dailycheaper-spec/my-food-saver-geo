@@ -218,7 +218,7 @@ function OrderDetail() {
 
       {showGift && (
         <div className="fixed inset-0 z-50 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setShowGift(false)}>
-          <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain pb-safe shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h3 className="font-display text-xl font-bold">{t("giftOrder")}</h3>
               <button onClick={() => setShowGift(false)}><X className="w-5 h-5" /></button>

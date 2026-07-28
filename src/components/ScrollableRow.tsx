@@ -128,7 +128,8 @@ export function ScrollableRow({
       <div
         ref={ref}
         draggable={false}
-        style={{ touchAction: "pan-x", overscrollBehaviorX: "contain" }}
+        // Allow vertical page scroll to pass through when the gesture is vertical.
+        style={{ touchAction: "pan-x pan-y pinch-zoom", overscrollBehaviorX: "contain" }}
         className={`flex gap-3 overflow-x-auto scrollbar-hide horizontal-scroll cursor-grab active:cursor-grabbing ${className}`}
         onWheel={(event) => {
           const element = event.currentTarget;

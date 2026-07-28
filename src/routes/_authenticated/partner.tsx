@@ -242,7 +242,7 @@ function PartnerLayout() {
 
       {notifOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setNotifOpen(false)}>
-          <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 shadow-elevated" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain pb-safe shadow-elevated" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display text-lg font-bold mb-3">{t("notificationsTitle")}</h3>
             <p className="text-sm text-muted-foreground">
               {t("realtimeNotifsBody")}

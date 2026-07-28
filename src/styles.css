@@ -145,6 +145,11 @@
     min-height: 100dvh;
   }
 
+  /* Mobile browsers shrink the visual viewport as the URL bar hides; 100vh
+     over-reports and creates dead space / trapped scroll. Prefer dvh. */
+  .min-h-screen { min-height: 100dvh; }
+  .h-screen { height: 100dvh; }
+
   /* PWA standalone mode: no browser chrome, so avoid layout that assumes
      a toolbar's presence. Prevent iOS overscroll white bands and let the
      app extend into the safe areas (real insets are still respected via
