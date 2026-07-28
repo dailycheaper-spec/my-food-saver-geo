@@ -8,6 +8,11 @@ import { listAdminPayouts, type AdminPayoutRow } from "@/lib/payouts.functions";
 export type DbPayout = Database["public"]["Tables"]["payouts"]["Row"];
 export type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
 
+// Module-level counter to guarantee unique realtime channel topics across mounts.
+// Static topic names can collide when the same hook mounts twice (StrictMode,
+// rapid route transitions) and cause silent duplicate-subscription bugs.
+let adminChannelCounter = 0;
+
 // ────── ALL OFFERS (admin) ──────
 export function useAllOffers() {
   const [offers, setOffers] = useState<OfferWithStore[]>([]);
@@ -25,11 +30,16 @@ export function useAllOffers() {
       if (alive) setLoading(false);
     }
     load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { load(); }, 400);
+    };
     const channel = supabase
-      .channel("admin-all-offers")
-      .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, () => load())
+      .channel(`admin-all-offers-${++adminChannelCounter}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, debounced)
       .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    return () => { alive = false; if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
   }, []);
 
   return { offers, loading };
@@ -68,12 +78,18 @@ export function useAllPayouts() {
 
   useEffect(() => {
     load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { load(); }, 400);
+    };
     const channel = supabase
-      .channel("admin-payouts")
-      .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, () => load())
+      .channel(`admin-payouts-${++adminChannelCounter}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, debounced)
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
   }, [load]);
+
 
   return { payouts, loading, error, reload: load };
 }
@@ -87,10 +103,10 @@ export function useStoresWithBank() {
       const { data } = await supabase.from("store_bank_accounts").select("store_id");
       if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
     })();
-    const ch = supabase.channel("admin-bank-accounts")
+    const ch = supabase.channel(`admin-bank-accounts-${++adminChannelCounter}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, async () => {
         const { data } = await supabase.from("store_bank_accounts").select("store_id");
-        if (data) setIds(new Set(data.map((r: any) => r.store_id as string)));
+        if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
       })
       .subscribe();
     return () => { alive = false; supabase.removeChannel(ch); };
@@ -113,7 +129,7 @@ export function useStoresBankDetailsMap() {
       setMap(m);
     }
     load();
-    const ch = supabase.channel("admin-bank-details")
+    const ch = supabase.channel(`admin-bank-details-${++adminChannelCounter}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
       .subscribe();
     return () => { alive = false; supabase.removeChannel(ch); };

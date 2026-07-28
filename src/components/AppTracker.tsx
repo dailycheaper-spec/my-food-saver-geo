@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { OFFERS } from "@/lib/mock-data";
 import { trackVisit, getSeenOffers, markOffersSeen, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
@@ -65,6 +65,8 @@ export function AppTracker() {
     markOffersSeen(currentIds);
   }, [notifs.enabled, notifs.categories, notifs.radiusKm, t]);
 
+  const cachedPosRef = useRef<{ lat: number; lng: number; at: number } | null>(null);
+
   useEffect(() => {
     const notify = (offer: RealtimeOffer) => {
       if (!notifs.enabled) return;
@@ -81,6 +83,7 @@ export function AppTracker() {
       } catch { /* browser blocked */ }
     };
 
+    const POS_TTL_MS = 5 * 60 * 1000;
     const shouldNotify = (offer: RealtimeOffer) => {
       const storeLat = offer.store?.lat;
       const storeLng = offer.store?.lng;
@@ -88,14 +91,20 @@ export function AppTracker() {
         notify(offer);
         return;
       }
+      const cached = cachedPosRef.current;
+      const now = Date.now();
+      if (cached && now - cached.at < POS_TTL_MS) {
+        if (distanceKm(cached, { lat: storeLat, lng: storeLng }) <= notifs.radiusKm) notify(offer);
+        return;
+      }
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userPoint = { lat: position.coords.latitude, lng: position.coords.longitude };
-          const storePoint = { lat: storeLat, lng: storeLng };
-          if (distanceKm(userPoint, storePoint) <= notifs.radiusKm) notify(offer);
+          cachedPosRef.current = { ...userPoint, at: Date.now() };
+          if (distanceKm(userPoint, { lat: storeLat, lng: storeLng }) <= notifs.radiusKm) notify(offer);
         },
         () => notify(offer),
-        { maximumAge: 5 * 60 * 1000, timeout: 2500 },
+        { maximumAge: POS_TTL_MS, timeout: 2500 },
       );
     };
 
