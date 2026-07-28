@@ -102,7 +102,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
 
   return (
     <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain pb-safe" onClick={(e) => e.stopPropagation()}>
         <div className="text-center mb-4">
           {product.image_url && <img src={product.image_url} className="w-20 h-20 rounded-2xl object-cover mx-auto mb-2" alt={product.name} />}
           <h3 className="font-display text-xl font-bold">{product.name}</h3>
@@ -172,7 +172,7 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
 
   return (
     <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain pb-safe" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-display text-xl font-bold mb-4">{t("newProduct")}</h3>
         <div className="space-y-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("productNamePlaceholder")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
