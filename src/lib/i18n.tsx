@@ -244,6 +244,7 @@ const labels: Record<Language, Record<string, string>> = {
     signupSuccess: "წარმატებით დარეგისტრირდი! გადაამოწმე ელფოსტა.",
     oauthFailed: "შესვლა ვერ მოხერხდა",
     signInComplete: "შესვლა დასრულდა. გთხოვთ, დაელოდოთ გადამისამართებას…",
+    openInNewTab: "Google-ით შესვლა გაიხსნა ახალ ჩანართში. გააგრძელე იქ.",
     smsSent: "კოდი გამოგზავნილია SMS-ით",
     orderNotFound: "შეკვეთა ვერ მოიძებნა.",
     order: "შეკვეთა",
