@@ -144,7 +144,14 @@ function OfferPage() {
           delivery_address: isDelivery ? address : undefined,
         });
         if (isDelivery) {
-          dispatchDeliveryFn({ data: { orderId: order.id } }).catch(() => {});
+          dispatchDeliveryFn({ data: { orderId: order.id } }).catch((err) => {
+            console.error("Delivery dispatch failed:", err);
+            toast.error(language === "en"
+              ? "Delivery couldn't be arranged automatically — the store will contact you."
+              : language === "ru"
+              ? "Не удалось автоматически организовать доставку — магазин свяжется с вами."
+              : "მიწოდების ავტომატურად დაგეგმვა ვერ მოხერხდა — მაღაზია დაგიკავშირდებათ.");
+          });
         }
         navigate({ to: "/orders/$id", params: { id: order.id } });
         return;
