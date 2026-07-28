@@ -135,7 +135,7 @@ export function useMyOrders() {
     load();
 
     const channel = supabase
-      .channel("my-orders")
+      .channel(`my-orders-${++realtimeChannelCounter}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
       .subscribe();
 
@@ -459,11 +459,16 @@ export function useAllStores() {
   }, [fetchAdminStores]);
   useEffect(() => {
     reload();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { reload(); }, 400);
+    };
     const ch = supabase
-      .channel("admin-stores")
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => reload())
+      .channel(`admin-stores-${++realtimeChannelCounter}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, debounced)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
   }, [reload]);
   return { stores, loading, error, reload };
 }
@@ -487,11 +492,16 @@ export function useAllOrders() {
       }
     }
     load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { load(); }, 400);
+    };
     const channel = supabase
-      .channel("admin-orders")
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
+      .channel(`admin-orders-${++realtimeChannelCounter}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, debounced)
       .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    return () => { alive = false; if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
   }, []);
   return { orders, loading, error };
 }
