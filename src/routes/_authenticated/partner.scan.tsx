@@ -11,7 +11,8 @@ export const Route = createFileRoute("/_authenticated/partner/scan")({
 });
 
 function ScanPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => language === "en" ? en : language === "ru" ? ru : ka;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,6 +21,8 @@ function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string; order?: { code: string; amount: number; title: string } } | null>(null);
+  const [pendingAck, setPendingAck] = useState<{ id: string; code: string; amount: number; title: string; note: string } | null>(null);
+  const [ackChecked, setAckChecked] = useState(false);
 
   function stopCamera() {
     scanningRef.current = false;
