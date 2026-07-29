@@ -302,10 +302,16 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
             <MapPin className="w-3 h-3 shrink-0" /> {store.district ?? "—"} · {store.category}
           </div>
           {store.address && <div className="text-xs text-muted-foreground truncate mt-0.5">{store.address}</div>}
-          {(store.company_id_number || store.contact_email) && (
+          {(store.company_id_number || store.contact_email || bank?.iban) && (
             <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
               {store.company_id_number && <div>{L("ს/ნ", "ID No.", "ИНН")}: <span className="font-medium text-foreground">{store.company_id_number}</span></div>}
               {store.contact_email && <div>{L("მეილი", "Email", "Email")}: <span className="font-medium text-foreground">{store.contact_email}</span></div>}
+              {bank?.iban && (
+                <div>
+                  {L("ანგარიშის ნომერი", "Bank account", "Счёт")}: <span className="font-medium text-foreground font-mono">{bank.iban}</span>
+                  {bank.account_holder ? ` · ${bank.account_holder}` : ""}
+                </div>
+              )}
             </div>
           )}
         </div>
