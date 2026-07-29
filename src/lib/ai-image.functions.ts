@@ -67,8 +67,9 @@ export const generateOfferImage = createServerFn({ method: "POST" })
 
     const { data: signed, error: signErr } = await supabaseAdmin.storage
       .from("offer-images")
-      .createSignedUrl(path, SIGN_TTL_SECONDS);
+      .createSignedUrl(path, OFFER_IMAGE_SIGN_TTL_SECONDS);
     if (signErr || !signed) throw new Error(`Sign URL failed: ${signErr?.message ?? "no data"}`);
 
-    return { url: signed.signedUrl, path };
+    const expiresAt = new Date(Date.now() + OFFER_IMAGE_SIGN_TTL_SECONDS * 1000).toISOString();
+    return { url: signed.signedUrl, path, expiresAt };
   });
