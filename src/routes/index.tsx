@@ -83,6 +83,10 @@ function Home() {
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
 
+  // "Near you" is distance-driven: keep the category filter, but ignore the
+  // district/search filters so branch proximity decides what shows up.
+  const nearbySource = useMemo(() => ALL_OFFERS.filter(inCat), [ALL_OFFERS, cat]);
+
   // Live "best discount of the day" — highest real discount % across active,
   // in-stock offers whose pickup window is still open. City-scoped so it
   // matches the surrounding list. Recomputes automatically as ALL_OFFERS
@@ -325,7 +329,7 @@ function Home() {
       {user && <SavingsTracker />}
 
       {/* -------- Nearby (location-aware) -------- */}
-      <NearbyOffersSection offers={filtered} />
+      <NearbyOffersSection offers={nearbySource} />
 
       {/* -------- Stores You Follow (signed-in only, server-side follows) -------- */}
       {followedOffers.length > 0 && (
