@@ -173,6 +173,18 @@ function Profile() {
           </Link>
         )}
         <Row to="/favorites" icon={<Heart className="w-4 h-4" />} label={`${t("favorites")} (${favs.length})`} />
+        {user && (
+          <button
+            onClick={() => setAddressesOpen(true)}
+            className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors"
+          >
+            <span className="text-primary"><MapPin className="w-4 h-4" /></span>
+            <span className="flex-1">
+              {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+            </span>
+            <span className="text-muted-foreground">›</span>
+          </button>
+        )}
         <Row to="/orders" icon={<ShoppingBag className="w-4 h-4" />} label={`${t("orderHistory")} (${orders.length})`} />
         <Row to="/notifications" icon={<Settings className="w-4 h-4" />} label={t("settings")} />
         <Row href="mailto:dailycheaper@gmail.com" icon={<HelpCircle className="w-4 h-4" />} label={t("help")} />
