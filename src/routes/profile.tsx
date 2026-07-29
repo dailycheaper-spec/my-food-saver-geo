@@ -20,6 +20,8 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const { t, language } = useI18n();
   const [addressesOpen, setAddressesOpen] = useState(false);
+  const { data: myAddresses = [] } = useMyAddresses(!!useAuth().user);
+  const defaultAddress = myAddresses.find((a) => a.is_default) ?? myAddresses[0];
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading, reloadProfile } = useAuth();
@@ -183,8 +185,19 @@ function Profile() {
             className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors"
           >
             <span className="text-primary"><MapPin className="w-4 h-4" /></span>
-            <span className="flex-1">
-              {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+            <span className="flex-1 min-w-0">
+              <span className="block">
+                {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+              </span>
+              <span className="block text-xs text-muted-foreground truncate">
+                {defaultAddress
+                  ? defaultAddress.address_line
+                  : language === "en"
+                    ? "No saved address yet"
+                    : language === "ru"
+                      ? "Нет сохранённых адресов"
+                      : "შენახული მისამართი ჯერ არ არის"}
+              </span>
             </span>
             <span className="text-muted-foreground">›</span>
           </button>
