@@ -279,28 +279,18 @@ function StoreSettings() {
           {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
         </button>
 
-        <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
-          <StoreLocationPicker
-            value={{ lat: form.lat, lng: form.lng }}
-            onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
-            radiusKm={form.visibility_radius_km < 50 ? form.visibility_radius_km : undefined}
-            storageKey="cheaper-partner-store-map"
-          />
-        </Suspense>
+        <MapAddressField
+          value={{ lat: form.lat, lng: form.lng }}
+          onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+          radiusKm={form.visibility_radius_km < 50 ? form.visibility_radius_km : undefined}
+          storageKey="cheaper-partner-store-map"
+          onAddressResolved={(a) => setForm((f) => (f.address.trim() ? f : { ...f, address: a }))}
+        />
 
         <p className="text-xs text-muted-foreground">
           {L("ეს არის ტერიტორია, სადაც თქვენი ობიექტი გამოჩნდება მომხმარებლების რუკაზე.", "This is the area where your store appears on the customer map.", "Это область, где ваш магазин будет показан на карте пользователей.")}
         </p>
 
-        <div className="text-xs text-muted-foreground font-mono">
-          {form.lat != null && form.lng != null ? (
-            <>
-              Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}
-            </>
-          ) : (
-            <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
-          )}
-        </div>
 
       </div>
 
