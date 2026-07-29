@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { useAuth } from "@/lib/auth";
-import { calculateDistanceKm } from "@/lib/geo";
 import { reverseGeocode, autocompleteAddress, placeDetails } from "@/lib/geocode.functions";
 import {
   addressLabelText, formatAddressDetails, rememberLastAddressId, useDeleteAddress,
