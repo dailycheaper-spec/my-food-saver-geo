@@ -429,6 +429,33 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
   );
 }
 
+/** Shows the reverse-geocoded street address for a store pin; coordinates stay as a muted fallback line. */
+function StoreAddressLine({ lat, lng }: { lat: number | null; lng: number | null }) {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { address, loading } = useReverseAddress(lat, lng);
+  if (lat == null || lng == null) {
+    return (
+      <div className="text-muted-foreground">
+        {L("მისამართი", "Address", "Адрес")}: <span className="text-foreground">—</span>
+      </div>
+    );
+  }
+  return (
+    <div className="text-muted-foreground">
+      <div>
+        {L("მისამართი", "Address", "Адрес")}:{" "}
+        <span className="text-foreground font-medium">
+          {address || (loading ? L("იტვირთება…", "Loading…", "Загрузка…") : L("ვერ დადგინდა", "Unavailable", "Не определён"))}
+        </span>
+      </div>
+      <div className="font-mono text-[11px] opacity-70">
+        {lat.toFixed(5)}, {lng.toFixed(5)}
+      </div>
+    </div>
+  );
+}
+
 function LocStatusLine({ status }: { status: StoreLocationStatus }) {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
