@@ -220,6 +220,7 @@ export type Database = {
           method: Database["public"]["Enums"]["order_method"]
           notes: string | null
           offer_id: string
+          original_price_at_purchase: number | null
           payout_id: string | null
           quantity: number
           status: Database["public"]["Enums"]["order_status"]
@@ -241,6 +242,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id: string
+          original_price_at_purchase?: number | null
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -262,6 +264,7 @@ export type Database = {
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id?: string
+          original_price_at_purchase?: number | null
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
