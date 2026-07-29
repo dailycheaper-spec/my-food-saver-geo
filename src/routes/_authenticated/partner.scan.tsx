@@ -172,6 +172,53 @@ function ScanPage() {
         </div>
       </div>
 
+      {pendingAck && (
+        <div className="mt-4 rounded-2xl p-5 border-2 border-warm bg-warm/15">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-6 h-6 text-warm-foreground shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-warm-foreground">
+                {L("მომხმარებლის სპეციალური მოთხოვნა", "Customer's special request", "Особый запрос клиента")}
+              </div>
+              <div className="mt-1 text-base font-semibold text-foreground whitespace-pre-wrap break-words">
+                {pendingAck.note}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                #{pendingAck.code} · {pendingAck.title} · {formatGel(pendingAck.amount)}
+              </div>
+            </div>
+          </div>
+          <label className="mt-4 flex items-start gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ackChecked}
+              onChange={(e) => setAckChecked(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+            />
+            <span className="text-sm font-medium text-foreground">
+              {L("დავადასტურე მოთხოვნის გათვალისწინება", "I've noted the request", "Я учёл(ла) запрос")}
+            </span>
+          </label>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={confirmAckAndCollect}
+              disabled={!ackChecked}
+              className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-1.5"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {L("დაადასტურე გაცემა", "Confirm collected", "Подтвердить выдачу")}
+            </button>
+            <button
+              onClick={() => { setPendingAck(null); setAckChecked(false); }}
+              className="px-4 py-3 rounded-xl bg-muted text-xs font-semibold"
+            >
+              {t("cancel")}
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {result && (
         <div className={`mt-4 rounded-2xl p-5 border-2 ${result.ok ? "border-success bg-success/10" : "border-destructive bg-destructive/10"}`}>
           <div className="flex items-center gap-2">
