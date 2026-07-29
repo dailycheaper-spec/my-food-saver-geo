@@ -56,6 +56,8 @@ function PartnerHome() {
       pickup_to: last.pickup_to,
       delivery_available: last.delivery_available,
       image_url: last.image_url,
+      image_path: (last as any).image_path ?? null,
+      image_signed_url_expires_at: (last as any).image_signed_url_expires_at ?? null,
       is_active: true,
     };
     const { error } = await supabase.from("offers").insert(payload);
