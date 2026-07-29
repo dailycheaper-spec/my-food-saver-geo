@@ -154,6 +154,19 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     [language, reverse],
   );
 
+  /** Debounced reverse-geocode: fires ~400ms after the map settles. */
+  const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queueResolve = useCallback(
+    (lat: number, lng: number) => {
+      if (resolveTimer.current) clearTimeout(resolveTimer.current);
+      setResolving(true);
+      resolveTimer.current = setTimeout(() => void resolvePin(lat, lng), 400);
+    },
+    [resolvePin],
+  );
+  useEffect(() => () => { if (resolveTimer.current) clearTimeout(resolveTimer.current); }, []);
+
+
   // Resolve a readable label for the "current location" row.
   useEffect(() => {
     if (!open || !location) return;
