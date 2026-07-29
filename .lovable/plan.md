@@ -1,53 +1,64 @@
-# Delivery address picker — plan
+## Audit — current state (verified in code)
 
-## Current state (verified)
-- `src/routes/offer.$id.tsx` collects the delivery address as a plain text input (`address`, validated only by `length >= 3`), passed to `db.ts` / `bog.functions.ts` as `delivery_address`.
-- `useUserLocation` (`src/hooks/use-user-location.tsx`) already handles permission with an explanation modal, but the coordinates are only used for distance sorting on the map/home — never for delivery.
-- No saved addresses exist anywhere; no geocoding.
+**Already working — will not be rebuilt**
+- `src/components/address/AddressPicker.tsx` — one non-duplicated 3-step sheet (`list` → `map` → `details`): search-as-you-type, saved-address list with edit/delete, centered pin with `moveend` reverse geocoding, "my location" button, label picker (home/work/other + custom), entrance/floor/apartment/door-code, courier note, save-for-later, default flag.
+- `src/lib/geocode.functions.ts` — real server functions (`reverseGeocode`, `autocompleteAddress` via Places API New, `placeDetails`) through the Google Maps connector gateway. Server keys stay server-side. No mock data, no hardcoded coordinates.
+- `src/hooks/use-user-location.tsx` — geolocation context with a consent modal before prompting, `enableHighAccuracy`, 10s timeout, in-flight dedupe, distinct `denied` / `error` / `unsupported` states, accuracy captured.
+- `user_addresses` table: numeric `lat`/`lng`, label/custom_label, all detail fields, `is_default`, RLS per user. Hooks in `src/lib/addresses.ts`.
+- Maps are Leaflet (already used app-wide); Google is used only for geocoding/places. **No map-library migration** — adding the Google Maps JS SDK just for this sheet would run two map engines.
+- Autocomplete is debounced 350ms with a session token; reverse geocode is cached per 5-decimal coordinate and only fires on `moveend`.
 
-## What we'll build
-A reusable bottom-sheet address picker modeled on the uploaded reference, used at checkout and manageable from the profile.
+**Partially implemented**
+- Out-of-range delivery is computed inside the picker and shown as a warning only — checkout is not blocked, and the rule lives in a UI component.
+- `rememberLastAddressId()` writes a last-used id to localStorage but nothing ever reads it — the picker never preselects home/default/last-used.
+- "Set as default" is written but the previous default is never cleared, so multiple defaults can exist.
 
-### 1. Backend
-New table `user_addresses`:
-- `user_id`, `label` (home / work / other + free text), `address_line` (street + number), `details` (entrance, floor, apartment, doorcode), `note_for_courier`, `lat`, `lng`, `city`, `is_default`, timestamps.
-- RLS: users read/write only their own rows; GRANTs for `authenticated` + `service_role`.
-- Orders keep the existing `delivery_address` text (a snapshot) and additionally store `delivery_lat` / `delivery_lng` so couriers get exact coordinates instead of a free-text string.
+**Missing / broken**
+1. **Coordinates are dropped at order time.** `orders.delivery_lat` / `delivery_lng` exist, but neither `createOrder` (`src/lib/db.ts:179`) nor the BOG path (`src/lib/payments/bog.functions.ts:106`) writes them — only a flattened address string. Courier dispatch has no coordinates.
+2. **Selection doesn't survive refresh** — `selectedAddr` in `offer.$id.tsx` is plain `useState`.
+3. **No `place_id` / structured components stored** (street, number, district, postal code).
+4. **No delivery-zone service** — validation is inline in the picker.
+5. **Error UX gaps:** a failed autocomplete silently renders as "no results"; a failed reverse geocode falls back to raw `41.71234, 44.82345` with no retry; permission-denied offers no in-sheet path to manual search.
+6. `poorAccuracy` is computed but never rendered.
+7. Search inputs have no accessible label; the resolving state isn't announced.
 
-### 2. Google Maps
-- Link the Google Maps connector.
-- Server functions (`src/lib/geocode.functions.ts`) calling the gateway:
-  - reverse geocode (`lat,lng` → Georgian street address)
-  - autocomplete + place details (Places API New) for typing an address
-- Debounced, session-token based autocomplete; all requests go through the gateway (never the browser key for geocoding).
+## What I'll change — simplicity first
 
-### 3. UI — `AddressPicker` bottom sheet
-Best-practice pieces from the reference plus what's usually missing:
-- **Map on top, pin fixed at center** — user drags the map, not the pin; address label updates on drag-end ("pin the map, not the marker" is the reliable mobile pattern).
-- **"Current location" row first** with the real reverse-geocoded street shown as subtitle, plus a GPS re-center button on the map.
-- **Saved addresses list** with icons (home / work / other), the default one marked, edit + delete via the row's pencil (matches the reference).
-- **Search field** with autocomplete suggestions, so typing works when GPS is off or wrong.
-- **Details step** after picking a point: entrance / floor / apartment / doorcode / note for courier, and an optional label + "save this address" toggle. This is the single biggest real-world delivery-failure fix and is missing from the reference screenshots.
-- **Accuracy feedback**: if GPS accuracy is poor (>100 m) or the pin sits outside the store's delivery radius, show an inline warning instead of failing at submit.
-- **Delivery-radius validation**: compare the chosen point with `store.delivery_radius_km` and block/warn before payment rather than after.
-- **Permission states**: reuse the existing explain modal; on `denied` show a clear "location blocked — search or drop a pin instead" fallback so the sheet is never a dead end.
-- Full KA/EN/RU strings via `i18n.tsx`; safe-area padding, `dvh` height, 44px touch targets, consistent with the existing mobile-density work.
+The flow must stay: **open → current location or search → nudge pin → (optional) apartment details → confirm**. Nothing gets added that lengthens it.
 
-### 4. Integration
-- `offer.$id.tsx`: replace the text input with a tappable address row → opens the sheet. Submit requires a selected address object (coords + line), not a 3-char string.
-- Selected address is remembered for the next order (default address auto-selected).
-- Profile: "My addresses" screen reusing the same list + edit sheet.
-- Orders/partner views show the structured address (line + details) instead of a raw string.
+**1. Fewer taps to a confirmed address**
+- On open, preselect in order: last-used → default → none. A returning user sees their address already chosen and can confirm without entering the map at all.
+- Picking a saved address confirms immediately and closes — one tap, no re-geocoding (its stored lat/lng is used directly).
+- Apartment/floor/entrance/note all stay **optional**; the confirm button never waits on them. Only "valid coordinates + a usable address line" gates it.
+- No new modals or nesting — the details step stays inside the same sheet, and the confirm button stays sticky at the bottom on mobile.
+
+**2. Persist coordinates end-to-end**
+- Extend `CreateOrderInput` and the BOG insert to carry `delivery_lat`, `delivery_lng`, `delivery_place_id`; write them on both order paths.
+- Migration: add `delivery_place_id` to `orders`; add `place_id`, `street`, `street_number`, `district`, `postal_code` to `user_addresses` (all nullable — no new table, existing rows untouched).
+
+**3. One source of truth**
+- New `src/lib/delivery-address.ts`: a small typed context + localStorage store holding exactly one `ConfirmedDeliveryAddress`. Temporary map position and search results stay local to the picker and never leak into it.
+- `offer.$id.tsx` reads/writes only through it, so the address survives refresh and checkout-step changes.
+
+**4. Delivery-zone service, out of the UI**
+- New `src/lib/delivery/zones.ts`: `validateDeliveryLocation({lat,lng}, store) → { allowed, reason, distanceKm }`. Today it wraps the existing radius check; later it can hold polygons without touching UI.
+- Out-of-zone now **disables** the checkout CTA with a plain message and a "Choose another location" button.
+
+**5. Honest, plain-language error states**
+- Autocomplete failure ≠ empty results: "Address search is temporarily unavailable — pick your location on the map."
+- Reverse-geocode failure keeps the coordinates and offers **Retry**; the user can still confirm by typing the address line.
+- Permission denied → one inline card with "Search address", and no repeat permission prompts.
+- Low accuracy → "Your location may be approximate — adjust the pin if needed."
+- No raw API errors shown anywhere.
+
+**6. A11y + mobile polish (no redesign)**
+- `aria-label` on both search inputs, `aria-live` on the resolving text, focus moved into the sheet on open and restored on close, map controls checked for overlap with the sticky confirm button at 390px.
+
+## Not doing
+No map-library change, no rewrite of `AddressPicker`, no second address table, no changes to unrelated pages or to the checkout design.
 
 ## Technical notes
-- Reverse geocode is throttled (only on map drag-end and on GPS fix) to control API usage; results cached per rounded coordinate in React Query.
-- The picker is a lazy-loaded component so Leaflet map weight isn't added to the offer page's initial bundle.
-- No changes to payment logic beyond passing coordinates through the existing order-creation paths.
-
-## Order of work
-1. Connect Google Maps connector.
-2. Migration for `user_addresses` + order coordinate columns.
-3. Geocoding server functions.
-4. `AddressPicker` sheet + i18n strings.
-5. Wire into checkout, profile, and order/partner display.
-6. Build/typecheck + mobile pass.
+- Google Cloud APIs required: Geocoding API, Places API (New) — both already routed through the connector gateway.
+- Env: `LOVABLE_API_KEY` + `GOOGLE_MAPS_API_KEY` (server, connector-injected); `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY` is browser-only and non-secret.
+- Carried-over limitation: the managed Google key is referrer-restricted to `*.lovable.app`, so geocoding/autocomplete on `cheaper.ge` needs your own custom connection key — a configuration step, not code.
+- Verification: build + typecheck, then a Playwright pass at 390px covering current-location, search, pin move, save, reselect, refresh persistence, denied permission, geocode failure, and out-of-zone blocking.

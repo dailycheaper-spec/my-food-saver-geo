@@ -10,13 +10,13 @@ import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { useAuth } from "@/lib/auth";
-import { calculateDistanceKm } from "@/lib/geo";
 import { reverseGeocode, autocompleteAddress, placeDetails } from "@/lib/geocode.functions";
 import {
   addressLabelText, formatAddressDetails, rememberLastAddressId, useDeleteAddress,
   useMyAddresses, useSaveAddress, type AddressLabel, type UserAddress,
 } from "@/lib/addresses";
 import { CITY_CENTERS, useCity } from "@/lib/city";
+import { validateDeliveryLocation } from "@/lib/delivery/zones";
 
 export interface SelectedAddress {
   id?: string;
@@ -25,6 +25,7 @@ export interface SelectedAddress {
   courierNote: string;
   lat: number;
   lng: number;
+  placeId?: string | null;
 }
 
 interface Props {
@@ -83,6 +84,9 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Array<{ placeId: string; main: string; secondary: string }>>([]);
   const [currentLabel, setCurrentLabel] = useState<string>("");
+  const [searchFailed, setSearchFailed] = useState(false);
+  const [reverseFailed, setReverseFailed] = useState(false);
+  const [pinPlaceId, setPinPlaceId] = useState<string | null>(null);
 
   // details-step form
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
@@ -131,6 +135,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
         return;
       }
       setResolving(true);
+      setReverseFailed(false);
       try {
         const res = await reverse({ data: { lat, lng, language } });
         const value = { addressLine: res.addressLine || res.formatted || "", city: res.city ?? null };
@@ -138,7 +143,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
         setPinAddress(value.addressLine);
         setPinCity(value.city);
       } catch {
-        setPinAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        setReverseFailed(true);
+        setPinAddress("");
       } finally {
         setResolving(false);
       }
@@ -183,24 +189,27 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             },
           });
           setSuggestions(res);
+          setSearchFailed(false);
         } catch {
           setSuggestions([]);
+          setSearchFailed(true);
         }
       })();
     }, 350);
     return () => clearTimeout(id);
   }, [query, language, location, autocomplete]);
 
-  const distanceKm = useMemo(() => {
-    if (!store?.lat || !store?.lng) return null;
-    return calculateDistanceKm(store.lat, store.lng, center[0], center[1]);
-  }, [store, center]);
-  const outOfRange =
-    distanceKm != null && store?.radiusKm != null && distanceKm > (store.radiusKm as number);
+  const zone = useMemo(
+    () => validateDeliveryLocation({ lat: center[0], lng: center[1] }, store ?? null),
+    [store, center],
+  );
+  const distanceKm = zone.distanceKm;
+  const outOfRange = !zone.allowed;
 
   const poorAccuracy = location?.accuracy != null && location.accuracy > 100;
 
   function openMapAt(lat: number, lng: number) {
+    setPinPlaceId(null);
     setCenter([lat, lng]);
     setFlyTo([lat, lng]);
     void resolvePin(lat, lng);
@@ -229,6 +238,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
       courierNote: a.courier_note ?? "",
       lat: a.lat,
       lng: a.lng,
+      placeId: a.place_id ?? null,
     });
     onClose();
   }
@@ -246,12 +256,15 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     setSaveForLater(true);
     setPinAddress(a.address_line);
     setPinCity(a.city);
+    setPinPlaceId(a.place_id ?? null);
     setCenter([a.lat, a.lng]);
     setStep("details");
   }
 
   async function confirmDetails() {
-    const line = pinAddress.trim();
+    const line =
+      pinAddress.trim() ||
+      (reverseFailed ? `${center[0].toFixed(5)}, ${center[1].toFixed(5)}` : "");
     if (line.length < 3) {
       toast.error(L("აირჩიეთ მისამართი რუკაზე", "Pick an address on the map", "Выберите адрес на карте"));
       return;
@@ -272,6 +285,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
           lat: center[0],
           lng: center[1],
           city: pinCity,
+          place_id: pinPlaceId,
           is_default: isDefault,
         });
         savedId = row.id;
@@ -296,6 +310,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
       courierNote,
       lat: center[0],
       lng: center[1],
+      placeId: pinPlaceId,
     });
     onClose();
   }
@@ -335,6 +350,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label={L("მისამართის ძებნა", "Search address", "Поиск адреса")}
                 placeholder={L("მოძებნეთ ქუჩა და ნომერი…", "Search street and number…", "Найдите улицу и номер…")}
                 className="w-full h-12 pl-10 pr-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
@@ -355,6 +371,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                         if (d.lat == null || d.lng == null) throw new Error("no location");
                         setQuery("");
                         setSuggestions([]);
+                        setReverseFailed(false);
+                        setPinPlaceId(s.placeId);
                         setPinAddress(d.addressLine || s.main);
                         setCenter([d.lat, d.lng]);
                         setFlyTo([d.lat, d.lng]);
@@ -375,6 +393,17 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                   </button>
                 ))}
               </div>
+            )}
+
+            {searchFailed && query.trim().length >= 3 && (
+              <p className="flex items-start gap-2 text-xs text-muted-foreground px-1" role="status">
+                <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
+                {L(
+                  "მისამართის ძებნა დროებით მიუწვდომელია — მონიშნეთ ადგილი რუკაზე.",
+                  "Address search is temporarily unavailable — pick your location on the map.",
+                  "Поиск адреса временно недоступен — укажите место на карте.",
+                )}
+              </p>
             )}
 
             {/* current location */}
@@ -515,6 +544,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                 <MapFlyTo pos={flyTo} />
                 <MapCenterWatcher
                   onMove={(lat, lng) => {
+                    setPinPlaceId(null);
                     setCenter([lat, lng]);
                     void resolvePin(lat, lng);
                   }}
@@ -543,14 +573,17 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-sm font-bold truncate">
+                  <div className="text-sm font-bold truncate" aria-live="polite">
                     {resolving ? (
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         {L("იძებნება…", "Locating…", "Поиск…")}
                       </span>
                     ) : (
-                      pinAddress || L("გადაათრიეთ რუკა", "Drag the map", "Перетащите карту")
+                      pinAddress ||
+                      (reverseFailed
+                        ? `${center[0].toFixed(5)}, ${center[1].toFixed(5)}`
+                        : L("გადაათრიეთ რუკა", "Drag the map", "Перетащите карту"))
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -559,6 +592,26 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                   </div>
                 </div>
               </div>
+
+              {reverseFailed && !resolving && (
+                <div className="flex items-start gap-2 text-[11px] text-muted-foreground">
+                  <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
+                  <span>
+                    {L(
+                      "მისამართის სახელი ვერ ჩაიტვირთა — ადგილი მაინც სწორია.",
+                      "Couldn't load the address name — the spot itself is still correct.",
+                      "Не удалось загрузить название адреса — само место указано верно.",
+                    )}{" "}
+                    <button
+                      type="button"
+                      onClick={() => void resolvePin(center[0], center[1])}
+                      className="text-primary font-semibold underline"
+                    >
+                      {L("ხელახლა", "Retry", "Повторить")}
+                    </button>
+                  </span>
+                </div>
+              )}
 
               {poorAccuracy && (
                 <p className="flex items-start gap-2 text-[11px] text-muted-foreground">
@@ -584,7 +637,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
 
               <button
                 type="button"
-                disabled={resolving || pinAddress.trim().length < 3 || outOfRange}
+                disabled={resolving || (!reverseFailed && pinAddress.trim().length < 3) || outOfRange}
                 onClick={() => setStep("details")}
                 className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 press"
               >
@@ -600,7 +653,12 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             <div className="flex items-start gap-2 p-3 rounded-2xl bg-secondary">
               <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
               <div className="min-w-0">
-                <div className="text-sm font-bold truncate">{pinAddress}</div>
+                <input
+                  value={pinAddress}
+                  onChange={(e) => setPinAddress(e.target.value.slice(0, 200))}
+                  aria-label={L("მისამართი", "Address", "Адрес")}
+                  className="w-full bg-transparent text-sm font-bold focus:outline-none"
+                />
                 <button
                   type="button"
                   onClick={() => setStep("map")}

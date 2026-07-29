@@ -17,6 +17,11 @@ export interface UserAddress {
   lat: number;
   lng: number;
   city: string | null;
+  place_id: string | null;
+  street: string | null;
+  street_number: string | null;
+  district: string | null;
+  postal_code: string | null;
   is_default: boolean;
   created_at: string;
   updated_at: string;
@@ -24,8 +29,8 @@ export interface UserAddress {
 
 export type AddressDraft = Omit<
   UserAddress,
-  "id" | "user_id" | "created_at" | "updated_at"
-> & { id?: string };
+  "id" | "user_id" | "created_at" | "updated_at" | "street" | "street_number" | "district" | "postal_code" | "place_id"
+> & { id?: string; place_id?: string | null };
 
 /** Human readable "entrance 2 · floor 5 · apt 12 · code 1234" line. */
 export function formatAddressDetails(
@@ -87,6 +92,7 @@ export function useSaveAddress() {
         lat: draft.lat,
         lng: draft.lng,
         city: draft.city ?? null,
+        place_id: draft.place_id ?? null,
         is_default: draft.is_default,
       };
       const q = draft.id
