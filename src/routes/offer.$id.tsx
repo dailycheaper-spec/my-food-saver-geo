@@ -450,6 +450,31 @@ function OfferPage() {
               <span className="text-xs text-muted-foreground ml-2">{t("left")} {offer.itemsLeft}</span>
             </div>
           </div>
+
+          <div className="mt-5">
+            <label className="text-sm font-bold mb-1.5 flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 text-primary" />
+              {language === "en" ? "Special request (optional)" : language === "ru" ? "Особый запрос (необязательно)" : "სპეციალური მოთხოვნა (არასავალდებულო)"}
+            </label>
+            <textarea
+              value={customerNote}
+              onChange={(e) => setCustomerNote(e.target.value.slice(0, 300))}
+              maxLength={300}
+              rows={2}
+              placeholder={language === "en" ? "e.g. no onions / no hazelnuts" : language === "ru" ? "напр.: без лука / без фундука" : "მაგ: ხახვის გარეშე / თხილის გარეშე"}
+              className="w-full px-3 py-2.5 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
+            />
+            <div className="mt-1 flex items-start justify-between gap-2 text-[11px]">
+              <p className="text-muted-foreground leading-snug flex items-start gap-1">
+                <AlertTriangle className="w-3 h-3 mt-0.5 text-warm-foreground shrink-0" />
+                <span>{language === "en"
+                  ? "The partner will try to accommodate your request but cannot fully guarantee it — for serious allergies, please also contact the store directly."
+                  : language === "ru"
+                  ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, свяжитесь с магазином напрямую."
+                  : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრული გარანტია ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში, გთხოვთ დამატებით დაუკავშირდეთ მაღაზიას."}</span>
+              </p>
+              <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
+            </div>
         </div>
 
         {/* ---- Payment ---- */}
