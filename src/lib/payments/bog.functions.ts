@@ -62,6 +62,9 @@ interface OrderInput {
   quantity: number;
   method: "pickup" | "delivery";
   deliveryAddress?: string;
+  deliveryLat?: number | null;
+  deliveryLng?: number | null;
+  deliveryPlaceId?: string | null;
   customerNote?: string;
   // When true, redirect_urls point at the /orders/native-return bounce page so
   // the Capacitor shell can pull the user back into the app via deep link.
@@ -104,6 +107,9 @@ async function createPendingOrder(
       quantity: data.quantity,
       method: data.method,
       delivery_address: data.deliveryAddress ?? null,
+      delivery_lat: data.deliveryLat ?? null,
+      delivery_lng: data.deliveryLng ?? null,
+      delivery_place_id: data.deliveryPlaceId ?? null,
       customer_note: note ? note.slice(0, 300) : null,
       user_id: userId,
       status: "pending",
