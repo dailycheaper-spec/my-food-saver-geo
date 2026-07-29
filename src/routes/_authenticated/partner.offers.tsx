@@ -141,7 +141,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
   const { t, language } = useI18n();
-  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru", string | null>> & { allergens?: string[] | null } | null;
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     title_en: offerAny?.title_en ?? "",
