@@ -55,7 +55,7 @@ function OfferImage({ src, alt, soldOut, fallbackLabel }: { src: string; alt: st
   );
 }
 
-export function OfferCard({ offer }: { offer: Offer }) {
+export function OfferCard({ offer, featured = false }: { offer: Offer; featured?: boolean }) {
   const { t, language } = useI18n();
 
   const favs = useFavorites();
@@ -65,7 +65,6 @@ export function OfferCard({ offer }: { offer: Offer }) {
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
 
-  // Ticker so badges (NEW / Ending Soon) refresh over time
   const [tick, setTick] = useState(0);
   useEffect(() => {
     setMounted(true);
@@ -79,18 +78,21 @@ export function OfferCard({ offer }: { offer: Offer }) {
   const endingSoon = mounted && minsLeft > 0 && minsLeft <= 60;
   const almostGone = offer.itemsLeft <= 3 && offer.itemsLeft > 0;
   const trusted = mounted && isTrustedPartner(offer.storeId);
-  // reference tick so useEffect refresh triggers re-render
   void tick;
 
   const soldOut = offer.itemsLeft <= 0;
+
+  const rootCls = featured
+    ? "group block rounded-3xl overflow-hidden bg-card shadow-elevated transition-all duration-300 border-2 border-primary/60 ring-2 ring-primary/15 ring-offset-2 ring-offset-background active:scale-[0.995]"
+    : "group block rounded-3xl overflow-hidden bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-border/60 active:scale-[0.99]";
 
   return (
     <Link
       to="/offer/$id"
       params={{ id: offer.id }}
-      className="group block rounded-3xl overflow-hidden bg-card shadow-card hover:shadow-elevated transition-all duration-300 border border-border/60 active:scale-[0.99]"
+      className={rootCls}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+      <div className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/10]" : "aspect-[4/3]"}`}>
         <OfferImage
           src={offer.image}
           alt={offerText.title}
