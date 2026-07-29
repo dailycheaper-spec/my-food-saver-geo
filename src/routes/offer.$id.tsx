@@ -468,9 +468,9 @@ function OfferPage() {
               <p className="text-muted-foreground leading-snug flex items-start gap-1">
                 <AlertTriangle className="w-3 h-3 mt-0.5 text-warm-foreground shrink-0" />
                 <span>{language === "en"
-                  ? "The partner will try to accommodate your request but cannot fully guarantee it — for serious allergies, please also contact the store directly."
+                  ? "The partner will try to accommodate your request, but cannot fully guarantee it — please keep this in mind if you have serious allergies."
                   : language === "ru"
-                  ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, свяжитесь с магазином напрямую."
+                  ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, учитывайте это при заказе."
                   : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრულ გარანტიას ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში."}</span>
               </p>
               <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
