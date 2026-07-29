@@ -64,8 +64,13 @@ export const reverseGeocode = createServerFn({ method: "GET" })
     }
     const json = (await res.json()) as {
       status?: string;
+      error_message?: string;
       results?: Array<{ formatted_address?: string; address_components?: Array<{ long_name: string; types: string[] }> }>;
     };
+    // Google can return HTTP 200 with a top-level failure (e.g. billing disabled, REQUEST_DENIED).
+    if (json.status && json.status !== "OK" && json.status !== "ZERO_RESULTS") {
+      throw new MapsUnavailableError(json.error_message || `Google Maps error: ${json.status}`);
+    }
     const best = json.results?.[0];
     if (!best) return { addressLine: "", city: null as string | null };
     const comps = best.address_components ?? [];
