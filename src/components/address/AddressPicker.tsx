@@ -717,22 +717,29 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд") },
-                { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж") },
-                { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира") },
-                { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери") },
-              ].map((f) => (
-                <input
-                  key={f.id}
-                  value={f.value}
-                  onChange={(e) => f.set(e.target.value.slice(0, 20))}
-                  placeholder={f.ph}
-                  className="h-12 px-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              ))}
-            </div>
+            <details className="rounded-2xl border border-border overflow-hidden" open={!!(entrance || floor || apartment || doorCode)}>
+              <summary className="flex items-center justify-between gap-2 h-12 px-4 text-sm font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                {L("დამატებითი დეტალები", "Extra details", "Дополнительные детали")}
+                <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              </summary>
+              <div className="grid grid-cols-2 gap-2 p-3 pt-0">
+                {[
+                  { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд") },
+                  { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж") },
+                  { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира") },
+                  { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери") },
+                ].map((f) => (
+                  <input
+                    key={f.id}
+                    value={f.value}
+                    onChange={(e) => f.set(e.target.value.slice(0, 20))}
+                    placeholder={f.ph}
+                    aria-label={f.ph}
+                    className="h-12 px-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                ))}
+              </div>
+            </details>
 
             <textarea
               value={courierNote}
