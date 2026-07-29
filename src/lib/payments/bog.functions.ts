@@ -62,6 +62,7 @@ interface OrderInput {
   quantity: number;
   method: "pickup" | "delivery";
   deliveryAddress?: string;
+  customerNote?: string;
   // When true, redirect_urls point at the /orders/native-return bounce page so
   // the Capacitor shell can pull the user back into the app via deep link.
   nativeReturn?: boolean;
@@ -93,6 +94,7 @@ async function createPendingOrder(
   const deliveryFee = data.method === "delivery" ? Number(offer.store?.delivery_fee_base ?? 0) : 0;
   const realAmount = Number(offer.discounted_price) * data.quantity + deliveryFee;
 
+  const note = data.customerNote?.trim();
   const { data: order, error } = await supabase
     .from("orders")
     .insert({
@@ -102,6 +104,7 @@ async function createPendingOrder(
       quantity: data.quantity,
       method: data.method,
       delivery_address: data.deliveryAddress ?? null,
+      customer_note: note ? note.slice(0, 300) : null,
       user_id: userId,
       status: "pending",
     })
