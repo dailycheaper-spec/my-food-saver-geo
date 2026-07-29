@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import type { ReactElement, SVGProps } from "react";
 import type { Category } from "@/lib/mock-data";
 
 /**
@@ -121,7 +121,7 @@ function PizzaIcon(props: IconProps) {
   );
 }
 
-const ICONS: Record<Category | "ყველა", (props: IconProps) => JSX.Element> = {
+const ICONS: Record<Category | "ყველა", (props: IconProps) => ReactElement> = {
   "ყველა": AllIcon,
   "საცხობი": BakeryIcon,
   "საკონდიტრო": PatisserieIcon,
