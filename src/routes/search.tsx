@@ -14,7 +14,6 @@ import {
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
-import { CategoryIcon } from "@/components/CategoryIcon";
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -319,7 +318,7 @@ function SearchPage() {
                         cat === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                       }`}
                     >
-                      <CategoryIcon id={c.id} className="w-4 h-4" /> {getCategoryLabel(c.id, language)}
+                      <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
                     </button>
                   ))}
                 </div>
@@ -488,7 +487,7 @@ function SearchPage() {
                     onClick={() => { setCat(c.id); setQ(""); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                   >
-                    <CategoryIcon id={c.id} className="w-5 h-5" />
+                    <span className="text-xl">{c.icon}</span>
                     <span className="text-sm font-semibold">{getCategoryLabel(c.id, language)}</span>
                   </button>
                 ))}

@@ -23,7 +23,6 @@ import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useCity, cityLabel } from "@/lib/city";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
-import { CategoryIcon } from "@/components/CategoryIcon";
 
 
 export const Route = createFileRoute("/")({
@@ -288,7 +287,7 @@ function Home() {
                     : "bg-card border border-border text-foreground"
                 }`}
               >
-                <CategoryIcon id={c.id} className="w-7 h-7" />
+                <span className="text-2xl">{c.icon}</span>
                 <span className="text-[11px] font-bold tracking-tight">
                   {getCategoryLabel(c.id, language)}
                 </span>

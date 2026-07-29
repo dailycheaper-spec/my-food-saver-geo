@@ -4,7 +4,6 @@ import { Bell, MapPin, Check } from "lucide-react";
 import { CATEGORIES } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
-import { CategoryIcon } from "@/components/CategoryIcon";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
@@ -138,11 +137,11 @@ function Notifications() {
               <button
                 key={c.id}
                 onClick={() => toggleCategory(c.id)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                   on ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
                 }`}
               >
-                <CategoryIcon id={c.id} className="w-4 h-4" /> {c.label}
+                {c.icon} {c.label}
               </button>
             );
           })}
