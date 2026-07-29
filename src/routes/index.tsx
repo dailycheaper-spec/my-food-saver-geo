@@ -375,6 +375,18 @@ function Home() {
           <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
         </div>
 
+        {bestDeal && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-primary text-primary-foreground px-2.5 py-1 rounded-full">
+                <Zap className="w-3 h-3" />
+                {language === "en" ? "Best discount today" : language === "ru" ? "Лучшая скидка дня" : "დღის საუკეთესო ფასდაკლება"}
+              </span>
+            </div>
+            <OfferCard offer={bestDeal} featured />
+          </div>
+        )}
+
         {offersError ? (
           <div className="text-center py-10 sm:py-14 bg-card rounded-3xl border border-destructive/30">
             <div className="text-4xl mb-2">⚠️</div>
