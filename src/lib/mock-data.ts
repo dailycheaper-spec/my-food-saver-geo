@@ -4,7 +4,7 @@ import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-export type Category = "საცხობი" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
+export type Category = "საცხობი" | "საკონდიტრო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
 
 export interface Offer {
   id: string;
