@@ -97,8 +97,26 @@ function ScanPage() {
       setResult({ ok: false, msg: `#${data.code} — ${t("statusLbl")}: ${data.status}` });
       return;
     }
+    const title = (data.offer as { title?: string } | null)?.title ?? "";
+    const note = (data.customer_note ?? "").trim();
+    if (note) {
+      // Force partner to acknowledge special request before marking collected.
+      setPendingAck({ id: data.id, code: data.code, amount: Number(data.amount), title, note });
+      setAckChecked(false);
+      setResult(null);
+      return;
+    }
     await updateOrderStatus(data.id, "collected");
-    setResult({ ok: true, msg: t("successGiven"), order: { code: data.code, amount: Number(data.amount), title: (data.offer as { title?: string } | null)?.title ?? "" } });
+    setResult({ ok: true, msg: t("successGiven"), order: { code: data.code, amount: Number(data.amount), title } });
+    setCode("");
+  }
+
+  async function confirmAckAndCollect() {
+    if (!pendingAck || !ackChecked) return;
+    await updateOrderStatus(pendingAck.id, "collected");
+    setResult({ ok: true, msg: t("successGiven"), order: { code: pendingAck.code, amount: pendingAck.amount, title: pendingAck.title } });
+    setPendingAck(null);
+    setAckChecked(false);
     setCode("");
   }
 
