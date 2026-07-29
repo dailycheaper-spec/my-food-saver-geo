@@ -11,9 +11,8 @@ import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 
 type EntityType = "company" | "individual_entrepreneur";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
+import MapAddressField from "@/components/address/MapAddressField";
+
 
 const STORE_TYPES: { value: string; ka: string; en: string; ru: string }[] = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
