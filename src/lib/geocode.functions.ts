@@ -3,10 +3,13 @@ import { z } from "zod";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 
+/** Thrown when the Maps connector is missing/unlinked — callers degrade instead of crashing. */
+export class MapsUnavailableError extends Error {}
+
 function gatewayHeaders(extra?: Record<string, string>) {
   const lovableKey = process.env.LOVABLE_API_KEY;
   const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!lovableKey || !mapsKey) throw new Error("Google Maps connector is not configured");
+  if (!lovableKey || !mapsKey) throw new MapsUnavailableError("Google Maps connector is not configured");
   return {
     Authorization: `Bearer ${lovableKey}`,
     "X-Connection-Api-Key": mapsKey,
@@ -53,6 +56,7 @@ export const reverseGeocode = createServerFn({ method: "GET" })
     const res = await fetch(`${GATEWAY_URL}/maps/api/geocode/json?${params}`, {
       headers: gatewayHeaders(),
     });
+    if (res.status === 401) throw new MapsUnavailableError("Google Maps connector credential not found");
     if (res.status === 403) await handle403(res);
     if (!res.ok) {
       const body = await res.text();
@@ -104,6 +108,7 @@ export const autocompleteAddress = createServerFn({ method: "GET" })
       headers: gatewayHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
+    if (res.status === 401) throw new MapsUnavailableError("Google Maps connector credential not found");
     if (res.status === 403) await handle403(res);
     if (!res.ok) {
       const text = await res.text();
@@ -151,6 +156,7 @@ export const placeDetails = createServerFn({ method: "GET" })
         }),
       },
     );
+    if (res.status === 401) throw new MapsUnavailableError("Google Maps connector credential not found");
     if (res.status === 403) await handle403(res);
     if (!res.ok) {
       const text = await res.text();
