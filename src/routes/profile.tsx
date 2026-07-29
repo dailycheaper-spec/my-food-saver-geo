@@ -204,6 +204,12 @@ function Profile() {
       <p className="mt-6 mb-4 text-center text-[11px] text-muted-foreground">
         {t("madeInGeorgia")}
       </p>
+
+      {addressesOpen && (
+        <Suspense fallback={null}>
+          <AddressPicker open manageOnly onClose={() => setAddressesOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }
