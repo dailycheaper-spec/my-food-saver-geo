@@ -36,6 +36,8 @@ interface Props {
   /** Store position used to warn when the pin sits outside the delivery radius. */
   store?: { lat: number | null; lng: number | null; radiusKm?: number | null; name?: string };
   manageOnly?: boolean;
+  /** Show the "change city" section (home-header entry point). */
+  showCitySwitch?: boolean;
 }
 
 type Step = "list" | "map" | "details";
