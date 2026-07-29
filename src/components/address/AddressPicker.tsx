@@ -60,14 +60,14 @@ function MapFlyTo({ pos }: { pos: [number, number] | null }) {
   return null;
 }
 
-export default function AddressPicker({ open, onClose, onSelect, store, manageOnly }: Props) {
+export default function AddressPicker({ open, onClose, onSelect, store, manageOnly, showCitySwitch }: Props) {
   const { language } = useI18n();
   const L = useCallback(
     (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
     [language],
   );
   const { user } = useAuth();
-  const { city } = useCity();
+  const { city, setCity } = useCity();
   const { location, status, askPermission, request } = useUserLocation();
   const { data: saved = [], isLoading: loadingSaved } = useMyAddresses(!!user && open);
   const saveAddress = useSaveAddress();
