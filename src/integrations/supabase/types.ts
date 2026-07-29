@@ -223,6 +223,7 @@ export type Database = {
           delivery_id: string | null
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_place_id: string | null
           gifted_to: string | null
           id: string
           method: Database["public"]["Enums"]["order_method"]
@@ -247,6 +248,7 @@ export type Database = {
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_place_id?: string | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
@@ -271,6 +273,7 @@ export type Database = {
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_place_id?: string | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
@@ -689,6 +692,7 @@ export type Database = {
           courier_note: string | null
           created_at: string
           custom_label: string | null
+          district: string | null
           door_code: string | null
           entrance: string | null
           floor: string | null
@@ -697,6 +701,10 @@ export type Database = {
           label: string
           lat: number
           lng: number
+          place_id: string | null
+          postal_code: string | null
+          street: string | null
+          street_number: string | null
           updated_at: string
           user_id: string
         }
@@ -707,6 +715,7 @@ export type Database = {
           courier_note?: string | null
           created_at?: string
           custom_label?: string | null
+          district?: string | null
           door_code?: string | null
           entrance?: string | null
           floor?: string | null
@@ -715,6 +724,10 @@ export type Database = {
           label?: string
           lat: number
           lng: number
+          place_id?: string | null
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
           updated_at?: string
           user_id: string
         }
@@ -725,6 +738,7 @@ export type Database = {
           courier_note?: string | null
           created_at?: string
           custom_label?: string | null
+          district?: string | null
           door_code?: string | null
           entrance?: string | null
           floor?: string | null
@@ -733,6 +747,10 @@ export type Database = {
           label?: string
           lat?: number
           lng?: number
+          place_id?: string | null
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
           updated_at?: string
           user_id?: string
         }
