@@ -11,9 +11,8 @@ import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { StoreLogo } from "@/components/StoreLogo";
 import { isValidLatLng } from "@/lib/geo";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
+import MapAddressField from "@/components/address/MapAddressField";
+
 
 type EntityType = "company" | "individual_entrepreneur";
 
