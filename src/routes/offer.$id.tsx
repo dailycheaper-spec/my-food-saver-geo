@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, lazy, Suspense } from "react";
 import {
   ArrowLeft, Clock, MapPin, Star, Heart, Truck, ShoppingBag, Shield, Leaf,
   Share2, Navigation, Info, AlertTriangle, Utensils, ChevronRight, Check,
@@ -23,6 +23,9 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import type { SelectedAddress } from "@/components/address/AddressPicker";
+
+const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
 export const Route = createFileRoute("/offer/$id")({
   loader: async ({ params }) => {
@@ -80,7 +83,13 @@ function OfferPage() {
 
   const [method, setMethod] = useState<"აღება" | "მიტანა">("აღება");
   const [quantity, setQuantity] = useState(1);
-  const [address, setAddress] = useState("");
+  const [selectedAddr, setSelectedAddr] = useState<SelectedAddress | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const address = selectedAddr
+    ? [selectedAddr.addressLine, selectedAddr.details, selectedAddr.courierNote]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
   const [customerNote, setCustomerNote] = useState("");
   const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY" | "COD">("BOG");
   const [copied, setCopied] = useState(false);
@@ -425,13 +434,32 @@ function OfferPage() {
           </div>
 
           {method === "მიტანა" && (
-            <input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder={t("deliveryAddress")}
-              style={{}}
-              className="mt-3 w-full px-4 py-3 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            />
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="mt-3 w-full flex items-start gap-3 px-4 py-3 rounded-2xl bg-secondary text-left border border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+              <span className="min-w-0 flex-1">
+                {selectedAddr ? (
+                  <>
+                    <span className="block text-sm font-semibold truncate">{selectedAddr.addressLine}</span>
+                    {(selectedAddr.details || selectedAddr.courierNote) && (
+                      <span className="block text-xs text-muted-foreground truncate">
+                        {[selectedAddr.details, selectedAddr.courierNote].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="block text-sm text-muted-foreground">{t("deliveryAddress")}</span>
+                )}
+              </span>
+              <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">
+                {selectedAddr
+                  ? language === "en" ? "Change" : language === "ru" ? "Изменить" : "შეცვლა"
+                  : language === "en" ? "Choose" : language === "ru" ? "Выбрать" : "არჩევა"}
+              </span>
+            </button>
           )}
 
           <div className="mt-5">
@@ -648,6 +676,22 @@ function OfferPage() {
           </button>
         </div>
       </div>
+
+      {pickerOpen && (
+        <Suspense fallback={null}>
+          <AddressPicker
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(a) => setSelectedAddr(a)}
+            store={{
+              lat: offer.lat ?? null,
+              lng: offer.lng ?? null,
+              radiusKm: offer.deliveryRadiusKm ?? null,
+              name: storeName,
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
