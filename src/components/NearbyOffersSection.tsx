@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MapPin, Navigation, ChevronRight } from "lucide-react";
+import { MapPin, Navigation, ChevronRight, Home as HomeIcon } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { useUserLocation } from "@/hooks/use-user-location";
+import { useDeliveryAddress } from "@/lib/delivery-address";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
@@ -14,15 +15,27 @@ interface Props {
 
 const PARTNER_DEFAULT_RADIUS = 3;
 
+/** Offer is orderable right now: stock left and pickup window not over. */
+function isOrderableNow(o: Offer, nowMin: number): boolean {
+  if ((o.itemsLeft ?? 0) <= 0) return false;
+  const [h, m] = String(o.pickupTo ?? "").split(":").map(Number);
+  if (Number.isFinite(h) && Number.isFinite(m) && h * 60 + m <= nowMin) return false;
+  return true;
+}
+
 export function computeNearbyOffers(
   offers: Offer[],
   userLat: number,
   userLng: number,
   customerRadiusKm: number,
+  nowMin?: number,
 ): Array<Offer & { _distanceKm: number }> {
   const out: Array<Offer & { _distanceKm: number }> = [];
+  const minutes = nowMin ?? -1;
   for (const o of offers) {
+    // Branch/shop coordinates are required — distance is measured to the branch.
     if (!isValidLatLng(o.lat, o.lng)) continue;
+    if (minutes >= 0 && !isOrderableNow(o, minutes)) continue;
     const partnerRadius = o.visibilityRadiusKm ?? PARTNER_DEFAULT_RADIUS;
     const d = calculateDistanceKm(userLat, userLng, o.lat as number, o.lng as number);
     if (d > partnerRadius) continue;
@@ -37,13 +50,25 @@ export function NearbyOffersSection({ offers }: Props) {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { location, status, askPermission, request } = useUserLocation();
+  const { address } = useDeliveryAddress();
   const [radius, setRadius] = useState<RadiusOption>(3);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(3);
 
+  // GPS wins; otherwise fall back to the saved delivery address so the section
+  // still works when the user declined the browser prompt.
+  const origin = useMemo(() => {
+    if (location) return { lat: location.lat, lng: location.lng, kind: "gps" as const };
+    if (address && isValidLatLng(address.lat, address.lng))
+      return { lat: address.lat, lng: address.lng, kind: "address" as const, label: address.addressLine };
+    return null;
+  }, [location, address]);
+
   const nearby = useMemo(() => {
-    if (!location) return [];
-    return computeNearbyOffers(offers, location.lat, location.lng, effectiveRadius);
-  }, [offers, location, effectiveRadius]);
+    if (!origin) return [];
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return computeNearbyOffers(offers, origin.lat, origin.lng, effectiveRadius, nowMin);
+  }, [offers, origin, effectiveRadius]);
 
   return (
     <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
