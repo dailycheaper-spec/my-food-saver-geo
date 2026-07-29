@@ -341,9 +341,8 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         <div className="text-xs space-y-0.5">
           <LocStatusLine status={locStatus} />
           <StoreAddressLine lat={lat} lng={lng} />
-        </div>
-
           <div className="text-muted-foreground">
+
             {L("რადიუსი", "Radius", "Радиус")}: <span className="font-semibold text-foreground">
               {visibility_radius_km == null
                 ? L("მითითებული არაა", "Not set", "Не указан")
