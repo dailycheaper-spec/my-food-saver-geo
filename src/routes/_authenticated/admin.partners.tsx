@@ -17,6 +17,7 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { isValidGeorgianIban } from "@/lib/bank-account";
 import { useI18n } from "@/lib/i18n";
+import { useReverseAddress } from "@/lib/reverse-address";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {
