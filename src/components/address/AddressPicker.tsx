@@ -541,6 +541,34 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <Plus className="w-4 h-4" />
               {L("ახალი მისამართის დამატება", "Add a new address", "Добавить новый адрес")}
             </button>
+
+            {showCitySwitch && (
+              <div className="pt-2">
+                <div className="text-xs font-semibold text-muted-foreground px-1 mb-1.5">
+                  {L("ქალაქის შეცვლა", "Change city", "Сменить город")}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CITIES.map((c: City) => {
+                    const active = c === city;
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setCity(c)}
+                        className={`inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full border-2 text-sm font-semibold transition-colors ${
+                          active ? "border-primary bg-primary/5 text-primary" : "border-border"
+                        }`}
+                      >
+                        <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        {cityLabel(c, language)}
+                        {active && <Check className="w-3.5 h-3.5" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
