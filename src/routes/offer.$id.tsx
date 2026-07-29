@@ -81,6 +81,7 @@ function OfferPage() {
   const [method, setMethod] = useState<"აღება" | "მიტანა">("აღება");
   const [quantity, setQuantity] = useState(1);
   const [address, setAddress] = useState("");
+  const [customerNote, setCustomerNote] = useState("");
   const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY" | "COD">("BOG");
   const [copied, setCopied] = useState(false);
 
