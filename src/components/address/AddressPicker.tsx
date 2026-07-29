@@ -828,8 +828,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
           </div>
         )}
       </div>
-    </div>
     </div>,
     document.body,
   );
 }
+
