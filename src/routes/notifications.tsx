@@ -138,7 +138,7 @@ function Notifications() {
               <button
                 key={c.id}
                 onClick={() => toggleCategory(c.id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-all ${
                   on ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
                 }`}
               >
