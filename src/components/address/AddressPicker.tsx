@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   ArrowLeft, Check, Crosshair, Home, Briefcase, MapPin, Navigation, Pencil,
-  Plus, Search, Trash2, X, AlertTriangle, Loader2,
+  Plus, Search, Trash2, X, AlertTriangle, Loader2, ChevronDown, Building2,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import {
   addressLabelText, formatAddressDetails, rememberLastAddressId, useDeleteAddress,
   useMyAddresses, useSaveAddress, type AddressLabel, type UserAddress,
 } from "@/lib/addresses";
-import { CITY_CENTERS, useCity } from "@/lib/city";
+import { CITIES, CITY_CENTERS, cityLabel, useCity, type City } from "@/lib/city";
 import { validateDeliveryLocation } from "@/lib/delivery/zones";
 
 export interface SelectedAddress {
