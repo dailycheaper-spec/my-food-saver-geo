@@ -13,6 +13,7 @@ import { useCity, CITY_CENTERS } from "@/lib/city";
 
 const MapCanvas = lazy(() => import("@/components/MapCanvas"));
 import MapLayerSelector, { type MapLayerId } from "@/components/map/MapLayerSelector";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 const MAP_STORAGE_KEY = "cheaper-customer-map";
 function readInitialLayer(): MapLayerId {
@@ -443,7 +444,7 @@ function MapPage() {
                         onClick={() => { setCategoryFilter(c.id as Category | "ყველა"); setQuery(""); setSuggestOpen(false); }}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-foreground text-[11px] font-semibold hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary"
                       >
-                        <span>{c.icon}</span>{getCategoryLabel(c.id, language)}
+                        <CategoryIcon id={c.id as never} className="w-3.5 h-3.5" />{getCategoryLabel(c.id, language)}
                       </button>
                     ))}
                   </div>
@@ -515,7 +516,7 @@ function MapPage() {
                     categoryFilter === c.id ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
                   }`}
                 >
-                  <span>{c.icon}</span> {getCategoryLabel(c.id, language)}
+                  <CategoryIcon id={c.id} className="w-3.5 h-3.5" /> {getCategoryLabel(c.id, language)}
                 </button>
               ))}
             </div>
