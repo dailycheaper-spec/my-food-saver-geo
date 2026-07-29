@@ -115,6 +115,21 @@ function OrderCard({ order, showActions }: { order: OrderWithRelations; showActi
       <div className="text-[11px] text-muted-foreground mt-2">
         {new Date(order.created_at).toLocaleString(locale, { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "short", hour12: false })}
       </div>
+      {order.customer_note && (
+        <div className="mt-3 rounded-xl border-2 border-warm bg-warm/15 p-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-warm-foreground shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-warm-foreground">
+                {language === "en" ? "Customer request" : language === "ru" ? "Запрос клиента" : "მომხმარებლის მოთხოვნა"}
+              </div>
+              <div className="text-sm font-medium text-foreground mt-0.5 whitespace-pre-wrap break-words">
+                {order.customer_note}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {showActions && (
         <>
           <div className="mt-3 flex gap-2">
