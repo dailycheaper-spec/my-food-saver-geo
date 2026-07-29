@@ -148,8 +148,8 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
     if (!name.trim()) { toast.error(t("productNamePlaceholder")); return; }
     setGenAi(true);
     try {
-      const r = (await generateImg({ data: { prompt: name.trim() } })) as { dataUrl: string };
-      setImg(r.dataUrl);
+      const r = (await generateImg({ data: { prompt: name.trim() } })) as { url: string };
+      setImg(r.url);
     } catch (e: any) { toast.error("AI: " + e.message); }
     setGenAi(false);
   }
