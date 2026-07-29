@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, XCircle, Hash } from "lucide-react";
+import { Camera, CheckCircle2, XCircle, Hash, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { updateOrderStatus, useMyStores, formatGel } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
