@@ -327,20 +327,13 @@ function PartnerApply() {
             <LocateFixed className="w-4 h-4" />
             {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
           </button>
-          <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
-            <StoreLocationPicker
-              value={{ lat: form.lat, lng: form.lng }}
-              onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
-              storageKey="cheaper-partner-apply-map"
-            />
-          </Suspense>
-          <div className="text-xs text-muted-foreground font-mono">
-            {form.lat != null && form.lng != null ? (
-              <>Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}</>
-            ) : (
-              <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
-            )}
-          </div>
+          <MapAddressField
+            value={{ lat: form.lat, lng: form.lng }}
+            onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+            storageKey="cheaper-partner-apply-map"
+            city={form.city}
+            onAddressResolved={(a) => setForm((f) => (f.address.trim() ? f : { ...f, address: a }))}
+          />
         </div>
 
 
