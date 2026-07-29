@@ -182,7 +182,7 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {location && nearby.length > 0 && (
+      {origin && nearby.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {nearby.slice(0, 6).map((o) => (
             <div key={o.id} className="relative">
