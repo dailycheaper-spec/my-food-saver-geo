@@ -83,6 +83,26 @@ function Home() {
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
 
+  // Live "best discount of the day" — highest real discount % across active,
+  // in-stock offers whose pickup window is still open. City-scoped so it
+  // matches the surrounding list. Recomputes automatically as ALL_OFFERS
+  // (the live hook) changes.
+  const bestDeal = useMemo<Offer | null>(() => {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    let best: Offer | null = null;
+    let bestPct = -1;
+    for (const o of ALL_OFFERS) {
+      if (o.itemsLeft <= 0) continue;
+      if (!o.originalPrice || o.originalPrice <= 0) continue;
+      const [h, m] = o.pickupTo.split(":").map(Number);
+      if ((h * 60 + m) <= nowMin) continue;
+      const pct = 1 - o.price / o.originalPrice;
+      if (pct > bestPct) { bestPct = pct; best = o; }
+    }
+    return best;
+  }, [ALL_OFFERS]);
+
   const flashDeals = useMemo(() => {
     const now = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
