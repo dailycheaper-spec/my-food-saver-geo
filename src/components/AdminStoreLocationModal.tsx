@@ -130,18 +130,16 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
           </button>
         </div>
 
-        <Suspense fallback={<div className="h-72 rounded-2xl bg-muted animate-pulse" />}>
-          <StoreLocationPicker
-            value={{ lat, lng }}
-            onChange={({ lat: la, lng: ln }) => {
-              setLat(la);
-              setLng(ln);
-            }}
-            height={300}
-            radiusKm={radius < 50 ? radius : undefined}
-            storageKey="cheaper-admin-location-map"
-          />
-        </Suspense>
+        <MapAddressField
+          value={{ lat, lng }}
+          onChange={({ lat: la, lng: ln }) => {
+            setLat(la);
+            setLng(ln);
+          }}
+          height={300}
+          radiusKm={radius < 50 ? radius : undefined}
+          storageKey="cheaper-admin-location-map"
+        />
         <p className="mt-2 text-xs text-muted-foreground">
           {L("მწვანე წრე გვიჩვენებს ტერიტორიას, სადაც ეს ობიექტი გამოჩნდება მომხმარებლების რუკაზე.",
             "The green circle shows the area where this place will appear on customers' maps.",
