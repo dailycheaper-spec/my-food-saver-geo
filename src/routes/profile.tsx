@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X, MapPin } from "lucide-react";
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
+import { useMyAddresses, type UserAddress } from "@/lib/addresses";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
@@ -20,11 +21,11 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const { t, language } = useI18n();
   const [addressesOpen, setAddressesOpen] = useState(false);
-  const { data: myAddresses = [] } = useMyAddresses(!!useAuth().user);
-  const defaultAddress = myAddresses.find((a) => a.is_default) ?? myAddresses[0];
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading, reloadProfile } = useAuth();
+  const { data: myAddresses = [] } = useMyAddresses(!!user);
+  const defaultAddress = myAddresses.find((a: UserAddress) => a.is_default) ?? myAddresses[0];
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading, error: rolesError } = useMyRole();
   const { stores: followedStores } = useFollowedStores();
