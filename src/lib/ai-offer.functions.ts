@@ -13,7 +13,7 @@ export const parseOfferText = createServerFn({ method: "POST" })
 {
   "title": string,                 // product name in Georgian
   "description": string,           // short description
-  "category": "meal"|"bakery"|"grocery"|"produce"|"dessert"|"other",
+  "category": "meal"|"bakery"|"confectionery"|"grocery"|"produce"|"dessert"|"other",
   "quantity_available": integer,
   "discounted_price": number,      // GEL
   "original_price": number,        // GEL, estimate 2-3x discounted if unknown
