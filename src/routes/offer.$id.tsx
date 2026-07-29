@@ -475,7 +475,10 @@ function OfferPage() {
               </p>
               <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
             </div>
+          </div>
         </div>
+
+
 
         {/* ---- Payment ---- */}
         <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
