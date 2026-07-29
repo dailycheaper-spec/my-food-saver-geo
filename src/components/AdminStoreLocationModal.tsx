@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { X, LocateFixed, RotateCcw, Save } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { updateAdminStoreLocation } from "@/lib/admin-store.functions";
@@ -6,10 +6,8 @@ import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector"
 import { evaluateStoreLocation, isValidLatLng, isWithinGeorgia } from "@/lib/geo";
 import type { DbStore } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
+import MapAddressField from "@/components/address/MapAddressField";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
 
 interface Props {
   store: DbStore;
@@ -130,18 +128,16 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
           </button>
         </div>
 
-        <Suspense fallback={<div className="h-72 rounded-2xl bg-muted animate-pulse" />}>
-          <StoreLocationPicker
-            value={{ lat, lng }}
-            onChange={({ lat: la, lng: ln }) => {
-              setLat(la);
-              setLng(ln);
-            }}
-            height={300}
-            radiusKm={radius < 50 ? radius : undefined}
-            storageKey="cheaper-admin-location-map"
-          />
-        </Suspense>
+        <MapAddressField
+          value={{ lat, lng }}
+          onChange={({ lat: la, lng: ln }) => {
+            setLat(la);
+            setLng(ln);
+          }}
+          height={300}
+          radiusKm={radius < 50 ? radius : undefined}
+          storageKey="cheaper-admin-location-map"
+        />
         <p className="mt-2 text-xs text-muted-foreground">
           {L("მწვანე წრე გვიჩვენებს ტერიტორიას, სადაც ეს ობიექტი გამოჩნდება მომხმარებლების რუკაზე.",
             "The green circle shows the area where this place will appear on customers' maps.",

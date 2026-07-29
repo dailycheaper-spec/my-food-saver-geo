@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, lazy, Suspense } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Store, ArrowLeft, Clock, MapPin, LocateFixed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -11,9 +11,8 @@ import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { StoreLogo } from "@/components/StoreLogo";
 import { isValidLatLng } from "@/lib/geo";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
+import MapAddressField from "@/components/address/MapAddressField";
+
 
 type EntityType = "company" | "individual_entrepreneur";
 
@@ -327,20 +326,13 @@ function PartnerApply() {
             <LocateFixed className="w-4 h-4" />
             {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
           </button>
-          <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
-            <StoreLocationPicker
-              value={{ lat: form.lat, lng: form.lng }}
-              onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
-              storageKey="cheaper-partner-apply-map"
-            />
-          </Suspense>
-          <div className="text-xs text-muted-foreground font-mono">
-            {form.lat != null && form.lng != null ? (
-              <>Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}</>
-            ) : (
-              <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
-            )}
-          </div>
+          <MapAddressField
+            value={{ lat: form.lat, lng: form.lng }}
+            onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+            storageKey="cheaper-partner-apply-map"
+            city={form.city}
+            onAddressResolved={(a) => setForm((f) => (f.address.trim() ? f : { ...f, address: a }))}
+          />
         </div>
 
 

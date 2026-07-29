@@ -1,57 +1,34 @@
 ## Goal
 
-Today the app has two disconnected location surfaces: a **city dropdown** (`CitySelector`, in the home header — the element you selected) and a **saved-address sheet** (`AddressPicker`, opened only from Profile and at checkout). Users see a city name in the header but their real delivery address lives elsewhere. Make one consistent, familiar pattern like Wolt/Glovo/Bolt Food.
+Everywhere we currently print raw coordinates (`Latitude: 41.716… · Longitude: 44.783…`), show the actual street address for that point instead — resolved from the map pin — plus a search box so the location can be found by typing an address, like the customer-side delivery picker.
 
-## 1. One location control everywhere
+## Where it changes
 
-Create `src/components/location/LocationChip.tsx` that replaces the current city button in the home header and is reused in profile and search/map:
+1. **Partner application** (`partner-apply.tsx`) — coordinate line under the map.
+2. **Partner store settings** (`partner.store.tsx`) — coordinate line under the map.
+3. **Admin partner card** (`admin.partners.tsx`) — "Coordinates: 41.7…, 44.7…" row.
+4. **Admin store location modal** (`AdminStoreLocationModal.tsx`) — same treatment as the partner map.
 
-```text
-┌──────────────────────────────────┐
-│ ◉  მიწოდება                      │
-│    ჭავჭავაძის 37, ბინა 12    ▾   │
-└──────────────────────────────────┘
-```
+## What gets built
 
-- Line 1: small muted label — "მიწოდება" / delivery, or "ქალაქი" when no address is saved.
-- Line 2: bold, truncated **saved/last-used address**, falling back to the city name for guests or users with no address.
-- Tapping opens **one bottom sheet** (not a dropdown) with everything in one place: current location, saved addresses, city switch, map.
+**New shared component: `src/components/address/MapAddressField.tsx`**
 
-The current dropdown-under-the-button pattern is dropped in favour of a sheet — same interaction on desktop and mobile, no clipping inside the compact mobile header.
+A thin wrapper around the existing `StoreLocationPicker` that adds the address layer, reusing the same server functions the customer `AddressPicker` already uses (`reverseGeocode`, `autocompleteAddress`, `placeDetails` in `src/lib/geocode.functions.ts`):
 
-## 2. Bottom sheet contents (extends existing AddressPicker)
+- **Search input** on top: type an address → debounced autocomplete suggestions (biased to the selected city) → picking one moves the map pin and sets lat/lng.
+- **Map** below, unchanged behaviour (tap / drag / "use my current location").
+- **Resolved address card** under the map replacing the coordinate text: pin icon + street line, resolved by debounced reverse-geocoding ~400ms after the pin settles, with a "resolving…" skeleton state.
+- **Graceful fallback**: if geocoding is unavailable (the existing `MapsUnavailableError` / billing-disabled path), it quietly falls back to showing the coordinates in small mono text, so the form never breaks.
+- Coordinates stay available but demoted: a tiny "coordinates" line only shown on demand / in the fallback.
+- Optional `onAddressResolved(address)` callback.
 
-Reuse `AddressPicker`'s existing steps rather than rebuilding:
+**Auto-fill the address field.** In partner-apply and partner.store, when the pin resolves and the store's `address` field is still empty (or the user hasn't manually edited it), prefill it with the resolved street line, with a small "use this address" button when it differs — so partners don't type the address twice.
 
-1. **Search bar at top** (Google Places autocomplete, already wired) — "ქუჩა, ნომერი".
-2. **"ჩემი მიმდინარე მდებარეობა"** row with a target icon — reverse-geocodes and confirms in one tap.
-3. **Saved addresses** with Home / Work icons, default badge, distance-free one-tap select, swipe/kebab for edit & delete.
-4. **"ქალაქის შეცვლა"** section listing the six cities — city stays available but becomes secondary, and picking a city with no address keeps the current behaviour.
-5. **"რუკაზე მონიშვნა"** → the existing fixed-pin map step.
-
-## 3. Picker UX upgrades (delivery-app conventions)
-
-- **Sticky confirm bar** on the map step showing the resolved address text above a full-width "დადასტურება" button, with a skeleton line while reverse-geocoding instead of a jumping layout.
-- **Pin drag feedback**: pin lifts/shadow shrinks while the map moves, address re-resolves 400ms after the map settles (debounce), so it doesn't fire on every frame.
-- **Recentre button** on the map (crosshair, bottom-right above the confirm bar).
-- **Out-of-zone state** shown inside the sheet (using existing `src/lib/delivery/zones.ts`) with an inline amber banner, rather than only disabling the checkout button later.
-- **Labels step**: quick chips — სახლი / სამსახური / სხვა — instead of free typing first; details (სადარბაზო, სართული, ბინა, კურიერისთვის კომენტარი) collapse under "დამატებითი დეტალები".
-- **Empty & permission states**: friendly illustration-free copy when geolocation is denied, with a "ჩაწერე მისამართი" fallback and a link to the map step.
-- Consistent sheet chrome: grabber handle, `max-h-[85dvh]`, safe-area padding, `overflow-y-auto` — matching the rest of the mobile work already done.
-
-## 4. Profile consistency
-
-- Profile's "ჩემი მისამართები" row shows the default address as its subtitle instead of nothing.
-- It opens the **same** sheet in `manageOnly` mode, so add/edit/delete look identical to checkout.
-- "დააყენე ძირითადად" and delete confirm live in the same row menu in both places.
-
-## 5. Trilingual copy
-
-All new strings (labels, empty states, error/permission text, zone banner) added to `src/lib/i18n.tsx` in KA/EN/RU — no hardcoded text in components.
+**Admin views.** `admin.partners.tsx` shows the reverse-geocoded address as the primary line with coordinates as a secondary, muted mono line; the resolution is cached per store so scrolling the list doesn't spam geocoding. The admin location modal uses the same `MapAddressField`.
 
 ## Technical notes
 
-- Files touched: new `src/components/location/LocationChip.tsx`; edits to `src/components/address/AddressPicker.tsx`, `src/components/CitySelector.tsx` (kept for admin/partner use, or reduced to the sheet's city section), `src/routes/index.tsx`, `src/routes/profile.tsx`, `src/lib/i18n.tsx`.
-- Reads the default/last-used address through the existing `src/lib/delivery-address.ts` store and `src/lib/addresses.ts` hooks — no new tables or migrations.
-- Design tokens only; no new colors.
-- Note: Google Places/Geocoding still fails on `cheaper.ge` until your own Maps key is connected. The map step degrades to manual pin + typed address, so nothing here blocks on that.
+- No DB changes. The store `address` column already exists; we only improve how it's filled and displayed.
+- Reverse-geocode results are cached in a module-level `Map` keyed by `lat,lng,language` (same pattern as `AddressPicker`) to limit Google Maps calls.
+- All new strings go through the existing trilingual `L(...)` / i18n helpers (KA/EN/RU).
+- `MapAddressField` keeps the lazy `Suspense` loading of the Leaflet map already used in these routes.
