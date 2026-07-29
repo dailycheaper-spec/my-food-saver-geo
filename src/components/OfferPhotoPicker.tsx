@@ -82,18 +82,20 @@ export function OfferPhotoPicker({
       <div className="grid grid-cols-2 gap-2 mb-2">
         <button
           type="button"
+          disabled={uploading}
           onClick={() => cameraRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium disabled:opacity-60"
         >
-          <Camera className="w-5 h-5" />
+          {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
           {t("takePhoto")}
         </button>
         <button
           type="button"
+          disabled={uploading}
           onClick={() => uploadRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium disabled:opacity-60"
         >
-          <Upload className="w-5 h-5" />
+          {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
           {t("uploadPhoto")}
         </button>
       </div>
