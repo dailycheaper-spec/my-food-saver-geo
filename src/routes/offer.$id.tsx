@@ -471,7 +471,7 @@ function OfferPage() {
                   ? "The partner will try to accommodate your request but cannot fully guarantee it — for serious allergies, please also contact the store directly."
                   : language === "ru"
                   ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, свяжитесь с магазином напрямую."
-                  : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრული გარანტია ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში, გთხოვთ დამატებით დაუკავშირდეთ მაღაზიას."}</span>
+                  : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრულ გარანტიას ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში."}</span>
               </p>
               <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
             </div>
