@@ -321,7 +321,11 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
 
   return (
     <div className="fixed inset-0 z-[2000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
-      <div className="w-full h-[92dvh] sm:h-[85dvh] sm:max-w-lg sm:mx-auto bg-card rounded-t-3xl shadow-elevated flex flex-col overflow-hidden animate-fade-in">
+      <div className="w-full h-[92dvh] sm:h-[85dvh] sm:max-w-lg sm:mx-auto bg-card rounded-t-3xl shadow-elevated flex flex-col overflow-hidden animate-fade-in pb-[env(safe-area-inset-bottom)]">
+        {/* grabber */}
+        <div className="shrink-0 pt-2 pb-1 grid place-items-center sm:hidden" aria-hidden="true">
+          <span className="w-10 h-1.5 rounded-full bg-border" />
+        </div>
         {/* header */}
         <div className="shrink-0 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 pt-4 pb-3 border-b border-border">
           <button
@@ -548,9 +552,10 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                   onMove={(lat, lng) => {
                     setPinPlaceId(null);
                     setCenter([lat, lng]);
-                    void resolvePin(lat, lng);
+                    queueResolve(lat, lng);
                   }}
                 />
+
               </MapContainer>
 
               {/* fixed centre pin */}
