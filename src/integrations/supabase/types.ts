@@ -219,6 +219,7 @@ export type Database = {
           created_at: string
           customer_note: string | null
           delivery_address: string | null
+          delivery_details: string | null
           delivery_id: string | null
           delivery_lat: number | null
           delivery_lng: number | null
@@ -242,6 +243,7 @@ export type Database = {
           created_at?: string
           customer_note?: string | null
           delivery_address?: string | null
+          delivery_details?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
@@ -265,6 +267,7 @@ export type Database = {
           created_at?: string
           customer_note?: string | null
           delivery_address?: string | null
+          delivery_details?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
@@ -675,6 +678,63 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
           visibility_radius_km?: number | null
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address_line: string
+          apartment: string | null
+          city: string | null
+          courier_note: string | null
+          created_at: string
+          custom_label: string | null
+          door_code: string | null
+          entrance: string | null
+          floor: string | null
+          id: string
+          is_default: boolean
+          label: string
+          lat: number
+          lng: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_line: string
+          apartment?: string | null
+          city?: string | null
+          courier_note?: string | null
+          created_at?: string
+          custom_label?: string | null
+          door_code?: string | null
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat: number
+          lng: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_line?: string
+          apartment?: string | null
+          city?: string | null
+          courier_note?: string | null
+          created_at?: string
+          custom_label?: string | null
+          door_code?: string | null
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat?: number
+          lng?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
