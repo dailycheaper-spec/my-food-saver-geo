@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X, MapPin } from "lucide-react";
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
+import { useMyAddresses, type UserAddress } from "@/lib/addresses";
 import { useOrders, useFavorites } from "@/lib/storage";
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
@@ -23,6 +24,8 @@ function Profile() {
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading, reloadProfile } = useAuth();
+  const { data: myAddresses = [] } = useMyAddresses(!!user);
+  const defaultAddress = myAddresses.find((a: UserAddress) => a.is_default) ?? myAddresses[0];
   const navigate = useNavigate();
   const { isAdmin, isPartner, loading: rolesLoading, error: rolesError } = useMyRole();
   const { stores: followedStores } = useFollowedStores();
@@ -183,8 +186,19 @@ function Profile() {
             className="w-full flex items-center gap-3 p-4 text-left text-sm font-medium hover:bg-muted/30 transition-colors"
           >
             <span className="text-primary"><MapPin className="w-4 h-4" /></span>
-            <span className="flex-1">
-              {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+            <span className="flex-1 min-w-0">
+              <span className="block">
+                {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+              </span>
+              <span className="block text-xs text-muted-foreground truncate">
+                {defaultAddress
+                  ? defaultAddress.address_line
+                  : language === "en"
+                    ? "No saved address yet"
+                    : language === "ru"
+                      ? "Нет сохранённых адресов"
+                      : "შენახული მისამართი ჯერ არ არის"}
+              </span>
             </span>
             <span className="text-muted-foreground">›</span>
           </button>

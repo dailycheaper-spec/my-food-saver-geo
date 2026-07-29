@@ -10,7 +10,7 @@ import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatches
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
-import { CitySelector } from "@/components/CitySelector";
+import { LocationChip } from "@/components/location/LocationChip";
 import { UserMenu } from "@/components/UserMenu";
 import { ScrollableRow } from "@/components/ScrollableRow";
 import { useAuth } from "@/lib/auth";
@@ -212,7 +212,7 @@ function Home() {
           <div className="mx-1 h-8 w-px bg-border/70 shrink-0 hidden sm:block" aria-hidden="true" />
 
           <div className="min-w-0 flex-1">
-            <CitySelector variant="compact" />
+            <LocationChip variant="compact" />
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1">

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   ArrowLeft, Check, Crosshair, Home, Briefcase, MapPin, Navigation, Pencil,
-  Plus, Search, Trash2, X, AlertTriangle, Loader2,
+  Plus, Search, Trash2, X, AlertTriangle, Loader2, ChevronDown, Building2,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -15,7 +16,7 @@ import {
   addressLabelText, formatAddressDetails, rememberLastAddressId, useDeleteAddress,
   useMyAddresses, useSaveAddress, type AddressLabel, type UserAddress,
 } from "@/lib/addresses";
-import { CITY_CENTERS, useCity } from "@/lib/city";
+import { CITIES, CITY_CENTERS, cityLabel, useCity, type City } from "@/lib/city";
 import { validateDeliveryLocation } from "@/lib/delivery/zones";
 
 export interface SelectedAddress {
@@ -36,6 +37,8 @@ interface Props {
   /** Store position used to warn when the pin sits outside the delivery radius. */
   store?: { lat: number | null; lng: number | null; radiusKm?: number | null; name?: string };
   manageOnly?: boolean;
+  /** Show the "change city" section (home-header entry point). */
+  showCitySwitch?: boolean;
 }
 
 type Step = "list" | "map" | "details";
@@ -58,14 +61,14 @@ function MapFlyTo({ pos }: { pos: [number, number] | null }) {
   return null;
 }
 
-export default function AddressPicker({ open, onClose, onSelect, store, manageOnly }: Props) {
+export default function AddressPicker({ open, onClose, onSelect, store, manageOnly, showCitySwitch }: Props) {
   const { language } = useI18n();
   const L = useCallback(
     (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
     [language],
   );
   const { user } = useAuth();
-  const { city } = useCity();
+  const { city, setCity } = useCity();
   const { location, status, askPermission, request } = useUserLocation();
   const { data: saved = [], isLoading: loadingSaved } = useMyAddresses(!!user && open);
   const saveAddress = useSaveAddress();
@@ -151,6 +154,19 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     },
     [language, reverse],
   );
+
+  /** Debounced reverse-geocode: fires ~400ms after the map settles. */
+  const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queueResolve = useCallback(
+    (lat: number, lng: number) => {
+      if (resolveTimer.current) clearTimeout(resolveTimer.current);
+      setResolving(true);
+      resolveTimer.current = setTimeout(() => void resolvePin(lat, lng), 400);
+    },
+    [resolvePin],
+  );
+  useEffect(() => () => { if (resolveTimer.current) clearTimeout(resolveTimer.current); }, []);
+
 
   // Resolve a readable label for the "current location" row.
   useEffect(() => {
@@ -315,11 +331,17 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     onClose();
   }
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portalled to <body>: the sticky home header uses backdrop-blur, which would
+  // otherwise become the containing block and collapse this fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[2000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
-      <div className="w-full h-[92dvh] sm:h-[85dvh] sm:max-w-lg sm:mx-auto bg-card rounded-t-3xl shadow-elevated flex flex-col overflow-hidden animate-fade-in">
+      <div className="w-full h-[92dvh] sm:h-[85dvh] sm:max-w-lg sm:mx-auto bg-card rounded-t-3xl shadow-elevated flex flex-col overflow-hidden animate-fade-in pb-[env(safe-area-inset-bottom)]">
+        {/* grabber */}
+        <div className="shrink-0 pt-2 pb-1 grid place-items-center sm:hidden" aria-hidden="true">
+          <span className="w-10 h-1.5 rounded-full bg-border" />
+        </div>
         {/* header */}
         <div className="shrink-0 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-4 pt-4 pb-3 border-b border-border">
           <button
@@ -522,6 +544,34 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <Plus className="w-4 h-4" />
               {L("ახალი მისამართის დამატება", "Add a new address", "Добавить новый адрес")}
             </button>
+
+            {showCitySwitch && (
+              <div className="pt-2">
+                <div className="text-xs font-semibold text-muted-foreground px-1 mb-1.5">
+                  {L("ქალაქის შეცვლა", "Change city", "Сменить город")}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {CITIES.map((c: City) => {
+                    const active = c === city;
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setCity(c)}
+                        className={`inline-flex items-center gap-1.5 h-10 px-3.5 rounded-full border-2 text-sm font-semibold transition-colors ${
+                          active ? "border-primary bg-primary/5 text-primary" : "border-border"
+                        }`}
+                      >
+                        <Building2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        {cityLabel(c, language)}
+                        {active && <Check className="w-3.5 h-3.5" aria-hidden="true" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -546,9 +596,10 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                   onMove={(lat, lng) => {
                     setPinPlaceId(null);
                     setCenter([lat, lng]);
-                    void resolvePin(lat, lng);
+                    queueResolve(lat, lng);
                   }}
                 />
+
               </MapContainer>
 
               {/* fixed centre pin */}
@@ -669,22 +720,29 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд") },
-                { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж") },
-                { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира") },
-                { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери") },
-              ].map((f) => (
-                <input
-                  key={f.id}
-                  value={f.value}
-                  onChange={(e) => f.set(e.target.value.slice(0, 20))}
-                  placeholder={f.ph}
-                  className="h-12 px-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              ))}
-            </div>
+            <details className="rounded-2xl border border-border overflow-hidden" open={!!(entrance || floor || apartment || doorCode)}>
+              <summary className="flex items-center justify-between gap-2 h-12 px-4 text-sm font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                {L("დამატებითი დეტალები", "Extra details", "Дополнительные детали")}
+                <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              </summary>
+              <div className="grid grid-cols-2 gap-2 p-3 pt-0">
+                {[
+                  { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд") },
+                  { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж") },
+                  { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира") },
+                  { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери") },
+                ].map((f) => (
+                  <input
+                    key={f.id}
+                    value={f.value}
+                    onChange={(e) => f.set(e.target.value.slice(0, 20))}
+                    placeholder={f.ph}
+                    aria-label={f.ph}
+                    className="h-12 px-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                ))}
+              </div>
+            </details>
 
             <textarea
               value={courierNote}
@@ -770,6 +828,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
+
