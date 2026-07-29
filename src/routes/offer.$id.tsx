@@ -676,6 +676,22 @@ function OfferPage() {
           </button>
         </div>
       </div>
+
+      {pickerOpen && (
+        <Suspense fallback={null}>
+          <AddressPicker
+            open={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            onSelect={(a) => setSelectedAddr(a)}
+            store={{
+              lat: offer.lat ?? null,
+              lng: offer.lng ?? null,
+              radiusKm: offer.deliveryRadiusKm ?? null,
+              name: storeName,
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
