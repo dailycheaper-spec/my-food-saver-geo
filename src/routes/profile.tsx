@@ -1,5 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
+import { ShoppingBag, Heart, Settings, HelpCircle, LogOut, Gift, BarChart3, LogIn, Store, Shield, Sparkles, PiggyBank, Star as StarIcon, X, MapPin } from "lucide-react";
+
+const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 import { useOrders, useFavorites } from "@/lib/storage";
 import { findOffer, formatPrice } from "@/lib/mock-data";
 import { useAuth, signOut } from "@/lib/auth";
