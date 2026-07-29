@@ -128,6 +128,8 @@ export type Database = {
           description_ru: string | null
           discounted_price: number
           id: string
+          image_path: string | null
+          image_signed_url_expires_at: string | null
           image_url: string | null
           is_active: boolean
           is_surprise: boolean
@@ -154,6 +156,8 @@ export type Database = {
           description_ru?: string | null
           discounted_price: number
           id?: string
+          image_path?: string | null
+          image_signed_url_expires_at?: string | null
           image_url?: string | null
           is_active?: boolean
           is_surprise?: boolean
@@ -180,6 +184,8 @@ export type Database = {
           description_ru?: string | null
           discounted_price?: number
           id?: string
+          image_path?: string | null
+          image_signed_url_expires_at?: string | null
           image_url?: string | null
           is_active?: boolean
           is_surprise?: boolean

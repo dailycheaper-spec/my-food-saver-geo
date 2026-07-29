@@ -3,8 +3,9 @@ import { Image as ImageIcon, Camera, Upload, AlertTriangle, Loader2 } from "luci
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { OFFER_IMAGE_SIGN_TTL_SECONDS } from "@/lib/offer-image";
 
-const SIGN_TTL_SECONDS = 60 * 60 * 24 * 365 * 100; // 100 years
+export type OfferPhotoMeta = { path: string; expiresAt: string };
 
 export function OfferPhotoPicker({
   value,
@@ -13,7 +14,7 @@ export function OfferPhotoPicker({
   onValidityChange,
 }: {
   value: string;
-  onChange: (url: string) => void;
+  onChange: (url: string, meta?: OfferPhotoMeta) => void;
   compact?: boolean;
   /** Called with true when the current pasted URL fails to load (broken image). */
   onValidityChange?: (invalid: boolean) => void;
@@ -48,10 +49,11 @@ export function OfferPhotoPicker({
       if (upErr) throw upErr;
       const { data: signed, error: signErr } = await supabase.storage
         .from("offer-images")
-        .createSignedUrl(path, SIGN_TTL_SECONDS);
+        .createSignedUrl(path, OFFER_IMAGE_SIGN_TTL_SECONDS);
       if (signErr || !signed) throw signErr ?? new Error("Sign failed");
       setImgError(false);
-      onChange(signed.signedUrl);
+      const expiresAt = new Date(Date.now() + OFFER_IMAGE_SIGN_TTL_SECONDS * 1000).toISOString();
+      onChange(signed.signedUrl, { path, expiresAt });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error(msg);

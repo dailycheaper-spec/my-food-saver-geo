@@ -141,7 +141,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
   const { t, language } = useI18n();
-  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru", string | null>> & { allergens?: string[] | null } | null;
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     title_en: offerAny?.title_en ?? "",
@@ -157,6 +157,8 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     pickup_to: offer?.pickup_to?.slice(0,5) ?? "21:00",
     delivery_available: offer?.delivery_available ?? false,
     image_url: offer?.image_url ?? "",
+    image_path: (offerAny?.image_path ?? null) as string | null,
+    image_signed_url_expires_at: (offerAny?.image_signed_url_expires_at ?? null) as string | null,
     allergens: (offerAny?.allergens ?? []) as string[],
   });
   const [saving, setSaving] = useState(false);
@@ -189,6 +191,8 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       pickup_to: form.pickup_to,
       delivery_available: form.delivery_available,
       image_url: form.image_url.trim() || null,
+      image_path: form.image_path,
+      image_signed_url_expires_at: form.image_signed_url_expires_at,
       allergens: form.allergens.length ? form.allergens : null,
     };
     if (offer) {
@@ -219,7 +223,12 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
             <div className="text-xs font-medium text-muted-foreground mb-1.5">{t("photo")}</div>
             <OfferPhotoPicker
               value={form.image_url}
-              onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+              onChange={(url, meta) => setForm((f) => ({
+                ...f,
+                image_url: url,
+                image_path: meta?.path ?? (url === f.image_url ? f.image_path : null),
+                image_signed_url_expires_at: meta?.expiresAt ?? (url === f.image_url ? f.image_signed_url_expires_at : null),
+              }))}
               compact
               onValidityChange={setImgInvalid}
             />
