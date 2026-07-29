@@ -1,11 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { OFFER_IMAGE_SIGN_TTL_SECONDS } from "./offer-image";
 
 const Input = z.object({ prompt: z.string().min(2).max(300) });
-
-// Long-lived signed URLs — bucket is private but images are shown to anonymous
-// visitors, matching the existing pattern used for store-logos/avatars.
-const SIGN_TTL_SECONDS = 60 * 60 * 24 * 365 * 100; // 100 years
 
 async function generateB64(key: string, prompt: string): Promise<string> {
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
