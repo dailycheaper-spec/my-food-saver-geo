@@ -176,6 +176,7 @@ export const OFFERS: Offer[] = [
 export const CATEGORIES: { id: Category | "ყველა"; label: string; icon: string }[] = [
   { id: "ყველა", label: "ყველა", icon: "✨" },
   { id: "საცხობი", label: "საცხობი", icon: "🥖" },
+  { id: "საკონდიტრო", label: "საკონდიტრო", icon: "🍰" },
   { id: "რესტორანი", label: "რესტორანი", icon: "🍽️" },
   { id: "სუპერმარკეტი", label: "მარკეტი", icon: "🛒" },
   { id: "კაფე", label: "კაფე", icon: "☕" },
