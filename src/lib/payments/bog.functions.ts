@@ -69,17 +69,36 @@ interface OrderInput {
 
 // Shared: create the pending order under the caller's RLS session so the
 // offer-price / minimum-amount triggers still apply. Returns the row.
+//
+// The amount is computed here from the offer's real price, not taken from
+// the client's `data.amount` — the client input is only used for offerId/
+// storeId/quantity/method. The orders table's own validate_order_amount
+// trigger already enforces this floor as a second, independent check, but
+// computing it server-side here means a tampered client request can't even
+// attempt a mismatched amount in the first place.
 async function createPendingOrder(
   supabase: SupabaseClient<Database>,
   userId: string,
   data: OrderInput,
 ) {
+  const { data: offer, error: offerError } = await supabase
+    .from("offers")
+    .select("discounted_price, store:stores(delivery_fee_base)")
+    .eq("id", data.offerId)
+    .single();
+  if (offerError || !offer) throw new Error(offerError?.message ?? "Offer not found");
+
+  // Matches the client's own total calculation (offer.$id.tsx: price * qty +
+  // deliveryFee) — flat per-store fee, not distance-based.
+  const deliveryFee = data.method === "delivery" ? Number(offer.store?.delivery_fee_base ?? 0) : 0;
+  const realAmount = Number(offer.discounted_price) * data.quantity + deliveryFee;
+
   const { data: order, error } = await supabase
     .from("orders")
     .insert({
       offer_id: data.offerId,
       store_id: data.storeId,
-      amount: data.amount,
+      amount: realAmount,
       quantity: data.quantity,
       method: data.method,
       delivery_address: data.deliveryAddress ?? null,
