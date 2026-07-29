@@ -24,15 +24,17 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminLayout,
 });
 
+// getSession() awaits the Supabase client's own storage-init promise
+// internally, so a single call already waits for the session to be
+// readable from localStorage — no need to poll it in a loop (see the
+// same fix in _authenticated/route.tsx). This beforeLoad already runs
+// nested under _authenticated's own auth gate, so by the time it runs
+// a session is already known to exist; this just needs the user id for
+// the admin-role check below.
 async function waitForUser() {
-  let lastResult = await supabase.auth.getUser();
-  for (let i = 0; i < 15; i += 1) {
-    if (lastResult.data.user) return lastResult;
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user) lastResult = await supabase.auth.getUser();
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-  return lastResult;
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session?.user) return { data: { user: null }, error };
+  return { data: { user: data.session.user }, error: null };
 }
 
 type NavItem = { to: string; label: string; icon: React.ElementType; exact?: boolean };
