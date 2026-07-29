@@ -321,6 +321,9 @@ function Home() {
         </Link>
       </section>
 
+      {/* -------- Savings tracker (signed-in only) -------- */}
+      {user && <SavingsTracker />}
+
       {/* -------- Nearby (location-aware) -------- */}
       <NearbyOffersSection offers={filtered} />
 
