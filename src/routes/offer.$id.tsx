@@ -506,6 +506,7 @@ function OfferPage() {
                         quantity,
                         method: isDelivery ? "delivery" : "pickup",
                         deliveryAddress: isDelivery ? address : undefined,
+                        customerNote: customerNote.trim() || undefined,
                         googlePayToken,
                         nativeReturn: isNative(),
                       },
