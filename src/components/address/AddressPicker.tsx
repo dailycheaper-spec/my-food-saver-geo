@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -330,9 +331,11 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     onClose();
   }
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Portalled to <body>: the sticky home header uses backdrop-blur, which would
+  // otherwise become the containing block and collapse this fixed overlay.
+  return createPortal(
     <div className="fixed inset-0 z-[2000] flex flex-col justify-end bg-black/50 backdrop-blur-sm">
       <div className="w-full h-[92dvh] sm:h-[85dvh] sm:max-w-lg sm:mx-auto bg-card rounded-t-3xl shadow-elevated flex flex-col overflow-hidden animate-fade-in pb-[env(safe-area-inset-bottom)]">
         {/* grabber */}
@@ -826,5 +829,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
         )}
       </div>
     </div>
+    </div>,
+    document.body,
   );
 }
