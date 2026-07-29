@@ -361,6 +361,12 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
     { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
   ],
+  "საკონდიტრო": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+    { ka: "თხილეული", en: "Nuts", ru: "Орехи" },
+  ],
   "რესტორანი": [
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
