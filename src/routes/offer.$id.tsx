@@ -143,6 +143,7 @@ function OfferPage() {
           quantity,
           method: methodDb,
           delivery_address: isDelivery ? address : undefined,
+          customer_note: customerNote.trim() || undefined,
         });
         if (isDelivery) {
           dispatchDeliveryFn({ data: { orderId: order.id } }).catch((err) => {
@@ -170,6 +171,7 @@ function OfferPage() {
           quantity,
           method: methodDb,
           deliveryAddress: isDelivery ? address : undefined,
+          customerNote: customerNote.trim() || undefined,
           nativeReturn: isNative(),
         },
       });
