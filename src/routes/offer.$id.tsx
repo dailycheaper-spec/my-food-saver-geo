@@ -23,6 +23,9 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import type { SelectedAddress } from "@/components/address/AddressPicker";
+
+const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
 export const Route = createFileRoute("/offer/$id")({
   loader: async ({ params }) => {
