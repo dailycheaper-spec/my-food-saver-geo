@@ -425,13 +425,32 @@ function OfferPage() {
           </div>
 
           {method === "მიტანა" && (
-            <input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder={t("deliveryAddress")}
-              style={{}}
-              className="mt-3 w-full px-4 py-3 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm"
-            />
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="mt-3 w-full flex items-start gap-3 px-4 py-3 rounded-2xl bg-secondary text-left border border-transparent focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+              <span className="min-w-0 flex-1">
+                {selectedAddr ? (
+                  <>
+                    <span className="block text-sm font-semibold truncate">{selectedAddr.addressLine}</span>
+                    {(selectedAddr.details || selectedAddr.courierNote) && (
+                      <span className="block text-xs text-muted-foreground truncate">
+                        {[selectedAddr.details, selectedAddr.courierNote].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="block text-sm text-muted-foreground">{t("deliveryAddress")}</span>
+                )}
+              </span>
+              <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">
+                {selectedAddr
+                  ? language === "en" ? "Change" : language === "ru" ? "Изменить" : "შეცვლა"
+                  : language === "en" ? "Choose" : language === "ru" ? "Выбрать" : "არჩევა"}
+              </span>
+            </button>
           )}
 
           <div className="mt-5">
