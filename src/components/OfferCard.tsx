@@ -103,7 +103,9 @@ export function OfferCard({ offer, featured = false }: { offer: Offer; featured?
 
         {/* left badges */}
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[75%]">
-          <span className="px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+          <span className={featured
+            ? "px-3.5 py-1.5 rounded-full bg-primary text-primary-foreground text-lg font-extrabold shadow-lg tracking-tight"
+            : "px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold"}>
             -{discount}%
           </span>
           {isNew && !soldOut && (
