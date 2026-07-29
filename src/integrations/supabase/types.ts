@@ -217,6 +217,7 @@ export type Database = {
           code: string
           collected_at: string | null
           created_at: string
+          customer_note: string | null
           delivery_address: string | null
           delivery_id: string | null
           delivery_lat: number | null
@@ -239,6 +240,7 @@ export type Database = {
           code?: string
           collected_at?: string | null
           created_at?: string
+          customer_note?: string | null
           delivery_address?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
@@ -261,6 +263,7 @@ export type Database = {
           code?: string
           collected_at?: string | null
           created_at?: string
+          customer_note?: string | null
           delivery_address?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
