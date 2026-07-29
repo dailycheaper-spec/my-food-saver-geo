@@ -23,7 +23,9 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
-import type { SelectedAddress } from "@/components/address/AddressPicker";
+import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-address";
+import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
+import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
@@ -83,13 +85,41 @@ function OfferPage() {
 
   const [method, setMethod] = useState<"აღება" | "მიტანა">("აღება");
   const [quantity, setQuantity] = useState(1);
-  const [selectedAddr, setSelectedAddr] = useState<SelectedAddress | null>(null);
+  const { address: selectedAddr, setAddress: setSelectedAddr } = useDeliveryAddress();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const address = selectedAddr
-    ? [selectedAddr.addressLine, selectedAddr.details, selectedAddr.courierNote]
-        .filter(Boolean)
-        .join(" · ")
-    : "";
+  const address = formatDeliveryAddress(selectedAddr);
+  const { data: savedAddresses = [] } = useMyAddresses(!!user && method === "მიტანა");
+
+  // Fewer taps: pre-select the last used (or default) saved address the first
+  // time delivery is chosen, so returning customers just confirm.
+  useEffect(() => {
+    if (method !== "მიტანა" || selectedAddr || savedAddresses.length === 0) return;
+    const lastId = readLastAddressId();
+    const pick =
+      savedAddresses.find((a) => a.id === lastId) ??
+      savedAddresses.find((a) => a.is_default) ??
+      null;
+    if (!pick) return;
+    setSelectedAddr({
+      id: pick.id,
+      addressLine: pick.address_line,
+      details: formatAddressDetails(pick, language),
+      courierNote: pick.courier_note ?? "",
+      lat: pick.lat,
+      lng: pick.lng,
+      placeId: pick.place_id ?? null,
+    });
+  }, [method, selectedAddr, savedAddresses, language, setSelectedAddr]);
+
+  const deliveryZone = useMemo(
+    () =>
+      validateDeliveryLocation(
+        selectedAddr ? { lat: selectedAddr.lat, lng: selectedAddr.lng } : null,
+        { lat: offer.lat ?? null, lng: offer.lng ?? null, radiusKm: offer.deliveryRadiusKm ?? null },
+      ),
+    [selectedAddr, offer.lat, offer.lng, offer.deliveryRadiusKm],
+  );
+  const deliveryBlocked = method === "მიტანა" && !deliveryZone.allowed;
   const [customerNote, setCustomerNote] = useState("");
   const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY" | "COD">("BOG");
   const [copied, setCopied] = useState(false);
@@ -139,6 +169,11 @@ function OfferPage() {
       navigate({ to: "/auth" });
       return;
     }
+    if (deliveryBlocked) {
+      toast.error(deliveryZoneMessage(deliveryZone, language) ?? "");
+      setPickerOpen(true);
+      return;
+    }
     try {
       const isDelivery = method === "მიტანა";
       const methodDb: "pickup" | "delivery" = isDelivery ? "delivery" : "pickup";
@@ -152,6 +187,9 @@ function OfferPage() {
           quantity,
           method: methodDb,
           delivery_address: isDelivery ? address : undefined,
+          delivery_lat: isDelivery ? selectedAddr?.lat ?? null : null,
+          delivery_lng: isDelivery ? selectedAddr?.lng ?? null : null,
+          delivery_place_id: isDelivery ? selectedAddr?.placeId ?? null : null,
           customer_note: customerNote.trim() || undefined,
         });
         if (isDelivery) {
@@ -180,6 +218,9 @@ function OfferPage() {
           quantity,
           method: methodDb,
           deliveryAddress: isDelivery ? address : undefined,
+          deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
+          deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
+          deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
           customerNote: customerNote.trim() || undefined,
           nativeReturn: isNative(),
         },
@@ -462,6 +503,19 @@ function OfferPage() {
             </button>
           )}
 
+          {deliveryBlocked && (
+            <div className="mt-2 flex items-start justify-between gap-3 px-4 py-3 rounded-2xl bg-destructive/10 text-destructive text-xs" role="status">
+              <span>{deliveryZoneMessage(deliveryZone, language)}</span>
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="font-semibold underline shrink-0"
+              >
+                {language === "en" ? "Choose another" : language === "ru" ? "Выбрать другой" : "სხვის არჩევა"}
+              </button>
+            </div>
+          )}
+
           <div className="mt-5">
             <div className="text-sm font-bold mb-2">{t("quantity")}</div>
             <div className="flex items-center gap-3">
@@ -537,7 +591,7 @@ function OfferPage() {
               <GooglePayButton
                 amount={total}
                 currency="GEL"
-                disabled={soldOut || (method === "მიტანა" && address.length < 3)}
+                disabled={soldOut || deliveryBlocked || (method === "მიტანა" && address.length < 3)}
                 onPaymentAuthorized={async (googlePayToken) => {
                   if (!realDb) {
                     toast.error(language === "en"
@@ -665,7 +719,7 @@ function OfferPage() {
           </div>
           <button
             onClick={handleReserve}
-            disabled={soldOut || (method === "მიტანა" && address.length < 3)}
+            disabled={soldOut || deliveryBlocked || (method === "მიტანა" && address.length < 3)}
             className="px-6 py-3.5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-soft hover:opacity-90 disabled:opacity-40 active:scale-95 transition-all"
           >
             {soldOut
