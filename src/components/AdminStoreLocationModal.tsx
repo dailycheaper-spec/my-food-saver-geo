@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { X, LocateFixed, RotateCcw, Save } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { updateAdminStoreLocation } from "@/lib/admin-store.functions";
@@ -6,10 +6,8 @@ import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector"
 import { evaluateStoreLocation, isValidLatLng, isWithinGeorgia } from "@/lib/geo";
 import type { DbStore } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
+import MapAddressField from "@/components/address/MapAddressField";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
 
 interface Props {
   store: DbStore;
