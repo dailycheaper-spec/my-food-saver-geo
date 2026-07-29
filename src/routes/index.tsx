@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { NearbyOffersSection } from "@/components/NearbyOffersSection";
+import { SavingsTracker } from "@/components/SavingsTracker";
 import { useFollowedStoreIds } from "@/lib/follows";
 import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
