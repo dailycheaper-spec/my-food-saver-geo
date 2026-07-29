@@ -191,6 +191,7 @@ type UiLanguage = "ka" | "en" | "ru";
 const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, string>> = {
   "ყველა": { ka: "ყველა", en: "All", ru: "Все" },
   "საცხობი": { ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  "საკონდიტრო": { ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
   "რესტორანი": { ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   "სუპერმარკეტი": { ka: "მარკეტი", en: "Market", ru: "Маркет" },
   "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе" },
