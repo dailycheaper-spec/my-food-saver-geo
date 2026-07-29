@@ -162,6 +162,9 @@ export async function createOrder(input: {
   quantity: number;
   method: "pickup" | "delivery";
   delivery_address?: string;
+  delivery_lat?: number | null;
+  delivery_lng?: number | null;
+  delivery_place_id?: string | null;
   customer_note?: string;
 }) {
   const { data: sess } = await supabase.auth.getSession();
@@ -177,6 +180,9 @@ export async function createOrder(input: {
       quantity: input.quantity,
       method: input.method,
       delivery_address: input.delivery_address,
+      delivery_lat: input.delivery_lat ?? null,
+      delivery_lng: input.delivery_lng ?? null,
+      delivery_place_id: input.delivery_place_id ?? null,
       customer_note: note ? note.slice(0, 300) : null,
       user_id: uid,
       status: "paid",
