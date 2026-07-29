@@ -16,6 +16,7 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const { t, language } = useI18n();
+  const [addressesOpen, setAddressesOpen] = useState(false);
   const orders = useOrders();
   const favs = useFavorites();
   const { user, profile, loading, reloadProfile } = useAuth();
