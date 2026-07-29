@@ -3,8 +3,9 @@ import { Image as ImageIcon, Camera, Upload, AlertTriangle, Loader2 } from "luci
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { OFFER_IMAGE_SIGN_TTL_SECONDS } from "@/lib/offer-image";
 
-const SIGN_TTL_SECONDS = 60 * 60 * 24 * 365 * 100; // 100 years
+export type OfferPhotoMeta = { path: string; expiresAt: string };
 
 export function OfferPhotoPicker({
   value,
