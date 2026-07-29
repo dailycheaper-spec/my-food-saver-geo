@@ -340,11 +340,9 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         <StoreLocationPreview lat={lat} lng={lng} height={130} />
         <div className="text-xs space-y-0.5">
           <LocStatusLine status={locStatus} />
-          <div className="text-muted-foreground">
-            {L("კოორდინატები", "Coordinates", "Координаты")}: <span className="font-mono text-foreground">
-              {lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}
-            </span>
-          </div>
+          <StoreAddressLine lat={lat} lng={lng} />
+        </div>
+
           <div className="text-muted-foreground">
             {L("რადიუსი", "Radius", "Радиус")}: <span className="font-semibold text-foreground">
               {visibility_radius_km == null
