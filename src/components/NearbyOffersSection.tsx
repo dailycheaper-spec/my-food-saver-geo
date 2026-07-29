@@ -76,7 +76,7 @@ export function NearbyOffersSection({ offers }: Props) {
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <MapPin className="w-[18px] h-[18px] text-primary" /> 📍 {L("თქვენთან ახლოს", "Near you", "Рядом с вами")}
         </h2>
-        {location && nearby.length > 0 && (
+        {origin && nearby.length > 0 && (
           <Link
             to="/map"
             className="text-xs font-semibold text-primary flex items-center gap-0.5 active:scale-95"
@@ -86,13 +86,35 @@ export function NearbyOffersSection({ offers }: Props) {
         )}
       </div>
 
-      {location && (
-        <div className="mb-3">
+      {origin && (
+        <div className="mb-3 space-y-2">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            {origin.kind === "gps" ? (
+              <>
+                <Navigation className="w-3 h-3 text-primary" />
+                {L("თქვენი მიმდინარე მდებარეობიდან", "From your current location", "От вашего текущего местоположения")}
+              </>
+            ) : (
+              <>
+                <HomeIcon className="w-3 h-3 text-primary" />
+                <span className="truncate">
+                  {L("მისამართიდან", "From", "От адреса")}: {origin.label}
+                </span>
+                <button
+                  type="button"
+                  onClick={askPermission}
+                  className="underline underline-offset-2 font-semibold shrink-0"
+                >
+                  {L("GPS-ის გამოყენება", "Use GPS", "Использовать GPS")}
+                </button>
+              </>
+            )}
+          </p>
           <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
         </div>
       )}
 
-      {!location && status !== "prompting" && (
+      {!origin && status !== "prompting" && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center">
           <div className="text-3xl mb-2">📍</div>
           <p className="text-sm font-semibold">
@@ -128,13 +150,13 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {status === "prompting" && !location && (
+      {status === "prompting" && !origin && (
         <div className="rounded-3xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {L("იძებნება მდებარეობა…", "Locating…", "Определяем местоположение…")}
         </div>
       )}
 
-      {location && nearby.length === 0 && (
+      {origin && nearby.length === 0 && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 text-center">
           <div className="text-3xl mb-2">🥲</div>
           <p className="text-sm text-muted-foreground">
