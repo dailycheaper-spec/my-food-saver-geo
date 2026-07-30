@@ -187,7 +187,6 @@ function RootComponent() {
             }
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn("[deep-link] failed to handle", url, err);
         }
       };

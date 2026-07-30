@@ -132,7 +132,9 @@ function AuthPage() {
       // full-page redirect works.
       try {
         window.open(window.location.href, "_blank", "noopener,noreferrer");
-      } catch {}
+      } catch {
+        // The message below still tells the user how to continue manually.
+      }
       setLoading(false);
       setMsg({ type: "ok", text: t("openInNewTab") });
       return;
