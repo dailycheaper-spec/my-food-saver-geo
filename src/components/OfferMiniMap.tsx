@@ -3,6 +3,7 @@ import { ExternalLink, Navigation } from "lucide-react";
 import { DISTRICT_COORDS, TBILISI_CENTER, type Offer } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
 import { formatDistanceLocalized } from "@/lib/geo";
+import { useUserLocation } from "@/hooks/use-user-location";
 
 function hashOffset(id: string): [number, number] {
   let h = 0;
@@ -30,16 +31,15 @@ function osmLink([lat, lng]: [number, number]) {
 
 export function OfferMiniMap({ offer }: { offer: Offer }) {
   const { t, language } = useI18n();
-  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const { location, askPermission } = useUserLocation();
+  const [shown, setShown] = useState(false);
   const pos = offerCoords(offer);
+  const userPos: [number, number] | null =
+    shown && location ? [location.lat, location.lng] : null;
 
   function locate() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (p) => setUserPos([p.coords.latitude, p.coords.longitude]),
-      () => {},
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    setShown(true);
+    if (!location) askPermission();
   }
 
   return (
