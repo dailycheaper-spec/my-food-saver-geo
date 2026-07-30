@@ -141,14 +141,18 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
   const { t, language } = useI18n();
-  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "title_tr" | "title_fa" | "description_en" | "description_ru" | "description_tr" | "description_fa" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     title_en: offerAny?.title_en ?? "",
     title_ru: offerAny?.title_ru ?? "",
+    title_tr: offerAny?.title_tr ?? "",
+    title_fa: offerAny?.title_fa ?? "",
     description: offer?.description ?? "",
     description_en: offerAny?.description_en ?? "",
     description_ru: offerAny?.description_ru ?? "",
+    description_tr: offerAny?.description_tr ?? "",
+    description_fa: offerAny?.description_fa ?? "",
     category: offer?.category ?? "meal",
     original_price: offer?.original_price?.toString() ?? "20",
     discounted_price: offer?.discounted_price?.toString() ?? "7",
