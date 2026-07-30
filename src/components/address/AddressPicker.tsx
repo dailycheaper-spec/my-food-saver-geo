@@ -289,7 +289,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     let savedId: string | undefined = editingId;
     if (user && (saveForLater || editingId)) {
       try {
-        const row = await saveAddress.mutateAsync({
+        const res = await saveAddress.mutateAsync({
           id: editingId,
           label,
           custom_label: customLabel || null,
