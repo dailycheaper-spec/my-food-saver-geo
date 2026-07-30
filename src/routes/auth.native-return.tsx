@@ -14,7 +14,17 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/auth/native-return")({
-  head: () => ({ meta: [{ title: "შესვლა · Cheaper" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [
+      { title: "შესვლა · Cheaper" },
+      { name: "description", content: "Cheaper მობილურ აპში შესვლის დასრულება." },
+      { property: "og:title", content: "შესვლა · Cheaper" },
+      { property: "og:description", content: "Cheaper მობილურ აპში შესვლის დასრულება." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: NativeAuthReturn,
 });
 
@@ -26,15 +36,26 @@ function NativeAuthReturn() {
 
   useEffect(() => {
     const hash = window.location.hash || "";
-    const search = window.location.search || "";
+    const sourceParams = new URLSearchParams(window.location.search);
+    const platform = sourceParams.get("platform");
+    sourceParams.delete("platform");
+    const search = sourceParams.size ? `?${sourceParams.toString()}` : "";
     const target = `ge.cheaper.app://auth-callback${search}${hash}`;
     setDeepLink(target);
 
     const jump = () => {
       try {
+        // A top-level custom-scheme navigation is handled reliably by Chrome
+        // Custom Tabs and SFSafariViewController when the app is installed.
+        window.location.assign(target);
+      } catch {
+        // Some browsers reject location.assign but allow a link activation.
+      }
+      try {
         const a = document.createElement("a");
         a.href = target;
         a.rel = "noopener";
+        a.style.display = "none";
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -44,7 +65,9 @@ function NativeAuthReturn() {
     };
 
     jump();
-    const retry = window.setTimeout(jump, 700);
+    // Android Custom Tabs can need a moment after the auth redirect commits
+    // before they permit navigation to an external app scheme.
+    const retry = window.setTimeout(jump, platform === "android" ? 900 : 500);
     const slowTimer = window.setTimeout(() => setSlow(true), 2200);
     return () => {
       window.clearTimeout(retry);

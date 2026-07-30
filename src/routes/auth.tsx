@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
-import { isNative, NATIVE_SCHEME, openExternal } from "@/lib/native";
+import { isNative, openExternal } from "@/lib/native";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — Cheaper" }, { name: "robots", content: "noindex" }] }),
@@ -88,15 +88,18 @@ function AuthPage() {
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
 
-    // Native (Capacitor): authenticate in the secure system browser and have
-    // the backend redirect straight to the app scheme. Avoiding an HTTPS
-    // bounce page removes the browser-blocked JavaScript handoff.
+    // Native (Capacitor): the auth backend only accepts HTTPS URLs from its
+    // redirect allow-list. Return through our public bounce page, which then
+    // opens the app's registered ge.cheaper.app:// scheme with the tokens/code.
     if (isNative()) {
       try {
+        const nativePlatform = (await import("@capacitor/core")).Capacitor.getPlatform();
+        const nativeReturnUrl = new URL("/auth/native-return", window.location.origin);
+        nativeReturnUrl.searchParams.set("platform", nativePlatform);
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider,
           options: {
-            redirectTo: `${NATIVE_SCHEME}://auth-callback`,
+            redirectTo: nativeReturnUrl.toString(),
             skipBrowserRedirect: true,
           },
         });
