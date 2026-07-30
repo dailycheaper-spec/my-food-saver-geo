@@ -56,7 +56,8 @@ const SURPRISE_L10N = {
 
 function NewOfferPage() {
   const { t, language } = useI18n();
-  const sl = SURPRISE_L10N[language];
+  // Partner panel stays ka/en/ru; other UI languages fall back to English.
+  const sl = SURPRISE_L10N[language as "ka" | "en" | "ru"] ?? SURPRISE_L10N.en;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
