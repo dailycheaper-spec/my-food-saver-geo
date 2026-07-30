@@ -36,6 +36,8 @@ export interface Offer {
   itemsLeft: number;
   delivery: boolean;
   deliveryFee: number;
+  /** Store-configured delivery radius in km (from the store row). */
+  deliveryRadiusKm?: number;
   lat?: number;
   lng?: number;
   /** Partner-configured visibility radius in km (never shown to customers directly). */

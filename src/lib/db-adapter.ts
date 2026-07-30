@@ -50,7 +50,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   };
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;
-    visibility_radius_km?: number | null; city?: string | null;
+    visibility_radius_km?: number | null; city?: string | null; delivery_radius_km?: number | null;
     logo_url?: string | null;
   });
   return {
@@ -82,6 +82,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     itemsLeft,
     delivery: Boolean(row.delivery_available ?? row.store?.delivery_enabled ?? false),
     deliveryFee: Number(row.store?.delivery_fee_base ?? 0),
+    deliveryRadiusKm: storeAny?.delivery_radius_km != null ? Number(storeAny.delivery_radius_km) : undefined,
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
     visibilityRadiusKm: storeAny?.visibility_radius_km ?? undefined,
