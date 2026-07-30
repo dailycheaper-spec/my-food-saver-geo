@@ -239,6 +239,7 @@ function AdminPartners() {
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
       {editingLocation && (
         <AdminStoreLocationModal
+          key={editingLocation.id}
           store={editingLocation}
           onClose={() => setEditingLocation(null)}
           onSaved={() => { setEditingLocation(null); reload(); }}
