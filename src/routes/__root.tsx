@@ -145,15 +145,35 @@ function RootComponent() {
           const u = new URL(url);
           const host = u.host || u.pathname.replace(/^\/+/, "");
           if (host.startsWith("auth-callback")) {
-            // Tokens arrive in the hash (implicit flow) or query.
-            const raw = (u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash) || u.search.replace(/^\?/, "");
-            const params = new URLSearchParams(raw);
-            const access_token = params.get("access_token");
-            const refresh_token = params.get("refresh_token");
+            // Tokens arrive in the hash (implicit flow); PKCE returns ?code=.
+            const hashRaw = u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash || "";
+            const hashParams = new URLSearchParams(hashRaw);
+            const queryParams = new URLSearchParams(u.search.replace(/^\?/, ""));
+            const access_token = hashParams.get("access_token") || queryParams.get("access_token");
+            const refresh_token = hashParams.get("refresh_token") || queryParams.get("refresh_token");
+            const code = queryParams.get("code");
+            const oauthError =
+              queryParams.get("error_description") ||
+              queryParams.get("error") ||
+              hashParams.get("error_description") ||
+              hashParams.get("error");
+
+            let ok = false;
             if (access_token && refresh_token) {
-              await supabase.auth.setSession({ access_token, refresh_token });
+              const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+              ok = !error;
+            } else if (code) {
+              const { error } = await supabase.auth.exchangeCodeForSession(code);
+              ok = !error;
             }
+
             await closeExternal();
+            if (!ok) {
+              const { toast } = await import("sonner");
+              toast.error(oauthError || "Sign-in could not be completed. Please try again.");
+              router.navigate({ to: "/auth" });
+              return;
+            }
             const target = sessionStorage.getItem("auth_redirect") || "/";
             router.navigate({ to: target });
           } else if (host.startsWith("order-return")) {
