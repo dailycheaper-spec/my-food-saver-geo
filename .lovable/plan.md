@@ -1,67 +1,52 @@
-## Goal
+# iOS / WebKit consistency pass
 
-Replace the single static promo banner on the home screen with a self-rotating, accessible carousel whose content comes from one easy-to-edit data file.
+## What I verified in the current code (so the plan only fixes real gaps)
 
-## 1. Banner content source (the "CMS")
+Already correct — will not touch:
+- `viewport-fit=cover` is present in `src/routes/__root.tsx`.
+- `.min-h-screen` / `.h-screen` are already overridden to `100dvh` in `src/styles.css`.
+- Top bar in `src/routes/index.tsx` already has `pt-[env(safe-area-inset-top)]`; `BottomNav` already has `pb-[env(safe-area-inset-bottom)]`.
+- shadcn `Input` / `Textarea` already use `text-base` (16px) on mobile, `md:text-sm` on desktop — no iOS focus zoom from those.
 
-New file: `src/lib/promo-banners.ts`
+Real gaps found:
+1. `overscroll-behavior-y: none` is only applied inside `@media (display-mode: standalone)`, so iOS Safari and the WKWebView shell still rubber-band the whole page behind the fixed bottom nav.
+2. No global `-webkit-tap-highlight-color: transparent` — iOS paints grey flash boxes on every link/button tap.
+3. `scrollbar-hide` (used by the category chip row and carousel) has no `-webkit-overflow-scrolling: touch`; only `horizontal-scroll` and `scroll-row` do.
+4. Raw `<input>` / `<select>` elements outside the shadcn components (search bar, map search, offer note, address search, review form) inherit smaller sizes in places and can trigger iOS focus zoom.
+5. Carousel/card children in horizontal rows rely on width utilities without a guaranteed `flex-shrink: 0`, which lets WebKit squeeze them.
+6. iOS `100dvh` on the top-level container still needs a `-webkit-fill-available` fallback for older iOS 15 WKWebView.
 
-A plain exported array — the single place to add, edit, or remove banners. Each entry:
+## Changes
 
-```ts
-export type PromoBanner = {
-  id: string;                     // stable key
-  badge?: LocalizedText;          // small pill above the headline
-  headline: LocalizedText;        // e.g. "ყოველდღე 50%+ ფასდაკლებით"
-  subtext: LocalizedText;         // e.g. "გემრიელი საკვები საყვარელი ადგილებიდან!"
-  buttonText: LocalizedText;      // e.g. "შეუკვეთე"
-  buttonAction: { to: string; search?: Record<string, string> }; // internal route
-  imageSource?: string;           // imported image; optional
-  overlayClass?: string;          // gradient/colour override, defaults to brand green
-  active?: boolean;               // false hides it without deleting
-};
-```
+### 1. `src/styles.css` (main work)
+- Base layer: add `-webkit-tap-highlight-color: transparent` and `touch-action: manipulation` on `html, body`; keep visible `:focus-visible` styling intact so accessibility isn't lost.
+- Move `overscroll-behavior-y: none` out of the standalone-only media query onto `html, body` for all contexts, and add `overscroll-behavior: contain` to the fixed bottom nav wrapper so it never drags the page.
+- Add `@supports (-webkit-touch-callout: none)` fallback: `min-height: -webkit-fill-available` for `.min-h-screen` (declared before the `100dvh` rule so modern iOS still wins).
+- Add `-webkit-overflow-scrolling: touch` to the `scrollbar-hide` utility, matching `horizontal-scroll` / `scroll-row`.
+- New `@utility ios-input` (min `font-size: 16px`, `line-height` normal) for raw form controls, plus a global safety rule: on `(max-width: 767px)`, `input, select, textarea { font-size: max(16px, 1em); }` — this kills iOS focus zoom app-wide without changing the desktop look.
+- New `@utility no-shrink` mapped to `flex-shrink: 0` for carousel/chip children, and apply `flex: 0 0 auto` to direct children of `scroll-row` / `horizontal-scroll`.
 
-`LocalizedText` is `{ ka: string; en?: string; ru?: string; tr?: string; fa?: string }`, resolved with the existing `Language` type and falling back to `ka`. This keeps the carousel consistent with the app's 5-language support (KA/EN/RU/TR/FA) and RTL for Persian.
+### 2. Bottom navigation — `src/components/BottomNav.tsx`
+- Add `overscroll-contain` / `touch-action: manipulation` on the fixed wrapper.
+- Keep the existing `pb-[env(safe-area-inset-bottom)]`, but change it to `calc(0.375rem + env(safe-area-inset-bottom, 0px))` so there's real clearance from the home indicator instead of a flush edge.
+- Confirm every nav item meets the 44×44 tap target (currently `min-h-11` = 44px height, but width is grid-derived — add `min-w-0` + full-width anchors so the whole cell is tappable).
 
-Three seeded entries, exactly as requested:
-1. The current banner (hero-bakery image, "ყოველდღე 50%+ ფასდაკლებით" / "გემრიელი საკვები საყვარელი ადგილებიდან!" / "შეუკვეთე" → `/search`).
-2. "დაზოგეთ მეტი" (Save More) with a matching subtext and CTA → `/search`.
-3. "პოპულარული დღის კერძი" (Popular Dish of the Day) → `/search`.
+### 3. Top bar — `src/routes/index.tsx`
+- Keep the sticky bar, but give it `pt-[env(safe-area-inset-top,0px)]` with a fallback and `-webkit-backdrop-filter` alongside `backdrop-blur` (Safari needs the prefixed property under Lightning CSS in some cases).
+- Ensure the sticky container isn't inside a transformed ancestor (iOS breaks `position: sticky` there) — I'll check and fix if it is.
 
-Entries 2 and 3 reuse existing bundled images (`bag-bakery.jpg`, `bag-khachapuri.jpg`) so nothing new needs generating; swapping in dedicated artwork later is a one-line change.
+### 4. Home banner — `src/components/PromoCarousel.tsx`
+- Add `flex-shrink: 0` / `no-shrink` to slides and arrow buttons so WebKit doesn't compress them.
+- Add `touch-action: pan-y` to the swipe surface so vertical page scroll always wins over the horizontal swipe handler on iOS.
+- Ensure arrow buttons are 44×44 (`tap-target`) and tap-highlight-free.
 
-The file will carry a commented developer note at the top showing exactly how to add/edit/remove an entry.
+### 5. Scrollable rows — `src/components/ScrollableRow.tsx`
+- Add `WebkitOverflowScrolling: "touch"` to the inline style already there, and `flex-shrink: 0` on children.
 
-## 2. Carousel component
+## Verification
+- Typecheck.
+- Playwright at 393×823 with an iPhone-like device descriptor: screenshot home top bar, banner, category row, and bottom nav; confirm no horizontal overflow, no clipped nav, and page scrolls vertically over the carousel.
+- Note: `env(safe-area-inset-*)` resolves to 0 in headless Chromium, so notch spacing is verified by inspecting the computed rules rather than pixels.
 
-New file: `src/components/PromoCarousel.tsx`, rendered where the current banner block sits in `src/routes/index.tsx` (that inline markup is removed).
-
-Behaviour:
-- Auto-advance every 6s, looping.
-- Pause on mouse hover, on keyboard focus within, when the tab is hidden, and while a touch/drag is in progress.
-- Respects `prefers-reduced-motion`: no auto-rotation, controls still work.
-- Slide transition is a simple cross-fade/slide, using existing motion conventions.
-
-Controls:
-- Small circular prev/next arrows, overlaid on the sides, sized to a 44×44 tap target, hidden-until-hover on desktop but always present for touch and keyboard.
-- Dot indicators under/over the banner; each dot jumps to its slide.
-- Horizontal swipe on touch.
-
-Accessibility:
-- Wrapper `role="region"` + `aria-roledescription="carousel"` + localized `aria-label`.
-- Each slide `role="group"`, `aria-roledescription="slide"`, `aria-label="N of M"`, inactive slides `aria-hidden` and removed from the tab order.
-- Arrows and dots are real `<button>`s with localized `aria-label`s (`aria-current` on the active dot).
-- A polite `aria-live` region announcing the current slide only when the user navigates manually (silent during auto-rotation).
-- The clickable banner surface is a single focusable link per slide (no nested interactive elements), so keyboard focus order stays logical; arrow keys move between slides when focus is inside the carousel.
-
-Visuals match the reference exactly: rounded-3xl card, image with the green `from-primary/95` gradient plus bottom dark vignette, badge pill, headline, subtext, white pill CTA — all using existing semantic tokens, no hardcoded colours.
-
-## 3. Localization
-
-New strings (carousel label, previous/next slide, "go to slide N", pause/play) added to the existing i18n key sets for all five languages. Banner copy itself lives in `promo-banners.ts`, not i18n, so it can be edited in one place.
-
-## Technical notes
-
-- No backend/table is added — content is a typed constant, per the "mock API / structured data" option in the request. If you later want partner- or admin-editable banners, this array maps 1:1 to a `promo_banners` table and can be swapped for a query without touching the component.
-- Files touched: new `src/lib/promo-banners.ts`, new `src/components/PromoCarousel.tsx`, edits to `src/routes/index.tsx` (remove inline banner, render carousel) and `src/lib/i18n*.ts(x)` (control labels).
+## Question before I build
+Should the global 16px minimum for form controls apply to the **partner/admin panels too** (they're desktop-oriented and currently use `md:text-sm`), or should I scope it to customer-facing routes only? My default is app-wide but mobile-width-only (`max-width: 767px`), which leaves the desktop admin UI unchanged.
