@@ -109,6 +109,8 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
         aria-roledescription="carousel"
         aria-label={L.carousel}
         className="group relative"
+        // Vertical page scroll always wins over the horizontal swipe handler.
+        style={{ touchAction: "pan-y pinch-zoom" }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
@@ -116,6 +118,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
           if (!e.currentTarget.contains(e.relatedTarget as Node)) setPaused(false);
         }}
         onKeyDown={onKeyDown}
+
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null;
           setPaused(true);
@@ -196,7 +199,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 type="button"
                 aria-label={L.prev}
                 onClick={() => goTo(safeIndex - 1, true)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full grid place-items-center bg-card/85 text-foreground shadow-sm backdrop-blur-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 shrink-0 rounded-full grid place-items-center bg-card/85 text-foreground shadow-sm backdrop-blur-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <ChevronLeft className="w-5 h-5" aria-hidden="true" />
               </button>
@@ -204,10 +207,11 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 type="button"
                 aria-label={L.next}
                 onClick={() => goTo(safeIndex + 1, true)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full grid place-items-center bg-card/85 text-foreground shadow-sm backdrop-blur-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 shrink-0 rounded-full grid place-items-center bg-card/85 text-foreground shadow-sm backdrop-blur-sm transition-opacity opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <ChevronRight className="w-5 h-5" aria-hidden="true" />
               </button>
+
 
               <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-2">
                 {slides.map((b, i) => (
