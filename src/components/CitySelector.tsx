@@ -32,7 +32,7 @@ export function CitySelector({
   }, [open]);
 
   const labelText =
-    language === "en" ? "City" : language === "ru" ? "Город" : "ქალაქი";
+    language === "en" ? "City" : language === "ru" ? "Город" : language === "tr" ? "Şehir" : language === "fa" ? "شهر" : "ქალაქი";
 
   const trigger =
     variant === "compact" ? (

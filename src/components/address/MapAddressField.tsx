@@ -3,7 +3,7 @@ import { Loader2, MapPin, Search, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { autocompleteAddress, placeDetails, reverseGeocode } from "@/lib/geocode.functions";
-import { resolveAddress, setCachedAddress, getCachedAddress } from "@/lib/reverse-address";
+import { resolveAddress, setCachedAddress, getCachedAddress, geocodeLang } from "@/lib/reverse-address";
 import { CITY_CENTERS, type City } from "@/lib/city";
 
 const StoreLocationPicker = lazy(() =>
@@ -33,10 +33,11 @@ export function MapAddressField({
 }: Props) {
   const { language } = useI18n();
   const L = useCallback(
-    (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
+    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
     [language],
   );
-  const lang = (language === "en" || language === "ru" ? language : "ka") as "ka" | "en" | "ru";
+  const lang = geocodeLang(language);
 
   const reverse = useServerFn(reverseGeocode);
   const autocomplete = useServerFn(autocompleteAddress);
@@ -156,12 +157,12 @@ export function MapAddressField({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={L("მოძებნეთ მისამართი…", "Search address…", "Поиск адреса…")}
+            placeholder={L("მოძებნეთ მისამართი…", "Search address…", "Поиск адреса…", "Adres ara…", "جستجوی آدرس…")}
             className="flex-1 bg-transparent text-sm outline-none"
           />
           {searchBusy && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
           {!searchBusy && query && (
-            <button type="button" onClick={() => setQuery("")} aria-label={L("გასუფთავება", "Clear", "Очистить")}>
+            <button type="button" onClick={() => setQuery("")} aria-label={L("გასუფთავება", "Clear", "Очистить", "Temizle", "پاک کردن")}>
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
@@ -204,16 +205,12 @@ export function MapAddressField({
         <div className="min-w-0 flex-1">
           {!hasPin ? (
             <span className="text-xs text-muted-foreground">
-              {L(
-                "დააკლიკეთ რუკაზე, მოძებნეთ მისამართი ან გამოიყენეთ მიმდინარე მდებარეობა.",
-                "Tap the map, search an address, or use your current location.",
-                "Нажмите на карту, найдите адрес или используйте текущее местоположение.",
-              )}
+              {L("დააკლიკეთ რუკაზე, მოძებნეთ მისამართი ან გამოიყენეთ მიმდინარე მდებარეობა.", "Tap the map, search an address, or use your current location.", "Нажмите на карту, найдите адрес или используйте текущее местоположение.", "Haritaya dokunun, adres arayın veya mevcut konumunuzu kullanın.", "روی نقشه ضربه بزنید، آدرس را جستجو کنید یا از موقعیت فعلی خود استفاده کنید.")}
             </span>
           ) : resolving ? (
             <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              {L("მისამართის დადგენა…", "Resolving address…", "Определяем адрес…")}
+              {L("მისამართის დადგენა…", "Resolving address…", "Определяем адрес…", "Adres belirleniyor…", "در حال یافتن آدرس…")}
             </span>
           ) : address ? (
             <>
@@ -226,8 +223,8 @@ export function MapAddressField({
             <>
               <div className="text-xs text-muted-foreground">
                 {unavailable
-                  ? L("მისამართის დადგენა ვერ მოხერხდა", "Address lookup unavailable", "Не удалось определить адрес")
-                  : L("მისამართი ვერ მოიძებნა", "No address found", "Адрес не найден")}
+                  ? L("მისამართის დადგენა ვერ მოხერხდა", "Address lookup unavailable", "Не удалось определить адрес", "Adres bulunamıyor", "جستجوی آدرس در دسترس نیست")
+                  : L("მისამართი ვერ მოიძებნა", "No address found", "Адрес не найден", "Adres bulunamadı", "آدرسی یافت نشد")}
               </div>
               <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
                 {value.lat!.toFixed(5)}, {value.lng!.toFixed(5)}

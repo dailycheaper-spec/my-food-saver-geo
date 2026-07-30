@@ -122,7 +122,7 @@ function Profile() {
           <div className="px-4 py-3 border-b border-border flex items-center gap-2">
             <StarIcon className="w-4 h-4 fill-amber-500 text-amber-500" />
             <div className="text-sm font-semibold flex-1">
-              {language === "en" ? "My Following" : language === "ru" ? "Мои подписки" : "ჩემი გამოწერები"}
+              {language === "en" ? "My Following" : language === "ru" ? "Мои подписки" : language === "tr" ? "Takip Ettiklerim" : language === "fa" ? "دنبال‌شده‌های من" : "ჩემი გამოწერები"}
             </div>
             <div className="text-xs text-muted-foreground">{followedStores.length}</div>
           </div>
@@ -188,7 +188,7 @@ function Profile() {
             <span className="text-primary"><MapPin className="w-4 h-4" /></span>
             <span className="flex-1 min-w-0">
               <span className="block">
-                {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : "ჩემი მისამართები"}
+                {language === "en" ? "My addresses" : language === "ru" ? "Мои адреса" : language === "tr" ? "Adreslerim" : language === "fa" ? "آدرس‌های من" : "ჩემი მისამართები"}
               </span>
               <span className="block text-xs text-muted-foreground truncate">
                 {defaultAddress
@@ -197,7 +197,11 @@ function Profile() {
                     ? "No saved address yet"
                     : language === "ru"
                       ? "Нет сохранённых адресов"
-                      : "შენახული მისამართი ჯერ არ არის"}
+                      : language === "tr"
+                        ? "Henüz kayıtlı adres yok"
+                        : language === "fa"
+                          ? "هنوز آدرسی ذخیره نشده است"
+                          : "შენახული მისამართი ჯერ არ არის"}
               </span>
             </span>
             <span className="text-muted-foreground">›</span>

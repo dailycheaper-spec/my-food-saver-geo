@@ -89,7 +89,7 @@ function StorePage() {
   if (storeError) {
     return (
       <div className="p-8 text-center text-destructive text-sm">
-        {language === "en" ? "Couldn't load data. Please try again." : language === "ru" ? "Не удалось загрузить данные. Попробуйте снова." : "მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან."}
+        {language === "en" ? "Couldn't load data. Please try again." : language === "ru" ? "Не удалось загрузить данные. Попробуйте снова." : language === "tr" ? "Veriler yüklenemedi. Lütfen tekrar deneyin." : language === "fa" ? "بارگذاری اطلاعات ممکن نشد. لطفاً دوباره امتحان کنید." : "მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან."}
       </div>
     );
   }
@@ -100,13 +100,15 @@ function StorePage() {
 
   const storeName = getStoreName(store, language);
 
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
 
   const description = raw.description ?? L(
     `${storeName} — სანდო პარტნიორი Cheaper-ზე.`,
     `${storeName} is a trusted partner on Cheaper.`,
     `${storeName} — надёжный партнёр на Cheaper.`,
+    `${storeName}, Cheaper'de güvenilir bir ortaktır.`,
+    `${storeName} یک همکار قابل‌اعتماد در Cheaper است.`,
   );
 
   const heroOffer = storeOffers[0];
@@ -201,13 +203,13 @@ function StorePage() {
             >
               {isFollowing ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
               {isFollowing
-                ? L("გამოწერილია", "Following", "Вы подписаны")
-                : L("გამოწერა", "Follow", "Подписаться")}
+                ? L("გამოწერილია", "Following", "Вы подписаны", "Takip ediliyor", "دنبال می‌کنید")
+                : L("გამოწერა", "Follow", "Подписаться", "Takip et", "دنبال کردن")}
             </button>
             {followerCount !== null && followerCount > 0 && (
               <div className="text-xs text-muted-foreground whitespace-nowrap">
                 <span className="font-bold text-foreground">{followerCount}</span>{" "}
-                {L("გამომწერი", "followers", "подписч.")}
+                {L("გამომწერი", "followers", "подписч.", "takipçi", "دنبال‌کننده")}
               </div>
             )}
           </div>
@@ -237,7 +239,7 @@ function StorePage() {
         <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="font-display font-bold text-lg">
-              {L("აქტიური შეთავაზებები", "Active offers", "Активные предложения")}
+              {L("აქტიური შეთავაზებები", "Active offers", "Активные предложения", "Aktif fırsatlar", "پیشنهادهای فعال")}
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">{storeOffers.length}</span>
           </div>
@@ -245,7 +247,7 @@ function StorePage() {
             <div className="text-center py-8 sm:py-10 bg-card rounded-2xl border border-border">
               <div className="text-4xl mb-2">🕒</div>
               <p className="text-sm text-muted-foreground">
-                {L("ამჟამად აქტიური შეთავაზება არ არის.", "No active offers right now.", "Нет активных предложений.")}
+                {L("ამჟამად აქტიური შეთავაზება არ არის.", "No active offers right now.", "Нет активных предложений.", "Şu anda aktif fırsat yok.", "در حال حاضر پیشنهاد فعالی وجود ندارد.")}
               </p>
             </div>
           ) : (
@@ -260,7 +262,7 @@ function StorePage() {
           <section>
             <div className="mb-3 px-1">
               <h2 className="font-display font-bold text-lg">
-                {L("მდებარეობა", "Location", "Локация")}
+                {L("მდებარეობა", "Location", "Локация", "Konum", "موقعیت")}
               </h2>
             </div>
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-3xl" />}>
@@ -273,7 +275,7 @@ function StorePage() {
             target="_blank" rel="noreferrer"
             className="block bg-card rounded-2xl border border-border p-4 text-sm font-semibold text-primary"
           >
-            {L("რუკაზე ნახვა", "View on map", "Открыть на карте")}
+            {L("რუკაზე ნახვა", "View on map", "Открыть на карте", "Haritada gör", "مشاهده روی نقشه")}
           </a>
         )}
 
@@ -281,7 +283,7 @@ function StorePage() {
         <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="font-display font-bold text-lg">
-              {L("შეფასებები", "Reviews", "Отзывы")}
+              {L("შეფასებები", "Reviews", "Отзывы", "Değerlendirmeler", "نظرات")}
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">
               {hydrated ? reviews.length : "—"}
@@ -297,7 +299,7 @@ function StorePage() {
 
               <div className="text-4xl mb-2">💬</div>
               <p className="text-sm text-muted-foreground">
-                {L("ჯერ არაფერი დაწერილა.", "No reviews yet.", "Пока нет отзывов.")}
+                {L("ჯერ არაფერი დაწერილა.", "No reviews yet.", "Пока нет отзывов.", "Henüz yorum yok.", "هنوز نظری ثبت نشده است.")}
               </p>
               {heroOffer && (
                 <Link
@@ -305,7 +307,7 @@ function StorePage() {
                   params={{ id: heroOffer.id }}
                   className="inline-block mt-3 text-sm text-primary font-semibold"
                 >
-                  {L("დაწერე პირველი შეფასება", "Write the first review", "Оставить первый отзыв")}
+                  {L("დაწერე პირველი შეფასება", "Write the first review", "Оставить первый отзыв", "İlk yorumu yaz", "اولین نظر را بنویسید")}
                 </Link>
               )}
             </div>

@@ -182,42 +182,46 @@ function SearchPage() {
     ? ["Khachapuri", "Sushi", "Bakery", "Coffee", "Fruits"]
     : language === "ru"
       ? ["Хачапури", "Суши", "Пекарня", "Кофе", "Фрукты"]
-      : ["ხაჭაპური", "სუში", "საცხობი", "ყავა", "ხილი"];
+      : language === "tr"
+        ? ["Khachapuri", "Suşi", "Fırın", "Kahve", "Meyve"]
+        : language === "fa"
+          ? ["خاچاپوری", "سوشی", "نانوایی", "قهوه", "میوه"]
+          : ["ხაჭაპური", "სუში", "საცხობი", "ყავა", "ხილი"];
 
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
 
-  const recentLabel = L("ბოლო ძებნები", "Recent", "Недавние");
-  const trendingLabel = L("პოპულარული", "Popular", "Популярное");
-  const resultsLabel = L("შედეგი", "results", "результатов");
-  const clearLabel = L("გასუფთავება", "Clear", "Очистить");
-  const filtersLabel = L("ფილტრები", "Filters", "Фильтры");
-  const partnersLabel = L("პარტნიორები", "Partners", "Партнёры");
-  const foodsLabel = L("კერძები", "Dishes", "Блюда");
-  const catsLabel = L("კატეგორიები", "Categories", "Категории");
-  const locLabel = L("მდებარეობა", "Location", "Локация");
-  const distanceLabel = L("მანძილი", "Distance", "Расстояние");
-  const priceLabel = L("ფასი", "Price", "Цена");
-  const discountLabel = L("ფასდაკლება", "Discount", "Скидка");
-  const ratingLabel = L("რეიტინგი", "Rating", "Рейтинг");
-  const openNowLabel = L("ღიაა ახლა", "Open now", "Открыто сейчас");
-  const pickupLabel = L("აღება მდე", "Pickup by", "Забрать до");
-  const dietLabel = L("დიეტა", "Dietary", "Диета");
-  const sortLabel = L("დალაგება", "Sort", "Сорт.");
-  const resetLabel = L("გადატვირთვა", "Reset", "Сброс");
+  const recentLabel = L("ბოლო ძებნები", "Recent", "Недавние", "Son aramalar", "جستجوهای اخیر");
+  const trendingLabel = L("პოპულარული", "Popular", "Популярное", "Popüler", "محبوب");
+  const resultsLabel = L("შედეგი", "results", "результатов", "sonuç", "نتیجه");
+  const clearLabel = L("გასუფთავება", "Clear", "Очистить", "Temizle", "پاک کردن");
+  const filtersLabel = L("ფილტრები", "Filters", "Фильтры", "Filtreler", "فیلترها");
+  const partnersLabel = L("პარტნიორები", "Partners", "Партнёры", "Ortaklar", "همکاران");
+  const foodsLabel = L("კერძები", "Dishes", "Блюда", "Yemekler", "غذاها");
+  const catsLabel = L("კატეგორიები", "Categories", "Категории", "Kategoriler", "دسته‌بندی‌ها");
+  const locLabel = L("მდებარეობა", "Location", "Локация", "Konum", "موقعیت");
+  const distanceLabel = L("მანძილი", "Distance", "Расстояние", "Mesafe", "فاصله");
+  const priceLabel = L("ფასი", "Price", "Цена", "Fiyat", "قیمت");
+  const discountLabel = L("ფასდაკლება", "Discount", "Скидка", "İndirim", "تخفیف");
+  const ratingLabel = L("რეიტინგი", "Rating", "Рейтинг", "Puan", "امتیاز");
+  const openNowLabel = L("ღიაა ახლა", "Open now", "Открыто сейчас", "Şu an açık", "اکنون باز است");
+  const pickupLabel = L("აღება მდე", "Pickup by", "Забрать до", "Teslim alma saati", "زمان تحویل تا");
+  const dietLabel = L("დიეტა", "Dietary", "Диета", "Beslenme", "رژیم غذایی");
+  const sortLabel = L("დალაგება", "Sort", "Сорт.", "Sırala", "مرتب‌سازی");
+  const resetLabel = L("გადატვირთვა", "Reset", "Сброс", "Sıfırla", "بازنشانی");
 
   const sortNames: Record<Sort, string> = {
-    distance: L("ახლოს", "Nearest", "Ближе"),
-    price: L("ფასი", "Price", "Цена"),
-    discount: L("ფასდაკლება", "Discount", "Скидка"),
-    rating: L("რეიტინგი", "Rating", "Рейтинг"),
+    distance: L("ახლოს", "Nearest", "Ближе", "En yakın", "نزدیک‌ترین"),
+    price: L("ფასი", "Price", "Цена", "Fiyat", "قیمت"),
+    discount: L("ფასდაკლება", "Discount", "Скидка", "İndirim", "تخفیف"),
+    rating: L("რეიტინგი", "Rating", "Рейтинг", "Puan", "امتیاز"),
   };
 
   const dietNames: Record<Diet, string> = {
-    vegetarian: L("ვეგეტარიანული", "Vegetarian", "Вегетарианское"),
-    vegan: L("ვეგანური", "Vegan", "Веган"),
-    glutenFree: L("გლუტენის გარეშე", "Gluten-free", "Без глютена"),
-    halal: L("ჰალალი", "Halal", "Халяль"),
+    vegetarian: L("ვეგეტარიანული", "Vegetarian", "Вегетарианское", "Vejetaryen", "گیاهی"),
+    vegan: L("ვეგანური", "Vegan", "Веган", "Vegan", "وگان"),
+    glutenFree: L("გლუტენის გარეშე", "Gluten-free", "Без глютена", "Glütensiz", "بدون گلوتن"),
+    halal: L("ჰალალი", "Halal", "Халяль", "Helal", "حلال"),
   };
 
   const toggleDiet = (d: Diet) => {

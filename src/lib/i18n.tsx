@@ -1,7 +1,29 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Globe } from "lucide-react";
+import { trLabels } from "./i18n.tr";
+import { faLabels } from "./i18n.fa";
 
-export type Language = "ka" | "en" | "ru";
+export type Language = "ka" | "en" | "ru" | "tr" | "fa";
+
+export const SUPPORTED_LANGUAGES: Language[] = ["ka", "en", "ru", "tr", "fa"];
+
+function isLanguage(v: unknown): v is Language {
+  return typeof v === "string" && (SUPPORTED_LANGUAGES as string[]).includes(v);
+}
+
+/** Map a navigator language tag to the closest supported language. */
+export function detectLanguage(tags: readonly string[]): Language {
+  for (const raw of tags) {
+    const tag = (raw || "").toLowerCase();
+    const base = tag.split("-")[0];
+    if (base === "ka") return "ka";
+    if (base === "tr") return "tr";
+    if (base === "fa" || base === "per" || base === "prs") return "fa";
+    if (base === "ru") return "ru";
+    if (base === "en") return "en";
+  }
+  return "en";
+}
 
 const STORAGE_KEY = "cheaper-language";
 
@@ -1467,6 +1489,8 @@ const labels: Record<Language, Record<string, string>> = {
     "analytics.noViewsYet": "Пока никто не смотрел.",
     "analytics.views": "просмотров",
   },
+  tr: trLabels,
+  fa: faLabels,
 };
 
 type I18nContextValue = {
@@ -1482,8 +1506,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY) as Language | null;
-    if (saved === "ka" || saved === "en" || saved === "ru") setLanguageState(saved);
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (isLanguage(saved)) {
+      setLanguageState(saved);
+    } else {
+      // First visit: detect once from the device/browser language, then persist.
+      const tags = [
+        ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+        navigator.language,
+      ].filter(Boolean) as string[];
+      const detected = detectLanguage(tags);
+      setLanguageState(detected);
+      try { window.localStorage.setItem(STORAGE_KEY, detected); } catch {}
+    }
     setReady(true);
   }, []);
 
@@ -1507,7 +1542,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     language,
     setLanguage,
-    t: (key: string) => labels[language][key] ?? labels.ka[key] ?? key,
+    t: (key: string) => labels[language][key] ?? labels.en[key] ?? labels.ka[key] ?? key,
   }), [language]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -1528,7 +1563,10 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     { value: "ka", label: "ქართული", short: "ქარ" },
     { value: "en", label: "English", short: "EN" },
     { value: "ru", label: "Русский", short: "РУ" },
+    { value: "tr", label: "Türkçe", short: "TR" },
+    { value: "fa", label: "فارسی", short: "FA" },
   ];
+  const current = options.find((o) => o.value === language) ?? options[0];
 
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1547,81 +1585,49 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     };
   }, [open]);
 
-  const pills = (
-    <div
-      role="group"
-      aria-label={t("language")}
-      className={`${compact ? "hidden sm:inline-flex" : "inline-flex"} items-center rounded-full border border-border bg-card p-0.5 shadow-soft gap-0.5`}
-    >
-      {options.map((option) => {
-        const active = language === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setLanguage(option.value)}
-            aria-pressed={active}
-            aria-label={option.label}
-            title={option.label}
-            className={`inline-flex items-center justify-center rounded-full font-bold leading-none transition-colors ${
-              compact
-                ? "min-w-[36px] h-8 px-2.5 text-[11px]"
-                : "min-w-[44px] h-9 px-3 text-xs"
-            } ${
-              active
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-foreground hover:bg-muted"
-            }`}
-          >
-            {option.short}
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  if (!compact) return pills;
-
   return (
-    <>
-      {pills}
-      <div ref={ref} className="relative sm:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={t("language")}
-          className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("language")}
+        title={current.label}
+        className={`tap-target inline-flex items-center gap-1.5 rounded-full border border-border bg-card press shadow-soft focus-visible:outline-none ${
+          compact ? "h-9 px-2.5" : "h-10 px-3"
+        }`}
+      >
+        <Globe className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+        <span className={`font-bold leading-none ${compact ? "text-[11px]" : "text-xs"}`}>
+          {current.short}
+        </span>
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[170px] rounded-2xl border border-border bg-card p-1 shadow-elevated animate-scale-in"
         >
-          <Globe className="w-[18px] h-[18px]" aria-hidden="true" />
-        </button>
-        {open && (
-          <div
-            role="listbox"
-            className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[160px] rounded-2xl border border-border bg-card p-1 shadow-elevated animate-scale-in"
-          >
-            {options.map((option) => {
-              const active = language === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => { setLanguage(option.value); setOpen(false); }}
-                  className={`w-full min-h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-semibold transition-colors ${
-                    active ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                  }`}
-                >
-                  {option.label}
-                  {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </>
+          {options.map((option) => {
+            const active = language === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => { setLanguage(option.value); setOpen(false); }}
+                className={`w-full min-h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-semibold transition-colors ${
+                  active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                }`}
+              >
+                {option.label}
+                {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

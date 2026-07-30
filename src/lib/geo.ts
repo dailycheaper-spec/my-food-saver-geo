@@ -27,13 +27,13 @@ export function formatDistance(km: number): string {
   return `${km.toFixed(1)} კმ`;
 }
 
-type LangLike = "ka" | "en" | "ru";
+type LangLike = "ka" | "en" | "ru" | "tr" | "fa";
 
-const KM_LOCALE: Record<LangLike, string> = { ka: "en-US", en: "en-US", ru: "ru-RU" };
+const KM_LOCALE: Record<LangLike, string> = { ka: "en-US", en: "en-US", ru: "ru-RU", tr: "tr-TR", fa: "fa-IR" };
 
 function unit(language: LangLike, kind: "m" | "km"): string {
-  if (kind === "m") return language === "ka" ? "მ" : language === "ru" ? "м" : "m";
-  return language === "ka" ? "კმ" : language === "ru" ? "км" : "km";
+  if (kind === "m") return language === "ka" ? "მ" : language === "ru" ? "м" : language === "fa" ? "متر" : "m";
+  return language === "ka" ? "კმ" : language === "ru" ? "км" : language === "fa" ? "کیلومتر" : "km";
 }
 
 /** Locale-aware distance for offer/store/popup UIs. */

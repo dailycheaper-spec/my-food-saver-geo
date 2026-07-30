@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Bell, MapPin, Check } from "lucide-react";
-import { CATEGORIES } from "@/lib/mock-data";
+import { CATEGORIES, getCategoryLabel } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 
@@ -12,7 +12,7 @@ export const Route = createFileRoute("/notifications")({
 
 function Notifications() {
   const { t, language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) => (language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -40,11 +40,13 @@ function Notifications() {
   }
 
   function triggerDemo() {
-    const title = L("🥖 ახალი პაკეტი 1.2 კმ-ში", "🥖 New bag 1.2 km away", "🥖 Новый пакет в 1.2 км");
+    const title = L("🥖 ახალი პაკეტი 1.2 კმ-ში", "🥖 New bag 1.2 km away", "🥖 Новый пакет в 1.2 км", "🥖 1.2 km uzaklıkta yeni paket", "🥖 بسته جدید در ۱.۲ کیلومتری");
     const body = L(
       `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`,
       `Puri Guliani — surprise bag for 10 ${t("currency")}`,
       `Пури Гулиани — сюрприз-пакет за 10 ${t("currency")}`,
+      `Puri Guliani — sürpriz paket 10 ${t("currency")} karşılığında`,
+      `پوری گولیانی — بسته سورپرایز به قیمت ۱۰ ${t("currency")}`,
     );
     if (permission === "granted") {
       new Notification(title, { body, icon: "/favicon.ico" });
@@ -101,7 +103,7 @@ function Notifications() {
           <div className="flex-1">
             <div className="font-semibold">{t("address")}</div>
             <div className="text-xs text-muted-foreground">
-              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : L("ვერ ვხედავ შენს ლოკაციას", "Location not available", "Местоположение недоступно")}
+              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : L("ვერ ვხედავ შენს ლოკაციას", "Location not available", "Местоположение недоступно", "Konum bulunamıyor", "موقعیت مکانی در دسترس نیست")}
             </div>
           </div>
           <button onClick={requestLocation} className="px-4 py-2 rounded-full bg-card border border-border text-sm font-semibold">
@@ -141,7 +143,7 @@ function Notifications() {
                   on ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
                 }`}
               >
-                {c.icon} {c.label}
+                {c.icon} {getCategoryLabel(c.id, language)}
               </button>
             );
           })}

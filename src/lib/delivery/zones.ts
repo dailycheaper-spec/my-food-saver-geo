@@ -1,3 +1,4 @@
+import type { Language } from "@/lib/i18n";
 import { calculateDistanceKm } from "@/lib/geo";
 
 export interface DeliveryStoreZone {
@@ -47,10 +48,12 @@ export function validateDeliveryLocation(
 
 export function deliveryZoneMessage(
   result: DeliveryZoneResult,
-  language: "ka" | "en" | "ru",
+  language: Language,
 ): string | null {
   if (result.allowed) return null;
   if (language === "en") return "This spot is outside the store's delivery zone.";
   if (language === "ru") return "Это место вне зоны доставки магазина.";
+  if (language === "tr") return "Bu konum mağazanın teslimat bölgesi dışında.";
+  if (language === "fa") return "این مکان خارج از محدوده تحویل فروشگاه است.";
   return "ეს ადგილი მაღაზიის მიტანის ზონის გარეთაა.";
 }

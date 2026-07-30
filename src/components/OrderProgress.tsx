@@ -27,16 +27,16 @@ export function stageOfOrder(o: Order): OrderStage {
 
 export function useStageLabel(): (s: OrderStage) => string {
   const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
+  const L = (ka: string, en: string, ru: string, tr: string, fa: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? tr : language === "fa" ? fa : ka;
   return (s) => {
     switch (s) {
-      case "pending": return L("მოლოდინში", "Pending", "В ожидании");
-      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено");
-      case "preparing": return L("მზადდება", "Preparing", "Готовится");
-      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче");
-      case "completed": return L("დასრულებული", "Completed", "Завершено");
-      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено");
+      case "pending": return L("მოლოდინში", "Pending", "В ожидании", "Beklemede", "در انتظار");
+      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено", "Onaylandı", "تأیید شد");
+      case "preparing": return L("მზადდება", "Preparing", "Готовится", "Hazırlanıyor", "در حال آماده‌سازی");
+      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче", "Teslim almaya hazır", "آماده تحویل");
+      case "completed": return L("დასრულებული", "Completed", "Завершено", "Tamamlandı", "تکمیل شد");
+      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено", "İptal edildi", "لغو شد");
     }
   };
 }

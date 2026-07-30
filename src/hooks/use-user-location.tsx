@@ -30,7 +30,8 @@ const LocationContext = createContext<Ctx | null>(null);
 export function UserLocationProvider({ children }: { children: ReactNode }) {
   const { language } = useI18n();
   const L = useCallback(
-    (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
+    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
     [language],
   );
   const [location, setLocation] = useState<UserLocation | null>(null);
@@ -46,6 +47,8 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
         "თქვენი ბრაუზერი არ უჭერს მხარს მდებარეობის განსაზღვრას.",
         "Your browser does not support geolocation.",
         "Ваш браузер не поддерживает геолокацию.",
+        "Tarayıcınız konum belirlemeyi desteklemiyor.",
+        "مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.",
       ));
       return;
     }
@@ -91,6 +94,8 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
               "მდებარეობის წვდომა უარყოფილია. შეგიძლიათ ხელახლა სცადოთ.",
               "Location access denied. You can try again.",
               "Доступ к геолокации отклонён. Можно попробовать снова.",
+              "Konum erişimi reddedildi. Tekrar deneyebilirsiniz.",
+              "دسترسی به موقعیت مکانی رد شد. می‌توانید دوباره تلاش کنید.",
             ));
           } else {
             setStatus("error");
@@ -98,6 +103,8 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
               "მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ ხელახლა.",
               "Could not determine your location. Please try again.",
               "Не удалось определить местоположение. Попробуйте снова.",
+              "Konumunuz belirlenemedi. Lütfen tekrar deneyin.",
+              "موقعیت شما مشخص نشد. لطفاً دوباره تلاش کنید.",
             ));
           }
           resolve(null);
@@ -132,7 +139,8 @@ export function useUserLocation() {
 
 function LocationExplainModal() {
   const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
   const { isExplaining, request, cancel } = useUserLocation();
   if (!isExplaining) return null;
   return (
@@ -148,13 +156,15 @@ function LocationExplainModal() {
       >
         <div className="text-4xl mb-2">📍</div>
         <h3 className="font-display text-lg font-bold">
-          {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию")}
+          {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию", "Konumu aç", "فعال‌سازی موقعیت مکانی")}
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {L(
             "ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები. თქვენი კოორდინატები არსად არ ინახება.",
             "Enable location so we can show offers near you. Your coordinates are not stored anywhere.",
             "Включите геолокацию, чтобы показать предложения рядом. Ваши координаты нигде не сохраняются.",
+            "Yakınınızdaki fırsatları gösterebilmemiz için konumu açın. Koordinatlarınız hiçbir yerde saklanmaz.",
+            "موقعیت مکانی را فعال کنید تا پیشنهادهای نزدیک شما را نشان دهیم. مختصات شما در هیچ جایی ذخیره نمی‌شود.",
           )}
         </p>
         <div className="mt-5 flex flex-col gap-2">
@@ -163,14 +173,14 @@ function LocationExplainModal() {
             onClick={() => void request()}
             className="w-full h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm press"
           >
-            {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию")}
+            {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию", "Konumu aç", "فعال‌سازی موقعیت مکانی")}
           </button>
           <button
             type="button"
             onClick={cancel}
             className="w-full h-11 rounded-2xl bg-secondary text-foreground font-semibold text-sm press"
           >
-            {L("არა ახლა", "Not now", "Не сейчас")}
+            {L("არა ახლა", "Not now", "Не сейчас", "Şimdi değil", "الان نه")}
           </button>
         </div>
       </div>

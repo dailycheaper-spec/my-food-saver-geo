@@ -64,7 +64,8 @@ function MapFlyTo({ pos }: { pos: [number, number] | null }) {
 export default function AddressPicker({ open, onClose, onSelect, store, manageOnly, showCitySwitch }: Props) {
   const { language } = useI18n();
   const L = useCallback(
-    (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
+    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
     [language],
   );
   const { user } = useAuth();
@@ -282,7 +283,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
       pinAddress.trim() ||
       (reverseFailed ? `${center[0].toFixed(5)}, ${center[1].toFixed(5)}` : "");
     if (line.length < 3) {
-      toast.error(L("აირჩიეთ მისამართი რუკაზე", "Pick an address on the map", "Выберите адрес на карте"));
+      toast.error(L("აირჩიეთ მისამართი რუკაზე", "Pick an address on the map", "Выберите адрес на карте", "Haritada bir adres seçin", "آدرسی را روی نقشه انتخاب کنید"));
       return;
     }
     let savedId: string | undefined = editingId;
@@ -348,18 +349,18 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             type="button"
             onClick={() => (step === "list" ? onClose() : setStep(step === "details" ? "map" : "list"))}
             className="w-9 h-9 rounded-full bg-secondary grid place-items-center shrink-0"
-            aria-label={L("უკან", "Back", "Назад")}
+            aria-label={L("უკან", "Back", "Назад", "Geri", "بازگشت")}
           >
             {step === "list" ? <X className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
           </button>
           <h2 className="font-display text-base font-bold truncate">
             {step === "list"
               ? manageOnly
-                ? L("ჩემი მისამართები", "My addresses", "Мои адреса")
-                : L("სად მოგიტანოთ?", "Where should we deliver?", "Куда доставить?")
+                ? L("ჩემი მისამართები", "My addresses", "Мои адреса", "Adreslerim", "آدرس‌های من")
+                : L("სად მოგიტანოთ?", "Where should we deliver?", "Куда доставить?", "Nereye teslim edelim?", "کجا تحویل بدهیم؟")
               : step === "map"
-                ? L("მიუთითეთ ზუსტი ადგილი", "Pin the exact spot", "Укажите точное место")
-                : L("მისამართის დეტალები", "Address details", "Детали адреса")}
+                ? L("მიუთითეთ ზუსტი ადგილი", "Pin the exact spot", "Укажите точное место", "Tam konumu işaretleyin", "مکان دقیق را مشخص کنید")
+                : L("მისამართის დეტალები", "Address details", "Детали адреса", "Adres detayları", "جزئیات آدرس")}
           </h2>
           <span className="w-9" />
         </div>
@@ -372,8 +373,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                aria-label={L("მისამართის ძებნა", "Search address", "Поиск адреса")}
-                placeholder={L("მოძებნეთ ქუჩა და ნომერი…", "Search street and number…", "Найдите улицу и номер…")}
+                aria-label={L("მისამართის ძებნა", "Search address", "Поиск адреса", "Adres ara", "جستجوی آدرس")}
+                placeholder={L("მოძებნეთ ქუჩა და ნომერი…", "Search street and number…", "Найдите улицу и номер…", "Sokak ve numara arayın…", "خیابان و شماره را جستجو کنید…")}
                 className="w-full h-12 pl-10 pr-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
@@ -400,7 +401,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                         setFlyTo([d.lat, d.lng]);
                         setStep("map");
                       } catch {
-                        toast.error(L("მისამართი ვერ მოიძებნა", "Could not load that address", "Не удалось загрузить адрес"));
+                        toast.error(L("მისამართი ვერ მოიძებნა", "Could not load that address", "Не удалось загрузить адрес", "Bu adres yüklenemedi", "بارگذاری این آدرس ممکن نشد"));
                       }
                     }}
                     className="w-full flex items-start gap-3 p-3.5 text-left hover:bg-muted/40 transition-colors"
@@ -420,11 +421,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             {searchFailed && query.trim().length >= 3 && (
               <p className="flex items-start gap-2 text-xs text-muted-foreground px-1" role="status">
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
-                {L(
-                  "მისამართის ძებნა დროებით მიუწვდომელია — მონიშნეთ ადგილი რუკაზე.",
-                  "Address search is temporarily unavailable — pick your location on the map.",
-                  "Поиск адреса временно недоступен — укажите место на карте.",
-                )}
+                {L("მისამართის ძებნა დროებით მიუწვდომელია — მონიშნეთ ადგილი რუკაზე.", "Address search is temporarily unavailable — pick your location on the map.", "Поиск адреса временно недоступен — укажите место на карте.", "Adres arama geçici olarak kullanılamıyor — konumunuzu haritadan seçin.", "جستجوی آدرس موقتاً در دسترس نیست — مکان خود را روی نقشه انتخاب کنید.")}
               </p>
             )}
 
@@ -437,14 +434,14 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <Navigation className="w-5 h-5 text-primary shrink-0" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-bold">
-                  {L("მიმდინარე მდებარეობა", "Current location", "Текущее местоположение")}
+                  {L("მიმდინარე მდებარეობა", "Current location", "Текущее местоположение", "Mevcut konum", "موقعیت فعلی")}
                 </span>
                 <span className="block text-xs text-muted-foreground truncate">
                   {location
                     ? currentLabel || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
                     : status === "denied"
-                      ? L("წვდომა დახურულია — შეეხეთ ხელახლა", "Access blocked — tap to retry", "Доступ закрыт — нажмите ещё раз")
-                      : L("შეეხეთ მდებარეობის ჩასართავად", "Tap to enable location", "Нажмите, чтобы включить")}
+                      ? L("წვდომა დახურულია — შეეხეთ ხელახლა", "Access blocked — tap to retry", "Доступ закрыт — нажмите ещё раз", "Erişim engellendi — tekrar denemek için dokunun", "دسترسی مسدود شده — برای تلاش دوباره ضربه بزنید")
+                      : L("შეეხეთ მდებარეობის ჩასართავად", "Tap to enable location", "Нажмите, чтобы включить", "Konumu etkinleştirmek için dokunun", "برای فعال‌سازی مکان ضربه بزنید")}
                 </span>
               </span>
             </button>
@@ -452,11 +449,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             {status === "denied" && (
               <p className="flex items-start gap-2 text-xs text-muted-foreground px-1">
                 <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
-                {L(
-                  "მდებარეობა დაბლოკილია. მოძებნეთ მისამართი ან მონიშნეთ რუკაზე.",
-                  "Location is blocked. Search for the address or drop a pin on the map instead.",
-                  "Геолокация заблокирована. Найдите адрес или укажите точку на карте.",
-                )}
+                {L("მდებარეობა დაბლოკილია. მოძებნეთ მისამართი ან მონიშნეთ რუკაზე.", "Location is blocked. Search for the address or drop a pin on the map instead.", "Геолокация заблокирована. Найдите адрес или укажите точку на карте.", "Konum engellendi. Adresi arayın veya haritada bir konum işaretleyin.", "مکان مسدود شده است. آدرس را جستجو کنید یا مکانی را روی نقشه علامت بزنید.")}
               </p>
             )}
 
@@ -464,13 +457,13 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             {user && (
               <div className="pt-1">
                 <div className="text-xs font-semibold text-muted-foreground px-1 mb-1.5">
-                  {L("შენახული მისამართები", "Saved addresses", "Сохранённые адреса")}
+                  {L("შენახული მისამართები", "Saved addresses", "Сохранённые адреса", "Kayıtlı adresler", "آدرس‌های ذخیره‌شده")}
                 </div>
                 {loadingSaved ? (
                   <div className="h-16 rounded-2xl bg-secondary animate-pulse" />
                 ) : saved.length === 0 ? (
                   <p className="text-xs text-muted-foreground px-1">
-                    {L("ჯერ არაფერია შენახული.", "Nothing saved yet.", "Пока ничего не сохранено.")}
+                    {L("ჯერ არაფერია შენახული.", "Nothing saved yet.", "Пока ничего не сохранено.", "Henüz bir şey kaydedilmedi.", "هنوز چیزی ذخیره نشده است.")}
                   </p>
                 ) : (
                   <div className="rounded-2xl border border-border divide-y divide-border overflow-hidden">
@@ -495,7 +488,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                               <span className="text-sm font-bold truncate">{addressLabelText(a, language)}</span>
                               {a.is_default && (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold shrink-0">
-                                  {L("ძირითადი", "Default", "Основной")}
+                                  {L("ძირითადი", "Default", "Основной", "Varsayılan", "پیش‌فرض")}
                                 </span>
                               )}
                             </span>
@@ -512,7 +505,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                             type="button"
                             onClick={() => editSaved(a)}
                             className="w-9 h-9 rounded-full bg-secondary grid place-items-center"
-                            aria-label={L("რედაქტირება", "Edit", "Изменить")}
+                            aria-label={L("რედაქტირება", "Edit", "Изменить", "Düzenle", "ویرایش")}
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -520,7 +513,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                             type="button"
                             onClick={() => void deleteAddress.mutateAsync(a.id)}
                             className="w-9 h-9 rounded-full bg-secondary grid place-items-center text-destructive"
-                            aria-label={L("წაშლა", "Delete", "Удалить")}
+                            aria-label={L("წაშლა", "Delete", "Удалить", "Sil", "حذف")}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -542,13 +535,13 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               className="w-full h-12 rounded-2xl bg-secondary font-semibold text-sm flex items-center justify-center gap-2 press"
             >
               <Plus className="w-4 h-4" />
-              {L("ახალი მისამართის დამატება", "Add a new address", "Добавить новый адрес")}
+              {L("ახალი მისამართის დამატება", "Add a new address", "Добавить новый адрес", "Yeni adres ekle", "افزودن آدرس جدید")}
             </button>
 
             {showCitySwitch && (
               <div className="pt-2">
                 <div className="text-xs font-semibold text-muted-foreground px-1 mb-1.5">
-                  {L("ქალაქის შეცვლა", "Change city", "Сменить город")}
+                  {L("ქალაქის შეცვლა", "Change city", "Сменить город", "Şehri değiştir", "تغییر شهر")}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {CITIES.map((c: City) => {
@@ -614,7 +607,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                 type="button"
                 onClick={() => void useCurrentLocation()}
                 className="absolute right-3 bottom-3 w-11 h-11 rounded-full bg-card shadow-elevated grid place-items-center"
-                aria-label={L("ჩემი მდებარეობა", "My location", "Моё местоположение")}
+                aria-label={L("ჩემი მდებარეობა", "My location", "Моё местоположение", "Konumum", "موقعیت من")}
               >
                 <Crosshair className="w-5 h-5 text-primary" />
               </button>
@@ -628,18 +621,18 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                     {resolving ? (
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        {L("იძებნება…", "Locating…", "Поиск…")}
+                        {L("იძებნება…", "Locating…", "Поиск…", "Konum belirleniyor…", "در حال یافتن…")}
                       </span>
                     ) : (
                       pinAddress ||
                       (reverseFailed
                         ? `${center[0].toFixed(5)}, ${center[1].toFixed(5)}`
-                        : L("გადაათრიეთ რუკა", "Drag the map", "Перетащите карту"))
+                        : L("გადაათრიეთ რუკა", "Drag the map", "Перетащите карту", "Haritayı sürükleyin", "نقشه را بکشید"))
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {distanceKm != null &&
-                      `${L("მაღაზიიდან", "from the store", "от магазина")} ${distanceKm.toFixed(1)} ${L("კმ", "km", "км")}`}
+                      `${L("მაღაზიიდან", "from the store", "от магазина", "mağazadan", "از فروشگاه")} ${distanceKm.toFixed(1)} ${L("კმ", "km", "км", "km", "کیلومتر")}`}
                   </div>
                 </div>
               </div>
@@ -648,17 +641,13 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                 <div className="flex items-start gap-2 text-[11px] text-muted-foreground">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
                   <span>
-                    {L(
-                      "მისამართის სახელი ვერ ჩაიტვირთა — ადგილი მაინც სწორია.",
-                      "Couldn't load the address name — the spot itself is still correct.",
-                      "Не удалось загрузить название адреса — само место указано верно.",
-                    )}{" "}
+                    {L("მისამართის სახელი ვერ ჩაიტვირთა — ადგილი მაინც სწორია.", "Couldn't load the address name — the spot itself is still correct.", "Не удалось загрузить название адреса — само место указано верно.", "Adres adı yüklenemedi — konumun kendisi yine de doğru.", "نام آدرس بارگذاری نشد — اما مکان همچنان صحیح است.")}{" "}
                     <button
                       type="button"
                       onClick={() => void resolvePin(center[0], center[1])}
                       className="text-primary font-semibold underline"
                     >
-                      {L("ხელახლა", "Retry", "Повторить")}
+                      {L("ხელახლა", "Retry", "Повторить", "Tekrar dene", "تلاش دوباره")}
                     </button>
                   </span>
                 </div>
@@ -667,22 +656,14 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               {poorAccuracy && (
                 <p className="flex items-start gap-2 text-[11px] text-muted-foreground">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
-                  {L(
-                    "GPS სიზუსტე დაბალია — გთხოვთ, გადაათრიოთ რუკა ზუსტ ადგილზე.",
-                    "GPS accuracy is low — please drag the map onto the exact spot.",
-                    "Низкая точность GPS — перетащите карту на точное место.",
-                  )}
+                  {L("GPS სიზუსტე დაბალია — გთხოვთ, გადაათრიოთ რუკა ზუსტ ადგილზე.", "GPS accuracy is low — please drag the map onto the exact spot.", "Низкая точность GPS — перетащите карту на точное место.", "GPS doğruluğu düşük — lütfen haritayı tam konuma sürükleyin.", "دقت GPS پایین است — لطفاً نقشه را به مکان دقیق بکشید.")}
                 </p>
               )}
 
               {outOfRange && (
                 <p className="flex items-start gap-2 text-[11px] text-destructive">
                   <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  {L(
-                    "ეს ადგილი მაღაზიის მიტანის ზონის გარეთაა.",
-                    "This spot is outside the store's delivery zone.",
-                    "Это место вне зоны доставки магазина.",
-                  )}
+                  {L("ეს ადგილი მაღაზიის მიტანის ზონის გარეთაა.", "This spot is outside the store's delivery zone.", "Это место вне зоны доставки магазина.", "Bu konum, mağazanın teslimat bölgesinin dışında.", "این مکان خارج از محدوده تحویل فروشگاه است.")}
                 </p>
               )}
 
@@ -692,7 +673,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                 onClick={() => setStep("details")}
                 className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 press"
               >
-                {L("დადასტურება", "Confirm location", "Подтвердить")}
+                {L("დადასტურება", "Confirm location", "Подтвердить", "Konumu onayla", "تأیید موقعیت")}
               </button>
             </div>
           </div>
@@ -707,7 +688,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                 <input
                   value={pinAddress}
                   onChange={(e) => setPinAddress(e.target.value.slice(0, 200))}
-                  aria-label={L("მისამართი", "Address", "Адрес")}
+                  aria-label={L("მისამართი", "Address", "Адрес", "Adres", "آدرس")}
                   className="w-full bg-transparent text-sm font-bold focus:outline-none"
                 />
                 <button
@@ -715,22 +696,22 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                   onClick={() => setStep("map")}
                   className="text-xs text-primary font-semibold"
                 >
-                  {L("რუკაზე შეცვლა", "Change on map", "Изменить на карте")}
+                  {L("რუკაზე შეცვლა", "Change on map", "Изменить на карте", "Haritada değiştir", "تغییر در نقشه")}
                 </button>
               </div>
             </div>
 
             <details className="rounded-2xl border border-border overflow-hidden" open={!!(entrance || floor || apartment || doorCode)}>
               <summary className="flex items-center justify-between gap-2 h-12 px-4 text-sm font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-                {L("დამატებითი დეტალები", "Extra details", "Дополнительные детали")}
+                {L("დამატებითი დეტალები", "Extra details", "Дополнительные детали", "Ek detaylar", "جزئیات بیشتر")}
                 <ChevronDown className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
               </summary>
               <div className="grid grid-cols-2 gap-2 p-3 pt-0">
                 {[
-                  { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд") },
-                  { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж") },
-                  { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира") },
-                  { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери") },
+                  { id: "entrance", value: entrance, set: setEntrance, ph: L("სადარბაზო", "Entrance", "Подъезд", "Giriş", "ورودی") },
+                  { id: "floor", value: floor, set: setFloor, ph: L("სართული", "Floor", "Этаж", "Kat", "طبقه") },
+                  { id: "apartment", value: apartment, set: setApartment, ph: L("ბინა", "Apartment", "Квартира", "Daire", "واحد") },
+                  { id: "doorCode", value: doorCode, set: setDoorCode, ph: L("კარის კოდი", "Door code", "Код двери", "Kapı kodu", "کد درب") },
                 ].map((f) => (
                   <input
                     key={f.id}
@@ -748,11 +729,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               value={courierNote}
               onChange={(e) => setCourierNote(e.target.value.slice(0, 300))}
               rows={2}
-              placeholder={L(
-                "შენიშვნა კურიერისთვის (მაგ: დარეკეთ მისვლისას)",
-                "Note for the courier (e.g. call on arrival)",
-                "Заметка курьеру (напр.: позвоните по прибытии)",
-              )}
+              placeholder={L("შენიშვნა კურიერისთვის (მაგ: დარეკეთ მისვლისას)", "Note for the courier (e.g. call on arrival)", "Заметка курьеру (напр.: позвоните по прибытии)", "Kurye için not (örn. varınca arayın)", "یادداشت برای پیک (مثلاً هنگام رسیدن تماس بگیرید)")}
               className="w-full px-4 py-3 rounded-2xl bg-secondary text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
             />
 
@@ -760,7 +737,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               <>
                 <div>
                   <div className="text-xs font-semibold text-muted-foreground mb-1.5">
-                    {L("იარლიყი", "Label", "Метка")}
+                    {L("იარლიყი", "Label", "Метка", "Etiket", "برچسب")}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {(["home", "work", "other"] as AddressLabel[]).map((id) => (
@@ -773,10 +750,10 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                         }`}
                       >
                         {id === "home"
-                          ? L("სახლი", "Home", "Дом")
+                          ? L("სახლი", "Home", "Дом", "Ev", "خانه")
                           : id === "work"
-                            ? L("სამსახური", "Work", "Работа")
-                            : L("სხვა", "Other", "Другое")}
+                            ? L("სამსახური", "Work", "Работа", "İş", "محل کار")
+                            : L("სხვა", "Other", "Другое", "Diğer", "سایر")}
                       </button>
                     ))}
                   </div>
@@ -784,14 +761,14 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                     <input
                       value={customLabel}
                       onChange={(e) => setCustomLabel(e.target.value.slice(0, 40))}
-                      placeholder={L("სახელი (მაგ: მეგობარი)", "Name (e.g. friend)", "Название (напр.: друг)")}
+                      placeholder={L("სახელი (მაგ: მეგობარი)", "Name (e.g. friend)", "Название (напр.: друг)", "İsim (örn. arkadaş)", "نام (مثلاً دوست)")}
                       className="mt-2 w-full h-12 px-4 rounded-2xl bg-secondary text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   )}
                 </div>
 
                 <label className="flex items-center justify-between gap-3 text-sm font-medium">
-                  <span>{L("ძირითად მისამართად დაყენება", "Set as default address", "Сделать основным")}</span>
+                  <span>{L("ძირითად მისამართად დაყენება", "Set as default address", "Сделать основным", "Varsayılan adres olarak ayarla", "تنظیم به‌عنوان آدرس پیش‌فرض")}</span>
                   <input
                     type="checkbox"
                     checked={isDefault}
@@ -802,7 +779,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
 
                 {!manageOnly && !editingId && (
                   <label className="flex items-center justify-between gap-3 text-sm font-medium">
-                    <span>{L("მისამართის შენახვა", "Save this address", "Сохранить адрес")}</span>
+                    <span>{L("მისამართის შენახვა", "Save this address", "Сохранить адрес", "Bu adresi kaydet", "ذخیره این آدرس")}</span>
                     <input
                       type="checkbox"
                       checked={saveForLater}
@@ -822,8 +799,8 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             >
               {saveAddress.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               {manageOnly
-                ? L("შენახვა", "Save", "Сохранить")
-                : L("მისამართის გამოყენება", "Use this address", "Использовать адрес")}
+                ? L("შენახვა", "Save", "Сохранить", "Kaydet", "ذخیره")
+                : L("მისამართის გამოყენება", "Use this address", "Использовать адрес", "Bu adresi kullan", "استفاده از این آدرس")}
             </button>
           </div>
         )}
