@@ -14,6 +14,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { AndroidBackHandler } from "@/components/AndroidBackHandler";
 import { IosSwipeBack } from "@/components/IosSwipeBack";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 import { PwaInstall } from "@/components/PwaInstall";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
@@ -250,6 +251,8 @@ function RootComponent() {
             <AppTracker />
             <AndroidBackHandler />
             <IosSwipeBack />
+            <PullToRefresh />
+
 
             <PwaInstall />
             <Toaster position="top-center" richColors />
