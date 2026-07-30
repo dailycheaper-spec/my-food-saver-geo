@@ -255,6 +255,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
               <Input label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
               <Input label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
               <Input label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+              <Input label={t("titleTrOptional")} value={form.title_tr} onChange={(v) => setForm({ ...form, title_tr: v })} />
+              <Input label={t("titleFaOptional")} value={form.title_fa} onChange={(v) => setForm({ ...form, title_fa: v })} />
+              <Input label={t("descriptionTrOptional")} value={form.description_tr} onChange={(v) => setForm({ ...form, description_tr: v })} />
+              <Input label={t("descriptionFaOptional")} value={form.description_fa} onChange={(v) => setForm({ ...form, description_fa: v })} />
             </div>
           </details>
           <Input label={t("qtyLbl")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
