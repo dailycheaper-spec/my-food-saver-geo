@@ -82,6 +82,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     itemsLeft,
     delivery: Boolean(row.delivery_available ?? row.store?.delivery_enabled ?? false),
     deliveryFee: Number(row.store?.delivery_fee_base ?? 0),
+    deliveryRadiusKm: storeAny?.delivery_radius_km != null ? Number(storeAny.delivery_radius_km) : undefined,
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
     visibilityRadiusKm: storeAny?.visibility_radius_km ?? undefined,
