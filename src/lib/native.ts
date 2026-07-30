@@ -54,6 +54,18 @@ export async function registerDeepLinkHandler(handler: Handler): Promise<() => v
   return () => { sub.remove(); };
 }
 
+// When OAuth launches a terminated app, appUrlOpen can fire before React has
+// mounted its listener. Capacitor retains that first URL for explicit pickup.
+export async function getNativeLaunchUrl(): Promise<string | null> {
+  if (!isNative()) return null;
+  try {
+    const result = await App.getLaunchUrl();
+    return result?.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // Read the OS-level device language inside the packaged app. Some Android OEM
 // WebViews report a wrong/stale navigator.language, so on native we ask the
 // system directly and only fall back to the browser tags if that fails.

@@ -137,10 +137,11 @@ function RootComponent() {
     // (/order-return). No-op in the browser.
     let unsubscribeDeepLink: (() => void) | null = null;
     void (async () => {
-      const { startNativeSessionPersistence } = await import("@/lib/native-session");
-      await startNativeSessionPersistence();
-      const { registerDeepLinkHandler, closeExternal } = await import("@/lib/native");
-      unsubscribeDeepLink = await registerDeepLinkHandler(async ({ url }) => {
+      const { registerDeepLinkHandler, getNativeLaunchUrl, closeExternal } = await import("@/lib/native");
+      let lastHandledUrl: string | null = null;
+      const handleNativeUrl = async (url: string) => {
+        if (url === lastHandledUrl) return;
+        lastHandledUrl = url;
         try {
           const u = new URL(url);
           const host = u.host || u.pathname.replace(/^\/+/, "");
@@ -186,10 +187,17 @@ function RootComponent() {
             }
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
           console.warn("[deep-link] failed to handle", url, err);
         }
-      });
+      };
+
+      // Register first so a foreground callback cannot race session hydration.
+      unsubscribeDeepLink = await registerDeepLinkHandler(({ url }) => handleNativeUrl(url));
+      const { startNativeSessionPersistence } = await import("@/lib/native-session");
+      await startNativeSessionPersistence();
+
+      const launchUrl = await getNativeLaunchUrl();
+      if (launchUrl) await handleNativeUrl(launchUrl);
     })();
 
     return () => {
