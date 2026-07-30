@@ -1,3 +1,4 @@
+import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
