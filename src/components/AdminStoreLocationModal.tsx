@@ -92,7 +92,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4"
+      className="fixed inset-0 z-[1200] bg-foreground/40 backdrop-blur-sm grid place-items-center p-4"
       onClick={onClose}
     >
       <div
