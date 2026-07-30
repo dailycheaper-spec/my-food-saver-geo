@@ -70,7 +70,16 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
   );
   const { user } = useAuth();
   const { city, setCity } = useCity();
-  const { location, status, askPermission, request } = useUserLocation();
+  const {
+    location,
+    status,
+    askPermission,
+    request,
+    refresh,
+    isLocating,
+    isStale,
+    error: locationError,
+  } = useUserLocation();
   const { data: saved = [], isLoading: loadingSaved } = useMyAddresses(!!user && open);
   const saveAddress = useSaveAddress();
   const deleteAddress = useDeleteAddress();
