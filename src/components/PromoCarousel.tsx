@@ -167,7 +167,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                     }
                   />
                   <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-                  <div className="relative p-4 sm:p-6 px-12 sm:px-16 pb-10 sm:pb-12 text-primary-foreground flex flex-col justify-end min-h-[200px] sm:min-h-[280px]">
+                  <div className="relative pt-4 sm:pt-6 pl-12 sm:pl-16 pr-12 sm:pr-16 pb-10 sm:pb-12 text-primary-foreground flex flex-col justify-end min-h-[200px] sm:min-h-[280px]">
                     {b.badge && (
                       <div className="inline-flex self-start items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
                         <Sparkles className="w-3 h-3" aria-hidden="true" />
