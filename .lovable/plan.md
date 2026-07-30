@@ -1,31 +1,33 @@
-## What's happening
+## Confirmed diagnosis
 
-On native, sign-in opens the Google page in a system browser tab (Chrome Custom Tab / Safari view). Google returns to the backend, which redirects to the bounce page `https://cheaper.ge/auth/native-return`. That page tries to jump to `ge.cheaper.app://auth-callback...` with an automatic `window.location.replace()`.
+The backend redirect allow-list is correct for both `https://cheaper.ge/**` and `https://www.cheaper.ge/**`, and the native scheme `ge.cheaper.app` is registered on Android and iOS.
 
-Two failure points, both confirmed by reading the code:
+The actual failure is routing inside the deployed app:
 
-1. **Automatic scheme jump is often blocked.** Chrome Custom Tab and Safari view controller suppress automatic (non-user-initiated) navigations to a custom app scheme. When suppressed, the tab simply stays open — and because that tab is a real browser session on cheaper.ge, it ends up signed in while the app does not. This matches exactly what you're seeing.
-2. **Only one token format is handled.** The deep-link handler in the app root only accepts `access_token` + `refresh_token`. If the backend returns an authorization `code` instead, the handler silently does nothing and the app stays signed out.
+- `src/routes/auth.native-return.tsx` is generated as a **child route of `/auth`**.
+- `src/routes/auth.tsx` does not render an `<Outlet />`, so visiting `/auth/native-return` renders the ordinary sign-in page instead of `NativeAuthReturn`.
+- The live production URL confirms this: `https://cheaper.ge/auth/native-return?platform=android` currently returns the regular login screen shown in the screenshot.
+- Therefore the OAuth credentials remain in the browser URL/session, while the code that forwards them to `ge.cheaper.app://auth-callback` never runs.
 
-## The fix
+## Implementation plan
 
-**1. Make the bounce page reliably hand off to the app**
-- Trigger the app-scheme jump via a synthetic anchor click immediately on load (survives more browser restrictions than `location.replace`), and retry once shortly after.
-- Always render a large, prominent "Open the app" button so there is a real user gesture path when auto-handoff is blocked — instead of today's small text link.
-- Show a short status ("returning to the app…") and, after a couple of seconds without success, switch the copy to instruct tapping the button. Georgian/EN/RU/TR/FA strings added to i18n.
+1. **Make the native return page a root-owned URL**
+   - Rename the route using TanStack Router’s non-nested file convention so `/auth/native-return` remains the public URL but is no longer rendered through the `/auth` component.
+   - Keep the OAuth `redirectTo` value on the HTTPS return URL already covered by the backend allow-list.
 
-**2. Accept both return formats in the app**
-- In the deep-link handler: keep the token path, and add handling for a `code` parameter by exchanging it for a session; if neither is present or the exchange fails, surface a clear error toast instead of failing silently.
-- After a successful session set, close the external browser, then navigate to the saved redirect target.
+2. **Harden credential handoff to the installed app**
+   - Preserve the complete OAuth query and hash when constructing `ge.cheaper.app://auth-callback`.
+   - Retain automatic handoff plus the explicit “Open app” fallback button for browsers that block custom-scheme navigation without a user gesture.
+   - Ensure OAuth errors are also forwarded so the app can show the real failure instead of a generic retry message.
 
-**3. Recover when the handoff still doesn't fire**
-- When the system browser is dismissed (user taps Done/back) without a deep link having arrived, re-check the session once and, if still signed out, clear the loading spinner on the sign-in screen and show a retry message — today the spinner stays forever.
+3. **Make native completion race-safe**
+   - Keep the app-side listener registered before session restoration.
+   - On callback, exchange the authorization code or install the returned token session before closing the browser and navigating.
+   - Prevent the browser-dismiss listener from showing a false failure while the deep-link callback is still being processed.
+   - Clear the stored post-login redirect after successful navigation and allow a later retry URL after a failed callback.
 
-**4. Sign out the browser tab side effect**
-- The bounce page will not leave a signed-in web session lingering: it hands off and closes, so the stray "browser is signed in, app isn't" state disappears.
-
-## Technical notes
-
-- Files: `src/routes/auth.native-return.tsx` (handoff logic + button), `src/routes/__root.tsx` (deep-link handler: code exchange, error surfacing), `src/routes/auth.tsx` (browser-dismissed recovery, spinner reset), `src/lib/native.ts` (listen for browser-finished event), plus i18n strings.
-- No database, auth-provider, or OAuth-client configuration changes are needed; the Google client and redirect URIs stay as they are.
-- Android manifest already declares the `ge.cheaper.app` scheme filter, so no native project changes.
+4. **Verify the complete flow**
+   - Confirm `/auth/native-return` renders only the native handoff page in both preview and production routing behavior.
+   - Verify the generated OAuth authorization URL contains the HTTPS native return URL as `redirect_to`; Google’s own `redirect_uri` remains the backend callback URL.
+   - Verify Android/iOS custom-scheme parsing for both hash-token and `?code=` callback forms.
+   - Run targeted checks and browser route validation without changing the web Google sign-in behavior.

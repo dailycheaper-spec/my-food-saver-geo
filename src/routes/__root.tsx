@@ -137,15 +137,22 @@ function RootComponent() {
     // (/order-return). No-op in the browser.
     let unsubscribeDeepLink: (() => void) | null = null;
     void (async () => {
-      const { registerDeepLinkHandler, getNativeLaunchUrl, closeExternal } = await import("@/lib/native");
+      const {
+        registerDeepLinkHandler,
+        getNativeLaunchUrl,
+        closeExternal,
+        setNativeOAuthCallbackPending,
+      } = await import("@/lib/native");
       let lastHandledUrl: string | null = null;
+      const processingUrls = new Set<string>();
       const handleNativeUrl = async (url: string) => {
-        if (url === lastHandledUrl) return;
-        lastHandledUrl = url;
+        if (url === lastHandledUrl || processingUrls.has(url)) return;
+        processingUrls.add(url);
         try {
           const u = new URL(url);
           const host = u.host || u.pathname.replace(/^\/+/, "");
           if (host.startsWith("auth-callback")) {
+            setNativeOAuthCallbackPending(true);
             // Tokens arrive in the hash (implicit flow); PKCE returns ?code=.
             const hashRaw = u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash || "";
             const hashParams = new URLSearchParams(hashRaw);
@@ -170,12 +177,25 @@ function RootComponent() {
 
             await closeExternal();
             if (!ok) {
+              setNativeOAuthCallbackPending(false);
               const { toast } = await import("sonner");
               toast.error(oauthError || "Sign-in could not be completed. Please try again.");
               router.navigate({ to: "/auth" });
               return;
             }
-            const target = sessionStorage.getItem("auth_redirect") || "/";
+            const storedTarget = sessionStorage.getItem("auth_redirect") || "/";
+            sessionStorage.removeItem("auth_redirect");
+            let target = "/";
+            try {
+              const parsedTarget = new URL(storedTarget, window.location.origin);
+              if (parsedTarget.origin === window.location.origin) {
+                target = `${parsedTarget.pathname}${parsedTarget.search}${parsedTarget.hash}`;
+              }
+            } catch {
+              target = "/";
+            }
+            lastHandledUrl = url;
+            setNativeOAuthCallbackPending(false);
             router.navigate({ to: target });
           } else if (host.startsWith("order-return")) {
             const p = u.searchParams;
@@ -183,11 +203,15 @@ function RootComponent() {
             const payment = p.get("payment") || "processing";
             await closeExternal();
             if (orderId) {
+              lastHandledUrl = url;
               router.navigate({ to: "/orders/$id", params: { id: orderId }, search: { payment } as never });
             }
           }
         } catch (err) {
+          setNativeOAuthCallbackPending(false);
           console.warn("[deep-link] failed to handle", url, err);
+        } finally {
+          processingUrls.delete(url);
         }
       };
 
