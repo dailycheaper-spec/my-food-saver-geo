@@ -249,6 +249,8 @@ function RootComponent() {
             <BottomNav />
             <AppTracker />
             <AndroidBackHandler />
+            <IosSwipeBack />
+
             <PwaInstall />
             <Toaster position="top-center" richColors />
             <UpdatePrompt />
