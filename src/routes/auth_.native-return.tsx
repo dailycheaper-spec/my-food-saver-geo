@@ -34,15 +34,20 @@ function NativeAuthReturn() {
   const [slow, setSlow] = useState(false);
   const linkRef = useRef<HTMLAnchorElement | null>(null);
 
-  useEffect(() => {
+  const buildDeepLink = () => {
     const hash = window.location.hash || "";
     const sourceParams = new URLSearchParams(window.location.search);
-    const platform = sourceParams.get("platform");
     sourceParams.delete("platform");
     const search = sourceParams.size ? `?${sourceParams.toString()}` : "";
+    return `ge.cheaper.app://auth-callback${search}${hash}`;
+  };
+
+  useEffect(() => {
+    const sourceParams = new URLSearchParams(window.location.search);
+    const platform = sourceParams.get("platform");
     // Keep every OAuth result parameter intact. The native shell exchanges a
     // PKCE code or installs an implicit token session and also surfaces errors.
-    const target = `ge.cheaper.app://auth-callback${search}${hash}`;
+    const target = buildDeepLink();
     setDeepLink(target);
 
     const jump = () => {
@@ -85,6 +90,10 @@ function NativeAuthReturn() {
         <a
           ref={linkRef}
           href={deepLink}
+          onClick={(event) => {
+            event.preventDefault();
+            window.location.assign(buildDeepLink());
+          }}
           className="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-card"
         >
           {t("auth.native.openApp")}
