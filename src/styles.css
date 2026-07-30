@@ -222,11 +222,18 @@
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+  /* iOS momentum scrolling inside the row */
+  -webkit-overflow-scrolling: touch;
   /* Allow BOTH horizontal panning inside the carousel and vertical page
      scroll to pass through when the gesture is vertical. */
   touch-action: pan-x pan-y pinch-zoom;
   overscroll-behavior-x: contain;
   &::-webkit-scrollbar { display: none; }
+}
+
+/* Fixed-size children of horizontal rows must never be squeezed by WebKit. */
+@utility no-shrink {
+  flex: 0 0 auto;
 }
 
 @utility horizontal-scroll {
@@ -236,12 +243,14 @@
   touch-action: pan-x pan-y pinch-zoom;
   cursor: grab;
   user-select: none;
+  & > * { flex: 0 0 auto; }
   & img {
     -webkit-user-drag: none;
     user-select: none;
   }
   &:active { cursor: grabbing; }
 }
+
 
 /* Accessibility: visually-hidden but screen-reader available */
 @utility sr-only-focusable {
