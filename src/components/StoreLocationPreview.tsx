@@ -37,7 +37,7 @@ export function StoreLocationPreview({ lat, lng, height = 140 }: Props) {
     );
   }
   return (
-    <div className="rounded-2xl overflow-hidden border border-border bg-muted" style={{ height }}>
+    <div className="rounded-2xl overflow-hidden border border-border bg-muted relative z-0 isolate" style={{ height }}>
       <MapContainer
         center={[lat, lng]}
         zoom={14}

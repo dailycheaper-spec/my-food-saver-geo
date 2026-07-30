@@ -97,7 +97,7 @@ export function StoreLocationPicker({
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden border border-border relative"
+      className="w-full rounded-2xl overflow-hidden border border-border relative z-0 isolate"
       style={{ height }}
     >
       <MapContainer
@@ -127,6 +127,7 @@ export function StoreLocationPicker({
             maxZoom={19}
           />
         )}
+        <SizeGuard />
         <ClickHandler onChange={onChange} />
         <Recenter lat={value.lat} lng={value.lng} />
         {hasMarker && radiusKm && radiusKm > 0 && (
