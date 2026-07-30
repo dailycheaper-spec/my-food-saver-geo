@@ -11,8 +11,6 @@ const config: CapacitorConfig = {
     allowNavigation: [
       "cheaper.ge",
       "*.cheaper.ge",
-      "creaijcvpqerdxdazdqt.supabase.co",
-      "accounts.google.com",
       "payment.bog.ge",
       "*.bog.ge",
     ],

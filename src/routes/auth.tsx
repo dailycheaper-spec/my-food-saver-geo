@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Logo } from "@/components/Logo";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
-import { isNative, openExternal } from "@/lib/native";
+import { isNative, NATIVE_SCHEME, openExternal } from "@/lib/native";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — Cheaper" }, { name: "robots", content: "noindex" }] }),
@@ -88,18 +88,20 @@ function AuthPage() {
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
 
-    // Native (Capacitor): Google blocks OAuth inside embedded WebViews, so we
-    // open the authorize URL in the system browser (SFSafariViewController /
-    // Chrome Custom Tab) and let the /auth/native-return bounce page hand
-    // tokens back via the ge.cheaper.app:// deep-link scheme. The listener in
-    // __root.tsx calls supabase.auth.setSession() and navigates.
+    // Native (Capacitor): authenticate in the secure system browser and have
+    // the backend redirect straight to the app scheme. Avoiding an HTTPS
+    // bounce page removes the browser-blocked JavaScript handoff.
     if (isNative()) {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const bounce = "https://cheaper.ge/auth/native-return";
-      const url =
-        `${supabaseUrl}/auth/v1/authorize?provider=${provider}` +
-        `&redirect_to=${encodeURIComponent(bounce)}`;
       try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: `${NATIVE_SCHEME}://auth-callback`,
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error || !data.url) throw error ?? new Error("Missing OAuth URL");
+
         // Recover the screen if the user dismisses the system browser (or it
         // closes) without the deep-link handoff having signed us in.
         const { onBrowserFinished } = await import("@/lib/native");
@@ -112,7 +114,7 @@ function AuthPage() {
             }
           });
         });
-        await openExternal(url);
+        await openExternal(data.url);
       } catch {
         setLoading(false);
         setMsg({ type: "err", text: `${t("oauthFailed")} (${provider})` });
