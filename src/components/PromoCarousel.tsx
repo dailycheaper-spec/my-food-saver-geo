@@ -136,7 +136,6 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 aria-roledescription="slide"
                 aria-label={slideLabel(i)}
                 aria-hidden={!active}
-                {...(!active ? ({ inert: "" } as Record<string, unknown>) : {})}
                 className={`transition-opacity duration-500 ${
                   active
                     ? "relative opacity-100"
@@ -144,6 +143,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 }`}
               >
                 <Link
+                  {...({ to: b.buttonAction.to, search: b.buttonAction.search } as never)}
                   tabIndex={active ? 0 : -1}
                   className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
