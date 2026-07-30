@@ -617,7 +617,7 @@ function Home() {
       {/* -------- Footer -------- */}
       <footer className="mx-auto max-w-6xl px-4 pt-8 pb-4 text-center sm:pt-10">
         <div className="flex justify-center mb-4">
-          <Logo />
+          <Logo showTagline />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <Link to="/about" className="text-xs text-muted-foreground underline underline-offset-4">
