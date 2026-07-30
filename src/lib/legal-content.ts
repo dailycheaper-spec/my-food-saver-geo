@@ -92,6 +92,72 @@ Email: ${COMPANY.email}`,
       },
     ],
   },
+  tr: {
+    title: "Hakkımızda",
+    subtitle: "Cheaper.ge — her gün en iyi fırsatlar.",
+    back: "Geri",
+    sections: [
+      {
+        title: "Biz kimiz",
+        body: `Cheaper.ge, restoranlarda, kafelerde, fırınlarda ve diğer gıda işletmelerinde en iyi günlük indirimleri keşfetmenize yardımcı olan bir platformdur.
+
+Misyonumuz, kaliteli yemeği herkes için daha erişilebilir hale getirmektir. Cheaper.ge'de en sevdiğiniz yemekleri çok daha uygun fiyatlarla tadabilmeniz için geniş bir günlük fırsat, özel fiyat ve özel teklif yelpazesi bulacaksınız.
+
+Müşterileri ve iş ortağı işletmeleri bir araya getiriyoruz; böylece indirimleri bulmak, rezerve etmek ve kullanmak basit, hızlı ve konforlu hale geliyor.`,
+      },
+      {
+        title: "Neden Cheaper.ge?",
+        body: `• Her gün yenilenen fırsatlar
+• En sevdiğiniz mekanlarda en iyi fiyatlar
+• Birkaç dokunuşla kolay rezervasyon
+• Güvenilir iş ortağı işletmeler
+• Hızlı ve pratik deneyim
+
+Harika fırsatların herkes için erişilebilir olması gerektiğine inanıyoruz. Bu yüzden kalite, konfor ve tasarrufu bir araya getiren bir platform inşa ediyoruz.`,
+      },
+      {
+        title: "İletişim bilgileri",
+        body: `Şirket: ${COMPANY.nameTr}
+Şirket Kimlik No: ${COMPANY.id}
+Adres: ${COMPANY.addressTr}
+Telefon: ${COMPANY.phone}
+E-posta: ${COMPANY.email}`,
+      },
+    ],
+  },
+  fa: {
+    title: "درباره ما",
+    subtitle: "Cheaper.ge — بهترین پیشنهادها، هر روز.",
+    back: "بازگشت",
+    sections: [
+      {
+        title: "ما کی هستیم",
+        body: `Cheaper.ge پلتفرمی است که به شما کمک می‌کند بهترین تخفیف‌های روزانه رستوران‌ها، کافه‌ها، نانوایی‌ها و سایر مراکز غذایی را کشف کنید.
+
+مأموریت ما این است که غذای باکیفیت را برای همه در دسترس‌تر کنیم. در Cheaper.ge طیف گسترده‌ای از پیشنهادهای روزانه، قیمت‌های ویژه و تخفیف‌های انحصاری پیدا می‌کنید که به شما امکان می‌دهد غذاهای مورد علاقه‌تان را با قیمتی بسیار مناسب‌تر تجربه کنید.
+
+ما مشتریان و کسب‌وکارهای همکار را به هم متصل می‌کنیم تا یافتن، رزرو کردن و استفاده از تخفیف‌ها ساده، سریع و راحت باشد.`,
+      },
+      {
+        title: "چرا Cheaper.ge؟",
+        body: `• پیشنهادهایی که هر روز به‌روزرسانی می‌شوند
+• بهترین قیمت‌ها در مکان‌های مورد علاقه شما
+• رزرو آسان تنها با چند ضربه
+• کسب‌وکارهای همکار قابل‌اعتماد
+• تجربه‌ای سریع و راحت
+
+ما معتقدیم پیشنهادهای عالی باید برای همه در دسترس باشد. به همین دلیل پلتفرمی می‌سازیم که کیفیت، راحتی و صرفه‌جویی را کنار هم می‌آورد.`,
+      },
+      {
+        title: "اطلاعات تماس",
+        body: `شرکت: ${COMPANY.nameFa}
+شناسه شرکت: ${COMPANY.id}
+آدرس: ${COMPANY.addressFa}
+تلفن: ${COMPANY.phone}
+ایمیل: ${COMPANY.email}`,
+      },
+    ],
+  },
   ru: {
     title: "О нас",
     subtitle: "Cheaper.ge — лучшие предложения каждый день.",
