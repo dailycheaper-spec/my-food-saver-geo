@@ -1,3 +1,4 @@
+import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -108,18 +109,19 @@ function NewOfferPage() {
     const finalDesc = form.is_surprise && contents
       ? (baseDesc ? `${baseDesc}\n\n${sl.contentsLabel}: ${contents}` : `${sl.contentsLabel}: ${contents}`)
       : baseDesc;
+    const tr = await resolveOfferTranslations(form, finalDesc);
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
-      title_en: form.title_en.trim() || null,
-      title_ru: form.title_ru.trim() || null,
-      title_tr: form.title_tr.trim() || null,
-      title_fa: form.title_fa.trim() || null,
+      title_en: tr.title_en,
+      title_ru: tr.title_ru,
+      title_tr: tr.title_tr,
+      title_fa: tr.title_fa,
       description: finalDesc,
-      description_en: form.description_en.trim() || null,
-      description_ru: form.description_ru.trim() || null,
-      description_tr: form.description_tr.trim() || null,
-      description_fa: form.description_fa.trim() || null,
+      description_en: tr.description_en,
+      description_ru: tr.description_ru,
+      description_tr: tr.description_tr,
+      description_fa: tr.description_fa,
       category: form.category,
       original_price: orig,
       discounted_price: disc,

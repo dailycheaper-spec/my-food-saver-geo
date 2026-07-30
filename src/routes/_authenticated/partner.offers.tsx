@@ -1,3 +1,4 @@
+import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
@@ -180,18 +181,19 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
     }
     if (imgInvalid) { toast.error(t("imageLoadFailed")); return; }
     setSaving(true);
+    const tr = await resolveOfferTranslations(form);
     const payload = {
       store_id: storeId,
       title: form.title,
-      title_en: form.title_en.trim() || null,
-      title_ru: form.title_ru.trim() || null,
-      title_tr: form.title_tr.trim() || null,
-      title_fa: form.title_fa.trim() || null,
+      title_en: tr.title_en,
+      title_ru: tr.title_ru,
+      title_tr: tr.title_tr,
+      title_fa: tr.title_fa,
       description: form.description,
-      description_en: form.description_en.trim() || null,
-      description_ru: form.description_ru.trim() || null,
-      description_tr: form.description_tr.trim() || null,
-      description_fa: form.description_fa.trim() || null,
+      description_en: tr.description_en,
+      description_ru: tr.description_ru,
+      description_tr: tr.description_tr,
+      description_fa: tr.description_fa,
       category: form.category,
       original_price: orig,
       discounted_price: disc,

@@ -50,3 +50,49 @@ If a value is missing, make a reasonable default. Return ONLY the JSON object.`;
       throw new Error("AI returned invalid JSON");
     }
   });
+
+const TranslateInput = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(2000).optional().default(""),
+});
+
+export const translateOfferText = createServerFn({ method: "POST" })
+  .inputValidator((v: unknown) => TranslateInput.parse(v))
+  .handler(async ({ data }) => {
+    const key = process.env.LOVABLE_API_KEY;
+    if (!key) throw new Error("Missing LOVABLE_API_KEY");
+
+    const systemPrompt = `You translate a Georgian food-offer title and description into English, Russian, Turkish, and Persian (Farsi). Return STRICT JSON only, no prose, in this exact shape:
+{
+  "en": { "title": string, "description": string },
+  "ru": { "title": string, "description": string },
+  "tr": { "title": string, "description": string },
+  "fa": { "title": string, "description": string }
+}
+Keep translations natural and concise, matching the tone of a food-marketplace app (not literal/robotic). If description is empty, return an empty string for description in every language. Return ONLY the JSON object.`;
+
+    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Title: ${data.title}\nDescription: ${data.description}` },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(`AI Gateway ${resp.status}: ${t.slice(0, 200)}`);
+    }
+    const json = await resp.json();
+    const content = json.choices?.[0]?.message?.content ?? "{}";
+    try {
+      return JSON.parse(content) as Record<"en" | "ru" | "tr" | "fa", { title: string; description: string }>;
+    } catch {
+      throw new Error("Translation returned invalid JSON");
+    }
+  });

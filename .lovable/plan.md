@@ -1,34 +1,39 @@
 ## Goal
 
-Everywhere we currently print raw coordinates (`Latitude: 41.716… · Longitude: 44.783…`), show the actual street address for that point instead — resolved from the map pin — plus a search box so the location can be found by typing an address, like the customer-side delivery picker.
+Partners type the offer title/description in Georgian only; the English, Russian, Turkish and Persian versions are filled in automatically by AI when the offer is published or edited. Manually typed translations are never overwritten.
 
-## Where it changes
+## What changes
 
-1. **Partner application** (`partner-apply.tsx`) — coordinate line under the map.
-2. **Partner store settings** (`partner.store.tsx`) — coordinate line under the map.
-3. **Admin partner card** (`admin.partners.tsx`) — "Coordinates: 41.7…, 44.7…" row.
-4. **Admin store location modal** (`AdminStoreLocationModal.tsx`) — same treatment as the partner map.
+**1. New AI translation function** (`src/lib/ai-offer.functions.ts`)
 
-## What gets built
+Add `translateOfferText`, a server function next to the existing `parseOfferText` — same Lovable AI Gateway, same auth, same JSON-only response mode. Input: Georgian title + optional description. Output: `{ en, ru, tr, fa }`, each with `title` and `description`. Prompt instructs natural, concise, food-marketplace tone (not literal), and empty description in → empty description out.
 
-**New shared component: `src/components/address/MapAddressField.tsx`**
+**2. Wire into the full offer form** (`src/routes/_authenticated/partner.new.tsx`, `publish()`)
 
-A thin wrapper around the existing `StoreLocationPicker` that adds the address layer, reusing the same server functions the customer `AddressPicker` already uses (`reverseGeocode`, `autocompleteAddress`, `placeDetails` in `src/lib/geocode.functions.ts`):
+Before building the insert payload: if any of the 8 translation fields is blank, call the translator once. Per-field merge — a field the partner typed wins, a blank field takes the AI value, and anything still missing stays `null`. Description fields are only auto-filled when a Georgian description exists.
 
-- **Search input** on top: type an address → debounced autocomplete suggestions (biased to the selected city) → picking one moves the map pin and sets lat/lng.
-- **Map** below, unchanged behaviour (tap / drag / "use my current location").
-- **Resolved address card** under the map replacing the coordinate text: pin icon + street line, resolved by debounced reverse-geocoding ~400ms after the pin settles, with a "resolving…" skeleton state.
-- **Graceful fallback**: if geocoding is unavailable (the existing `MapsUnavailableError` / billing-disabled path), it quietly falls back to showing the coordinates in small mono text, so the form never breaks.
-- Coordinates stay available but demoted: a tiny "coordinates" line only shown on demand / in the fallback.
-- Optional `onAddressResolved(address)` callback.
+**3. Wire into the offer edit form** (`src/routes/_authenticated/partner.offers.tsx`, save handler)
 
-**Auto-fill the address field.** In partner-apply and partner.store, when the pin resolves and the store's `address` field is still empty (or the user hasn't manually edited it), prefill it with the resolved street line, with a small "use this address" button when it differs — so partners don't type the address twice.
+Identical merge logic before the `update`/`insert` call.
 
-**Admin views.** `admin.partners.tsx` shows the reverse-geocoded address as the primary line with coordinates as a secondary, muted mono line; the resolution is cached per store so scrolling the list doesn't spam geocoding. The admin location modal uses the same `MapAddressField`.
+**4. Failure behavior**
+
+The translation call is wrapped in try/catch. On network error, missing key, or bad JSON the offer still publishes with `null` translations; the existing `localizedField` fallback shows the Georgian text. A console warning is logged.
+
+**5. Submit-button state**
+
+While translating, the submit button shows the existing in-flight label pattern (`creating` / `savingProgress`), so there's no dead-looking pause.
+
+**6. Copy tweak**
+
+The "Translations (optional)" section header/help text gains a note that blanks are filled in automatically, in Georgian/English/Russian (partner panel stays ka/en/ru). Fields remain visible and editable for manual override.
+
+## Out of scope
+
+Quick offer (`partner.quick.tsx`), the AI-parse creation mode, pickup times, and store-name translations.
 
 ## Technical notes
 
-- No DB changes. The store `address` column already exists; we only improve how it's filled and displayed.
-- Reverse-geocode results are cached in a module-level `Map` keyed by `lat,lng,language` (same pattern as `AddressPicker`) to limit Google Maps calls.
-- All new strings go through the existing trilingual `L(...)` / i18n helpers (KA/EN/RU).
-- `MapAddressField` keeps the lazy `Suspense` loading of the Leaflet map already used in these routes.
+- Model: `google/gemini-2.5-flash` with `response_format: json_object`; `LOVABLE_API_KEY` read inside the handler.
+- `ai-offer.functions.ts` stays a thin server-function wrapper (imports + exported declarations only).
+- Typecheck run after the edits.
