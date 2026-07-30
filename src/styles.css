@@ -65,7 +65,7 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.03 145);
 
-  --primary: oklch(0.65 0.186 148);         /* official Cheaper brand green #0EAC45 */
+  --primary: oklch(0.50 0.186 148);         /* brand green (#0EAC45 family), darkened for WCAG AA text contrast (~5.3:1 on white) */
   --primary-foreground: oklch(0.99 0.005 90);
   --primary-glow: oklch(0.78 0.16 148);
 
