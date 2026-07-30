@@ -131,7 +131,7 @@ function AiOfferPage() {
           <Row k={t("name")} v={draft.title} onChange={(v) => setDraft({ ...draft, title: v })} />
           <Row k={t("description")} v={draft.description ?? ""} onChange={(v) => setDraft({ ...draft, description: v })} />
           <div className="grid grid-cols-2 gap-3">
-            <Row k={t("quantity")} v={String(draft.quantity_available)} onChange={(v) => setDraft({ ...draft, quantity_available: Number(v) })} type="number" />
+            <Row k={t("quantityAvailable")} v={String(draft.quantity_available)} onChange={(v) => setDraft({ ...draft, quantity_available: Number(v) })} type="number" />
             <Row k={t("discountedPrice")} v={String(draft.discounted_price)} onChange={(v) => setDraft({ ...draft, discounted_price: Number(v) })} type="number" />
           </div>
           <div className="grid grid-cols-2 gap-3">

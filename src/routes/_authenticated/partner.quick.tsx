@@ -1,10 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Plus, Trash2, Zap, Sparkles, Loader2 } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+import { ArrowLeft, Plus, Trash2, Zap } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { useSavedProducts, upsertSavedProduct, deleteSavedProduct, type SavedProduct } from "@/lib/partner-db";
-import { generateOfferImage } from "@/lib/ai-image.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -111,7 +109,7 @@ function PublishSheet({ store_id, product, onClose, onDone }: { store_id: string
 
         <div className="space-y-4">
           <div>
-            <div className="flex justify-between text-sm mb-1"><span>{t("quantity")}</span><span className="font-bold">{qty}</span></div>
+            <div className="flex justify-between text-sm mb-1"><span>{t("quantityAvailable")}</span><span className="font-bold">{qty}</span></div>
             <div className="flex items-center gap-3">
               <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-12 h-12 rounded-full bg-muted text-xl">−</button>
               <input type="range" min={1} max={50} value={qty} onChange={(e) => setQty(Number(e.target.value))} className="flex-1" />
@@ -141,18 +139,6 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
   const [discounted, setDiscounted] = useState("6");
   const [image_url, setImg] = useState("");
   const [saving, setSaving] = useState(false);
-  const [genAi, setGenAi] = useState(false);
-  const generateImg = useServerFn(generateOfferImage);
-
-  async function aiGenerate() {
-    if (!name.trim()) { toast.error(t("productNamePlaceholder")); return; }
-    setGenAi(true);
-    try {
-      const r = (await generateImg({ data: { prompt: name.trim() } })) as { url: string };
-      setImg(r.url);
-    } catch (e: any) { toast.error("AI: " + e.message); }
-    setGenAi(false);
-  }
 
   async function save() {
     if (!name.trim()) return;
@@ -177,19 +163,19 @@ function AddProductSheet({ store_id, onClose }: { store_id: string; onClose: () 
         <div className="space-y-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("productNamePlaceholder")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
           {image_url && <img src={image_url} alt="preview" className="w-full h-40 object-cover rounded-2xl" />}
-          <button
-            type="button"
-            onClick={aiGenerate}
-            disabled={genAi || !name.trim()}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
-          >
-            {genAi ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-            {genAi ? t("generating") : t("generateWithAi")}
-          </button>
-          <input value={image_url.startsWith("data:") ? "" : image_url} onChange={(e) => setImg(e.target.value)} placeholder={t("optionalPhotoUrl")} className="w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">{t("optionalPhotoUrl")}</span>
+            <input value={image_url.startsWith("data:") ? "" : image_url} onChange={(e) => setImg(e.target.value)} placeholder="https://…" className="mt-1 w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border text-sm" />
+          </label>
           <div className="grid grid-cols-2 gap-2">
-            <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" placeholder={t("original")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
-            <input value={discounted} onChange={(e) => setDiscounted(e.target.value)} type="number" placeholder={t("discountedPrice")} className="px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">{t("original")}</span>
+              <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" className="mt-1 w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-muted-foreground">{t("discountedPrice")}</span>
+              <input value={discounted} onChange={(e) => setDiscounted(e.target.value)} type="number" className="mt-1 w-full px-4 py-3 rounded-2xl bg-muted/40 border border-border" />
+            </label>
           </div>
         </div>
         <button onClick={save} disabled={saving || !name.trim()} className="mt-5 w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold disabled:opacity-50">{t("save")}</button>

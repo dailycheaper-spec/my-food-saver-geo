@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Save, MapPin, LocateFixed, Landmark } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,11 +76,13 @@ function StoreSettings() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
   const [locBusy, setLocBusy] = useState(false);
+  const initialFormRef = useRef<FormState | null>(null);
+  const isDirty = initialFormRef.current !== null && JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
 
   useEffect(() => {
     if (store) {
       const anyStore = store as unknown as Record<string, unknown>;
-      setForm({
+      const next: FormState = {
         name: store.name,
         name_en: (anyStore.name_en as string | null) ?? "",
         name_ru: (anyStore.name_ru as string | null) ?? "",
@@ -101,7 +103,9 @@ function StoreSettings() {
         company_name: (anyStore.company_name as string | null) ?? "",
         company_id_number: (anyStore.company_id_number as string | null) ?? "",
         contact_email: (anyStore.contact_email as string | null) ?? "",
-      });
+      };
+      setForm(next);
+      initialFormRef.current = next;
     }
   }, [store]);
 
@@ -173,6 +177,7 @@ function StoreSettings() {
     if (error) setMsg({ text: t("errorPrefix") + error.message, kind: "err" });
     else {
       setMsg({ text: t("savedMsg"), kind: "ok" });
+      initialFormRef.current = form;
       reload();
     }
   }
@@ -320,7 +325,7 @@ function StoreSettings() {
 
       <button
         type="submit"
-        disabled={saving}
+        disabled={saving || !isDirty}
         className="mt-4 flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60"
       >
         <Save className="w-4 h-4" /> {saving ? t("savingProgress") : t("save")}
@@ -352,11 +357,14 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
   const [holder, setHolder] = useState("");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
+  const initialRef = useRef({ iban: "", holder: "" });
+  const isDirty = iban !== initialRef.current.iban || holder !== initialRef.current.holder;
 
   useEffect(() => {
     if (bank) {
       setIban(bank.iban);
       setHolder(bank.account_holder ?? "");
+      initialRef.current = { iban: bank.iban, holder: bank.account_holder ?? "" };
     }
   }, [bank]);
 
@@ -371,6 +379,7 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
     try {
       await upsertStoreBankAccount(storeId, normalized, holder.trim() || null);
       setMsg({ text: L("საბანკო რეკვიზიტები შენახულია.", "Bank details saved.", "Банковские реквизиты сохранены."), kind: "ok" });
+      initialRef.current = { iban, holder };
       reload();
     } catch (e) {
       setMsg({ text: e instanceof Error ? e.message : String(e), kind: "err" });
@@ -417,7 +426,7 @@ function BankDetailsSection({ storeId }: { storeId: string }) {
           <button
             type="button"
             onClick={save}
-            disabled={saving}
+            disabled={saving || !isDirty}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-semibold disabled:opacity-60"
           >
             <Save className="w-4 h-4" /> {saving ? L("ინახება…", "Saving…", "Сохраняем…") : L("საბანკოს შენახვა", "Save bank details", "Сохранить реквизиты")}

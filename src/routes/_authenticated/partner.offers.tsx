@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
@@ -163,7 +163,8 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
   });
   const [saving, setSaving] = useState(false);
   const [imgInvalid, setImgInvalid] = useState(false);
-
+  const initialFormRef = useRef(form);
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -283,7 +284,7 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
         {imgInvalid && (
           <p className="mt-3 text-xs text-destructive text-center">{t("imageLoadFailed")}</p>
         )}
-        <button type="submit" disabled={saving || imgInvalid} className="mt-5 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
+        <button type="submit" disabled={saving || imgInvalid || (!!offer && !isDirty)} className="mt-5 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold disabled:opacity-60">
           {saving ? t("savingProgress") : offer ? t("save") : t("createBtn")}
         </button>
       </form>

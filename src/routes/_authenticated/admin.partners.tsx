@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { useStoresBankDetailsMap, type StoreBankInfo } from "@/lib/admin-db";
@@ -590,6 +590,8 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const updateFn = useServerFn(updateAdminStore);
+  const initialFormRef = useRef(form);
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
 
   const idMax = form.entity_type === "individual_entrepreneur" ? 11 : 9;
 
@@ -707,7 +709,7 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
           {err && <div className="text-sm text-destructive">{err}</div>}
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">{L("გაუქმება", "Cancel", "Отмена")}</button>
-            <button type="submit" disabled={busy} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
+            <button type="submit" disabled={busy || !isDirty} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
               {busy ? L("ინახება…", "Saving…", "Сохранение…") : L("შენახვა", "Save", "Сохранить")}
             </button>
           </div>

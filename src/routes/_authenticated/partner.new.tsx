@@ -187,7 +187,7 @@ function NewOfferPage() {
         />
 
 
-        <Field label={t("quantity")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
+        <Field label={t("quantityAvailable")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("pickupStart")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
