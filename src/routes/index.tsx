@@ -182,24 +182,24 @@ function Home() {
 
   // ---------- Localized labels ----------
   const L = {
-    hi: language === "en" ? "Hi" : language === "ru" ? "Привет" : "გამარჯობა",
-    deliverTo: language === "en" ? "Deliver to" : language === "ru" ? "Доставка в" : "მიტანა",
-    categoriesTitle: language === "en" ? "Categories" : language === "ru" ? "Категории" : "კატეგორიები",
-    featured: language === "en" ? "Featured" : language === "ru" ? "Рекомендуемые" : "რჩეული",
-    flash: language === "en" ? "Flash deals" : language === "ru" ? "Горячие скидки" : "ცხელი ფასდაკლებები",
-    endingSoon: language === "en" ? "Ending soon — grab it now" : language === "ru" ? "Скоро закончатся" : "ვადა ეწურება",
-    nearbyPartners: language === "en" ? "Nearby partners" : language === "ru" ? "Партнёры рядом" : "ახლომდებარე პარტნიორები",
-    newSection: language === "en" ? "New on Cheaper" : language === "ru" ? "Новое на Cheaper" : "ახალი Cheaper-ზე",
-    recommended: language === "en" ? "For you" : language === "ru" ? "Для вас" : "შენთვის",
-    recentlyViewed: language === "en" ? "Recently viewed" : language === "ru" ? "Недавно просмотренные" : "ბოლოს ნანახი",
-    allNearby: language === "en" ? "All nearby offers" : language === "ru" ? "Все предложения рядом" : "ყველა შემოთავაზება",
-    seeAll: language === "en" ? "See all" : language === "ru" ? "Все" : "ყველა",
-    searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : "ძებნა",
-    promoTitle: language === "en" ? "Quality price, better food" : language === "ru" ? "Качественная цена, лучшая еда" : "ხარისხიანი ფასი, უკეთესი საკვები",
-    promoText: language === "en" ? "Tasty food from your favorite spots!" : language === "ru" ? "Вкусная еда из любимых мест!" : "გემრიელი საკვები საყვარელი ადგილებიდან!",
-    dailyDiscount: language === "en" ? "Every day 50%+ off" : language === "ru" ? "Каждый день скидка 50%+" : "ყოველდღე 50%+ ფასდაკლებით",
+    hi: language === "en" ? "Hi" : language === "ru" ? "Привет" : language === "tr" ? "Merhaba" : language === "fa" ? "سلام" : "გამარჯობა",
+    deliverTo: language === "en" ? "Deliver to" : language === "ru" ? "Доставка в" : language === "tr" ? "Teslimat adresi" : language === "fa" ? "تحویل به" : "მიტანა",
+    categoriesTitle: language === "en" ? "Categories" : language === "ru" ? "Категории" : language === "tr" ? "Kategoriler" : language === "fa" ? "دسته‌بندی‌ها" : "კატეგორიები",
+    featured: language === "en" ? "Featured" : language === "ru" ? "Рекомендуемые" : language === "tr" ? "Öne çıkanlar" : language === "fa" ? "ویژه" : "რჩეული",
+    flash: language === "en" ? "Flash deals" : language === "ru" ? "Горячие скидки" : language === "tr" ? "Fırsat teklifleri" : language === "fa" ? "پیشنهادهای لحظه‌ای" : "ცხელი ფასდაკლებები",
+    endingSoon: language === "en" ? "Ending soon — grab it now" : language === "ru" ? "Скоро закончатся" : language === "tr" ? "Yakında bitiyor — hemen al" : language === "fa" ? "به‌زودی تمام می‌شود — همین حالا بگیرید" : "ვადა ეწურება",
+    nearbyPartners: language === "en" ? "Nearby partners" : language === "ru" ? "Партнёры рядом" : language === "tr" ? "Yakındaki ortaklar" : language === "fa" ? "شرکای نزدیک" : "ახლომდებარე პარტნიორები",
+    newSection: language === "en" ? "New on Cheaper" : language === "ru" ? "Новое на Cheaper" : language === "tr" ? "Cheaper'da yeni" : language === "fa" ? "جدید در Cheaper" : "ახალი Cheaper-ზე",
+    recommended: language === "en" ? "For you" : language === "ru" ? "Для вас" : language === "tr" ? "Senin için" : language === "fa" ? "برای شما" : "შენთვის",
+    recentlyViewed: language === "en" ? "Recently viewed" : language === "ru" ? "Недавно просмотренные" : language === "tr" ? "Son görüntülenenler" : language === "fa" ? "بازدیدهای اخیر" : "ბოლოს ნანახი",
+    allNearby: language === "en" ? "All nearby offers" : language === "ru" ? "Все предложения рядом" : language === "tr" ? "Yakındaki tüm teklifler" : language === "fa" ? "همه پیشنهادهای اطراف" : "ყველა შემოთავაზება",
+    seeAll: language === "en" ? "See all" : language === "ru" ? "Все" : language === "tr" ? "Tümünü gör" : language === "fa" ? "همه را ببینید" : "ყველა",
+    searchOnPage: language === "en" ? "Search" : language === "ru" ? "Поиск" : language === "tr" ? "Ara" : language === "fa" ? "جستجو" : "ძებნა",
+    promoTitle: language === "en" ? "Quality price, better food" : language === "ru" ? "Качественная цена, лучшая еда" : language === "tr" ? "Kaliteli fiyat, daha iyi yemek" : language === "fa" ? "قیمت باکیفیت، غذای بهتر" : "ხარისხიანი ფასი, უკეთესი საკვები",
+    promoText: language === "en" ? "Tasty food from your favorite spots!" : language === "ru" ? "Вкусная еда из любимых мест!" : language === "tr" ? "Sevdiğiniz mekanlardan lezzetli yemekler!" : language === "fa" ? "غذای خوشمزه از مکان‌های موردعلاقه‌تان!" : "გემრიელი საკვები საყვარელი ადგილებიდან!",
+    dailyDiscount: language === "en" ? "Every day 50%+ off" : language === "ru" ? "Каждый день скидка 50%+" : language === "tr" ? "Her gün %50+ indirim" : language === "fa" ? "هر روز بیش از ۵۰٪ تخفیف" : "ყოველდღე 50%+ ფასდაკლებით",
 
-    orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : "შეუკვეთე",
+    orderNow: language === "en" ? "Order now" : language === "ru" ? "Заказать" : language === "tr" ? "Şimdi sipariş ver" : language === "fa" ? "اکنون سفارش دهید" : "შეუკვეთე",
   };
 
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
@@ -338,7 +338,7 @@ function Home() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-lg font-bold flex items-center gap-2">
               <StarIcon className="w-[18px] h-[18px] fill-amber-500 text-amber-500" />
-              {language === "en" ? "Stores you follow" : language === "ru" ? "Магазины, на которые вы подписаны" : "გამოწერილი მაღაზიები"}
+              {language === "en" ? "Stores you follow" : language === "ru" ? "Магазины, на которые вы подписаны" : language === "tr" ? "Takip ettiğiniz mağazalar" : language === "fa" ? "فروشگاه‌هایی که دنبال می‌کنید" : "გამოწერილი მაღაზიები"}
             </h2>
           </div>
           <ScrollableRow className="pt-1 pb-2 snap-x snap-proximity -mx-4 px-4">
@@ -369,7 +369,7 @@ function Home() {
           <select
             value={district}
             onChange={(event) => setDistrict(event.target.value)}
-            aria-label={language === "en" ? "Choose district" : language === "ru" ? "Выбрать район" : "უბნის არჩევა"}
+            aria-label={language === "en" ? "Choose district" : language === "ru" ? "Выбрать район" : language === "tr" ? "Bölge seç" : language === "fa" ? "انتخاب منطقه" : "უბნის არჩევა"}
             className="w-full h-11 pl-9 pr-9 rounded-2xl bg-card border border-border text-sm font-semibold text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/40"
           >
             {DISTRICTS.map((d) => (
@@ -384,7 +384,7 @@ function Home() {
             <div className="flex items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-primary text-primary-foreground px-2.5 py-1 rounded-full">
                 <Zap className="w-3 h-3" />
-                {language === "en" ? "Best discount today" : language === "ru" ? "Лучшая скидка дня" : "დღის საუკეთესო ფასდაკლება"}
+                {language === "en" ? "Best discount today" : language === "ru" ? "Лучшая скидка дня" : language === "tr" ? "Bugünün en iyi indirimi" : language === "fa" ? "بهترین تخفیف امروز" : "დღის საუკეთესო ფასდაკლება"}
               </span>
             </div>
             <OfferCard offer={bestDeal} featured />
@@ -556,13 +556,17 @@ function Home() {
 
             <h2 className="font-display text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-[18px] h-[18px] text-primary" />
-              {language === "en" ? "Fresh deals landing soon" : language === "ru" ? "Свежие предложения скоро появятся" : "ახალი შემოთავაზებები მალე გამოჩნდება"}
+              {language === "en" ? "Fresh deals landing soon" : language === "ru" ? "Свежие предложения скоро появятся" : language === "tr" ? "Yeni fırsatlar yakında" : language === "fa" ? "پیشنهادهای تازه به‌زودی" : "ახალი შემოთავაზებები მალე გამოჩნდება"}
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
               {language === "en"
                 ? "Our partners are preparing today's discounted boxes. In the meantime, explore Cheaper."
                 : language === "ru"
                 ? "Наши партнёры готовят коробки со скидками. А пока — исследуйте Cheaper."
+                : language === "tr"
+                ? "Ortaklarımız bugünün indirimli kutularını hazırlıyor. Bu arada Cheaper'ı keşfedin."
+                : language === "fa"
+                ? "شرکای ما جعبه‌های تخفیف‌دار امروز را آماده می‌کنند. در این حین، Cheaper را کاوش کنید."
                 : "პარტნიორები ამზადებენ დღევანდელ ფასდაკლებულ პაკეტებს. სანამ, გაეცანი Cheaper-ს."}
             </p>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -575,7 +579,7 @@ function Home() {
                 <div key={p.key} className="rounded-2xl bg-secondary/60 border border-border/50 p-3 flex flex-col items-center gap-1">
                   <span className="text-3xl">{p.icon}</span>
                   <span className="text-[11px] font-semibold text-muted-foreground">
-                    {language === "en" ? "Coming soon" : language === "ru" ? "Скоро" : "მალე"}
+                    {language === "en" ? "Coming soon" : language === "ru" ? "Скоро" : language === "tr" ? "Yakında" : language === "fa" ? "به‌زودی" : "მალე"}
                   </span>
                 </div>
               ))}
@@ -620,20 +624,20 @@ function Home() {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
           <Link to="/about" className="text-xs text-muted-foreground underline underline-offset-4">
-            {language === "en" ? "About" : language === "ru" ? "О нас" : "ჩვენს შესახებ"}
+            {language === "en" ? "About" : language === "ru" ? "О нас" : language === "tr" ? "Hakkımızda" : language === "fa" ? "درباره ما" : "ჩვენს შესახებ"}
           </Link>
           <Link to="/privacy" className="text-xs text-muted-foreground underline underline-offset-4">
-            {language === "en" ? "Privacy Policy" : language === "ru" ? "Конфиденциальность" : "კონფიდენციალურობა"}
+            {language === "en" ? "Privacy Policy" : language === "ru" ? "Конфиденциальность" : language === "tr" ? "Gizlilik Politikası" : language === "fa" ? "حریم خصوصی" : "კონფიდენციალურობა"}
           </Link>
           <Link to="/terms" className="text-xs text-muted-foreground underline underline-offset-4">
-            {language === "en" ? "Terms" : language === "ru" ? "Условия" : "წესები და პირობები"}
+            {language === "en" ? "Terms" : language === "ru" ? "Условия" : language === "tr" ? "Koşullar" : language === "fa" ? "قوانین" : "წესები და პირობები"}
           </Link>
         </div>
         <p className="text-[11px] text-muted-foreground mt-3">
-          {language === "en" ? "Address" : language === "ru" ? "Адрес" : "მისამართი"}: {language === "en" ? "71 Vasil Barnovi Str., Tbilisi, Georgia, 0179" : language === "ru" ? "ул. Василия Барнови 71, Тбилиси, Грузия, 0179" : "ვასილ ბარნოვის 71, თბილისი, საქართველო, 0179"}
+          {language === "en" ? "Address" : language === "ru" ? "Адрес" : language === "tr" ? "Adres" : language === "fa" ? "آدرس" : "მისამართი"}: {language === "en" ? "71 Vasil Barnovi Str., Tbilisi, Georgia, 0179" : language === "ru" ? "ул. Василия Барнови 71, Тбилиси, Грузия, 0179" : language === "tr" ? "Vasil Barnovi Cad. 71, Tiflis, Gürcistan, 0179" : language === "fa" ? "خیابان واسیل بارنووی ۷۱، تفلیس، گرجستان، ۰۱۷۹" : "ვასილ ბარნოვის 71, თბილისი, საქართველო, 0179"}
         </p>
         <p className="text-[11px] text-muted-foreground mt-1">
-          {language === "en" ? "Phone" : language === "ru" ? "Тел" : "ტელ"}: <a href="tel:+995599161187" className="underline underline-offset-4">+995 599 161 187</a> · {language === "en" ? "Email" : language === "ru" ? "Эл. почта" : "ელ. ფოსტა"}: <a href="mailto:dailycheaper@gmail.com" className="underline underline-offset-4">dailycheaper@gmail.com</a>
+          {language === "en" ? "Phone" : language === "ru" ? "Тел" : language === "tr" ? "Tel" : language === "fa" ? "تلفن" : "ტელ"}: <a href="tel:+995599161187" className="underline underline-offset-4">+995 599 161 187</a> · {language === "en" ? "Email" : language === "ru" ? "Эл. почта" : language === "tr" ? "E-posta" : language === "fa" ? "ایمیل" : "ელ. ფოსტა"}: <a href="mailto:dailycheaper@gmail.com" className="underline underline-offset-4">dailycheaper@gmail.com</a>
         </p>
       </footer>
     </div>

@@ -150,7 +150,7 @@ export function OfferCard({ offer, featured = false }: { offer: Offer; featured?
         {soldOut && (
           <div className="absolute inset-0 grid place-items-center bg-black/40">
             <span className="px-4 py-2 rounded-full bg-card text-foreground text-sm font-bold uppercase tracking-wider">
-              {language === "en" ? "Sold out" : language === "ru" ? "Распродано" : "გაყიდულია"}
+              {language === "en" ? "Sold out" : language === "ru" ? "Распродано" : language === "tr" ? "Tükendi" : language === "fa" ? "تمام شد" : "გაყიდულია"}
             </span>
           </div>
         )}
@@ -203,7 +203,7 @@ export function OfferCard({ offer, featured = false }: { offer: Offer; featured?
           </div>
           <div className={`text-xs font-semibold ${soldOut ? "text-destructive" : almostGone ? "text-amber-600" : "text-muted-foreground"}`}>
             {soldOut
-              ? language === "en" ? "Sold out" : language === "ru" ? "Нет" : "არ არის"
+              ? language === "en" ? "Sold out" : language === "ru" ? "Нет" : language === "tr" ? "Tükendi" : language === "fa" ? "تمام شد" : "არ არის"
               : <>{t("left")} <span className="text-foreground font-bold">{offer.itemsLeft}</span></>}
           </div>
         </div>

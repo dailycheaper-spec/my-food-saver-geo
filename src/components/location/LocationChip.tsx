@@ -25,12 +25,12 @@ export function LocationChip({
   const { address, setAddress } = useDeliveryAddress();
   const [open, setOpen] = useState(false);
 
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
+  const L = (ka: string, en: string, ru: string, tr: string, fa: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? tr : language === "fa" ? fa : ka;
 
   const label = address
-    ? L("მიწოდება", "Delivery to", "Доставка")
-    : L("ქალაქი", "City", "Город");
+    ? L("მიწოდება", "Delivery to", "Доставка", "Teslimat adresi", "تحویل به")
+    : L("ქალაქი", "City", "Город", "Şehir", "شهر");
   const value = address ? address.addressLine : cityLabel(city, language);
 
   const trigger =

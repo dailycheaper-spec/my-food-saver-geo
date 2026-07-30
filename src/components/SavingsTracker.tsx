@@ -45,22 +45,32 @@ export function SavingsTracker() {
     saved:
       language === "en" ? "saved" :
       language === "ru" ? "сэкономлено" :
+      language === "tr" ? "tasarruf edildi" :
+      language === "fa" ? "صرفه‌جویی شد" :
       "დაზოგილი",
     today:
       language === "en" ? "Today" :
       language === "ru" ? "Сегодня" :
+      language === "tr" ? "Bugün" :
+      language === "fa" ? "امروز" :
       "დღეს",
     week:
       language === "en" ? "This week" :
       language === "ru" ? "За неделю" :
+      language === "tr" ? "Bu hafta" :
+      language === "fa" ? "این هفته" :
       "ამ კვირაში",
     month:
       language === "en" ? "This month" :
       language === "ru" ? "За месяц" :
+      language === "tr" ? "Bu ay" :
+      language === "fa" ? "این ماه" :
       "ამ თვეში",
     details:
       language === "en" ? "Show details" :
       language === "ru" ? "Подробнее" :
+      language === "tr" ? "Detayları göster" :
+      language === "fa" ? "نمایش جزئیات" :
       "დეტალურად",
   };
 
