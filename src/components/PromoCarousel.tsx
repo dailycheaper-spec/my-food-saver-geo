@@ -1,8 +1,12 @@
+import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { PROMO_BANNERS, localizedText, type PromoBanner } from "@/lib/promo-banners";
+
+// Banner targets come from data, so the typed Link surface is widened here.
+const AnyLink = Link as unknown as React.FC<Record<string, unknown>>;
 
 const ROTATE_MS = 6000;
 const SWIPE_THRESHOLD = 48;
@@ -142,8 +146,9 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                     : "absolute inset-0 opacity-0 pointer-events-none"
                 }`}
               >
-                <Link
-                  {...({ to: b.buttonAction.to, search: b.buttonAction.search } as never)}
+                <AnyLink
+                  to={b.buttonAction.to}
+                  search={b.buttonAction.search}
                   tabIndex={active ? 0 : -1}
                   className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
@@ -180,7 +185,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                       <ChevronRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
                     </span>
                   </div>
-                </Link>
+                </AnyLink>
               </div>
             );
           })}
