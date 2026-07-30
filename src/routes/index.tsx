@@ -258,9 +258,6 @@ function Home() {
 
       {/* -------- Greeting + Search -------- */}
       <section className="mx-auto max-w-6xl px-4 pt-3 sm:pt-4">
-        <h1 className="font-display text-[26px] leading-[1.15] font-bold tracking-tight">
-          {t("heroTitle")}
-        </h1>
 
         <Link
           to="/search"
