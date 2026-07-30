@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Globe } from "lucide-react";
+import { trLabels } from "./i18n.tr";
+import { faLabels } from "./i18n.fa";
 
 export type Language = "ka" | "en" | "ru" | "tr" | "fa";
 
@@ -1487,6 +1489,8 @@ const labels: Record<Language, Record<string, string>> = {
     "analytics.noViewsYet": "Пока никто не смотрел.",
     "analytics.views": "просмотров",
   },
+  tr: trLabels,
+  fa: faLabels,
 };
 
 type I18nContextValue = {
@@ -1538,7 +1542,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     language,
     setLanguage,
-    t: (key: string) => labels[language][key] ?? labels.ka[key] ?? key,
+    t: (key: string) => labels[language][key] ?? labels.en[key] ?? labels.ka[key] ?? key,
   }), [language]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
