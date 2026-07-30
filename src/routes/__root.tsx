@@ -241,7 +241,7 @@ function RootComponent() {
             >
               Skip to content
             </a>
-            <main id="content" className="pb-[env(safe-area-inset-bottom,0px)]">
+            <main id="content">
               <Outlet />
             </main>
             <BottomNav />
