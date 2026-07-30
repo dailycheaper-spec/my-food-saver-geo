@@ -42,6 +42,18 @@ function localizedHead(): { title: string; description: string } {
       description: "Смотрите предложения на карте с точным местоположением и расстоянием.",
     };
   }
+  if (lang === "tr") {
+    return {
+      title: "Harita — Yakınlardaki fırsatlar | Cheaper",
+      description: "Fırsatları harita üzerinde gör, tam konumu ve mesafeyi öğren.",
+    };
+  }
+  if (lang === "fa") {
+    return {
+      title: "نقشه — پیشنهادهای نزدیک | Cheaper",
+      description: "پیشنهادها را روی نقشه ببینید و موقعیت دقیق و فاصله را بیابید.",
+    };
+  }
   return fallback;
 }
 
