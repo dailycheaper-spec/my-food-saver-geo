@@ -135,7 +135,16 @@
     -webkit-text-size-adjust: 100%;         /* honor iOS user font scaling */
     text-size-adjust: 100%;
   }
-  html, body { font-family: var(--font-sans); }
+  html, body {
+    font-family: var(--font-sans);
+    /* iOS paints a grey flash box on every tap; components supply their own
+       :active / :focus-visible affordances instead. */
+    -webkit-tap-highlight-color: transparent;
+    /* Kill the 300ms double-tap-zoom delay without disabling pinch zoom. */
+    touch-action: manipulation;
+    /* Stop full-page rubber-banding behind the fixed bottom nav on iOS. */
+    overscroll-behavior-y: none;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -146,9 +155,22 @@
   }
 
   /* Mobile browsers shrink the visual viewport as the URL bar hides; 100vh
-     over-reports and creates dead space / trapped scroll. Prefer dvh. */
+     over-reports and creates dead space / trapped scroll. Prefer dvh, with a
+     -webkit-fill-available fallback first for older iOS WebKit (≤15). */
+  @supports (-webkit-touch-callout: none) {
+    .min-h-screen { min-height: -webkit-fill-available; }
+    .h-screen { height: -webkit-fill-available; }
+  }
   .min-h-screen { min-height: 100dvh; }
   .h-screen { height: 100dvh; }
+
+  /* iOS Safari auto-zooms when a focused form control renders below 16px.
+     Enforce the floor on phone widths only; desktop keeps its md:text-sm. */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: max(16px, 1em);
+    }
+  }
 
   /* PWA standalone mode: no browser chrome, so avoid layout that assumes
      a toolbar's presence. Prevent iOS overscroll white bands and let the
@@ -156,10 +178,10 @@
      env(safe-area-inset-*) with a 0 fallback in components). */
   @media (display-mode: standalone) {
     html, body {
-      overscroll-behavior-y: none;
       background-color: var(--color-background);
     }
   }
+
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.015em; }
   h1 { font-weight: 800; }
   h2 { font-weight: 700; }
