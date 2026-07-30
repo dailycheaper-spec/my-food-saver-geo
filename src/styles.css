@@ -420,6 +420,22 @@
 [dir="rtl"] .right-6{right:auto;left:calc(var(--spacing, 0.25rem) * 6)}
 [dir="rtl"] .rounded-l-md{border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:var(--radius-md);border-bottom-right-radius:var(--radius-md)}
 [dir="rtl"] .rounded-r-md{border-top-right-radius:0;border-bottom-right-radius:0;border-top-left-radius:var(--radius-md);border-bottom-left-radius:var(--radius-md)}
+[dir="rtl"] .right-1\/2{right:auto;left:50%}
+[dir="rtl"] .left-1\/2{left:auto;right:50%}
+
+/* Negative offsets are distinct class strings in Tailwind, so they need
+   their own mirrored rules. */
+[dir="rtl"] .-left-2{left:auto;right:calc(var(--spacing, 0.25rem) * -2)}
+[dir="rtl"] .-left-12{left:auto;right:calc(var(--spacing, 0.25rem) * -12)}
+[dir="rtl"] .-left-52{left:auto;right:calc(var(--spacing, 0.25rem) * -52)}
+[dir="rtl"] .-right-1{right:auto;left:calc(var(--spacing, 0.25rem) * -1)}
+[dir="rtl"] .-right-2{right:auto;left:calc(var(--spacing, 0.25rem) * -2)}
+[dir="rtl"] .-right-4{right:auto;left:calc(var(--spacing, 0.25rem) * -4)}
+[dir="rtl"] .-right-6{right:auto;left:calc(var(--spacing, 0.25rem) * -6)}
+[dir="rtl"] .-right-12{right:auto;left:calc(var(--spacing, 0.25rem) * -12)}
+[dir="rtl"] .-right-52{right:auto;left:calc(var(--spacing, 0.25rem) * -52)}
+[dir="rtl"] .-ml-4{margin-left:0px;margin-right:calc(var(--spacing, 0.25rem) * -4)}
+
 [dir="rtl"] .text-left{text-align:right}
 [dir="rtl"] .text-right{text-align:left}
 
