@@ -1515,21 +1515,35 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (isLanguage(saved)) {
       setLanguageState(saved);
-    } else {
-      // First visit: detect once from the device/browser language, then persist.
-      const tags = [
-        ...(Array.isArray(navigator.languages) ? navigator.languages : []),
-        navigator.language,
-      ].filter(Boolean) as string[];
+      setReady(true);
+      return;
+    }
+    // First visit: detect once from the device (native) or browser language,
+    // then persist. getDeviceLanguageTags() falls back to navigator.language.
+    void (async () => {
+      let tags: string[] = [];
+      try {
+        const { getDeviceLanguageTags } = await import("@/lib/native");
+        tags = await getDeviceLanguageTags();
+      } catch {
+        tags = [
+          ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+          navigator.language,
+        ].filter(Boolean) as string[];
+      }
+      if (cancelled) return;
       const detected = detectLanguage(tags);
       setLanguageState(detected);
       try { window.localStorage.setItem(STORAGE_KEY, detected); } catch {}
-    }
-    setReady(true);
+      setReady(true);
+    })();
+    return () => { cancelled = true; };
   }, []);
+
 
   useEffect(() => {
     if (!ready) return;

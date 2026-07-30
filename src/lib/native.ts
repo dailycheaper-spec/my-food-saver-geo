@@ -44,3 +44,35 @@ export async function registerDeepLinkHandler(handler: Handler): Promise<() => v
   const sub = await App.addListener("appUrlOpen", handler);
   return () => { sub.remove(); };
 }
+
+// Read the OS-level device language inside the packaged app. Some Android OEM
+// WebViews report a wrong/stale navigator.language, so on native we ask the
+// system directly and only fall back to the browser tags if that fails.
+export async function getDeviceLanguageTags(): Promise<string[]> {
+  const browserTags = () =>
+    (typeof navigator === "undefined"
+      ? []
+      : [
+          ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+          navigator.language,
+        ]
+    ).filter(Boolean) as string[];
+
+  if (!isNative()) return browserTags();
+
+  try {
+    const { Device } = await import("@capacitor/device");
+    const tags: string[] = [];
+    try {
+      const { value } = await Device.getLanguageTag();
+      if (value) tags.push(value);
+    } catch { /* older plugin versions */ }
+    try {
+      const { value } = await Device.getLanguageCode();
+      if (value) tags.push(value);
+    } catch { /* ignore */ }
+    if (tags.length) return [...tags, ...browserTags()];
+  } catch { /* plugin unavailable */ }
+
+  return browserTags();
+}
