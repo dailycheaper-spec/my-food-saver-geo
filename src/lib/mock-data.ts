@@ -4,7 +4,7 @@ import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-export type Category = "საცხობი" | "საკონდიტრო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
+export type Category = "საცხობი" | "საკონდიტრო" | "საოჯახო სამზრეულო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
 
 export interface Offer {
   id: string;
@@ -177,6 +177,7 @@ export const CATEGORIES: { id: Category | "ყველა"; label: string; icon
   { id: "ყველა", label: "ყველა", icon: "✨" },
   { id: "საცხობი", label: "საცხობი", icon: "🥖" },
   { id: "საკონდიტრო", label: "საკონდიტრო", icon: "🍰" },
+  { id: "საოჯახო სამზრეულო", label: "საოჯახო სამზრეულო", icon: "🍲" },
   { id: "რესტორანი", label: "რესტორანი", icon: "🍽️" },
   { id: "სუპერმარკეტი", label: "მარკეტი", icon: "🛒" },
   { id: "კაფე", label: "კაფე", icon: "☕" },
@@ -192,6 +193,7 @@ const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, s
   "ყველა": { ka: "ყველა", en: "All", ru: "Все" },
   "საცხობი": { ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
   "საკონდიტრო": { ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
+  "საოჯახო სამზრეულო": { ka: "საოჯახო სამზრეულო", en: "Home Kitchen", ru: "Домашняя кухня" },
   "რესტორანი": { ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   "სუპერმარკეტი": { ka: "მარკეტი", en: "Market", ru: "Маркет" },
   "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе" },
@@ -367,6 +369,11 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
     { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
     { ka: "თხილეული", en: "Nuts", ru: "Орехи" },
   ],
+  "საოჯახო სამზრეულო": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+  ],
   "რესტორანი": [
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
@@ -440,7 +447,7 @@ export function getPickupInstructions(offer: Offer, language: UiLanguage): strin
   if (language === "ru") {
     return `Покажите QR-код на кассе ${store} с ${offer.pickupFrom} до ${offer.pickupTo}. Приходите вовремя — пакет готовится непосредственно перед выдачей.`;
   }
-  return `მიუტანე QR კოდი ${store}-ის კასაზე ${offer.pickupFrom}–${offer.pickupTo}. მიბრძანდით დროულად — პაკეტი მზადდება აღების წინ.`;
+  return `მიუტანე QR კოდი ${store}-ის სალაროზე ${offer.pickupFrom}–${offer.pickupTo}. მიბრძანდით დროულად — პაკეტი მზადდება აღების წინ.`;
 }
 
 export function getSimilarOffers(offer: Offer, limit = 4): Offer[] {

@@ -37,6 +37,7 @@ const STORE_TYPES = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
   { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
+  { value: "home_kitchen", ka: "საოჯახო სამზრეულო", en: "Home Kitchen", ru: "Домашняя кухня" },
   { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
   { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
   { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },

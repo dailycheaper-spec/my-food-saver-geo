@@ -14,6 +14,7 @@ function mapCategory(raw: string | null | undefined, ...extra: (string | null | 
   if (c.includes("pizza") || c.includes("პიცა")) return "პიცა";
   if (c.includes("sushi") || c.includes("სუში")) return "სუში";
   if (c.includes("confection") || c.includes("patisserie") || c.includes("საკონდიტრო") || c.includes("კონდიტ")) return "საკონდიტრო";
+  if (c.includes("home kitchen") || c.includes("homekitchen") || c.includes("home_kitchen") || c.includes("საოჯახო") || c.includes("домашн")) return "საოჯახო სამზრეულო";
   if (c.includes("bak") || c.includes("საცხობი") || c.includes("bakery")) return "საცხობი";
   if (c.includes("market") || c.includes("super") || c.includes("grocery") || c.includes("produce") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
   if (c.includes("cafe") || c.includes("caf") || c.includes("dessert") || c.includes("კაფე")) return "კაფე";
@@ -24,6 +25,7 @@ function fallbackImage(cat: Category): string {
   switch (cat) {
     case "საცხობი": return bagBakery;
     case "საკონდიტრო": return bagSweets;
+    case "საოჯახო სამზრეულო": return bagKhachapuri;
     case "სუში": return bagSushi;
     case "პიცა": return bagKhachapuri;
     case "სუპერმარკეტი": return bagProduce;
