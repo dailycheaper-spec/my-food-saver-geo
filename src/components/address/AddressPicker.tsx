@@ -258,9 +258,12 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
       if (loc) openMapAt(loc.lat, loc.lng);
       return;
     }
-    // Permission not decided yet — explain first, then the modal fetches.
-    askPermission();
-    const loc = await request().catch(() => null);
+    if (permission === "prompt" || permission === "unknown") {
+      // Permission not decided yet — explain first; the modal triggers the fetch.
+      askPermission();
+      return;
+    }
+    const loc = await request();
     if (loc) openMapAt(loc.lat, loc.lng);
   }
 
