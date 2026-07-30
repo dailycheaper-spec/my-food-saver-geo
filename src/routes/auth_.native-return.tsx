@@ -1,6 +1,6 @@
 // Bounce page: after Google OAuth, the backend redirects here with the session
 // tokens in the URL hash (or an authorization code in the query). On web this
-// route is never reached (auth flow uses the popup/web_message path). On
+// route is never reached (auth flow uses a regular browser redirect). On
 // native, we forward everything to the app's custom scheme so the packaged
 // shell can finish sign-in.
 //
@@ -13,7 +13,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/auth/native-return")({
+export const Route = createFileRoute("/auth_/native-return")({
   head: () => ({
     meta: [
       { title: "შესვლა · Cheaper" },
@@ -40,6 +40,8 @@ function NativeAuthReturn() {
     const platform = sourceParams.get("platform");
     sourceParams.delete("platform");
     const search = sourceParams.size ? `?${sourceParams.toString()}` : "";
+    // Keep every OAuth result parameter intact. The native shell exchanges a
+    // PKCE code or installs an implicit token session and also surfaces errors.
     const target = `ge.cheaper.app://auth-callback${search}${hash}`;
     setDeepLink(target);
 

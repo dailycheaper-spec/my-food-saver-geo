@@ -107,15 +107,17 @@ function AuthPage() {
 
         // Recover the screen if the user dismisses the system browser (or it
         // closes) without the deep-link handoff having signed us in.
-        const { onBrowserFinished } = await import("@/lib/native");
+        const { onBrowserFinished, isNativeOAuthCallbackPending } = await import("@/lib/native");
         const off = await onBrowserFinished(() => {
           off();
-          void supabase.auth.getSession().then(({ data }) => {
-            if (!data.session) {
+          window.setTimeout(() => {
+            if (isNativeOAuthCallbackPending()) return;
+            void supabase.auth.getSession().then(({ data }) => {
+              if (data.session || isNativeOAuthCallbackPending()) return;
               setLoading(false);
               setMsg({ type: "err", text: t("auth.native.retry") });
-            }
-          });
+            });
+          }, 700);
         });
         await openExternal(data.url);
       } catch {

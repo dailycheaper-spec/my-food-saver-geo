@@ -8,6 +8,16 @@ import { App, type URLOpenListenerEvent } from "@capacitor/app";
 
 export const NATIVE_SCHEME = "ge.cheaper.app";
 
+let nativeOAuthCallbackPending = false;
+
+export function setNativeOAuthCallbackPending(pending: boolean): void {
+  nativeOAuthCallbackPending = pending;
+}
+
+export function isNativeOAuthCallbackPending(): boolean {
+  return nativeOAuthCallbackPending;
+}
+
 export function isNative(): boolean {
   try {
     return Capacitor.isNativePlatform();
