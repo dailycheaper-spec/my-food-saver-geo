@@ -50,7 +50,7 @@ export function NearbyOffersSection({ offers }: Props) {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
     language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
-  const { location, status, askPermission, request } = useUserLocation();
+  const { location, status, askPermission, request, isLocating, permission } = useUserLocation();
   const { address } = useDeliveryAddress();
   const [radius, setRadius] = useState<RadiusOption>(3);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(3);
@@ -115,7 +115,13 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {!origin && status !== "prompting" && (
+      {!origin && isLocating && (
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center text-sm text-muted-foreground" role="status">
+          {L("მდებარეობა იძებნება…", "Finding your location…", "Определяем ваше местоположение…", "Konumunuz bulunuyor…", "در حال یافتن موقعیت شما…")}
+        </div>
+      )}
+
+      {!origin && !isLocating && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center">
           <div className="text-3xl mb-2">📍</div>
           <p className="text-sm font-semibold">
@@ -132,7 +138,7 @@ export function NearbyOffersSection({ offers }: Props) {
           </p>
           <button
             type="button"
-            onClick={askPermission}
+            onClick={permission === "granted" ? () => void request() : askPermission}
             className="mt-4 inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold press"
           >
             <Navigation className="w-4 h-4" /> {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию", "Konumu etkinleştir", "فعال‌سازی مکان")}
