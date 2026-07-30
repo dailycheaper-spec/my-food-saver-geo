@@ -136,7 +136,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 aria-roledescription="slide"
                 aria-label={slideLabel(i)}
                 aria-hidden={!active}
-                {...(!active ? { inert: "" as unknown as boolean } : {})}
+                {...(!active ? ({ inert: "" } as Record<string, unknown>) : {})}
                 className={`transition-opacity duration-500 ${
                   active
                     ? "relative opacity-100"
