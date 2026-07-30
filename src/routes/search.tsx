@@ -235,7 +235,7 @@ function SearchPage() {
   return (
     <div className="min-h-screen">
       {/* Sticky search header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border pt-[env(safe-area-inset-top)]">
+      <div className="app-header">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">

@@ -207,13 +207,8 @@ function Home() {
   return (
     <div className="pb-24">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
-      <div
-        className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border/60"
-        style={{
-          paddingTop: "env(safe-area-inset-top, 0px)",
-          WebkitBackdropFilter: "blur(16px)",
-        }}
-      >
+      <div className="app-header">
+
 
         <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center gap-2">
           <Link to="/" aria-label={t("brand")} className="shrink-0 press rounded-2xl focus-visible:outline-none">

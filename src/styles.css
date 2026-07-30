@@ -137,6 +137,8 @@
   }
   html, body {
     font-family: var(--font-sans);
+    /* Elastic overscroll must never expose the UA's white canvas. */
+    background-color: var(--color-background);
     /* iOS paints a grey flash box on every tap; components supply their own
        :active / :focus-visible affordances instead. */
     -webkit-tap-highlight-color: transparent;
@@ -348,6 +350,37 @@
   padding-left: env(safe-area-inset-left, 0px);
   padding-right: env(safe-area-inset-right, 0px);
 }
+
+/* Shared sticky app header. Paints the notch strip itself (opaque base layer
+   under the blur) so iOS never shows a light band above the bar, and stays
+   pinned while Safari's dynamic toolbar resizes the layout viewport. */
+@utility app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: max(0px, env(safe-area-inset-top, 0px));
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  /* Blur is applied on the element itself (never on an ancestor, which would
+     break sticky/fixed descendants in WebKit). */
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+/* Full-bleed container for the fixed bottom bar: background reaches the
+   display edge, safe-area padding lifts controls above the home indicator. */
+@utility app-bottom-bar {
+  padding-bottom: calc(0.375rem + env(safe-area-inset-bottom, 0px));
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in oklab, var(--color-background) 85%, transparent) 35%,
+    var(--color-background) 70%
+  );
+}
+
 
 /* Shared page rhythm: one padding/max-width scale across routes */
 @utility page-shell {
