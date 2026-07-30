@@ -137,6 +137,8 @@
   }
   html, body {
     font-family: var(--font-sans);
+    /* Elastic overscroll must never expose the UA's white canvas. */
+    background-color: var(--color-background);
     /* iOS paints a grey flash box on every tap; components supply their own
        :active / :focus-visible affordances instead. */
     -webkit-tap-highlight-color: transparent;
