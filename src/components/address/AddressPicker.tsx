@@ -436,26 +436,72 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
               </p>
             )}
 
-            {/* current location */}
-            <button
-              type="button"
-              onClick={() => void useCurrentLocation()}
-              className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-border text-left hover:bg-muted/40 transition-colors"
-            >
-              <Navigation className="w-5 h-5 text-primary shrink-0" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold">
-                  {L("მიმდინარე მდებარეობა", "Current location", "Текущее местоположение", "Mevcut konum", "موقعیت فعلی")}
+            {/* ── CURRENT DEVICE LOCATION (distinct from saved addresses) ── */}
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 overflow-hidden">
+              <div className="flex items-center gap-2 px-3.5 pt-2.5">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-primary">
+                  {L("მოწყობილობის მდებარეობა", "Device location", "Местоположение устройства", "Cihaz konumu", "موقعیت دستگاه")}
                 </span>
-                <span className="block text-xs text-muted-foreground truncate">
-                  {location
-                    ? currentLabel || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
-                    : status === "denied"
-                      ? L("წვდომა დახურულია — შეეხეთ ხელახლა", "Access blocked — tap to retry", "Доступ закрыт — нажмите ещё раз", "Erişim engellendi — tekrar denemek için dokunun", "دسترسی مسدود شده — برای تلاش دوباره ضربه بزنید")
-                      : L("შეეხეთ მდებარეობის ჩასართავად", "Tap to enable location", "Нажмите, чтобы включить", "Konumu etkinleştirmek için dokunun", "برای فعال‌سازی مکان ضربه بزنید")}
+                {location && (
+                  <button
+                    type="button"
+                    onClick={() => void refresh()}
+                    disabled={isLocating}
+                    className="ml-auto text-[11px] font-semibold text-primary underline underline-offset-2 disabled:opacity-50"
+                  >
+                    {isLocating
+                      ? L("განახლდება…", "Refreshing…", "Обновляем…", "Yenileniyor…", "در حال به‌روزرسانی…")
+                      : L("განახლება", "Refresh", "Обновить", "Yenile", "به‌روزرسانی")}
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => void useCurrentLocation()}
+                disabled={isLocating && !location}
+                className="w-full flex items-center gap-3 p-3.5 text-left hover:bg-primary/10 transition-colors disabled:opacity-70"
+              >
+                {isLocating && !location ? (
+                  <Loader2 className="w-5 h-5 text-primary shrink-0 animate-spin" />
+                ) : (
+                  <Navigation className="w-5 h-5 text-primary shrink-0" />
+                )}
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold">
+                    {L("მიმდინარე მდებარეობა", "Current location", "Текущее местоположение", "Mevcut konum", "موقعیت فعلی")}
+                  </span>
+                  <span className="block text-xs text-muted-foreground truncate">
+                    {isLocating && !location
+                      ? L("იძებნება…", "Locating…", "Определяем…", "Konum bulunuyor…", "در حال یافتن…")
+                      : location
+                        ? currentLabel || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
+                        : status === "denied"
+                          ? L("წვდომა დახურულია — შეეხეთ ხელახლა", "Access blocked — tap to retry", "Доступ закрыт — нажмите ещё раз", "Erişim engellendi — tekrar denemek için dokunun", "دسترسی مسدود شده — برای تلاش دوباره ضربه بزنید")
+                          : L("შეეხეთ მდებარეობის ჩასართავად", "Tap to enable location", "Нажмите, чтобы включить", "Konumu etkinleştirmek için dokunun", "برای فعال‌سازی مکان ضربه بزنید")}
+                  </span>
+                  {location && (isStale || poorAccuracy) && (
+                    <span className="block text-[11px] text-warm-foreground mt-0.5">
+                      {poorAccuracy
+                        ? L(
+                            `სიზუსტე ±${Math.round(location.accuracy ?? 0)} მ — დაზუსტეთ რუკაზე`,
+                            `Accuracy ±${Math.round(location.accuracy ?? 0)} m — confirm on the map`,
+                            `Точность ±${Math.round(location.accuracy ?? 0)} м — уточните на карте`,
+                            `Doğruluk ±${Math.round(location.accuracy ?? 0)} m — haritada onaylayın`,
+                            `دقت ±${Math.round(location.accuracy ?? 0)} متر — روی نقشه تأیید کنید`,
+                          )
+                        : L("ბოლოს ცნობილი მდებარეობა", "Last known location", "Последнее известное местоположение", "Son bilinen konum", "آخرین موقعیت شناخته‌شده")}
+                    </span>
+                  )}
                 </span>
-              </span>
-            </button>
+              </button>
+            </div>
+
+            {locationError && !location && (
+              <p className="flex items-start gap-2 text-xs text-muted-foreground px-1" role="status">
+                <AlertTriangle className="w-3.5 h-3.5 mt-0.5 text-warm-foreground shrink-0" />
+                {locationError}
+              </p>
+            )}
 
             {status === "denied" && (
               <p className="flex items-start gap-2 text-xs text-muted-foreground px-1">
