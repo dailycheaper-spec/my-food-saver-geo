@@ -141,14 +141,18 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
 
 function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffer | null; onClose: () => void }) {
   const { t, language } = useI18n();
-  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "description_en" | "description_ru" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
+  const offerAny = offer as unknown as Partial<Record<"title_en" | "title_ru" | "title_tr" | "title_fa" | "description_en" | "description_ru" | "description_tr" | "description_fa" | "image_path" | "image_signed_url_expires_at", string | null>> & { allergens?: string[] | null } | null;
   const [form, setForm] = useState({
     title: offer?.title ?? "",
     title_en: offerAny?.title_en ?? "",
     title_ru: offerAny?.title_ru ?? "",
+    title_tr: offerAny?.title_tr ?? "",
+    title_fa: offerAny?.title_fa ?? "",
     description: offer?.description ?? "",
     description_en: offerAny?.description_en ?? "",
     description_ru: offerAny?.description_ru ?? "",
+    description_tr: offerAny?.description_tr ?? "",
+    description_fa: offerAny?.description_fa ?? "",
     category: offer?.category ?? "meal",
     original_price: offer?.original_price?.toString() ?? "20",
     discounted_price: offer?.discounted_price?.toString() ?? "7",
@@ -181,9 +185,13 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       title: form.title,
       title_en: form.title_en.trim() || null,
       title_ru: form.title_ru.trim() || null,
+      title_tr: form.title_tr.trim() || null,
+      title_fa: form.title_fa.trim() || null,
       description: form.description,
       description_en: form.description_en.trim() || null,
       description_ru: form.description_ru.trim() || null,
+      description_tr: form.description_tr.trim() || null,
+      description_fa: form.description_fa.trim() || null,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -247,6 +255,10 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
               <Input label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
               <Input label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
               <Input label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+              <Input label={t("titleTrOptional")} value={form.title_tr} onChange={(v) => setForm({ ...form, title_tr: v })} />
+              <Input label={t("titleFaOptional")} value={form.title_fa} onChange={(v) => setForm({ ...form, title_fa: v })} />
+              <Input label={t("descriptionTrOptional")} value={form.description_tr} onChange={(v) => setForm({ ...form, description_tr: v })} />
+              <Input label={t("descriptionFaOptional")} value={form.description_fa} onChange={(v) => setForm({ ...form, description_fa: v })} />
             </div>
           </details>
           <Input label={t("qtyLbl")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
