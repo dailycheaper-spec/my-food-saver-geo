@@ -365,3 +365,12 @@
 }
 
 
+
+/* Leaflet panes/controls use z-index 400–800, which would otherwise stack
+   above app modals (z-50) because map cards create no stacking context.
+   Keep every map contained in its own layer. */
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}

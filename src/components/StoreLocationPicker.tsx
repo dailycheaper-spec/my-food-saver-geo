@@ -35,6 +35,26 @@ function ClickHandler({ onChange }: { onChange: Props["onChange"] }) {
   return null;
 }
 
+/** Modals/lazy mounts can size the container after Leaflet initialises, which
+ * leaves tiles and the marker offset. Re-measure after mount and on resize,
+ * and make sure the map instance is torn down on unmount. */
+function SizeGuard() {
+  const map = useMap();
+  useEffect(() => {
+    const fix = () => map.invalidateSize({ animate: false });
+    const raf = requestAnimationFrame(fix);
+    const t = setTimeout(fix, 250);
+    const ro = new ResizeObserver(fix);
+    ro.observe(map.getContainer());
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(t);
+      ro.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 function Recenter({ lat, lng }: { lat: number | null; lng: number | null }) {
   const map = useMap();
   const prev = useRef<string>("");
@@ -77,7 +97,7 @@ export function StoreLocationPicker({
 
   return (
     <div
-      className="w-full rounded-2xl overflow-hidden border border-border relative"
+      className="w-full rounded-2xl overflow-hidden border border-border relative z-0 isolate"
       style={{ height }}
     >
       <MapContainer
@@ -107,6 +127,7 @@ export function StoreLocationPicker({
             maxZoom={19}
           />
         )}
+        <SizeGuard />
         <ClickHandler onChange={onChange} />
         <Recenter lat={value.lat} lng={value.lng} />
         {hasMarker && radiusKm && radiusKm > 0 && (

@@ -239,6 +239,7 @@ function AdminPartners() {
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
       {editingLocation && (
         <AdminStoreLocationModal
+          key={editingLocation.id}
           store={editingLocation}
           onClose={() => setEditingLocation(null)}
           onSaved={() => { setEditingLocation(null); reload(); }}
@@ -500,7 +501,7 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1200] bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
       <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-bold">{L("ახალი პარტნიორი", "New partner", "Новый партнёр")}</h2>
@@ -623,7 +624,7 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1200] bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
       <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-bold">{L("პარტნიორის რედაქტირება", "Edit partner", "Редактирование партнёра")}</h2>
