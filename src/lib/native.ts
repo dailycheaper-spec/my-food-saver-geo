@@ -33,6 +33,15 @@ export async function closeExternal(): Promise<void> {
   }
 }
 
+// Fires when the system browser is dismissed (user taps Done / back) or closed
+// programmatically. Used to recover the sign-in screen when the deep-link
+// handoff never happened. No-op on web.
+export async function onBrowserFinished(cb: () => void): Promise<() => void> {
+  if (!isNative()) return () => {};
+  const sub = await Browser.addListener("browserFinished", cb);
+  return () => { void sub.remove(); };
+}
+
 // Register the single deep-link listener. The app receives
 //   ge.cheaper.app://auth-callback#access_token=...&refresh_token=...
 //   ge.cheaper.app://order-return?orderId=...&payment=success
