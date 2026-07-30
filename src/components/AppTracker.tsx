@@ -70,7 +70,6 @@ export function AppTracker() {
     markOffersSeen(currentIds);
   }, [notifs.enabled, notifs.categories, notifs.radiusKm, t]);
 
-  const cachedPosRef = useRef<{ lat: number; lng: number; at: number } | null>(null);
 
   useEffect(() => {
     const notify = (offer: RealtimeOffer) => {
