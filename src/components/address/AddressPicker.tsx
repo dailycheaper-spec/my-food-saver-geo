@@ -9,7 +9,7 @@ import {
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
-import { useUserLocation } from "@/hooks/use-user-location";
+import { LOW_ACCURACY_M, useUserLocation } from "@/hooks/use-user-location";
 import { useAuth } from "@/lib/auth";
 import { reverseGeocode, autocompleteAddress, placeDetails } from "@/lib/geocode.functions";
 import {
@@ -78,6 +78,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
     refresh,
     isLocating,
     isStale,
+    permission,
     error: locationError,
   } = useUserLocation();
   const { data: saved = [], isLoading: loadingSaved } = useMyAddresses(!!user && open);
