@@ -17,6 +17,7 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { isValidGeorgianIban } from "@/lib/bank-account";
 import { useI18n } from "@/lib/i18n";
+import { useReverseAddress } from "@/lib/reverse-address";
 
 type StoreExtras = { lat: number | null; lng: number | null; visibility_radius_km: number | null };
 function storeExtras(s: DbStore): StoreExtras {
@@ -35,6 +36,7 @@ const FLAG_THRESHOLD = 5;
 const STORE_TYPES = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
   { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
   { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
   { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },
@@ -339,12 +341,9 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         <StoreLocationPreview lat={lat} lng={lng} height={130} />
         <div className="text-xs space-y-0.5">
           <LocStatusLine status={locStatus} />
+          <StoreAddressLine lat={lat} lng={lng} />
           <div className="text-muted-foreground">
-            {L("კოორდინატები", "Coordinates", "Координаты")}: <span className="font-mono text-foreground">
-              {lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : "—"}
-            </span>
-          </div>
-          <div className="text-muted-foreground">
+
             {L("რადიუსი", "Radius", "Радиус")}: <span className="font-semibold text-foreground">
               {visibility_radius_km == null
                 ? L("მითითებული არაა", "Not set", "Не указан")
@@ -426,6 +425,33 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         >
           <Trash2 className="w-4 h-4" />
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** Shows the reverse-geocoded street address for a store pin; coordinates stay as a muted fallback line. */
+function StoreAddressLine({ lat, lng }: { lat: number | null; lng: number | null }) {
+  const { language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { address, loading } = useReverseAddress(lat, lng);
+  if (lat == null || lng == null) {
+    return (
+      <div className="text-muted-foreground">
+        {L("მისამართი", "Address", "Адрес")}: <span className="text-foreground">—</span>
+      </div>
+    );
+  }
+  return (
+    <div className="text-muted-foreground">
+      <div>
+        {L("მისამართი", "Address", "Адрес")}:{" "}
+        <span className="text-foreground font-medium">
+          {address || (loading ? L("იტვირთება…", "Loading…", "Загрузка…") : L("ვერ დადგინდა", "Unavailable", "Не определён"))}
+        </span>
+      </div>
+      <div className="font-mono text-[11px] opacity-70">
+        {lat.toFixed(5)}, {lng.toFixed(5)}
       </div>
     </div>
   );

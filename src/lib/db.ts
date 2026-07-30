@@ -162,13 +162,32 @@ export async function createOrder(input: {
   quantity: number;
   method: "pickup" | "delivery";
   delivery_address?: string;
+  delivery_lat?: number | null;
+  delivery_lng?: number | null;
+  delivery_place_id?: string | null;
+  customer_note?: string;
 }) {
   const { data: sess } = await supabase.auth.getSession();
   const uid = sess.session?.user.id;
   if (!uid) throw new Error("გთხოვთ, ჯერ შეხვიდეთ სისტემაში");
+  const note = input.customer_note?.trim();
   const { data, error } = await supabase
     .from("orders")
-    .insert({ ...input, user_id: uid, status: "paid", code: generateOrderCode() })
+    .insert({
+      offer_id: input.offer_id,
+      store_id: input.store_id,
+      amount: input.amount,
+      quantity: input.quantity,
+      method: input.method,
+      delivery_address: input.delivery_address,
+      delivery_lat: input.delivery_lat ?? null,
+      delivery_lng: input.delivery_lng ?? null,
+      delivery_place_id: input.delivery_place_id ?? null,
+      customer_note: note ? note.slice(0, 300) : null,
+      user_id: uid,
+      status: "paid",
+      code: generateOrderCode(),
+    })
     .select()
     .single();
   if (error) throw error;

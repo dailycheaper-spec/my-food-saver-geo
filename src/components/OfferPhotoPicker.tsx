@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Image as ImageIcon, Camera, Upload, AlertTriangle } from "lucide-react";
+import { Image as ImageIcon, Camera, Upload, AlertTriangle, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { OFFER_IMAGE_SIGN_TTL_SECONDS } from "@/lib/offer-image";
+
+export type OfferPhotoMeta = { path: string; expiresAt: string };
 
 export function OfferPhotoPicker({
   value,
@@ -9,7 +14,7 @@ export function OfferPhotoPicker({
   onValidityChange,
 }: {
   value: string;
-  onChange: (url: string) => void;
+  onChange: (url: string, meta?: OfferPhotoMeta) => void;
   compact?: boolean;
   /** Called with true when the current pasted URL fails to load (broken image). */
   onValidityChange?: (invalid: boolean) => void;
@@ -18,6 +23,7 @@ export function OfferPhotoPicker({
   const cameraRef = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const [imgError, setImgError] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Report validity upward. data: URLs and empty values are always considered valid.
   useEffect(() => {
@@ -29,11 +35,31 @@ export function OfferPhotoPicker({
     setImgError(false);
   }, [value]);
 
-  function handleFile(file: File | undefined) {
+  async function handleFile(file: File | undefined) {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => { setImgError(false); onChange(String(reader.result)); };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) throw new Error("Not signed in");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `uploads/${sess.session.user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("offer-images")
+        .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("offer-images")
+        .createSignedUrl(path, OFFER_IMAGE_SIGN_TTL_SECONDS);
+      if (signErr || !signed) throw signErr ?? new Error("Sign failed");
+      setImgError(false);
+      const expiresAt = new Date(Date.now() + OFFER_IMAGE_SIGN_TTL_SECONDS * 1000).toISOString();
+      onChange(signed.signedUrl, { path, expiresAt });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error(msg);
+    } finally {
+      setUploading(false);
+    }
   }
 
   const imgH = compact ? "h-32" : "h-48";
@@ -58,18 +84,20 @@ export function OfferPhotoPicker({
       <div className="grid grid-cols-2 gap-2 mb-2">
         <button
           type="button"
+          disabled={uploading}
           onClick={() => cameraRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium disabled:opacity-60"
         >
-          <Camera className="w-5 h-5" />
+          {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
           {t("takePhoto")}
         </button>
         <button
           type="button"
+          disabled={uploading}
           onClick={() => uploadRef.current?.click()}
-          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium"
+          className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl bg-muted border border-border text-xs font-medium disabled:opacity-60"
         >
-          <Upload className="w-5 h-5" />
+          {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Upload className="w-5 h-5" />}
           {t("uploadPhoto")}
         </button>
       </div>

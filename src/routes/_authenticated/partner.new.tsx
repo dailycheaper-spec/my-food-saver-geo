@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/partner/new")({
 const CATEGORIES = [
   { value: "meal", icon: "🍽", key: "meal" },
   { value: "bakery", icon: "🥐", key: "bakery" },
+  { value: "confectionery", icon: "🍰", key: "confectionery" },
   { value: "pizza", icon: "🍕", key: "pizza" },
   { value: "sushi", icon: "🍣", key: "sushi" },
   { value: "grocery", icon: "🛒", key: "grocery" },
@@ -74,6 +75,8 @@ function NewOfferPage() {
     pickup_from: "18:00",
     pickup_to: "21:00",
     image_url: "",
+    image_path: null as string | null,
+    image_signed_url_expires_at: null as string | null,
     delivery_available: false,
     is_surprise: false,
     surprise_contents: "",
@@ -114,6 +117,8 @@ function NewOfferPage() {
       pickup_from: form.pickup_from,
       pickup_to: form.pickup_to,
       image_url: form.image_url.trim() || null,
+      image_path: form.image_path,
+      image_signed_url_expires_at: form.image_signed_url_expires_at,
       delivery_available: form.delivery_available,
       is_surprise: form.is_surprise,
       is_active: true,
@@ -143,7 +148,12 @@ function NewOfferPage() {
           <Label>{t("photo")}</Label>
           <OfferPhotoPicker
             value={form.image_url}
-            onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+            onChange={(url, meta) => setForm((f) => ({
+              ...f,
+              image_url: url,
+              image_path: meta?.path ?? (url === f.image_url ? f.image_path : null),
+              image_signed_url_expires_at: meta?.expiresAt ?? (url === f.image_url ? f.image_signed_url_expires_at : null),
+            }))}
             onValidityChange={setImgInvalid}
           />
         </div>

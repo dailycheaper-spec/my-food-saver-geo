@@ -10,13 +10,14 @@ import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatches
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
 import { Logo } from "@/components/Logo";
-import { CitySelector } from "@/components/CitySelector";
+import { LocationChip } from "@/components/location/LocationChip";
 import { UserMenu } from "@/components/UserMenu";
 import { ScrollableRow } from "@/components/ScrollableRow";
 import { useAuth } from "@/lib/auth";
 import { useMyRole } from "@/lib/db";
 import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { NearbyOffersSection } from "@/components/NearbyOffersSection";
+import { SavingsTracker } from "@/components/SavingsTracker";
 import { useFollowedStoreIds } from "@/lib/follows";
 import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
@@ -81,6 +82,30 @@ function Home() {
   }, [ALL_OFFERS, cat, district, q, language]);
 
   const nearby = useMemo(() => filtered.slice(0, 6), [filtered]);
+
+  // "Near you" is distance-driven: keep the category filter, but ignore the
+  // district/search filters so branch proximity decides what shows up.
+  const nearbySource = useMemo(() => ALL_OFFERS.filter(inCat), [ALL_OFFERS, cat]);
+
+  // Live "best discount of the day" — highest real discount % across active,
+  // in-stock offers whose pickup window is still open. City-scoped so it
+  // matches the surrounding list. Recomputes automatically as ALL_OFFERS
+  // (the live hook) changes.
+  const bestDeal = useMemo<Offer | null>(() => {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    let best: Offer | null = null;
+    let bestPct = -1;
+    for (const o of ALL_OFFERS) {
+      if (o.itemsLeft <= 0) continue;
+      if (!o.originalPrice || o.originalPrice <= 0) continue;
+      const [h, m] = o.pickupTo.split(":").map(Number);
+      if ((h * 60 + m) <= nowMin) continue;
+      const pct = 1 - o.price / o.originalPrice;
+      if (pct > bestPct) { bestPct = pct; best = o; }
+    }
+    return best;
+  }, [ALL_OFFERS]);
 
   const flashDeals = useMemo(() => {
     const now = new Date();
@@ -191,7 +216,7 @@ function Home() {
           <div className="mx-1 h-8 w-px bg-border/70 shrink-0 hidden sm:block" aria-hidden="true" />
 
           <div className="min-w-0 flex-1">
-            <CitySelector variant="compact" />
+            <LocationChip variant="compact" />
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1">
@@ -300,8 +325,11 @@ function Home() {
         </Link>
       </section>
 
+      {/* -------- Savings tracker (signed-in only) -------- */}
+      {user && <SavingsTracker />}
+
       {/* -------- Nearby (location-aware) -------- */}
-      <NearbyOffersSection offers={filtered} />
+      <NearbyOffersSection offers={nearbySource} />
 
       {/* -------- Stores You Follow (signed-in only, server-side follows) -------- */}
       {followedOffers.length > 0 && (
@@ -350,6 +378,18 @@ function Home() {
           </select>
           <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground rotate-90 pointer-events-none" />
         </div>
+
+        {bestDeal && (
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider bg-primary text-primary-foreground px-2.5 py-1 rounded-full">
+                <Zap className="w-3 h-3" />
+                {language === "en" ? "Best discount today" : language === "ru" ? "Лучшая скидка дня" : "დღის საუკეთესო ფასდაკლება"}
+              </span>
+            </div>
+            <OfferCard offer={bestDeal} featured />
+          </div>
+        )}
 
         {offersError ? (
           <div className="text-center py-10 sm:py-14 bg-card rounded-3xl border border-destructive/30">

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MapPin, Navigation, ChevronRight } from "lucide-react";
+import { MapPin, Navigation, ChevronRight, Home as HomeIcon } from "lucide-react";
 import type { Offer } from "@/lib/mock-data";
 import { calculateDistanceKm, formatDistance, isValidLatLng } from "@/lib/geo";
 import { useUserLocation } from "@/hooks/use-user-location";
+import { useDeliveryAddress } from "@/lib/delivery-address";
 import { CustomerRadiusFilter, type RadiusOption } from "@/components/CustomerRadiusFilter";
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
@@ -14,15 +15,27 @@ interface Props {
 
 const PARTNER_DEFAULT_RADIUS = 3;
 
+/** Offer is orderable right now: stock left and pickup window not over. */
+function isOrderableNow(o: Offer, nowMin: number): boolean {
+  if ((o.itemsLeft ?? 0) <= 0) return false;
+  const [h, m] = String(o.pickupTo ?? "").split(":").map(Number);
+  if (Number.isFinite(h) && Number.isFinite(m) && h * 60 + m <= nowMin) return false;
+  return true;
+}
+
 export function computeNearbyOffers(
   offers: Offer[],
   userLat: number,
   userLng: number,
   customerRadiusKm: number,
+  nowMin?: number,
 ): Array<Offer & { _distanceKm: number }> {
   const out: Array<Offer & { _distanceKm: number }> = [];
+  const minutes = nowMin ?? -1;
   for (const o of offers) {
+    // Branch/shop coordinates are required — distance is measured to the branch.
     if (!isValidLatLng(o.lat, o.lng)) continue;
+    if (minutes >= 0 && !isOrderableNow(o, minutes)) continue;
     const partnerRadius = o.visibilityRadiusKm ?? PARTNER_DEFAULT_RADIUS;
     const d = calculateDistanceKm(userLat, userLng, o.lat as number, o.lng as number);
     if (d > partnerRadius) continue;
@@ -37,13 +50,25 @@ export function NearbyOffersSection({ offers }: Props) {
   const { language } = useI18n();
   const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const { location, status, askPermission, request } = useUserLocation();
+  const { address } = useDeliveryAddress();
   const [radius, setRadius] = useState<RadiusOption>(3);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(3);
 
+  // GPS wins; otherwise fall back to the saved delivery address so the section
+  // still works when the user declined the browser prompt.
+  const origin = useMemo(() => {
+    if (location) return { lat: location.lat, lng: location.lng, kind: "gps" as const };
+    if (address && isValidLatLng(address.lat, address.lng))
+      return { lat: address.lat, lng: address.lng, kind: "address" as const, label: address.addressLine };
+    return null;
+  }, [location, address]);
+
   const nearby = useMemo(() => {
-    if (!location) return [];
-    return computeNearbyOffers(offers, location.lat, location.lng, effectiveRadius);
-  }, [offers, location, effectiveRadius]);
+    if (!origin) return [];
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return computeNearbyOffers(offers, origin.lat, origin.lng, effectiveRadius, nowMin);
+  }, [offers, origin, effectiveRadius]);
 
   return (
     <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
@@ -51,7 +76,7 @@ export function NearbyOffersSection({ offers }: Props) {
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
           <MapPin className="w-[18px] h-[18px] text-primary" /> 📍 {L("თქვენთან ახლოს", "Near you", "Рядом с вами")}
         </h2>
-        {location && nearby.length > 0 && (
+        {origin && nearby.length > 0 && (
           <Link
             to="/map"
             className="text-xs font-semibold text-primary flex items-center gap-0.5 active:scale-95"
@@ -61,13 +86,35 @@ export function NearbyOffersSection({ offers }: Props) {
         )}
       </div>
 
-      {location && (
-        <div className="mb-3">
+      {origin && (
+        <div className="mb-3 space-y-2">
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            {origin.kind === "gps" ? (
+              <>
+                <Navigation className="w-3 h-3 text-primary" />
+                {L("თქვენი მიმდინარე მდებარეობიდან", "From your current location", "От вашего текущего местоположения")}
+              </>
+            ) : (
+              <>
+                <HomeIcon className="w-3 h-3 text-primary" />
+                <span className="truncate">
+                  {L("მისამართიდან", "From", "От адреса")}: {origin.label}
+                </span>
+                <button
+                  type="button"
+                  onClick={askPermission}
+                  className="underline underline-offset-2 font-semibold shrink-0"
+                >
+                  {L("GPS-ის გამოყენება", "Use GPS", "Использовать GPS")}
+                </button>
+              </>
+            )}
+          </p>
           <CustomerRadiusFilter value={radius} onChange={setRadius} onDebouncedChange={setEffectiveRadius} />
         </div>
       )}
 
-      {!location && status !== "prompting" && (
+      {!origin && status !== "prompting" && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center">
           <div className="text-3xl mb-2">📍</div>
           <p className="text-sm font-semibold">
@@ -103,13 +150,13 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {status === "prompting" && !location && (
+      {status === "prompting" && !origin && (
         <div className="rounded-3xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           {L("იძებნება მდებარეობა…", "Locating…", "Определяем местоположение…")}
         </div>
       )}
 
-      {location && nearby.length === 0 && (
+      {origin && nearby.length === 0 && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 text-center">
           <div className="text-3xl mb-2">🥲</div>
           <p className="text-sm text-muted-foreground">
@@ -135,7 +182,7 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {location && nearby.length > 0 && (
+      {origin && nearby.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {nearby.slice(0, 6).map((o) => (
             <div key={o.id} className="relative">

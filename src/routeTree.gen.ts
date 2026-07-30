@@ -34,6 +34,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedPartnerIndexRouteImport } from './routes/_authenticated/partner.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicVersionRouteImport } from './routes/api/public/version'
+import { Route as ApiPublicRefreshOfferImagesRouteImport } from './routes/api/public/refresh-offer-images'
 import { Route as AuthenticatedPartnerStoreRouteImport } from './routes/_authenticated/partner.store'
 import { Route as AuthenticatedPartnerStatsRouteImport } from './routes/_authenticated/partner.stats'
 import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
@@ -184,6 +185,12 @@ const ApiPublicVersionRoute = ApiPublicVersionRouteImport.update({
   path: '/api/public/version',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRefreshOfferImagesRoute =
+  ApiPublicRefreshOfferImagesRouteImport.update({
+    id: '/api/public/refresh-offer-images',
+    path: '/api/public/refresh-offer-images',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedPartnerStoreRoute =
   AuthenticatedPartnerStoreRouteImport.update({
     id: '/store',
@@ -357,6 +364,7 @@ export interface FileRoutesByFullPath {
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/refresh-offer-images': typeof ApiPublicRefreshOfferImagesRoute
   '/api/public/version': typeof ApiPublicVersionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/partner/': typeof AuthenticatedPartnerIndexRoute
@@ -404,6 +412,7 @@ export interface FileRoutesByTo {
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/refresh-offer-images': typeof ApiPublicRefreshOfferImagesRoute
   '/api/public/version': typeof ApiPublicVersionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/partner': typeof AuthenticatedPartnerIndexRoute
@@ -455,6 +464,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/_authenticated/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
+  '/api/public/refresh-offer-images': typeof ApiPublicRefreshOfferImagesRoute
   '/api/public/version': typeof ApiPublicVersionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/partner/': typeof AuthenticatedPartnerIndexRoute
@@ -506,6 +516,7 @@ export interface FileRouteTypes {
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
+    | '/api/public/refresh-offer-images'
     | '/api/public/version'
     | '/admin/'
     | '/partner/'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
+    | '/api/public/refresh-offer-images'
     | '/api/public/version'
     | '/admin'
     | '/partner'
@@ -603,6 +615,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/scan'
     | '/_authenticated/partner/stats'
     | '/_authenticated/partner/store'
+    | '/api/public/refresh-offer-images'
     | '/api/public/version'
     | '/_authenticated/admin/'
     | '/_authenticated/partner/'
@@ -631,6 +644,7 @@ export interface RootRouteChildren {
   OrdersNativeReturnRoute: typeof OrdersNativeReturnRoute
   StoreIdRoute: typeof StoreIdRoute
   OrdersIndexRoute: typeof OrdersIndexRoute
+  ApiPublicRefreshOfferImagesRoute: typeof ApiPublicRefreshOfferImagesRoute
   ApiPublicVersionRoute: typeof ApiPublicVersionRoute
   ApiPublicDeliveryBoltRoute: typeof ApiPublicDeliveryBoltRoute
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
@@ -813,6 +827,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/version'
       fullPath: '/api/public/version'
       preLoaderRoute: typeof ApiPublicVersionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/refresh-offer-images': {
+      id: '/api/public/refresh-offer-images'
+      path: '/api/public/refresh-offer-images'
+      fullPath: '/api/public/refresh-offer-images'
+      preLoaderRoute: typeof ApiPublicRefreshOfferImagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/partner/store': {
@@ -1083,6 +1104,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersNativeReturnRoute: OrdersNativeReturnRoute,
   StoreIdRoute: StoreIdRoute,
   OrdersIndexRoute: OrdersIndexRoute,
+  ApiPublicRefreshOfferImagesRoute: ApiPublicRefreshOfferImagesRoute,
   ApiPublicVersionRoute: ApiPublicVersionRoute,
   ApiPublicDeliveryBoltRoute: ApiPublicDeliveryBoltRoute,
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
@@ -1092,13 +1114,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

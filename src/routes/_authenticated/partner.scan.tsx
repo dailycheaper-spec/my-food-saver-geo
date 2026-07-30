@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, XCircle, Hash } from "lucide-react";
+import { Camera, CheckCircle2, XCircle, Hash, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { updateOrderStatus, useMyStores, formatGel } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
@@ -11,7 +11,8 @@ export const Route = createFileRoute("/_authenticated/partner/scan")({
 });
 
 function ScanPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string) => language === "en" ? en : language === "ru" ? ru : ka;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -20,6 +21,8 @@ function ScanPage() {
   const [scanning, setScanning] = useState(false);
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string; order?: { code: string; amount: number; title: string } } | null>(null);
+  const [pendingAck, setPendingAck] = useState<{ id: string; code: string; amount: number; title: string; note: string } | null>(null);
+  const [ackChecked, setAckChecked] = useState(false);
 
   function stopCamera() {
     scanningRef.current = false;
@@ -94,8 +97,26 @@ function ScanPage() {
       setResult({ ok: false, msg: `#${data.code} — ${t("statusLbl")}: ${data.status}` });
       return;
     }
+    const title = (data.offer as { title?: string } | null)?.title ?? "";
+    const note = (data.customer_note ?? "").trim();
+    if (note) {
+      // Force partner to acknowledge special request before marking collected.
+      setPendingAck({ id: data.id, code: data.code, amount: Number(data.amount), title, note });
+      setAckChecked(false);
+      setResult(null);
+      return;
+    }
     await updateOrderStatus(data.id, "collected");
-    setResult({ ok: true, msg: t("successGiven"), order: { code: data.code, amount: Number(data.amount), title: (data.offer as { title?: string } | null)?.title ?? "" } });
+    setResult({ ok: true, msg: t("successGiven"), order: { code: data.code, amount: Number(data.amount), title } });
+    setCode("");
+  }
+
+  async function confirmAckAndCollect() {
+    if (!pendingAck || !ackChecked) return;
+    await updateOrderStatus(pendingAck.id, "collected");
+    setResult({ ok: true, msg: t("successGiven"), order: { code: pendingAck.code, amount: pendingAck.amount, title: pendingAck.title } });
+    setPendingAck(null);
+    setAckChecked(false);
     setCode("");
   }
 
@@ -150,6 +171,53 @@ function ScanPage() {
           </button>
         </div>
       </div>
+
+      {pendingAck && (
+        <div className="mt-4 rounded-2xl p-5 border-2 border-warm bg-warm/15">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-6 h-6 text-warm-foreground shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-warm-foreground">
+                {L("მომხმარებლის სპეციალური მოთხოვნა", "Customer's special request", "Особый запрос клиента")}
+              </div>
+              <div className="mt-1 text-base font-semibold text-foreground whitespace-pre-wrap break-words">
+                {pendingAck.note}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                #{pendingAck.code} · {pendingAck.title} · {formatGel(pendingAck.amount)}
+              </div>
+            </div>
+          </div>
+          <label className="mt-4 flex items-start gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ackChecked}
+              onChange={(e) => setAckChecked(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+            />
+            <span className="text-sm font-medium text-foreground">
+              {L("დავადასტურე მოთხოვნის გათვალისწინება", "I've noted the request", "Я учёл(ла) запрос")}
+            </span>
+          </label>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={confirmAckAndCollect}
+              disabled={!ackChecked}
+              className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-40 flex items-center justify-center gap-1.5"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {L("დაადასტურე გაცემა", "Confirm collected", "Подтвердить выдачу")}
+            </button>
+            <button
+              onClick={() => { setPendingAck(null); setAckChecked(false); }}
+              className="px-4 py-3 rounded-xl bg-muted text-xs font-semibold"
+            >
+              {t("cancel")}
+            </button>
+          </div>
+        </div>
+      )}
+
 
       {result && (
         <div className={`mt-4 rounded-2xl p-5 border-2 ${result.ok ? "border-success bg-success/10" : "border-destructive bg-destructive/10"}`}>

@@ -4,7 +4,7 @@ import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-export type Category = "საცხობი" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
+export type Category = "საცხობი" | "საკონდიტრო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
 
 export interface Offer {
   id: string;
@@ -176,6 +176,7 @@ export const OFFERS: Offer[] = [
 export const CATEGORIES: { id: Category | "ყველა"; label: string; icon: string }[] = [
   { id: "ყველა", label: "ყველა", icon: "✨" },
   { id: "საცხობი", label: "საცხობი", icon: "🥖" },
+  { id: "საკონდიტრო", label: "საკონდიტრო", icon: "🍰" },
   { id: "რესტორანი", label: "რესტორანი", icon: "🍽️" },
   { id: "სუპერმარკეტი", label: "მარკეტი", icon: "🛒" },
   { id: "კაფე", label: "კაფე", icon: "☕" },
@@ -190,6 +191,7 @@ type UiLanguage = "ka" | "en" | "ru";
 const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, string>> = {
   "ყველა": { ka: "ყველა", en: "All", ru: "Все" },
   "საცხობი": { ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  "საკონდიტრო": { ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
   "რესტორანი": { ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   "სუპერმარკეტი": { ka: "მარკეტი", en: "Market", ru: "Маркет" },
   "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе" },
@@ -358,6 +360,12 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
     { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+  ],
+  "საკონდიტრო": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+    { ka: "თხილეული", en: "Nuts", ru: "Орехи" },
   ],
   "რესტორანი": [
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },

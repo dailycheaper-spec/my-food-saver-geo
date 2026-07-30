@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Save, MapPin, LocateFixed, Landmark } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,13 +11,13 @@ import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 
 type EntityType = "company" | "individual_entrepreneur";
 
-const StoreLocationPicker = lazy(() =>
-  import("@/components/StoreLocationPicker").then((m) => ({ default: m.StoreLocationPicker }))
-);
+import MapAddressField from "@/components/address/MapAddressField";
+
 
 const STORE_TYPES: { value: string; ka: string; en: string; ru: string }[] = [
   { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
   { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
+  { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
   { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
   { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
   { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },
@@ -278,28 +278,18 @@ function StoreSettings() {
           {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
         </button>
 
-        <Suspense fallback={<div className="h-80 w-full rounded-2xl bg-muted animate-pulse" />}>
-          <StoreLocationPicker
-            value={{ lat: form.lat, lng: form.lng }}
-            onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
-            radiusKm={form.visibility_radius_km < 50 ? form.visibility_radius_km : undefined}
-            storageKey="cheaper-partner-store-map"
-          />
-        </Suspense>
+        <MapAddressField
+          value={{ lat: form.lat, lng: form.lng }}
+          onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat, lng }))}
+          radiusKm={form.visibility_radius_km < 50 ? form.visibility_radius_km : undefined}
+          storageKey="cheaper-partner-store-map"
+          onAddressResolved={(a) => setForm((f) => (f.address.trim() ? f : { ...f, address: a }))}
+        />
 
         <p className="text-xs text-muted-foreground">
           {L("ეს არის ტერიტორია, სადაც თქვენი ობიექტი გამოჩნდება მომხმარებლების რუკაზე.", "This is the area where your store appears on the customer map.", "Это область, где ваш магазин будет показан на карте пользователей.")}
         </p>
 
-        <div className="text-xs text-muted-foreground font-mono">
-          {form.lat != null && form.lng != null ? (
-            <>
-              Latitude: {form.lat.toFixed(6)} · Longitude: {form.lng.toFixed(6)}
-            </>
-          ) : (
-            <span>{L("დააკლიკეთ რუკაზე ან გამოიყენეთ მიმდინარე მდებარეობა.", "Click on the map or use current location.", "Кликните по карте или используйте текущее местоположение.")}</span>
-          )}
-        </div>
 
       </div>
 

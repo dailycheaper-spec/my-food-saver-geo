@@ -128,6 +128,8 @@ export type Database = {
           description_ru: string | null
           discounted_price: number
           id: string
+          image_path: string | null
+          image_signed_url_expires_at: string | null
           image_url: string | null
           is_active: boolean
           is_surprise: boolean
@@ -154,6 +156,8 @@ export type Database = {
           description_ru?: string | null
           discounted_price: number
           id?: string
+          image_path?: string | null
+          image_signed_url_expires_at?: string | null
           image_url?: string | null
           is_active?: boolean
           is_surprise?: boolean
@@ -180,6 +184,8 @@ export type Database = {
           description_ru?: string | null
           discounted_price?: number
           id?: string
+          image_path?: string | null
+          image_signed_url_expires_at?: string | null
           image_url?: string | null
           is_active?: boolean
           is_surprise?: boolean
@@ -211,15 +217,19 @@ export type Database = {
           code: string
           collected_at: string | null
           created_at: string
+          customer_note: string | null
           delivery_address: string | null
+          delivery_details: string | null
           delivery_id: string | null
           delivery_lat: number | null
           delivery_lng: number | null
+          delivery_place_id: string | null
           gifted_to: string | null
           id: string
           method: Database["public"]["Enums"]["order_method"]
           notes: string | null
           offer_id: string
+          original_price_at_purchase: number | null
           payout_id: string | null
           quantity: number
           status: Database["public"]["Enums"]["order_status"]
@@ -232,15 +242,19 @@ export type Database = {
           code?: string
           collected_at?: string | null
           created_at?: string
+          customer_note?: string | null
           delivery_address?: string | null
+          delivery_details?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_place_id?: string | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id: string
+          original_price_at_purchase?: number | null
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -253,15 +267,19 @@ export type Database = {
           code?: string
           collected_at?: string | null
           created_at?: string
+          customer_note?: string | null
           delivery_address?: string | null
+          delivery_details?: string | null
           delivery_id?: string | null
           delivery_lat?: number | null
           delivery_lng?: number | null
+          delivery_place_id?: string | null
           gifted_to?: string | null
           id?: string
           method?: Database["public"]["Enums"]["order_method"]
           notes?: string | null
           offer_id?: string
+          original_price_at_purchase?: number | null
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -663,6 +681,78 @@ export type Database = {
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
           visibility_radius_km?: number | null
+        }
+        Relationships: []
+      }
+      user_addresses: {
+        Row: {
+          address_line: string
+          apartment: string | null
+          city: string | null
+          courier_note: string | null
+          created_at: string
+          custom_label: string | null
+          district: string | null
+          door_code: string | null
+          entrance: string | null
+          floor: string | null
+          id: string
+          is_default: boolean
+          label: string
+          lat: number
+          lng: number
+          place_id: string | null
+          postal_code: string | null
+          street: string | null
+          street_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_line: string
+          apartment?: string | null
+          city?: string | null
+          courier_note?: string | null
+          created_at?: string
+          custom_label?: string | null
+          district?: string | null
+          door_code?: string | null
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat: number
+          lng: number
+          place_id?: string | null
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_line?: string
+          apartment?: string | null
+          city?: string | null
+          courier_note?: string | null
+          created_at?: string
+          custom_label?: string | null
+          district?: string | null
+          door_code?: string | null
+          entrance?: string | null
+          floor?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          lat?: number
+          lng?: number
+          place_id?: string | null
+          postal_code?: string | null
+          street?: string | null
+          street_number?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
