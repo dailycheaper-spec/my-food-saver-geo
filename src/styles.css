@@ -374,3 +374,79 @@
   z-index: 0;
   isolation: isolate;
 }
+
+/* ── RTL (Persian) ─────────────────────────────────────────────
+   dir="rtl" is set on <html> only when the active language is fa.
+   Flex/grid rows, logical properties and text flow mirror natively;
+   the rules below mirror the physical Tailwind utilities still used
+   in the codebase, plus direction-carrying icons.               */
+[dir="rtl"] .border-l{border-left-width:0px;border-right-width:1px}
+[dir="rtl"] .border-r{border-right-width:0px;border-left-width:1px}
+[dir="rtl"] .left-0{left:auto;right:0px}
+[dir="rtl"] .left-0\.5{left:auto;right:calc(var(--spacing, 0.25rem) * 0.5)}
+[dir="rtl"] .left-2{left:auto;right:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .left-2\.5{left:auto;right:calc(var(--spacing, 0.25rem) * 2.5)}
+[dir="rtl"] .left-3{left:auto;right:calc(var(--spacing, 0.25rem) * 3)}
+[dir="rtl"] .left-3\.5{left:auto;right:calc(var(--spacing, 0.25rem) * 3.5)}
+[dir="rtl"] .left-4{left:auto;right:calc(var(--spacing, 0.25rem) * 4)}
+[dir="rtl"] .ml-1{margin-left:0px;margin-right:calc(var(--spacing, 0.25rem) * 1)}
+[dir="rtl"] .ml-2{margin-left:0px;margin-right:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .ml-auto{margin-left:0px;margin-right:auto}
+[dir="rtl"] .mr-1{margin-right:0px;margin-left:calc(var(--spacing, 0.25rem) * 1)}
+[dir="rtl"] .mr-2{margin-right:0px;margin-left:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .pl-10{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 10)}
+[dir="rtl"] .pl-11{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 11)}
+[dir="rtl"] .pl-2{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .pl-2\.5{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 2.5)}
+[dir="rtl"] .pl-3{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 3)}
+[dir="rtl"] .pl-4{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 4)}
+[dir="rtl"] .pl-7{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 7)}
+[dir="rtl"] .pl-8{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 8)}
+[dir="rtl"] .pl-9{padding-left:0px;padding-right:calc(var(--spacing, 0.25rem) * 9)}
+[dir="rtl"] .pr-1{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 1)}
+[dir="rtl"] .pr-10{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 10)}
+[dir="rtl"] .pr-2{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .pr-2\.5{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 2.5)}
+[dir="rtl"] .pr-3{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 3)}
+[dir="rtl"] .pr-4{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 4)}
+[dir="rtl"] .pr-7{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 7)}
+[dir="rtl"] .pr-8{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 8)}
+[dir="rtl"] .pr-9{padding-right:0px;padding-left:calc(var(--spacing, 0.25rem) * 9)}
+[dir="rtl"] .right-0{right:auto;left:0px}
+[dir="rtl"] .right-1{right:auto;left:calc(var(--spacing, 0.25rem) * 1)}
+[dir="rtl"] .right-2{right:auto;left:calc(var(--spacing, 0.25rem) * 2)}
+[dir="rtl"] .right-3{right:auto;left:calc(var(--spacing, 0.25rem) * 3)}
+[dir="rtl"] .right-4{right:auto;left:calc(var(--spacing, 0.25rem) * 4)}
+[dir="rtl"] .right-6{right:auto;left:calc(var(--spacing, 0.25rem) * 6)}
+[dir="rtl"] .rounded-l-md{border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:var(--radius-md);border-bottom-right-radius:var(--radius-md)}
+[dir="rtl"] .rounded-r-md{border-top-right-radius:0;border-bottom-right-radius:0;border-top-left-radius:var(--radius-md);border-bottom-left-radius:var(--radius-md)}
+[dir="rtl"] .text-left{text-align:right}
+[dir="rtl"] .text-right{text-align:left}
+
+/* Directional icons flip; symbolic ones (heart, bell, star…) do not. */
+[dir="rtl"] .lucide-chevron-left,
+[dir="rtl"] .lucide-chevron-right,
+[dir="rtl"] .lucide-chevrons-left,
+[dir="rtl"] .lucide-chevrons-right,
+[dir="rtl"] .lucide-arrow-left,
+[dir="rtl"] .lucide-arrow-right,
+[dir="rtl"] .lucide-arrow-big-left,
+[dir="rtl"] .lucide-arrow-big-right,
+[dir="rtl"] .lucide-circle-chevron-left,
+[dir="rtl"] .lucide-circle-chevron-right,
+[dir="rtl"] .lucide-circle-arrow-left,
+[dir="rtl"] .lucide-circle-arrow-right,
+[dir="rtl"] .lucide-move-left,
+[dir="rtl"] .lucide-move-right,
+[dir="rtl"] .lucide-corner-down-left,
+[dir="rtl"] .lucide-corner-down-right,
+[dir="rtl"] .lucide-log-in,
+[dir="rtl"] .lucide-log-out,
+[dir="rtl"] .lucide-reply,
+[dir="rtl"] .lucide-send,
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Maps stay LTR: Leaflet positions panes/controls with physical offsets. */
+[dir="rtl"] .leaflet-container { direction: ltr; }
