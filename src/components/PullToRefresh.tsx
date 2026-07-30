@@ -22,6 +22,9 @@ export function PullToRefresh() {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const refreshingRef = useRef(false);
+  // Keep the latest pull distance readable from the (stable) listener closure.
+  const pullRef = useRef(0);
+  pullRef.current = pull;
 
   useEffect(() => {
     let cancelled = false;
@@ -179,10 +182,6 @@ export function PullToRefresh() {
       cleanup?.();
     };
   }, [router, queryClient]);
-
-  // Keep the latest pull distance readable from the (stable) listener closure.
-  const pullRef = useRef(0);
-  pullRef.current = pull;
 
   const visible = pull > 4 || refreshing;
   if (!visible) return null;
