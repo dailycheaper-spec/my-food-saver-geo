@@ -4,6 +4,7 @@ import { Bell, MapPin, Check } from "lucide-react";
 import { CATEGORIES, getCategoryLabel } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
+import { useUserLocation } from "@/hooks/use-user-location";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
@@ -15,7 +16,7 @@ function Notifications() {
   const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) => (language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { location, askPermission, isLocating } = useUserLocation();
   const [demo, setDemo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,11 +33,7 @@ function Notifications() {
   }
 
   function requestLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setLocation({ lat: 41.7151, lng: 44.8271 }), // Tbilisi fallback
-    );
+    askPermission();
   }
 
   function triggerDemo() {

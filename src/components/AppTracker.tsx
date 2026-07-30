@@ -4,6 +4,7 @@ import { trackVisit, getSeenOffers, markOffersSeen, useNotifSettings } from "@/l
 import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserLocation } from "@/hooks/use-user-location";
 
 type RealtimeOffer = {
   id: string;
@@ -29,6 +30,10 @@ function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: numb
 export function AppTracker() {
   const { t, language } = useI18n();
   const notifs = useNotifSettings();
+  // Shared location cache: never triggers its own browser prompt here.
+  const { location } = useUserLocation();
+  const locationRef = useRef(location);
+  locationRef.current = location;
 
   useEffect(() => {
     trackVisit();
@@ -65,7 +70,6 @@ export function AppTracker() {
     markOffersSeen(currentIds);
   }, [notifs.enabled, notifs.categories, notifs.radiusKm, t]);
 
-  const cachedPosRef = useRef<{ lat: number; lng: number; at: number } | null>(null);
 
   useEffect(() => {
     const notify = (offer: RealtimeOffer) => {
@@ -83,29 +87,19 @@ export function AppTracker() {
       } catch { /* browser blocked */ }
     };
 
-    const POS_TTL_MS = 5 * 60 * 1000;
     const shouldNotify = (offer: RealtimeOffer) => {
       const storeLat = offer.store?.lat;
       const storeLng = offer.store?.lng;
-      if (!storeLat || !storeLng || !("geolocation" in navigator)) {
+      const user = locationRef.current;
+      // Without a known position we can't geo-filter — notify rather than
+      // silently drop the alert, and never fire an extra permission prompt.
+      if (!storeLat || !storeLng || !user) {
         notify(offer);
         return;
       }
-      const cached = cachedPosRef.current;
-      const now = Date.now();
-      if (cached && now - cached.at < POS_TTL_MS) {
-        if (distanceKm(cached, { lat: storeLat, lng: storeLng }) <= notifs.radiusKm) notify(offer);
-        return;
+      if (distanceKm({ lat: user.lat, lng: user.lng }, { lat: storeLat, lng: storeLng }) <= notifs.radiusKm) {
+        notify(offer);
       }
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userPoint = { lat: position.coords.latitude, lng: position.coords.longitude };
-          cachedPosRef.current = { ...userPoint, at: Date.now() };
-          if (distanceKm(userPoint, { lat: storeLat, lng: storeLng }) <= notifs.radiusKm) notify(offer);
-        },
-        () => notify(offer),
-        { maximumAge: POS_TTL_MS, timeout: 2500 },
-      );
     };
 
     const channel = supabase
