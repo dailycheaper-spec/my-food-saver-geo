@@ -100,6 +100,18 @@ function AuthPage() {
         `${supabaseUrl}/auth/v1/authorize?provider=${provider}` +
         `&redirect_to=${encodeURIComponent(bounce)}`;
       try {
+        // Recover the screen if the user dismisses the system browser (or it
+        // closes) without the deep-link handoff having signed us in.
+        const { onBrowserFinished } = await import("@/lib/native");
+        const off = await onBrowserFinished(() => {
+          off();
+          void supabase.auth.getSession().then(({ data }) => {
+            if (!data.session) {
+              setLoading(false);
+              setMsg({ type: "err", text: t("auth.native.retry") });
+            }
+          });
+        });
         await openExternal(url);
       } catch {
         setLoading(false);
