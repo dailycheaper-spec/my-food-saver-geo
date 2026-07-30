@@ -1,7 +1,27 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, Globe } from "lucide-react";
 
-export type Language = "ka" | "en" | "ru";
+export type Language = "ka" | "en" | "ru" | "tr" | "fa";
+
+export const SUPPORTED_LANGUAGES: Language[] = ["ka", "en", "ru", "tr", "fa"];
+
+function isLanguage(v: unknown): v is Language {
+  return typeof v === "string" && (SUPPORTED_LANGUAGES as string[]).includes(v);
+}
+
+/** Map a navigator language tag to the closest supported language. */
+export function detectLanguage(tags: readonly string[]): Language {
+  for (const raw of tags) {
+    const tag = (raw || "").toLowerCase();
+    const base = tag.split("-")[0];
+    if (base === "ka") return "ka";
+    if (base === "tr") return "tr";
+    if (base === "fa" || base === "per" || base === "prs") return "fa";
+    if (base === "ru") return "ru";
+    if (base === "en") return "en";
+  }
+  return "en";
+}
 
 const STORAGE_KEY = "cheaper-language";
 
@@ -1482,8 +1502,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY) as Language | null;
-    if (saved === "ka" || saved === "en" || saved === "ru") setLanguageState(saved);
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (isLanguage(saved)) {
+      setLanguageState(saved);
+    } else {
+      // First visit: detect once from the device/browser language, then persist.
+      const tags = [
+        ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+        navigator.language,
+      ].filter(Boolean) as string[];
+      const detected = detectLanguage(tags);
+      setLanguageState(detected);
+      try { window.localStorage.setItem(STORAGE_KEY, detected); } catch {}
+    }
     setReady(true);
   }, []);
 
@@ -1528,6 +1559,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     { value: "ka", label: "ქართული", short: "ქარ" },
     { value: "en", label: "English", short: "EN" },
     { value: "ru", label: "Русский", short: "РУ" },
+    { value: "tr", label: "Türkçe", short: "TR" },
+    { value: "fa", label: "فارسی", short: "FA" },
   ];
 
   const [open, setOpen] = useState(false);

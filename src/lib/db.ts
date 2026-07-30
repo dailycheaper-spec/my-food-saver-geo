@@ -547,7 +547,11 @@ export async function reactivateStore(storeId: string) {
 export function currencyLabel(): string {
   if (typeof window === "undefined") return "ლარი";
   const lang = window.localStorage.getItem("cheaper-language") || "ka";
-  return lang === "en" ? "GEL" : lang === "ru" ? "Лари" : "ლარი";
+  if (lang === "en") return "GEL";
+  if (lang === "ru") return "Лари";
+  if (lang === "tr") return "GEL";
+  if (lang === "fa") return "لاری";
+  return "ლარი";
 }
 export function formatGel(n: number): string {
   return `${n.toFixed(2)} ${currencyLabel()}`;
