@@ -778,6 +778,56 @@ Cheaper.ge-ს არ აქვს წვდომა არც ანგარ�
 თანხის დაბრუნება ხდება მომხმარებლის მიერ მოწოდებულ ანგარიშზე.`,
       },
       {
+        title: "პლატფორმის მუშაობის პრინციპები",
+        body: `Cheaper წარმოადგენს ციფრულ Marketplace პლატფორმას, რომელიც აკავშირებს მომხმარებლებსა და პარტნიორ ობიექტებს, მათ შორის რესტორნებს, კაფეებს, საცხობებს, სუპერმარკეტებსა და სხვა სავაჭრო ობიექტებს. პლატფორმის მიზანია მომხმარებლებს მიაწოდოს ინფორმაცია სპეციალური შეთავაზებებისა და ხელმისაწვდომი პროდუქტების შესახებ, ხოლო პარტნიორ ბიზნესებს მისცეს შესაძლებლობა გაზარდონ გაყიდვები და ეფექტურად მართონ საკუთარი შეთავაზებები.
+
+Cheaper არ არის პროდუქციის გამყიდველი. პლატფორმა წარმოადგენს ტექნოლოგიურ შუამავალს, რომელიც უზრუნველყოფს მომხმარებლისა და პარტნიორი ობიექტის დაკავშირებას, შეკვეთების დამუშავების პროცესის გამარტივებას და შესაბამისი ინფორმაციის უსაფრთხო გაცვლას.`,
+      },
+      {
+        title: "პარტნიორ ობიექტებთან თანამშრომლობის მოდელი",
+        body: `Cheaper თანამშრომლობს მხოლოდ იმ პარტნიორ ობიექტებთან, რომლებიც მოქმედებენ საქართველოს კანონმდებლობის შესაბამისად და თავად არიან პასუხისმგებელნი მათ მიერ განთავსებული პროდუქციის, მომსახურების, ფასების, აღწერისა და ხარისხის სისწორეზე.
+
+პარტნიორი ობიექტი დამოუკიდებლად:
+
+• ქმნის და მართავს შეთავაზებებს;
+• განსაზღვრავს ფასებსა და მოქმედების პერიოდს;
+• არეგულირებს პროდუქციის მარაგს;
+• პასუხისმგებელია შეკვეთის შესრულებაზე;
+• უზრუნველყოფს მომხმარებლისთვის პროდუქციის ან მომსახურების მიწოდებას ან გაცემას.
+
+Cheaper უფლებამოსილია წაშალოს ან შეაჩეროს ნებისმიერი შეთავაზება, რომელიც არღვევს პლატფორმის წესებს, მოქმედ კანონმდებლობას ან მომხმარებლის უფლებებს.`,
+      },
+      {
+        title: "მომხმარებლისთვის ინფორმაციის მიწოდების წესები",
+        body: `Cheaper მომხმარებლებს აწვდის ინფორმაციას პარტნიორი ობიექტების მიერ წარმოდგენილი მონაცემების საფუძველზე.
+
+პლატფორმაზე განთავსებული ინფორმაცია შეიძლება მოიცავდეს:
+
+• პროდუქტის ან მომსახურების აღწერას;
+• ფასს და ფასდაკლებას;
+• შეთავაზების მოქმედების პერიოდს;
+• ხელმისაწვდომ რაოდენობას (არსებობის შემთხვევაში);
+• პარტნიორი ობიექტის მისამართსა და სამუშაო საათებს;
+• პროდუქტის მიღების ან მიწოდების პირობებს;
+• სხვა დამატებით ინფორმაციას, რომელიც მნიშვნელოვანია მომხმარებლისთვის.
+
+Cheaper უზრუნველყოფს ინფორმაციის მაქსიმალურად ზუსტ და დროულ ასახვას, თუმცა კონკრეტული ინფორმაციის სისწორეზე, მარაგის ხელმისაწვდომობასა და შეთავაზების შესრულებაზე პასუხისმგებელია შესაბამისი პარტნიორი ობიექტი.
+
+თუ მომხმარებელი აღმოაჩენს არასწორ, არასრულ ან შეცდომაში შემყვან ინფორმაციას, მას შეუძლია აცნობოს Cheaper-ს შესაბამისი საკომუნიკაციო არხების მეშვეობით. მიღებული შეტყობინება განიხილება გონივრულ ვადაში და საჭიროების შემთხვევაში განხორციელდება შესაბამისი რეაგირება.`,
+      },
+      {
+        title: "პლატფორმის ძირითადი პრინციპები",
+        body: `Cheaper საქმიანობას ეფუძნება შემდეგ პრინციპებს:
+
+• მომხმარებლისთვის სანდო და გამჭვირვალე ინფორმაციის მიწოდება;
+• პარტნიორ ბიზნესებთან სამართლიანი და გრძელვადიანი თანამშრომლობა;
+• პერსონალური მონაცემების დაცვა;
+• უსაფრთხო ციფრული გარემოს უზრუნველყოფა;
+• მომსახურების უწყვეტი გაუმჯობესება;
+• მოქმედი კანონმდებლობის მოთხოვნების დაცვა;
+• მომხმარებელზე ორიენტირებული და ტექნოლოგიურად განვითარებული მომსახურების შეთავაზება.`,
+      },
+      {
         title: "საკონტაქტო ინფორმაცია",
         body: `${COMPANY.nameKa}
 საიდენტიფიკაციო კოდი: ${COMPANY.id}
@@ -839,6 +889,56 @@ When placing an order, the user is redirected from the website to the payment pa
 Cheaper.ge does not have access to the payment page or to the user's bank card details.
 
 Refunds are made to the account provided by the user.`,
+      },
+      {
+        title: "How the platform works",
+        body: `Cheaper is a digital marketplace platform connecting customers with partner venues, including restaurants, cafés, bakeries, supermarkets and other retail outlets. The platform's purpose is to give customers information about special offers and available products, and to let partner businesses increase sales and manage their offers efficiently.
+
+Cheaper is not the seller of the products. The platform is a technological intermediary that connects the customer and the partner venue, simplifies order processing and ensures the secure exchange of relevant information.`,
+      },
+      {
+        title: "Cooperation model with partner venues",
+        body: `Cheaper works only with partner venues that operate in accordance with Georgian legislation and that are themselves responsible for the accuracy of the products, services, prices, descriptions and quality they publish.
+
+The partner venue independently:
+
+• creates and manages offers;
+• sets prices and validity periods;
+• manages product stock;
+• is responsible for fulfilling the order;
+• delivers or hands over the product or service to the customer.
+
+Cheaper is entitled to remove or suspend any offer that violates the platform's rules, applicable law or customer rights.`,
+      },
+      {
+        title: "Rules for providing information to customers",
+        body: `Cheaper provides customers with information based on the data submitted by partner venues.
+
+Information published on the platform may include:
+
+• a description of the product or service;
+• price and discount;
+• the validity period of the offer;
+• available quantity (where applicable);
+• the partner venue's address and working hours;
+• pickup or delivery conditions;
+• other additional information relevant to the customer.
+
+Cheaper ensures information is reflected as accurately and promptly as possible; however, the relevant partner venue is responsible for the accuracy of specific information, stock availability and fulfilment of the offer.
+
+If a customer finds incorrect, incomplete or misleading information, they may notify Cheaper through the available communication channels. Such notice is reviewed within a reasonable time and acted upon where necessary.`,
+      },
+      {
+        title: "Core principles of the platform",
+        body: `Cheaper's activity is based on the following principles:
+
+• providing customers with reliable and transparent information;
+• fair and long-term cooperation with partner businesses;
+• protection of personal data;
+• ensuring a secure digital environment;
+• continuous improvement of the service;
+• compliance with applicable legislation;
+• offering customer-oriented and technologically advanced service.`,
       },
       {
         title: "Contact information",
@@ -904,6 +1004,56 @@ Cheaper.ge'nin ödeme sayfasına veya kullanıcının banka kartı bilgilerine e
 İadeler, kullanıcı tarafından belirtilen hesaba yapılır.`,
       },
       {
+        title: "Platformun çalışma prensipleri",
+        body: `Cheaper; müşterileri restoranlar, kafeler, fırınlar, süpermarketler ve diğer satış noktaları dahil olmak üzere partner işletmelerle buluşturan dijital bir pazar yeri platformudur. Platformun amacı, müşterilere özel teklifler ve mevcut ürünler hakkında bilgi sunmak, partner işletmelere ise satışlarını artırma ve tekliflerini verimli yönetme imkânı vermektir.
+
+Cheaper ürünlerin satıcısı değildir. Platform, müşteri ile partner işletmeyi birbirine bağlayan, sipariş sürecini kolaylaştıran ve ilgili bilgilerin güvenli paylaşımını sağlayan teknolojik bir aracıdır.`,
+      },
+      {
+        title: "Partner işletmelerle iş birliği modeli",
+        body: `Cheaper yalnızca Gürcistan mevzuatına uygun faaliyet gösteren ve yayınladıkları ürün, hizmet, fiyat, açıklama ve kalitenin doğruluğundan bizzat sorumlu olan partner işletmelerle çalışır.
+
+Partner işletme bağımsız olarak:
+
+• teklifleri oluşturur ve yönetir;
+• fiyatları ve geçerlilik süresini belirler;
+• ürün stoğunu düzenler;
+• siparişin yerine getirilmesinden sorumludur;
+• ürün veya hizmeti müşteriye teslim eder.
+
+Cheaper, platform kurallarını, yürürlükteki mevzuatı veya müşteri haklarını ihlal eden her teklifi kaldırma veya askıya alma hakkına sahiptir.`,
+      },
+      {
+        title: "Müşterilere bilgi sunma kuralları",
+        body: `Cheaper, müşterilere partner işletmeler tarafından sunulan verilere dayanarak bilgi verir.
+
+Platformda yayınlanan bilgiler şunları içerebilir:
+
+• ürün veya hizmetin açıklaması;
+• fiyat ve indirim;
+• teklifin geçerlilik süresi;
+• mevcut miktar (varsa);
+• partner işletmenin adresi ve çalışma saatleri;
+• teslim alma veya teslimat koşulları;
+• müşteri için önemli olan diğer ek bilgiler.
+
+Cheaper bilgilerin mümkün olduğunca doğru ve zamanında yansıtılmasını sağlar; ancak belirli bilgilerin doğruluğundan, stok durumundan ve teklifin yerine getirilmesinden ilgili partner işletme sorumludur.
+
+Müşteri yanlış, eksik veya yanıltıcı bilgi tespit ederse, ilgili iletişim kanalları aracılığıyla Cheaper'a bildirebilir. Bildirim makul bir süre içinde incelenir ve gerektiğinde gerekli işlem yapılır.`,
+      },
+      {
+        title: "Platformun temel ilkeleri",
+        body: `Cheaper faaliyetlerini şu ilkelere dayandırır:
+
+• müşteriye güvenilir ve şeffaf bilgi sunmak;
+• partner işletmelerle adil ve uzun vadeli iş birliği;
+• kişisel verilerin korunması;
+• güvenli bir dijital ortam sağlamak;
+• hizmetin sürekli iyileştirilmesi;
+• yürürlükteki mevzuata uyum;
+• müşteri odaklı ve teknolojik olarak gelişmiş hizmet sunmak.`,
+      },
+      {
         title: "İletişim bilgileri",
         body: `${COMPANY.nameTr}
 Şirket Kimlik No: ${COMPANY.id}
@@ -967,6 +1117,56 @@ Cheaper.ge به صفحه پرداخت یا اطلاعات کارت بانکی ک
 بازپرداخت‌ها به حسابی که توسط کاربر ارائه شده است، انجام می‌شود.`,
       },
       {
+        title: "اصول کار پلتفرم",
+        body: `Cheaper یک پلتفرم بازار دیجیتال است که مشتریان را به کسب‌وکارهای شریک، از جمله رستوران‌ها، کافه‌ها، نانوایی‌ها، سوپرمارکت‌ها و دیگر فروشگاه‌ها متصل می‌کند. هدف پلتفرم ارائه اطلاعات درباره پیشنهادهای ویژه و محصولات موجود به مشتریان و فراهم کردن امکان افزایش فروش و مدیریت مؤثر پیشنهادها برای شرکا است.
+
+Cheaper فروشنده محصولات نیست. این پلتفرم یک واسط فناورانه است که ارتباط میان مشتری و کسب‌وکار شریک، ساده‌سازی روند پردازش سفارش و تبادل امن اطلاعات را فراهم می‌کند.`,
+      },
+      {
+        title: "مدل همکاری با کسب‌وکارهای شریک",
+        body: `Cheaper تنها با شرکایی همکاری می‌کند که مطابق قوانین گرجستان فعالیت می‌کنند و خود مسئول صحت محصولات، خدمات، قیمت‌ها، توضیحات و کیفیت منتشرشده هستند.
+
+کسب‌وکار شریک به‌طور مستقل:
+
+• پیشنهادها را ایجاد و مدیریت می‌کند؛
+• قیمت‌ها و مدت اعتبار را تعیین می‌کند؛
+• موجودی کالا را تنظیم می‌کند؛
+• مسئول انجام سفارش است؛
+• محصول یا خدمت را به مشتری تحویل می‌دهد.
+
+Cheaper مجاز است هر پیشنهادی را که قوانین پلتفرم، قوانین جاری یا حقوق مشتری را نقض کند حذف یا متوقف کند.`,
+      },
+      {
+        title: "قواعد ارائه اطلاعات به مشتریان",
+        body: `Cheaper اطلاعات را بر اساس داده‌های ارائه‌شده توسط کسب‌وکارهای شریک در اختیار مشتریان قرار می‌دهد.
+
+اطلاعات منتشرشده در پلتفرم می‌تواند شامل موارد زیر باشد:
+
+• توضیح محصول یا خدمت؛
+• قیمت و تخفیف؛
+• مدت اعتبار پیشنهاد؛
+• تعداد موجود (در صورت وجود)؛
+• آدرس و ساعات کاری کسب‌وکار شریک؛
+• شرایط دریافت یا تحویل؛
+• سایر اطلاعات مهم برای مشتری.
+
+Cheaper تلاش می‌کند اطلاعات تا حد ممکن دقیق و به‌موقع منعکس شود، اما مسئولیت صحت اطلاعات مشخص، موجودی کالا و اجرای پیشنهاد بر عهده کسب‌وکار شریک است.
+
+اگر مشتری اطلاعات نادرست، ناقص یا گمراه‌کننده بیابد، می‌تواند از طریق کانال‌های ارتباطی به Cheaper اطلاع دهد. این اطلاع در زمان معقول بررسی و در صورت نیاز اقدام لازم انجام می‌شود.`,
+      },
+      {
+        title: "اصول اساسی پلتفرم",
+        body: `فعالیت Cheaper بر اصول زیر استوار است:
+
+• ارائه اطلاعات قابل اعتماد و شفاف به مشتری؛
+• همکاری عادلانه و بلندمدت با کسب‌وکارهای شریک؛
+• حفاظت از داده‌های شخصی؛
+• تأمین محیط دیجیتال امن؛
+• بهبود مستمر خدمات؛
+• رعایت الزامات قوانین جاری؛
+• ارائه خدمات مشتری‌محور و مبتنی بر فناوری پیشرفته.`,
+      },
+      {
         title: "اطلاعات تماس",
         body: `${COMPANY.nameFa}
 شناسه شرکت: ${COMPANY.id}
@@ -1028,6 +1228,56 @@ ${COMPANY.nameRu} далее именуется «Cheaper.ge».`,
 Cheaper.ge не имеет доступа ни к странице оплаты, ни к данным банковской карты пользователя.
 
 Возврат средств производится на счёт, предоставленный пользователем.`,
+      },
+      {
+        title: "Принципы работы платформы",
+        body: `Cheaper — это цифровая marketplace-платформа, которая связывает пользователей с партнёрскими объектами: ресторанами, кафе, пекарнями, супермаркетами и другими торговыми объектами. Цель платформы — предоставлять пользователям информацию о специальных предложениях и доступных продуктах, а партнёрам — возможность увеличивать продажи и эффективно управлять своими предложениями.
+
+Cheaper не является продавцом продукции. Платформа выступает технологическим посредником, который обеспечивает связь между пользователем и партнёрским объектом, упрощает обработку заказов и безопасный обмен соответствующей информацией.`,
+      },
+      {
+        title: "Модель сотрудничества с партнёрскими объектами",
+        body: `Cheaper сотрудничает только с теми партнёрскими объектами, которые действуют в соответствии с законодательством Грузии и сами несут ответственность за достоверность размещённой продукции, услуг, цен, описаний и качества.
+
+Партнёрский объект самостоятельно:
+
+• создаёт предложения и управляет ими;
+• определяет цены и период действия;
+• регулирует запасы продукции;
+• отвечает за исполнение заказа;
+• обеспечивает передачу или доставку продукции либо услуги пользователю.
+
+Cheaper вправе удалить или приостановить любое предложение, нарушающее правила платформы, действующее законодательство или права пользователя.`,
+      },
+      {
+        title: "Правила предоставления информации пользователям",
+        body: `Cheaper предоставляет пользователям информацию на основе данных, представленных партнёрскими объектами.
+
+Информация, размещённая на платформе, может включать:
+
+• описание продукта или услуги;
+• цену и скидку;
+• период действия предложения;
+• доступное количество (при наличии);
+• адрес и часы работы партнёрского объекта;
+• условия получения или доставки;
+• иную дополнительную информацию, важную для пользователя.
+
+Cheaper обеспечивает максимально точное и своевременное отражение информации, однако ответственность за достоверность конкретной информации, наличие запасов и исполнение предложения несёт соответствующий партнёрский объект.
+
+Если пользователь обнаружит неверную, неполную или вводящую в заблуждение информацию, он может сообщить об этом Cheaper через соответствующие каналы связи. Полученное сообщение рассматривается в разумный срок, и при необходимости принимаются меры.`,
+      },
+      {
+        title: "Основные принципы платформы",
+        body: `Деятельность Cheaper основана на следующих принципах:
+
+• предоставление пользователю достоверной и прозрачной информации;
+• справедливое и долгосрочное сотрудничество с партнёрским бизнесом;
+• защита персональных данных;
+• обеспечение безопасной цифровой среды;
+• непрерывное улучшение сервиса;
+• соблюдение требований действующего законодательства;
+• клиентоориентированный и технологически развитый сервис.`,
       },
       {
         title: "Контактная информация",
