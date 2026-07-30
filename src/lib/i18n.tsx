@@ -5,6 +5,15 @@ import { faLabels } from "./i18n.fa";
 
 export type Language = "ka" | "en" | "ru" | "tr" | "fa";
 
+/** Persian is the only right-to-left language we support. */
+export const RTL_LANGUAGES: readonly Language[] = ["fa"];
+export function isRtlLanguage(l: Language): boolean {
+  return RTL_LANGUAGES.includes(l);
+}
+export function dirFor(l: Language): "rtl" | "ltr" {
+  return isRtlLanguage(l) ? "rtl" : "ltr";
+}
+
 export const SUPPORTED_LANGUAGES: Language[] = ["ka", "en", "ru", "tr", "fa"];
 
 function isLanguage(v: unknown): v is Language {
@@ -1525,6 +1534,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready) return;
     document.documentElement.lang = language;
+    document.documentElement.dir = dirFor(language);
     window.localStorage.setItem(STORAGE_KEY, language);
     window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
   }, [language, ready]);
