@@ -18,6 +18,7 @@ const CATEGORIES = [
   { value: "meal", icon: "🍽", key: "meal" },
   { value: "bakery", icon: "🥐", key: "bakery" },
   { value: "confectionery", icon: "🍰", key: "confectionery" },
+  { value: "home_kitchen", icon: "🍲", key: "homeKitchen" },
   { value: "pizza", icon: "🍕", key: "pizza" },
   { value: "sushi", icon: "🍣", key: "sushi" },
   { value: "grocery", icon: "🛒", key: "grocery" },
