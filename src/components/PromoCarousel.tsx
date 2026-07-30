@@ -109,6 +109,8 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
         aria-roledescription="carousel"
         aria-label={L.carousel}
         className="group relative"
+        // Vertical page scroll always wins over the horizontal swipe handler.
+        style={{ touchAction: "pan-y pinch-zoom" }}
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocusCapture={() => setPaused(true)}
@@ -116,6 +118,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
           if (!e.currentTarget.contains(e.relatedTarget as Node)) setPaused(false);
         }}
         onKeyDown={onKeyDown}
+
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null;
           setPaused(true);
