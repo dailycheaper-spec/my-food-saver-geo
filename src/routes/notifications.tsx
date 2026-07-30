@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Bell, MapPin, Check } from "lucide-react";
-import { CATEGORIES } from "@/lib/mock-data";
+import { CATEGORIES, getCategoryLabel } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 
@@ -143,7 +143,7 @@ function Notifications() {
                   on ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
                 }`}
               >
-                {c.icon} {c.label}
+                {c.icon} {getCategoryLabel(c.id, language)}
               </button>
             );
           })}
