@@ -39,15 +39,15 @@ export function stageOfDbOrder(o: OrderWithRelations): Stage {
 
 export function useStageLabel(): (s: Stage) => string {
   const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) => (language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka);
   return (s) => {
     switch (s) {
-      case "pending": return L("მოლოდინში", "Pending", "В ожидании");
-      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено");
-      case "preparing": return L("მზადდება", "Preparing", "Готовится");
-      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче");
-      case "completed": return L("დასრულებული", "Completed", "Завершено");
-      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено");
+      case "pending": return L("მოლოდინში", "Pending", "В ожидании", "Beklemede", "در انتظار");
+      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено", "Onaylandı", "تأیید شد");
+      case "preparing": return L("მზადდება", "Preparing", "Готовится", "Hazırlanıyor", "در حال آماده‌سازی");
+      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче", "Teslim almaya hazır", "آماده تحویل");
+      case "completed": return L("დასრულებული", "Completed", "Завершено", "Tamamlandı", "تکمیل شد");
+      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено", "İptal edildi", "لغو شد");
     }
   };
 }
@@ -58,7 +58,7 @@ function Orders() {
   const [tab, setTab] = useState<Stage | "all">("all");
   const stageLabel = useStageLabel();
 
-  const allLabel = language === "en" ? "All" : language === "ru" ? "Все" : "ყველა";
+  const allLabel = language === "en" ? "All" : language === "ru" ? "Все" : language === "tr" ? "Tümü" : language === "fa" ? "همه" : "ყველა";
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: orders.length };

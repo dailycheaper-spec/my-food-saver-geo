@@ -18,15 +18,15 @@ export const ALLERGEN_KEYS: AllergenKey[] = [
 ];
 
 const LABELS: Record<AllergenKey, Record<UiLanguage, string>> = {
-  gluten:    { ka: "გლუტენი",         en: "Gluten",    ru: "Глютен" },
-  dairy:     { ka: "რძის პროდუქტი",   en: "Dairy",     ru: "Молочные" },
-  eggs:      { ka: "კვერცხი",          en: "Eggs",      ru: "Яйца" },
-  nuts:      { ka: "თხილი",            en: "Nuts",      ru: "Орехи" },
-  peanuts:   { ka: "არაქისი",          en: "Peanuts",   ru: "Арахис" },
-  soy:       { ka: "სოია",             en: "Soy",       ru: "Соя" },
-  fish:      { ka: "თევზი",            en: "Fish",      ru: "Рыба" },
-  shellfish: { ka: "ზღვის პროდუქტები", en: "Shellfish", ru: "Морепродукты" },
-  sesame:    { ka: "სეზამი",           en: "Sesame",    ru: "Кунжут" },
+  gluten:    { ka: "გლუტენი",         en: "Gluten",    ru: "Глютен",        tr: "Gluten",       fa: "گلوتن" },
+  dairy:     { ka: "რძის პროდუქტი",   en: "Dairy",     ru: "Молочные",      tr: "Süt ürünü",    fa: "لبنیات" },
+  eggs:      { ka: "კვერცხი",          en: "Eggs",      ru: "Яйца",          tr: "Yumurta",      fa: "تخم‌مرغ" },
+  nuts:      { ka: "თხილი",            en: "Nuts",      ru: "Орехи",         tr: "Kuruyemiş",    fa: "آجیل" },
+  peanuts:   { ka: "არაქისი",          en: "Peanuts",   ru: "Арахис",        tr: "Yer fıstığı",  fa: "بادام‌زمینی" },
+  soy:       { ka: "სოია",             en: "Soy",       ru: "Соя",           tr: "Soya",         fa: "سویا" },
+  fish:      { ka: "თევზი",            en: "Fish",      ru: "Рыба",          tr: "Balık",        fa: "ماهی" },
+  shellfish: { ka: "ზღვის პროდუქტები", en: "Shellfish", ru: "Морепродукты",  tr: "Kabuklu deniz ürünleri", fa: "صدف‌داران" },
+  sesame:    { ka: "სეზამი",           en: "Sesame",    ru: "Кунжут",        tr: "Susam",        fa: "کنجد" },
 };
 
 export function allergenLabel(key: string, language: UiLanguage): string {

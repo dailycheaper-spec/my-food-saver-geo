@@ -32,12 +32,12 @@ const STORAGE_KEY = "cheaper:city";
 
 export function cityLabel(c: City, lang: Language): string {
   if (lang === "ka") return c;
-  if (c === "თბილისი") return lang === "en" ? "Tbilisi" : "Тбилиси";
-  if (c === "ქუთაისი") return lang === "en" ? "Kutaisi" : "Кутаиси";
-  if (c === "ბათუმი") return lang === "en" ? "Batumi" : "Батуми";
-  if (c === "გორი") return lang === "en" ? "Gori" : "Гори";
-  if (c === "რუსთავი") return lang === "en" ? "Rustavi" : "Рустави";
-  return lang === "en" ? "Zugdidi" : "Зугдиди";
+  if (c === "თბილისი") return lang === "en" ? "Tbilisi" : lang === "ru" ? "Тбилиси" : lang === "tr" ? "Tiflis" : lang === "fa" ? "تفلیس" : "Tbilisi";
+  if (c === "ქუთაისი") return lang === "en" ? "Kutaisi" : lang === "ru" ? "Кутаиси" : lang === "tr" ? "Kutaisi" : lang === "fa" ? "کوتایسی" : "Kutaisi";
+  if (c === "ბათუმი") return lang === "en" ? "Batumi" : lang === "ru" ? "Батуми" : lang === "tr" ? "Batum" : lang === "fa" ? "باتومی" : "Batumi";
+  if (c === "გორი") return lang === "en" ? "Gori" : lang === "ru" ? "Гори" : lang === "tr" ? "Gori" : lang === "fa" ? "گوری" : "Gori";
+  if (c === "რუსთავი") return lang === "en" ? "Rustavi" : lang === "ru" ? "Рустави" : lang === "tr" ? "Rustavi" : lang === "fa" ? "روستاوی" : "Rustavi";
+  return lang === "en" ? "Zugdidi" : lang === "ru" ? "Зугдиди" : lang === "tr" ? "Zugdidi" : lang === "fa" ? "زوگدیدی" : "Zugdidi";
 }
 
 type Ctx = { city: City; setCity: (c: City) => void };

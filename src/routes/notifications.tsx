@@ -12,7 +12,7 @@ export const Route = createFileRoute("/notifications")({
 
 function Notifications() {
   const { t, language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) => (language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
