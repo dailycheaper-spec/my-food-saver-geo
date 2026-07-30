@@ -50,7 +50,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   };
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;
-    visibility_radius_km?: number | null; city?: string | null;
+    visibility_radius_km?: number | null; city?: string | null; delivery_radius_km?: number | null;
     logo_url?: string | null;
   });
   return {
