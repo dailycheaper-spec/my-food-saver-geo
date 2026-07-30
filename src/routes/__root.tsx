@@ -251,6 +251,8 @@ function RootComponent() {
             <AppTracker />
             <AndroidBackHandler />
             <IosSwipeBack />
+            <PullToRefresh />
+
 
             <PwaInstall />
             <Toaster position="top-center" richColors />
