@@ -1546,13 +1546,18 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
+  // Partner/admin dashboards stay LTR: their copy is ka/en/ru only, so
+  // mirroring them would be wrong even when the account language is fa.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const forceLtr = /^\/(partner|admin)/.test(pathname);
+
   useEffect(() => {
     if (!ready) return;
     document.documentElement.lang = language;
-    document.documentElement.dir = dirFor(language);
+    document.documentElement.dir = forceLtr ? "ltr" : dirFor(language);
     window.localStorage.setItem(STORAGE_KEY, language);
     window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
-  }, [language, ready]);
+  }, [language, ready, forceLtr]);
 
   const setLanguage = (l: Language) => {
     // write localStorage synchronously so formatGel/currencyLabel pick up
