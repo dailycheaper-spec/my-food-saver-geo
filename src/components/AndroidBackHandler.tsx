@@ -2,20 +2,17 @@ import { useEffect } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { Capacitor } from "@capacitor/core";
 import { App } from "@capacitor/app";
-import { Dialog } from "@capacitor/dialog";
 import { isNative } from "@/lib/native";
-import { useI18n } from "@/lib/i18n";
 
 /**
  * Standard Android back-button-to-exit pattern.
- * - At the router-history root (nothing to go back to in-app): show a native
- *   confirm dialog; OK → App.exitApp(), Cancel → stay.
+ * - At the router-history root (nothing to go back to in-app): exit the app
+ *   immediately, with no confirmation dialog.
  * - Anywhere else: normal in-app back navigation (router.history.back()).
  * - No effect on web or iOS.
  */
 export function AndroidBackHandler() {
   const router = useRouter();
-  const { t } = useI18n();
 
   useEffect(() => {
     if (!isNative()) return;
@@ -35,15 +32,7 @@ export function AndroidBackHandler() {
           router.history.back();
           return;
         }
-        const { value } = await Dialog.confirm({
-          title: t("exitApp.title"),
-          message: t("exitApp.message"),
-          okButtonTitle: t("exitApp.ok"),
-          cancelButtonTitle: t("cancel"),
-        });
-        if (value) {
-          await App.exitApp();
-        }
+        await App.exitApp();
       });
       if (removed) {
         sub.remove();
@@ -56,7 +45,7 @@ export function AndroidBackHandler() {
       removed = true;
       if (remove) remove();
     };
-  }, [router, t]);
+  }, [router]);
 
   return null;
 }
