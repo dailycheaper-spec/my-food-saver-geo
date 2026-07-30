@@ -9,9 +9,8 @@ import { isNative, openExternal } from "@/lib/native";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — Cheaper" }, { name: "robots", content: "noindex" }] }),
-  validateSearch: (search: { redirect?: unknown }) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
-  }),
+  validateSearch: (search: { redirect?: unknown }): { redirect?: string } =>
+    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
   component: AuthPage,
 });
 
