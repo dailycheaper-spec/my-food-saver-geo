@@ -67,9 +67,13 @@ function NewOfferPage() {
     title: "",
     title_en: "",
     title_ru: "",
+    title_tr: "",
+    title_fa: "",
     description: "",
     description_en: "",
     description_ru: "",
+    description_tr: "",
+    description_fa: "",
     category: "meal",
     original_price: "20",
     discounted_price: "7",
@@ -109,9 +113,13 @@ function NewOfferPage() {
       title: form.title.trim(),
       title_en: form.title_en.trim() || null,
       title_ru: form.title_ru.trim() || null,
+      title_tr: form.title_tr.trim() || null,
+      title_fa: form.title_fa.trim() || null,
       description: finalDesc,
       description_en: form.description_en.trim() || null,
       description_ru: form.description_ru.trim() || null,
+      description_tr: form.description_tr.trim() || null,
+      description_fa: form.description_fa.trim() || null,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -207,6 +215,10 @@ function NewOfferPage() {
             <Field label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
             <Field label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
             <Field label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+            <Field label={t("titleTrOptional")} value={form.title_tr} onChange={(v) => setForm({ ...form, title_tr: v })} />
+            <Field label={t("titleFaOptional")} value={form.title_fa} onChange={(v) => setForm({ ...form, title_fa: v })} />
+            <Field label={t("descriptionTrOptional")} value={form.description_tr} onChange={(v) => setForm({ ...form, description_tr: v })} />
+            <Field label={t("descriptionFaOptional")} value={form.description_fa} onChange={(v) => setForm({ ...form, description_fa: v })} />
           </div>
         </details>
 
