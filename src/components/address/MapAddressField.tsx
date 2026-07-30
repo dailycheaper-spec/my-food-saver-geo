@@ -3,7 +3,7 @@ import { Loader2, MapPin, Search, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useI18n } from "@/lib/i18n";
 import { autocompleteAddress, placeDetails, reverseGeocode } from "@/lib/geocode.functions";
-import { resolveAddress, setCachedAddress, getCachedAddress } from "@/lib/reverse-address";
+import { resolveAddress, setCachedAddress, getCachedAddress, geocodeLang } from "@/lib/reverse-address";
 import { CITY_CENTERS, type City } from "@/lib/city";
 
 const StoreLocationPicker = lazy(() =>
@@ -37,7 +37,7 @@ export function MapAddressField({
       language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
     [language],
   );
-  const lang = (language === "en" || language === "ru" ? language : "ka") as "ka" | "en" | "ru";
+  const lang = geocodeLang(language);
 
   const reverse = useServerFn(reverseGeocode);
   const autocomplete = useServerFn(autocompleteAddress);
