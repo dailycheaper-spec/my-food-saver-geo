@@ -144,7 +144,6 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 }`}
               >
                 <Link
-                  {...({ to: b.buttonAction.to, search: b.buttonAction.search } as never)}
                   tabIndex={active ? 0 : -1}
                   className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
