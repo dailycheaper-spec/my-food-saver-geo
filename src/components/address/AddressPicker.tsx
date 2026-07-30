@@ -305,7 +305,18 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
           place_id: pinPlaceId,
           is_default: isDefault,
         });
-        savedId = row.id;
+        savedId = res.address.id;
+        if (res.merged) {
+          toast.success(
+            L(
+              "ეს მისამართი უკვე შენახული იყო — განვაახლეთ.",
+              "You already had this address saved — we updated it.",
+              "Этот адрес уже был сохранён — мы его обновили.",
+              "Bu adres zaten kayıtlıydı — güncelledik.",
+              "این آدرس قبلاً ذخیره شده بود — آن را به‌روزرسانی کردیم.",
+            ),
+          );
+        }
       } catch (e) {
         toast.error(e instanceof Error ? e.message : String(e));
         return;
