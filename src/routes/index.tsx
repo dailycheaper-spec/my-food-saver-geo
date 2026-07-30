@@ -205,7 +205,7 @@ function Home() {
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
   return (
-    <div className="pb-24">
+    <div className="pb-28">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
       <div className="app-header">
 
