@@ -232,7 +232,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
   const distanceKm = zone.distanceKm;
   const outOfRange = !zone.allowed;
 
-  const poorAccuracy = location?.accuracy != null && location.accuracy > 100;
+  const poorAccuracy = location?.accuracy != null && location.accuracy > LOW_ACCURACY_M;
 
   function openMapAt(lat: number, lng: number) {
     setPinPlaceId(null);
@@ -243,16 +243,25 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
   }
 
   async function useCurrentLocation() {
-    if (!location) {
-      if (status === "denied" || status === "error") {
-        const loc = await request();
-        if (loc) openMapAt(loc.lat, loc.lng);
-      } else {
-        askPermission();
+    if (location) {
+      openMapAt(location.lat, location.lng);
+      // A stale or coarse fix still opens the map immediately; the refreshed
+      // position re-centres the pin once it arrives.
+      if (isStale || poorAccuracy) {
+        const fresh = await refresh();
+        if (fresh) openMapAt(fresh.lat, fresh.lng);
       }
       return;
     }
-    openMapAt(location.lat, location.lng);
+    if (status === "denied" || status === "unavailable" || status === "timeout" || status === "error") {
+      const loc = await request();
+      if (loc) openMapAt(loc.lat, loc.lng);
+      return;
+    }
+    // Permission not decided yet — explain first, then the modal fetches.
+    askPermission();
+    const loc = await request().catch(() => null);
+    if (loc) openMapAt(loc.lat, loc.lng);
   }
 
   function pickSaved(a: UserAddress) {
