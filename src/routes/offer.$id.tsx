@@ -307,13 +307,14 @@ function OfferPage() {
 
         <button
           onClick={() => history.back()}
-          className="absolute top-4 left-4 w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform pt-[env(safe-area-inset-top)]"
+          className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform"
           aria-label={L.back}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-[max(1rem,env(safe-area-inset-top))] right-4 flex gap-2">
+
           <button
             onClick={handleShare}
             className="w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform"

@@ -13,6 +13,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { AndroidBackHandler } from "@/components/AndroidBackHandler";
+import { IosSwipeBack } from "@/components/IosSwipeBack";
+
 import { PwaInstall } from "@/components/PwaInstall";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
@@ -247,6 +249,8 @@ function RootComponent() {
             <BottomNav />
             <AppTracker />
             <AndroidBackHandler />
+            <IosSwipeBack />
+
             <PwaInstall />
             <Toaster position="top-center" richColors />
             <UpdatePrompt />
