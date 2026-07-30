@@ -101,15 +101,23 @@ export function UpdatePrompt() {
       ? "New version available"
       : language === "ru"
         ? "Доступна новая версия"
-        : "ხელმისაწვდომია ახალი ვერსია";
+        : language === "tr"
+          ? "Yeni sürüm mevcut"
+          : language === "fa"
+            ? "نسخه جدید در دسترس است"
+            : "ხელმისაწვდომია ახალი ვერსია";
   const body =
     language === "en"
       ? "Reload to get the latest updates."
       : language === "ru"
         ? "Обновите, чтобы загрузить последние изменения."
-        : "გადატვირთეთ უახლესი განახლებების მისაღებად.";
-  const action = language === "en" ? "Reload" : language === "ru" ? "Обновить" : "გადატვირთვა";
-  const later = language === "en" ? "Later" : language === "ru" ? "Позже" : "მოგვიანებით";
+        : language === "tr"
+          ? "En son güncellemeleri almak için yeniden yükleyin."
+          : language === "fa"
+            ? "برای دریافت آخرین به‌روزرسانی‌ها دوباره بارگذاری کنید."
+            : "გადატვირთეთ უახლესი განახლებების მისაღებად.";
+  const action = language === "en" ? "Reload" : language === "ru" ? "Обновить" : language === "tr" ? "Yenile" : language === "fa" ? "بارگذاری مجدد" : "გადატვირთვა";
+  const later = language === "en" ? "Later" : language === "ru" ? "Позже" : language === "tr" ? "Daha sonra" : language === "fa" ? "بعداً" : "მოგვიანებით";
 
   return (
     <div
