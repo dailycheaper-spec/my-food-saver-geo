@@ -8,6 +8,10 @@ export const COMPANY = {
   addressKa: "ვასილ ბარნოვის 71, თბილისი, საქართველო, 0179",
   addressEn: "71 Vasil Barnovi Str., Tbilisi, Georgia, 0179",
   addressRu: "ул. Василия Барнови 71, Тбилиси, Грузия, 0179",
+  nameTr: "Geokubi LLC",
+  addressTr: "Vasil Barnovi Cad. 71, Tiflis, Gürcistan, 0179",
+  nameFa: "Geokubi LLC",
+  addressFa: "خیابان واسیل بارنووی ۷۱، تفلیس، گرجستان، ۰۱۷۹",
   phone: "+995 599 161 187",
   email: "dailycheaper@gmail.com",
 };
