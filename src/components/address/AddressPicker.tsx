@@ -64,7 +64,8 @@ function MapFlyTo({ pos }: { pos: [number, number] | null }) {
 export default function AddressPicker({ open, onClose, onSelect, store, manageOnly, showCitySwitch }: Props) {
   const { language } = useI18n();
   const L = useCallback(
-    (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka),
+    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
+      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
     [language],
   );
   const { user } = useAuth();
