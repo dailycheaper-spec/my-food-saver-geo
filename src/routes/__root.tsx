@@ -194,11 +194,11 @@ function RootComponent() {
 
       // Register first so a foreground callback cannot race session hydration.
       unsubscribeDeepLink = await registerDeepLinkHandler(({ url }) => handleNativeUrl(url));
-      const launchUrl = await getNativeLaunchUrl();
-      if (launchUrl) await handleNativeUrl(launchUrl);
-
       const { startNativeSessionPersistence } = await import("@/lib/native-session");
       await startNativeSessionPersistence();
+
+      const launchUrl = await getNativeLaunchUrl();
+      if (launchUrl) await handleNativeUrl(launchUrl);
     })();
 
     return () => {

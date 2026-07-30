@@ -8,12 +8,7 @@ const config: CapacitorConfig = {
     url: "https://cheaper.ge",
     cleartext: false,
     androidScheme: "https",
-    allowNavigation: [
-      "cheaper.ge",
-      "*.cheaper.ge",
-      "payment.bog.ge",
-      "*.bog.ge",
-    ],
+    allowNavigation: ["cheaper.ge", "*.cheaper.ge", "payment.bog.ge", "*.bog.ge"],
   },
   ios: { contentInset: "always" },
   android: { allowMixedContent: false },
