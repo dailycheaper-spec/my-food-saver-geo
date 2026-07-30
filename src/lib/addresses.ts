@@ -129,10 +129,16 @@ export function useMyAddresses(enabled = true) {
   });
 }
 
+export interface SaveAddressResult {
+  address: UserAddress;
+  /** True when an existing equivalent address was updated instead of a new one created. */
+  merged: boolean;
+}
+
 export function useSaveAddress() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (draft: AddressDraft): Promise<UserAddress> => {
+    mutationFn: async (draft: AddressDraft): Promise<SaveAddressResult> => {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user.id;
       if (!uid) throw new Error("Not signed in");
@@ -152,12 +158,34 @@ export function useSaveAddress() {
         place_id: draft.place_id ?? null,
         is_default: draft.is_default,
       };
-      const q = draft.id
-        ? supabase.from("user_addresses").update(payload).eq("id", draft.id).select().single()
+
+      // Duplicate guard: reuse an equivalent saved address rather than inserting
+      // a near-identical twin (same pin, translated text, different spacing…).
+      let targetId = draft.id;
+      let merged = false;
+      if (!targetId) {
+        const { data: existing } = await supabase.from("user_addresses").select("*");
+        const match = findEquivalentAddress((existing ?? []) as UserAddress[], payload);
+        if (match) {
+          targetId = match.id;
+          merged = true;
+          // Keep previously entered details when the new draft leaves them blank.
+          payload.entrance = payload.entrance ?? match.entrance;
+          payload.floor = payload.floor ?? match.floor;
+          payload.apartment = payload.apartment ?? match.apartment;
+          payload.door_code = payload.door_code ?? match.door_code;
+          payload.courier_note = payload.courier_note ?? match.courier_note;
+          payload.custom_label = payload.custom_label ?? match.custom_label;
+          payload.is_default = payload.is_default || match.is_default;
+        }
+      }
+
+      const q = targetId
+        ? supabase.from("user_addresses").update(payload).eq("id", targetId).select().single()
         : supabase.from("user_addresses").insert(payload).select().single();
       const { data, error } = await q;
       if (error) throw error;
-      return data as UserAddress;
+      return { address: data as UserAddress, merged };
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["user-addresses"] });
