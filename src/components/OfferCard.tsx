@@ -30,30 +30,28 @@ function isLikelyImageUrl(src: string | undefined | null): boolean {
   } catch { return false; }
 }
 
-function OfferImage({ src, alt, soldOut, fallbackLabel }: { src: string; alt: string; soldOut: boolean; fallbackLabel: string }) {
-  const [failed, setFailed] = useState(!isLikelyImageUrl(src));
-  useEffect(() => { setFailed(!isLikelyImageUrl(src)); }, [src]);
-  const base = `w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${soldOut ? "grayscale opacity-70" : ""}`;
-  if (failed) {
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-muted to-muted/40 text-muted-foreground">
-        <ImageOff className="w-10 h-10 opacity-60" />
-        <span className="text-xs font-medium">{fallbackLabel}</span>
-      </div>
-    );
-  }
+function OfferImage({ src, alt, soldOut, fallbackLabel, priority }: { src: string; alt: string; soldOut: boolean; fallbackLabel: string; priority?: boolean }) {
+  const valid = isLikelyImageUrl(src);
+  const base = `group-hover:scale-105 transition-transform duration-500 ${soldOut ? "grayscale opacity-70" : ""}`;
   return (
-    <img
-      src={src}
+    <ImageWithSkeleton
+      src={valid ? src : null}
       alt={alt}
-      loading="lazy"
+      aspect="w-full h-full"
+      priority={priority}
       width={800}
       height={600}
-      className={base}
-      onError={() => setFailed(true)}
+      imgClassName={base}
+      fallback={
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-muted to-muted/40 text-muted-foreground">
+          <ImageOff className="w-10 h-10 opacity-60" />
+          <span className="text-xs font-medium">{fallbackLabel}</span>
+        </div>
+      }
     />
   );
 }
+
 
 export function OfferCard({ offer, featured = false }: { offer: Offer; featured?: boolean }) {
   const { t, language } = useI18n();
