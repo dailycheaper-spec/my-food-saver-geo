@@ -67,6 +67,58 @@ export function localizedText(value: LocalizedText, language: Language): string 
   return value[language] ?? value.ka;
 }
 
+/** Shape of a row from the `promo_banners` table (subset we care about). */
+export type PromoBannerRow = {
+  id: string;
+  position: number;
+  active: boolean;
+  image_url: string | null;
+  image_path: string | null;
+  overlay_class: string | null;
+  link_to: string;
+  link_search: Record<string, string> | null;
+  badge_ka: string | null; badge_en: string | null; badge_ru: string | null;
+  badge_tr: string | null; badge_fa: string | null;
+  headline_ka: string; headline_en: string | null; headline_ru: string | null;
+  headline_tr: string | null; headline_fa: string | null;
+  subtext_ka: string; subtext_en: string | null; subtext_ru: string | null;
+  subtext_tr: string | null; subtext_fa: string | null;
+  button_ka: string; button_en: string | null; button_ru: string | null;
+  button_tr: string | null; button_fa: string | null;
+};
+
+/** Collapse the per-language columns of one field into a LocalizedText. */
+function textOf(
+  row: PromoBannerRow,
+  prefix: "badge" | "headline" | "subtext" | "button",
+): LocalizedText {
+  const pick = (lang: string) => (row as unknown as Record<string, string | null>)[`${prefix}_${lang}`] || undefined;
+  return {
+    ka: pick("ka") ?? "",
+    en: pick("en"),
+    ru: pick("ru"),
+    tr: pick("tr"),
+    fa: pick("fa"),
+  };
+}
+
+/** Map a database row onto the shape the carousel renders. */
+export function rowToBanner(row: PromoBannerRow): PromoBanner {
+  const badge = textOf(row, "badge");
+  return {
+    id: row.id,
+    badge: badge.ka ? badge : undefined,
+    headline: textOf(row, "headline"),
+    subtext: textOf(row, "subtext"),
+    buttonText: textOf(row, "button"),
+    buttonAction: { to: row.link_to, search: row.link_search ?? undefined },
+    imageSource: resolveBannerImage(row.image_url),
+    overlayClass: row.overlay_class ?? undefined,
+    active: row.active,
+  };
+}
+
+
 export const PROMO_BANNERS: PromoBanner[] = [
   {
     id: "daily-discount",
