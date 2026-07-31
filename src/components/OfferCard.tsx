@@ -6,6 +6,8 @@ import { formatPrice, getCategoryLabel, getOfferText, getStoreName } from "@/lib
 import { toggleFavorite, useFavorites, isTrustedPartner } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
 import { StoreLogo } from "@/components/StoreLogo";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 function minutesUntil(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
