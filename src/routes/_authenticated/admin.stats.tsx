@@ -130,16 +130,16 @@ function AdminStats() {
             <h3 className="font-display font-bold text-lg">{t("admin.stats.topStores")}</h3>
           </div>
           <div className="space-y-2">
-            {topStores.map((t, i) => (
-              <div key={t.store!.id} className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-muted/50">
+            {topStores.map((row, i) => (
+              <div key={row.store!.id} className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-muted/50">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary grid place-items-center text-sm font-bold shrink-0">{i + 1}</div>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{t.store!.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.orders} {t("admin.stats.orderCount")}</div>
+                    <div className="text-sm font-medium truncate">{row.store!.name}</div>
+                    <div className="text-xs text-muted-foreground">{row.orders} {t("admin.stats.orderCount")}</div>
                   </div>
                 </div>
-                <div className="font-bold text-sm shrink-0">{formatGel(t.revenue)}</div>
+                <div className="font-bold text-sm shrink-0">{formatGel(row.revenue)}</div>
               </div>
             ))}
             {topStores.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{t("admin.stats.empty")}</p>}
