@@ -19,8 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/payments")({
 });
 
 function AdminPayments() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { orders } = useAllOrders();
   const { stores } = useAllStores();
   const { payouts, reload, error: payoutsError } = useAllPayouts();
@@ -59,8 +58,8 @@ function AdminPayments() {
     <div className="space-y-6">
       <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("გადახდები", "Payments", "Платежи")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{L("კომისია", "Commission", "Комиссия")} {settings.commissionPct}% · {L("პარტნიორების ბალანსი", "partner balances", "балансы партнёров")}</p>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.payments.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("admin.payments.commission")} {settings.commissionPct}% · {t("admin.payments.partnerBalances")}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -68,16 +67,16 @@ function AdminPayments() {
               setGenerating(true); setGenMsg(null);
               try {
                 const res = await runPayouts() as { generated: number };
-                setGenMsg(L(`შეიქმნა ${res.generated} ახალი გატანის ჩანაწერი.`, `${res.generated} new payout record(s) created.`, `Создано ${res.generated} новых записей на выплату.`));
+                setGenMsg(t("admin.payments.generatedRecords", { count: res.generated }));
                 reload();
               } catch (e) {
-                setGenMsg(L("შეცდომა: ", "Error: ", "Ошибка: ") + (e instanceof Error ? e.message : String(e)));
+                setGenMsg(t("admin.payments.errorPrefix") + (e instanceof Error ? e.message : String(e)));
               } finally { setGenerating(false); }
             }}
             disabled={generating}
             className="px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-90 disabled:opacity-60"
           >
-            <PlayCircle className="w-4 h-4" /> {generating ? L("მიმდინარეობს…", "Processing…", "В процессе…") : L("გატანის დათვლა ახლა", "Calculate payouts now", "Рассчитать выплаты сейчас")}
+            <PlayCircle className="w-4 h-4" /> {generating ? t("admin.payments.processing") : t("admin.payments.calculateNow")}
           </button>
         </div>
       </div>
@@ -86,14 +85,14 @@ function AdminPayments() {
 
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <StatCard label={L("სულ ბრუნვა", "Total turnover", "Общий оборот")} value={formatGel(stats.gross)} icon={Wallet} tint="primary" />
-        <StatCard label={`${L("კომისია", "Commission", "Комиссия")} (${settings.commissionPct}%)`} value={formatGel(stats.commission)} icon={Wallet} tint="warm" />
-        <StatCard label={L("პარტნიორთა წილი", "Partner share", "Доля партнёров")} value={formatGel(stats.partnerNet)} icon={Check} tint="success" />
-        <StatCard label={L("მოლოდინში", "Pending", "В ожидании")} value={formatGel(stats.pendingPayouts)} icon={Clock} tint="muted" />
+        <StatCard label={t("admin.payments.totalTurnover")} value={formatGel(stats.gross)} icon={Wallet} tint="primary" />
+        <StatCard label={`${t("admin.payments.commission")} (${settings.commissionPct}%)`} value={formatGel(stats.commission)} icon={Wallet} tint="warm" />
+        <StatCard label={t("admin.payments.partnerShare")} value={formatGel(stats.partnerNet)} icon={Check} tint="success" />
+        <StatCard label={t("admin.payments.pending")} value={formatGel(stats.pendingPayouts)} icon={Clock} tint="muted" />
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
-        <h3 className="font-display font-bold text-lg mb-3">{L("ბანკების მიხედვით", "By bank", "По банкам")}</h3>
+        <h3 className="font-display font-bold text-lg mb-3">{t("admin.payments.byBank")}</h3>
         <div className="grid grid-cols-2 gap-3">
           {([
             ["bog", "Bank of Georgia"],
@@ -116,16 +115,16 @@ function AdminPayments() {
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
-        <h3 className="font-display font-bold text-lg mb-4">{L("პარტნიორთა ბალანსი", "Partner balances", "Балансы партнёров")}</h3>
+        <h3 className="font-display font-bold text-lg mb-4">{t("admin.payments.partnerBalancesTitle")}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="text-left p-3 font-semibold">{L("მაღაზია", "Store", "Магазин")}</th>
-                <th className="text-right p-3 font-semibold">{L("შეკვეთა", "Orders", "Заказы")}</th>
-                <th className="text-right p-3 font-semibold">{L("ბრუნვა", "Turnover", "Оборот")}</th>
-                <th className="text-right p-3 font-semibold">{L("კომისია", "Commission", "Комиссия")}</th>
-                <th className="text-right p-3 font-semibold">{L("გადასახდელი", "Payable", "К оплате")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.payments.colStore")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.payments.colOrders")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.payments.colTurnover")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.payments.commission")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.payments.colPayable")}</th>
               </tr>
             </thead>
             <tbody>
@@ -150,11 +149,11 @@ function AdminPayments() {
       {payouts.length > 0 && (
         <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-            <h3 className="font-display font-bold text-lg">{L("გატანის მოთხოვნები", "Payout requests", "Запросы на выплату")}</h3>
+            <h3 className="font-display font-bold text-lg">{t("admin.payments.payoutRequests")}</h3>
             <button
               onClick={() => {
                 const pending = payouts.filter((p) => p.status !== "paid" && p.bank_iban);
-                if (pending.length === 0) { toast.info(L("ექსპორტისთვის მოლოდინში მყოფი გატანა IBAN-ით არ არის.", "No pending payouts with IBAN to export.", "Нет ожидающих выплат с IBAN для экспорта.")); return; }
+                if (pending.length === 0) { toast.info(t("admin.payments.noPendingIban")); return; }
                 const rows = [["Store", "IBAN", "Account holder", "Amount (GEL)"]];
                 pending.forEach((p) => rows.push([
                   (p.store_name ?? "").replace(/"/g, '""'),
@@ -171,7 +170,7 @@ function AdminPayments() {
                 URL.revokeObjectURL(url);
               }}
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card border border-border text-xs font-semibold hover:bg-muted">
-              <FileDown className="w-4 h-4" /> {L("ყველას ექსპორტი (CSV)", "Export all (CSV)", "Экспортировать всё (CSV)")}
+              <FileDown className="w-4 h-4" /> {t("admin.payments.exportAll")}
             </button>
           </div>
           <div className="space-y-2">
@@ -183,7 +182,7 @@ function AdminPayments() {
                   {p.bank_iban ? (
                     <div className="text-xs mt-1 font-mono text-foreground">IBAN: {p.bank_iban}{p.account_holder ? ` · ${p.account_holder}` : ""}</div>
                   ) : (
-                    <div className="text-xs mt-1 text-destructive font-semibold">{L("⚠ IBAN არ არის მითითებული — მოთხოვე პარტნიორს", "⚠ IBAN not provided — ask the partner", "⚠ IBAN не указан — запросите у партнёра")}</div>
+                    <div className="text-xs mt-1 text-destructive font-semibold">{t("admin.payments.ibanMissingWarn")}</div>
                   )}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -192,28 +191,28 @@ function AdminPayments() {
                     <button
                       onClick={async () => {
                         const text = [
-                          `${L("მაღაზია", "Store", "Магазин")}: ${p.store_name ?? ""}`,
+                          `${t("admin.payments.colStore")}: ${p.store_name ?? ""}`,
                           `IBAN: ${p.bank_iban}`,
-                          `${L("მფლობელი", "Holder", "Владелец")}: ${p.account_holder ?? p.store_name ?? ""}`,
+                          `${t("admin.payments.holder")}: ${p.account_holder ?? p.store_name ?? ""}`,
                           `${L("თანხა", "Amount", "Сумма")}: ${Number(p.amount).toFixed(2)} GEL`,
                         ].join("\n");
                         try {
                           await navigator.clipboard.writeText(text);
-                          toast.success(L("დაკოპირდა", "Copied", "Скопировано"));
-                        } catch { toast.error(L("კოპირება ვერ მოხერხდა", "Copy failed", "Не удалось скопировать")); }
+                          toast.success(t("admin.payments.copied"));
+                        } catch { toast.error(t("admin.payments.copyFailed")); }
                       }}
                       className="text-xs px-3 py-1.5 rounded-full bg-card border border-border font-semibold hover:bg-muted inline-flex items-center gap-1">
-                      <Copy className="w-3 h-3" /> {L("მონაცემების კოპირება", "Copy details", "Копировать данные")}
+                      <Copy className="w-3 h-3" /> {t("admin.payments.copyDetails")}
                     </button>
                   )}
                   {p.status === "paid" ? (
-                    <span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success font-semibold">{L("გადახდილი", "Paid", "Оплачено")}</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-success/15 text-success font-semibold">{t("admin.payments.paid")}</span>
                   ) : (
                     <button onClick={async () => { await markPaid({ data: { payoutId: p.id } }); reload(); }}
                       disabled={!p.bank_iban}
-                      title={!p.bank_iban ? L("IBAN საჭიროა გადახდის დადასტურებამდე", "IBAN required before confirming payment", "IBAN необходим перед подтверждением оплаты") : undefined}
+                      title={!p.bank_iban ? t("admin.payments.ibanRequired") : undefined}
                       className="text-xs px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed">
-                      {L("გადახდის დადასტურება", "Confirm payment", "Подтвердить оплату")}
+                      {t("admin.payments.confirmPayout")}
                     </button>
                   )}
                 </div>

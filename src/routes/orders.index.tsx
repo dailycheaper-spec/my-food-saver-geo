@@ -38,16 +38,15 @@ export function stageOfDbOrder(o: OrderWithRelations): Stage {
 }
 
 export function useStageLabel(): (s: Stage) => string {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) => (language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka);
+  const { t } = useI18n();
   return (s) => {
     switch (s) {
-      case "pending": return L("მოლოდინში", "Pending", "В ожидании", "Beklemede", "در انتظار");
-      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено", "Onaylandı", "تأیید شد");
-      case "preparing": return L("მზადდება", "Preparing", "Готовится", "Hazırlanıyor", "در حال آماده‌سازی");
-      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче", "Teslim almaya hazır", "آماده تحویل");
-      case "completed": return L("დასრულებული", "Completed", "Завершено", "Tamamlandı", "تکمیل شد");
-      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено", "İptal edildi", "لغو شد");
+      case "pending": return t("orders.pending");
+      case "confirmed": return t("orders.confirmed");
+      case "preparing": return t("orders.preparing");
+      case "ready": return t("orders.readyForPickup");
+      case "completed": return t("orders.completed");
+      case "cancelled": return t("orders.cancelled");
     }
   };
 }
@@ -58,7 +57,7 @@ function Orders() {
   const [tab, setTab] = useState<Stage | "all">("all");
   const stageLabel = useStageLabel();
 
-  const allLabel = language === "en" ? "All" : language === "ru" ? "Все" : language === "tr" ? "Tümü" : language === "fa" ? "همه" : "ყველა";
+  const allLabel = t("orders.all");
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: orders.length };

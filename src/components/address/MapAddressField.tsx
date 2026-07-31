@@ -31,12 +31,9 @@ export function MapAddressField({
   city,
   onAddressResolved,
 }: Props) {
-  const { language } = useI18n();
-  const L = useCallback(
-    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
-      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
-    [language],
-  );
+  const { t, language } = useI18n();
+  const L = (ka: string, en: string, ru: string, tr: string, fa: string) =>
+    language === "en" ? en : language === "ru" ? ru : language === "tr" ? tr : language === "fa" ? fa : ka;
   const lang = geocodeLang(language);
 
   const reverse = useServerFn(reverseGeocode);

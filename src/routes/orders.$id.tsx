@@ -90,8 +90,8 @@ function OrderDetail() {
   async function handleGift() {
     if (!order) return;
     const recipient = giftMode === "charity"
-      ? (language === "en" ? "Charity 'Mowyale'" : language === "ru" ? "Благотворительность «Моцкале»" : language === "tr" ? "Hayır Kurumu 'Motskale'" : language === "fa" ? "خیریه «موتسکاله»" : "ქველმოქმედება „მოწყალე“")
-      : (giftName || (language === "en" ? "Friend" : language === "ru" ? "Друг" : language === "tr" ? "Arkadaş" : language === "fa" ? "دوست" : "მეგობარი"));
+      ? (t("orders.charityMowyale"))
+      : (giftName || (t("orders.friend")));
     await updateOrderStatus(order.id, "gifted", recipient);
     setShowGift(false);
   }
@@ -108,8 +108,8 @@ function OrderDetail() {
   }
 
   const statusText = isCancelled ? stageLabel("cancelled")
-    : isGifted ? (language === "en" ? "Gifted" : language === "ru" ? "Подарено" : language === "tr" ? "Hediye edildi" : language === "fa" ? "هدیه داده شد" : "გაჩუქებული")
-    : isCollected ? (language === "en" ? "Received" : language === "ru" ? "Получено" : language === "tr" ? "Teslim alındı" : language === "fa" ? "دریافت شد" : "მიღებული")
+    : isGifted ? (t("orders.gifted"))
+    : isCollected ? (t("orders.received"))
     : stageLabel(stage);
 
   const bannerCls = isCancelled ? "bg-muted text-muted-foreground"
@@ -241,7 +241,7 @@ function OrderDetail() {
                 <div className="text-lg">❤️</div>
                 <div className="text-sm font-semibold mt-1">{t("charity")}</div>
                 <div className="text-xs text-muted-foreground">
-                  {language === "en" ? "\"Motskale\"" : language === "ru" ? "«Моцкале»" : language === "tr" ? "\"Motskale\"" : language === "fa" ? "«موتسکاله»" : "„მოწყალე\""}
+                  {t("orders.motskale")}
                 </div>
               </button>
             </div>

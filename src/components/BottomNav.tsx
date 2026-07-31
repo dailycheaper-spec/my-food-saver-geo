@@ -34,14 +34,14 @@ export function BottomNav() {
     if (k === "orders") return t("navOrders");
     if (k === "favs") return t("navFavorites");
     if (k === "profile") return t("navProfile");
-    return language === "en" ? "Search" : language === "ru" ? "Поиск" : language === "tr" ? "Ara" : language === "fa" ? "جستجو" : "ძებნა";
+    return t("system.nav.search");
   };
 
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-40 overscroll-contain app-bottom-bar"
       style={{ touchAction: "manipulation" }}
-      aria-label={language === "en" ? "Primary navigation" : language === "ru" ? "Основная навигация" : language === "tr" ? "Ana gezinme" : language === "fa" ? "پیمایش اصلی" : "მთავარი ნავიგაცია"}
+      aria-label={t("system.nav.primary")}
     >
       <div className="mx-auto max-w-6xl px-2 sm:px-3">
         <ul className="grid grid-cols-5 rounded-3xl bg-card/95 backdrop-blur-xl border border-border shadow-elevated overflow-hidden">

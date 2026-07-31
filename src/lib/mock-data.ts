@@ -1,3 +1,4 @@
+import { formatGel } from "@/lib/db";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
 import bagSushi from "@/assets/bag-sushi.jpg";
@@ -280,9 +281,7 @@ const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description
 };
 
 export function formatPrice(n: number) {
-  const lang = typeof window !== "undefined" ? (window.localStorage.getItem("cheaper-language") || "ka") : "ka";
-  const sym = lang === "en" ? "GEL" : lang === "ru" ? "Лари" : lang === "tr" ? "GEL" : lang === "fa" ? "لاری" : "ლარი";
-  return `${n.toFixed(2)} ${sym}`;
+  return formatGel(n);
 }
 
 export function getCategoryLabel(id: Category | "ყველა", language: UiLanguage) {

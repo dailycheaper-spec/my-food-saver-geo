@@ -11,8 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin/offers")({
 });
 
 function AdminOffers() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { offers } = useAllOffers();
   const [q, setQ] = useState("");
   const [store, setStore] = useState("all");
@@ -37,22 +36,22 @@ function AdminOffers() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("შემოთავაზებები", "Offers", "Предложения")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {L("შემოთავაზება", "offers", "предложений")}</p>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.offers.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {t("admin.offers.count")}</p>
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-4 shadow-sm">
-        <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><Filter className="w-4 h-4" /> {L("ფილტრები", "Filters", "Фильтры")}</div>
+        <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><Filter className="w-4 h-4" /> {t("admin.offers.filters")}</div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა…", "Search…", "Поиск…")}
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.offers.searchPlaceholder")}
               className="w-full pl-10 pr-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
           </div>
-          <Select value={store} onChange={setStore} options={[["all", L("ყველა მაღაზია", "All stores", "Все магазины")], ...stores.map((s) => [s, s] as [string, string])]} />
-          <Select value={city} onChange={setCity} options={[["all", L("ყველა უბანი", "All districts", "Все районы")], ...cities.map((c) => [c, c] as [string, string])]} />
-          <Select value={category} onChange={setCategory} options={[["all", L("ყველა კატეგორია", "All categories", "Все категории")], ...categories.map((c) => [c, c] as [string, string])]} />
-          <Select value={status} onChange={(v) => setStatus(v as any)} options={[["all", L("სტატუსი", "Status", "Статус")], ["active", L("აქტიური", "Active", "Активно")], ["inactive", L("გამორთული", "Inactive", "Отключено")]]} />
+          <Select value={store} onChange={setStore} options={[["all", t("admin.offers.allStores")], ...stores.map((s) => [s, s] as [string, string])]} />
+          <Select value={city} onChange={setCity} options={[["all", t("admin.offers.allDistricts")], ...cities.map((c) => [c, c] as [string, string])]} />
+          <Select value={category} onChange={setCategory} options={[["all", t("admin.offers.allCategories")], ...categories.map((c) => [c, c] as [string, string])]} />
+          <Select value={status} onChange={(v) => setStatus(v as any)} options={[["all", t("admin.offers.status")], ["active", t("admin.offers.active")], ["inactive", t("admin.offers.inactive")]]} />
         </div>
       </div>
 
@@ -61,13 +60,13 @@ function AdminOffers() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="text-left p-3 font-semibold">{L("დასახელება", "Title", "Название")}</th>
-                <th className="text-left p-3 font-semibold">{L("მაღაზია", "Store", "Магазин")}</th>
-                <th className="text-left p-3 font-semibold">{L("ვადა", "Window", "Период")}</th>
-                <th className="text-right p-3 font-semibold">{L("ფასი", "Price", "Цена")}</th>
-                <th className="text-right p-3 font-semibold">{L("ხელმისაწვდ.", "Avail.", "Доступно")}</th>
-                <th className="text-left p-3 font-semibold">{L("სტატუსი", "Status", "Статус")}</th>
-                <th className="text-right p-3 font-semibold">{L("მოქმედება", "Action", "Действие")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.offers.colTitle")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.offers.colStore")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.offers.colWindow")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.offers.colPrice")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.offers.colAvail")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.offers.status")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.offers.colAction")}</th>
               </tr>
             </thead>
             <tbody>
@@ -86,17 +85,17 @@ function AdminOffers() {
                   <td className="p-3 text-right">{o.quantity_available - o.quantity_sold}/{o.quantity_available}</td>
                   <td className="p-3">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${o.is_active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                      {o.is_active ? L("აქტიური", "Active", "Активно") : L("გამორთული", "Inactive", "Отключено")}
+                      {o.is_active ? t("admin.offers.active") : t("admin.offers.inactive")}
                     </span>
                   </td>
                   <td className="p-3">
                     <div className="flex gap-1 justify-end">
                       <button onClick={() => updateOfferAdmin(o.id, { is_active: !o.is_active })}
-                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-muted" title={o.is_active ? L("გამორთვა", "Turn off", "Отключить") : L("ჩართვა", "Turn on", "Включить")}>
+                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-muted" title={o.is_active ? t("admin.offers.turnOff") : t("admin.offers.turnOn")}>
                         {o.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
-                      <button onClick={() => { if (confirm(L("წავშალო?", "Delete?", "Удалить?"))) deleteOfferAdmin(o.id); }}
-                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-destructive/10 text-destructive" title={L("წაშლა", "Delete", "Удалить")}>
+                      <button onClick={() => { if (confirm(t("admin.offers.confirmDelete"))) deleteOfferAdmin(o.id); }}
+                        className="w-8 h-8 grid place-items-center rounded-xl hover:bg-destructive/10 text-destructive" title={t("admin.offers.delete")}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -106,7 +105,7 @@ function AdminOffers() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{L("არაფერი მოიძებნა.", "Nothing found.", "Ничего не найдено.")}</p>}
+        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{t("admin.offers.nothingFound")}</p>}
       </div>
     </div>
   );

@@ -158,15 +158,7 @@ function OfferPage() {
   async function handleReserve() {
     if (soldOut) return;
     if (!realDb) {
-      toast.error(language === "en"
-        ? "This is a demo listing — not available for purchase."
-        : language === "ru"
-        ? "Это демо-предложение — покупка недоступна."
-        : language === "tr"
-        ? "Bu bir demo ilanıdır — satın alma için uygun değil."
-        : language === "fa"
-        ? "این یک آگهی نمایشی است — امکان خرید وجود ندارد."
-        : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+      toast.error(t("offer.thisIsADemo"));
       return;
     }
     if (!user) {
@@ -203,15 +195,7 @@ function OfferPage() {
         if (isDelivery) {
           dispatchDeliveryFn({ data: { orderId: order.id } }).catch((err) => {
             console.error("Delivery dispatch failed:", err);
-            toast.error(language === "en"
-              ? "Delivery couldn't be arranged automatically — the store will contact you."
-              : language === "ru"
-              ? "Не удалось автоматически организовать доставку — магазин свяжется с вами."
-              : language === "tr"
-              ? "Teslimat otomatik olarak ayarlanamadı — mağaza sizinle iletişime geçecek."
-              : language === "fa"
-              ? "امکان هماهنگی خودکار تحویل نبود — فروشگاه با شما تماس خواهد گرفت."
-              : "მიწოდების ავტომატურად დაგეგმვა ვერ მოხერხდა — მაღაზია დაგიკავშირდებათ.");
+            toast.error(t("offer.deliveryCouldnTBe"));
           });
         }
         navigate({ to: "/orders/$id", params: { id: order.id } });
@@ -243,15 +227,7 @@ function OfferPage() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes("Store staff cannot place orders on their own store")) {
-        toast.error(language === "en"
-          ? "You can't order from your own store."
-          : language === "ru"
-          ? "Нельзя заказывать в своём собственном магазине."
-          : language === "tr"
-          ? "Kendi mağazanızdan sipariş veremezsiniz."
-          : language === "fa"
-          ? "شما نمی‌توانید از فروشگاه خودتان سفارش دهید."
-          : "საკუთარი მაღაზიიდან შეკვეთის გაკეთება არ შეიძლება.");
+        toast.error(t("offer.youCanTOrder"));
       } else {
         toast.error(msg);
       }
@@ -281,19 +257,19 @@ function OfferPage() {
 
   // ---- Localized labels ----
   const L = {
-    back: language === "en" ? "Back" : language === "ru" ? "Назад" : language === "tr" ? "Geri" : language === "fa" ? "بازگشت" : t("back"),
-    share: language === "en" ? "Share" : language === "ru" ? "Поделиться" : language === "tr" ? "Paylaş" : language === "fa" ? "اشتراک‌گذاری" : "გაზიარება",
-    copied: language === "en" ? "Link copied" : language === "ru" ? "Ссылка скопирована" : language === "tr" ? "Bağlantı kopyalandı" : language === "fa" ? "پیوند کپی شد" : "ბმული დაკოპირდა",
-    aboutBag: language === "en" ? "About this surprise bag" : language === "ru" ? "Об этом пакете" : language === "tr" ? "Bu sürpriz paket hakkında" : language === "fa" ? "درباره این کیف شگفت‌انگیز" : "პაკეტის შესახებ",
-    ingredients: language === "en" ? "May include" : language === "ru" ? "Возможный состав" : language === "tr" ? "İçerebilir" : language === "fa" ? "ممکن است شامل شود" : "შესაძლო შემადგენლობა",
-    allergens: language === "en" ? "Allergens" : language === "ru" ? "Аллергены" : language === "tr" ? "Alerjenler" : language === "fa" ? "آلرژن‌ها" : "ალერგენები",
-    noAllergens: language === "en" ? "No common allergens listed" : language === "ru" ? "Без распространённых аллергенов" : language === "tr" ? "Yaygın alerjen belirtilmemiş" : language === "fa" ? "آلرژن رایجی ذکر نشده است" : "გავრცელებული ალერგენების გარეშე",
-    pickupHow: language === "en" ? "Pickup instructions" : language === "ru" ? "Инструкции по получению" : language === "tr" ? "Teslim alma talimatları" : language === "fa" ? "راهنمای تحویل‌گیری" : "აღების ინსტრუქცია",
-    getDirections: language === "en" ? "Get directions" : language === "ru" ? "Построить маршрут" : language === "tr" ? "Yol tarifi al" : language === "fa" ? "دریافت مسیر" : "მარშრუტი",
-    aboutStore: language === "en" ? "About the partner" : language === "ru" ? "О партнёре" : language === "tr" ? "Ortak hakkında" : language === "fa" ? "درباره همکار" : "პარტნიორის შესახებ",
-    trustedPartner: language === "en" ? "Trusted partner" : language === "ru" ? "Надёжный партнёр" : language === "tr" ? "Güvenilir ortak" : language === "fa" ? "همکار مورد اعتماد" : "სანდო პარტნიორი",
-    similar: language === "en" ? "Similar offers" : language === "ru" ? "Похожие предложения" : language === "tr" ? "Benzer fırsatlar" : language === "fa" ? "پیشنهادهای مشابه" : "მსგავსი შემოთავაზებები",
-    soldOut: language === "en" ? "Sold out" : language === "ru" ? "Распродано" : language === "tr" ? "Tükendi" : language === "fa" ? "به فروش رفته" : "გაყიდულია",
+    back: t("back"),
+    share: t("offer.share"),
+    copied: t("offer.linkCopied"),
+    aboutBag: t("offer.aboutThisSurpriseBag"),
+    ingredients: t("offer.mayInclude"),
+    allergens: t("offer.allergens"),
+    noAllergens: t("offer.noCommonAllergensListed"),
+    pickupHow: t("offer.pickupInstructions"),
+    getDirections: t("offer.getDirections"),
+    aboutStore: t("offer.aboutThePartner"),
+    trustedPartner: t("offer.trustedPartner"),
+    similar: t("offer.similarOffers"),
+    soldOut: t("offer.soldOut"),
     reviews: t("gift") /* placeholder unused */,
   };
 
@@ -393,7 +369,7 @@ function OfferPage() {
             <StatChip icon={<Clock className="w-4 h-4 text-primary" />} label={t("pickupTime")}>
               <div className="font-semibold text-sm">{offer.pickupFrom}–{offer.pickupTo}</div>
             </StatChip>
-            <StatChip icon={<MapPin className="w-4 h-4 text-primary" />} label={language === "en" ? "Distance" : language === "ru" ? "Расстояние" : language === "tr" ? "Mesafe" : language === "fa" ? "فاصله" : "მანძილი"}>
+            <StatChip icon={<MapPin className="w-4 h-4 text-primary" />} label={t("offer.distance")}>
               <div className="font-semibold text-sm">{offer.distanceKm} {t("km")}</div>
             </StatChip>
             <StatChip icon={<ShoppingBag className="w-4 h-4 text-primary" />} label={t("left")}>
@@ -517,8 +493,8 @@ function OfferPage() {
               </span>
               <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">
                 {selectedAddr
-                  ? language === "en" ? "Change" : language === "ru" ? "Изменить" : language === "tr" ? "Değiştir" : language === "fa" ? "تغییر" : "შეცვლა"
-                  : language === "en" ? "Choose" : language === "ru" ? "Выбрать" : language === "tr" ? "Seç" : language === "fa" ? "انتخاب" : "არჩევა"}
+                  ? t("offer.change")
+                  : t("offer.choose")}
               </span>
             </button>
           )}
@@ -531,7 +507,7 @@ function OfferPage() {
                 onClick={() => setPickerOpen(true)}
                 className="font-semibold underline shrink-0"
               >
-                {language === "en" ? "Choose another" : language === "ru" ? "Выбрать другой" : language === "tr" ? "Başka seç" : language === "fa" ? "انتخاب دیگر" : "სხვის არჩევა"}
+                {t("offer.chooseAnother")}
               </button>
             </div>
           )}
@@ -556,28 +532,20 @@ function OfferPage() {
           <div className="mt-5">
             <label className="text-sm font-bold mb-1.5 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-primary" />
-              {language === "en" ? "Special request (optional)" : language === "ru" ? "Особый запрос (необязательно)" : language === "tr" ? "Özel istek (isteğe bağlı)" : language === "fa" ? "درخواست خاص (اختیاری)" : "სპეციალური მოთხოვნა (არასავალდებულო)"}
+              {t("offer.specialRequestOptional")}
             </label>
             <textarea
               value={customerNote}
               onChange={(e) => setCustomerNote(e.target.value.slice(0, 300))}
               maxLength={300}
               rows={2}
-              placeholder={language === "en" ? "e.g. no onions / no hazelnuts" : language === "ru" ? "напр.: без лука / без фундука" : language === "tr" ? "örn: soğansız / fındıksız" : language === "fa" ? "مثلاً بدون پیاز / بدون فندق" : "მაგ: ხახვის გარეშე / თხილის გარეშე"}
+              placeholder={t("offer.eGNoOnions")}
               className="w-full px-3 py-2.5 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
             />
             <div className="mt-1 flex items-start justify-between gap-2 text-[11px]">
               <p className="text-muted-foreground leading-snug flex items-start gap-1">
                 <AlertTriangle className="w-3 h-3 mt-0.5 text-warm-foreground shrink-0" />
-                <span>{language === "en"
-                  ? "The partner will try to accommodate your request, but cannot fully guarantee it — please keep this in mind if you have serious allergies."
-                  : language === "ru"
-                  ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, учитывайте это при заказе."
-                  : language === "tr"
-                  ? "Ortak isteğinizi karşılamaya çalışacaktır ancak tam garanti veremez — ciddi alerjiniz varsa lütfen bunu göz önünde bulundurun."
-                  : language === "fa"
-                  ? "همکار تلاش می‌کند درخواست شما را در نظر بگیرد، اما نمی‌تواند آن را کاملاً تضمین کند — در صورت داشتن آلرژی جدی، لطفاً این را در نظر بگیرید."
-                  : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრულ გარანტიას ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში."}</span>
+                <span>{t("offer.thePartnerWillTry")}</span>
               </p>
               <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
             </div>
@@ -618,15 +586,7 @@ function OfferPage() {
                 disabled={soldOut || deliveryBlocked || (method === "მიტანა" && address.length < 3)}
                 onPaymentAuthorized={async (googlePayToken) => {
                   if (!realDb) {
-                    toast.error(language === "en"
-                      ? "This is a demo listing — not available for purchase."
-                      : language === "ru"
-                      ? "Это демо-предложение — покупка недоступна."
-                      : language === "tr"
-                      ? "Bu bir demo ilanıdır — satın alma için uygun değil."
-                      : language === "fa"
-                      ? "این یک آگهی نمایشی است — امکان خرید وجود ندارد."
-                      : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+                    toast.error(t("offer.thisIsADemo2"));
                     return;
                   }
                   if (!user) {
@@ -664,15 +624,7 @@ function OfferPage() {
                 onFallback={() => setPayment("BOG")}
               />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {language === "en"
-                  ? "Google Pay (TEST mode) — 3DS may be required to complete the charge."
-                  : language === "ru"
-                  ? "Google Pay (тест) — может потребоваться 3DS-подтверждение."
-                  : language === "tr"
-                  ? "Google Pay (TEST modu) — ödemeyi tamamlamak için 3DS gerekebilir."
-                  : language === "fa"
-                  ? "Google Pay (حالت آزمایشی) — ممکن است برای تکمیل پرداخت 3DS لازم باشد."
-                  : "Google Pay (ტესტ-რეჟიმი) — შესაძლოა საჭირო გახდეს 3DS-დადასტურება."}
+                {t("offer.googlePayTestMode")}
               </p>
             </div>
           )}
@@ -697,7 +649,7 @@ function OfferPage() {
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                {offer.rating} · {offer.reviewCount} {language === "en" ? "reviews" : language === "ru" ? "отзывов" : language === "tr" ? "değerlendirme" : language === "fa" ? "نظر" : "შეფასება"}
+                {offer.rating} · {offer.reviewCount} {t("offer.reviews")}
               </div>
               {trusted && (
                 <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -719,7 +671,7 @@ function OfferPage() {
                 <Utensils className="w-4 h-4 text-primary" /> {L.similar}
               </h2>
               <Link to="/search" className="text-xs font-semibold text-primary flex items-center gap-0.5">
-                {language === "en" ? "See all" : language === "ru" ? "Все" : language === "tr" ? "Tümünü gör" : language === "fa" ? "مشاهده همه" : "ყველა"} <ChevronRight className="w-3.5 h-3.5" />
+                {t("offer.seeAll")} <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
@@ -757,7 +709,7 @@ function OfferPage() {
             {soldOut
               ? L.soldOut
               : !user
-              ? (language === "en" ? "Sign in to reserve" : language === "ru" ? "Войти для брони" : language === "tr" ? "Rezervasyon için giriş yap" : language === "fa" ? "برای رزرو وارد شوید" : "შედი დასაჯავშნად")
+              ? (t("offer.signInToReserve"))
               : t("reserve")}
           </button>
         </div>

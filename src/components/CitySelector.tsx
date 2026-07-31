@@ -13,7 +13,7 @@ export function CitySelector({
   className?: string;
 }) {
   const { city, setCity } = useCity();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,7 +32,7 @@ export function CitySelector({
   }, [open]);
 
   const labelText =
-    language === "en" ? "City" : language === "ru" ? "Город" : language === "tr" ? "Şehir" : language === "fa" ? "شهر" : "ქალაქი";
+    t("home.city");
 
   const trigger =
     variant === "compact" ? (

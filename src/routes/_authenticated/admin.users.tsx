@@ -11,8 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin/users")({
 });
 
 function AdminUsers() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { rows, loading } = useAllCustomers();
   const [q, setQ] = useState("");
 
@@ -28,32 +27,32 @@ function AdminUsers() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("მომხმარებლები", "Users", "Пользователи")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{rows.length} {L("რეგისტრირებული", "registered", "зарегистрировано")}</p>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.users.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{rows.length} {t("admin.users.registered")}</p>
       </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა სახელით, ტელეფონით, უბნით…", "Search by name, phone, district…", "Поиск по имени, телефону, району…")}
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.users.searchPlaceholder")}
           className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">{L("იტვირთება…", "Loading…", "Загрузка…")}</p>
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       ) : (
         <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="text-left p-3 font-semibold">{L("სახელი", "Name", "Имя")}</th>
-                  <th className="text-left p-3 font-semibold">{L("უბანი", "District", "Район")}</th>
-                  <th className="text-left p-3 font-semibold">{L("ტელეფონი", "Phone", "Телефон")}</th>
-                  <th className="text-right p-3 font-semibold">{L("შეკვეთა", "Orders", "Заказы")}</th>
-                  <th className="text-right p-3 font-semibold">{L("დახარჯული", "Spent", "Потрачено")}</th>
-                  <th className="text-right p-3 font-semibold">{L("დაზოგილი", "Saved", "Сэкономлено")}</th>
-                  <th className="text-left p-3 font-semibold">{L("როლი", "Role", "Роль")}</th>
-                  <th className="text-left p-3 font-semibold">{L("რეგისტრაცია", "Joined", "Регистрация")}</th>
+                  <th className="text-left p-3 font-semibold">{t("admin.users.colName")}</th>
+                  <th className="text-left p-3 font-semibold">{t("admin.users.colDistrict")}</th>
+                  <th className="text-left p-3 font-semibold">{t("admin.users.colPhone")}</th>
+                  <th className="text-right p-3 font-semibold">{t("admin.users.colOrders")}</th>
+                  <th className="text-right p-3 font-semibold">{t("admin.users.colSpent")}</th>
+                  <th className="text-right p-3 font-semibold">{t("admin.users.colSaved")}</th>
+                  <th className="text-left p-3 font-semibold">{t("admin.users.colRole")}</th>
+                  <th className="text-left p-3 font-semibold">{t("admin.users.colJoined")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,7 +77,7 @@ function AdminUsers() {
               </tbody>
             </table>
           </div>
-          {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{L("არაფერი მოიძებნა.", "Nothing found.", "Ничего не найдено.")}</p>}
+          {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{t("admin.users.nothingFound")}</p>}
         </div>
       )}
     </div>
