@@ -54,6 +54,7 @@ import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin.partners'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
+import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
 import { Route as ApiPublicPaymentsTbcCallbackRouteImport } from './routes/api/public/payments/tbc-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
@@ -302,6 +303,12 @@ const AuthenticatedAdminOffersRoute =
     path: '/offers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBannersRoute =
+  AuthenticatedAdminBannersRouteImport.update({
+    id: '/banners',
+    path: '/banners',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicPaymentsTbcCallbackRoute =
   ApiPublicPaymentsTbcCallbackRouteImport.update({
     id: '/api/public/payments/tbc-callback',
@@ -352,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -401,6 +409,7 @@ export interface FileRoutesByTo {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders': typeof OrdersIndexRoute
+  '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -454,6 +463,7 @@ export interface FileRoutesById {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/_authenticated/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders'
+    | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
@@ -608,6 +620,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/_authenticated/admin/banners'
     | '/_authenticated/admin/offers'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/partners'
@@ -984,6 +997,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOffersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/banners': {
+      id: '/_authenticated/admin/banners'
+      path: '/banners'
+      fullPath: '/admin/banners'
+      preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/payments/tbc-callback': {
       id: '/api/public/payments/tbc-callback'
       path: '/api/public/payments/tbc-callback'
@@ -1023,6 +1043,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBannersRoute: typeof AuthenticatedAdminBannersRoute
   AuthenticatedAdminOffersRoute: typeof AuthenticatedAdminOffersRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
@@ -1034,6 +1055,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBannersRoute: AuthenticatedAdminBannersRoute,
   AuthenticatedAdminOffersRoute: AuthenticatedAdminOffersRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
@@ -1128,13 +1150,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

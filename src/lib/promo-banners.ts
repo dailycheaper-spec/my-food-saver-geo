@@ -1,39 +1,14 @@
 /**
  * ============================================================================
- * PROMO BANNERS — home screen carousel content ("mini CMS")
+ * PROMO BANNERS — home screen carousel content
  * ============================================================================
  *
- * This file is the SINGLE place to add, edit, or remove home-page banners.
- * No database, no admin panel needed — just edit the array below and save.
+ * Banners are managed in the ADMIN PANEL at /admin/banners (add, edit,
+ * reorder, hide, delete). The array at the bottom of this file is only the
+ * offline fallback used when the database has no banners or cannot be
+ * reached, so the homepage is never blank.
  *
- * ── HOW TO ADD A BANNER ─────────────────────────────────────────────────────
- *   1. (optional) import an image at the top:
- *        import myImage from "@/assets/my-banner.jpg";
- *   2. append an object to PROMO_BANNERS:
- *
- *        {
- *          id: "summer-sale",                        // unique, stable
- *          badge:      { ka: "ახალი", en: "New" },
- *          headline:   { ka: "ზაფხულის ფასდაკლება", en: "Summer sale" },
- *          subtext:    { ka: "-50% ყველაფერზე",      en: "-50% on everything" },
- *          buttonText: { ka: "ნახე", en: "Browse" },
- *          buttonAction: { to: "/search" },          // internal route
- *          imageSource: myImage,
- *        }
- *
- * ── HOW TO EDIT ─────────────────────────────────────────────────────────────
- *   Change any field in place. `ka` is required; en/ru/tr/fa are optional and
- *   fall back to `ka` when missing.
- *
- * ── HOW TO REMOVE / TEMPORARILY HIDE ────────────────────────────────────────
- *   Delete the object, or set `active: false` to keep it for later.
- *
- * ── ORDER ───────────────────────────────────────────────────────────────────
- *   Banners rotate top-to-bottom in array order.
- *
- * ── LATER: MOVING TO THE DATABASE ───────────────────────────────────────────
- *   This array maps 1:1 to a `promo_banners` table. Swap `PROMO_BANNERS` for a
- *   query result of the same shape — PromoCarousel needs no changes.
+ * `ka` is required on every text; en/ru/tr/fa fall back to `ka`.
  * ============================================================================
  */
 
@@ -41,6 +16,24 @@ import type { Language } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
+
+/**
+ * Bundled artwork the seeded banners point at. The database stores the stable
+ * key `asset:<name>`; the real hashed URL is resolved here at build time.
+ * Admin uploads use a storage URL instead and never hit this map.
+ */
+export const BUNDLED_BANNER_IMAGES: Record<string, string> = {
+  "hero-bakery-clean": heroImage,
+  "bag-bakery": bagBakery,
+  "bag-khachapuri": bagKhachapuri,
+};
+
+export function resolveBannerImage(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.startsWith("asset:")) return BUNDLED_BANNER_IMAGES[value.slice(6)];
+  return value;
+}
+
 
 /** Localized string. `ka` is required, everything else falls back to it. */
 export type LocalizedText = {
@@ -73,6 +66,58 @@ export type PromoBanner = {
 export function localizedText(value: LocalizedText, language: Language): string {
   return value[language] ?? value.ka;
 }
+
+/** Shape of a row from the `promo_banners` table (subset we care about). */
+export type PromoBannerRow = {
+  id: string;
+  position: number;
+  active: boolean;
+  image_url: string | null;
+  image_path: string | null;
+  overlay_class: string | null;
+  link_to: string;
+  link_search: Record<string, string> | null;
+  badge_ka: string | null; badge_en: string | null; badge_ru: string | null;
+  badge_tr: string | null; badge_fa: string | null;
+  headline_ka: string; headline_en: string | null; headline_ru: string | null;
+  headline_tr: string | null; headline_fa: string | null;
+  subtext_ka: string; subtext_en: string | null; subtext_ru: string | null;
+  subtext_tr: string | null; subtext_fa: string | null;
+  button_ka: string; button_en: string | null; button_ru: string | null;
+  button_tr: string | null; button_fa: string | null;
+};
+
+/** Collapse the per-language columns of one field into a LocalizedText. */
+function textOf(
+  row: PromoBannerRow,
+  prefix: "badge" | "headline" | "subtext" | "button",
+): LocalizedText {
+  const pick = (lang: string) => (row as unknown as Record<string, string | null>)[`${prefix}_${lang}`] || undefined;
+  return {
+    ka: pick("ka") ?? "",
+    en: pick("en"),
+    ru: pick("ru"),
+    tr: pick("tr"),
+    fa: pick("fa"),
+  };
+}
+
+/** Map a database row onto the shape the carousel renders. */
+export function rowToBanner(row: PromoBannerRow): PromoBanner {
+  const badge = textOf(row, "badge");
+  return {
+    id: row.id,
+    badge: badge.ka ? badge : undefined,
+    headline: textOf(row, "headline"),
+    subtext: textOf(row, "subtext"),
+    buttonText: textOf(row, "button"),
+    buttonAction: { to: row.link_to, search: row.link_search ?? undefined },
+    imageSource: resolveBannerImage(row.image_url),
+    overlayClass: row.overlay_class ?? undefined,
+    active: row.active,
+  };
+}
+
 
 export const PROMO_BANNERS: PromoBanner[] = [
   {

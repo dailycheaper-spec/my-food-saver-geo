@@ -422,6 +422,105 @@ export type Database = {
         }
         Relationships: []
       }
+      promo_banners: {
+        Row: {
+          active: boolean
+          badge_en: string | null
+          badge_fa: string | null
+          badge_ka: string | null
+          badge_ru: string | null
+          badge_tr: string | null
+          button_en: string | null
+          button_fa: string | null
+          button_ka: string
+          button_ru: string | null
+          button_tr: string | null
+          created_at: string
+          headline_en: string | null
+          headline_fa: string | null
+          headline_ka: string
+          headline_ru: string | null
+          headline_tr: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          link_search: Json | null
+          link_to: string
+          overlay_class: string | null
+          position: number
+          subtext_en: string | null
+          subtext_fa: string | null
+          subtext_ka: string
+          subtext_ru: string | null
+          subtext_tr: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          badge_en?: string | null
+          badge_fa?: string | null
+          badge_ka?: string | null
+          badge_ru?: string | null
+          badge_tr?: string | null
+          button_en?: string | null
+          button_fa?: string | null
+          button_ka?: string
+          button_ru?: string | null
+          button_tr?: string | null
+          created_at?: string
+          headline_en?: string | null
+          headline_fa?: string | null
+          headline_ka: string
+          headline_ru?: string | null
+          headline_tr?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_search?: Json | null
+          link_to?: string
+          overlay_class?: string | null
+          position?: number
+          subtext_en?: string | null
+          subtext_fa?: string | null
+          subtext_ka?: string
+          subtext_ru?: string | null
+          subtext_tr?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          badge_en?: string | null
+          badge_fa?: string | null
+          badge_ka?: string | null
+          badge_ru?: string | null
+          badge_tr?: string | null
+          button_en?: string | null
+          button_fa?: string | null
+          button_ka?: string
+          button_ru?: string | null
+          button_tr?: string | null
+          created_at?: string
+          headline_en?: string | null
+          headline_fa?: string | null
+          headline_ka?: string
+          headline_ru?: string | null
+          headline_tr?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          link_search?: Json | null
+          link_to?: string
+          overlay_class?: string | null
+          position?: number
+          subtext_en?: string | null
+          subtext_fa?: string | null
+          subtext_ka?: string
+          subtext_ru?: string | null
+          subtext_tr?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_products: {
         Row: {
           category: string | null
