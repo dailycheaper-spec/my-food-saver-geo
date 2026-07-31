@@ -590,7 +590,7 @@ function OfferPage() {
             {[
               { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "TBC", label: "TBC Pay", icon: "🏦" },
+              { id: "TBC", label: "ბარათით (TBC)", icon: "🏦" },
               { id: "COD", label: t("payAtPickup"), icon: "💵" },
 
             ].map((p) => (
