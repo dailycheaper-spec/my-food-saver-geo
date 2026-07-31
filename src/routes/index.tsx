@@ -215,6 +215,15 @@ function Home() {
 
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
+  // Fade the feed in once offers resolved and the first above-the-fold images
+  // are decoded (capped, so slow connections never stare at a skeleton).
+  const criticalImages = useMemo(
+    () => [bestDeal?.image, ...nearby.slice(0, 2).map((o) => o.image)].filter(Boolean) as string[],
+    [bestDeal, nearby],
+  );
+  const pageReady = usePageReady({ dataReady: hydrated && !offersLoading, images: criticalImages });
+
+
   return (
     <div className="pb-28">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
