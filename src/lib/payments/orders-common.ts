@@ -45,17 +45,13 @@ export function getPublicOrigin(): string {
 
 /** Success / fail return URLs, identical across gateways. */
 export function buildRedirectUrls(origin: string, orderId: string, nativeReturn?: boolean) {
-  const base = nativeReturn ? `${origin}/orders/native-return?orderId=${orderId}` : `${origin}/orders/${orderId}?`;
-  return nativeReturn
-    ? {
-        success: `${origin}/orders/native-return?orderId=${orderId}&payment=processing`,
-        fail: `${origin}/orders/native-return?orderId=${orderId}&payment=failed`,
-      }
-    : {
-        success: `${origin}/orders/${orderId}?payment=processing`,
-        fail: `${origin}/orders/${orderId}?payment=failed`,
-      };
-  void base;
+  const base = nativeReturn
+    ? `${origin}/orders/native-return?orderId=${orderId}&`
+    : `${origin}/orders/${orderId}?`;
+  return {
+    success: `${base}payment=processing`,
+    fail: `${base}payment=failed`,
+  };
 }
 
 // Create the pending order under the caller's RLS session so the
