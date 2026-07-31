@@ -45,8 +45,9 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   const itemsLeft = Math.max(0, (row.quantity_available ?? 0) - (row.quantity_sold ?? 0));
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : undefined;
   const rowAny = row as unknown as {
-    title_en?: string | null; title_ru?: string | null;
+    title_en?: string | null; title_ru?: string | null; title_tr?: string | null; title_fa?: string | null;
     description_en?: string | null; description_ru?: string | null;
+    description_tr?: string | null; description_fa?: string | null;
   };
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;

@@ -20,10 +20,14 @@ export interface Offer {
   /** Optional partner-provided translations for title. */
   titleEn?: string;
   titleRu?: string;
+  titleTr?: string;
+  titleFa?: string;
   description: string;
   /** Optional partner-provided translations for description. */
   descriptionEn?: string;
   descriptionRu?: string;
+  descriptionTr?: string;
+  descriptionFa?: string;
   image: string;
   originalPrice: number;
   price: number;
