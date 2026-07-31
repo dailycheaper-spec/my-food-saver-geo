@@ -1,4 +1,6 @@
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
 // Small helper for rendering a store's logo which may be either:
+
 // - a URL (uploaded image via store-logos bucket → signed URL stored in logo_url), or
 // - an emoji / short text (legacy `logo` column).
 // Consumers pass whichever value they have (URL preferred, emoji fallback).
