@@ -300,8 +300,8 @@ function Home() {
         </ScrollableRow>
       </section>
 
-      {/* -------- Promo carousel (content: src/lib/promo-banners.ts) -------- */}
-      <PromoCarousel />
+      {/* -------- Promo carousel (managed in Admin → Banners) -------- */}
+      <HomePromoCarousel />
 
       {/* -------- Savings tracker (signed-in only) -------- */}
       {user && <SavingsTracker />}
