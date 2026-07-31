@@ -58,7 +58,7 @@ function Home() {
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
   const hydrated = useHydrated();
-  const { offers: dbOffers, error: offersError } = useLiveDbCardOffers();
+  const { offers: dbOffers, loading: offersLoading, error: offersError } = useLiveDbCardOffers();
   const { city } = useCity();
 
   // Real offers only — filtered to the currently selected city.
