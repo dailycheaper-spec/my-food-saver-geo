@@ -470,7 +470,7 @@ function SearchPage() {
                       params={{ id: o.id }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                     >
-                      <img src={o.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                      <ImageWithSkeleton src={o.image} alt="" aspect="w-10 h-10 shrink-0" className="rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate">{title}</div>
                         <div className="text-[11px] text-muted-foreground truncate">
