@@ -627,6 +627,8 @@ function Home() {
           {language === "en" ? "Phone" : language === "ru" ? "Тел" : language === "tr" ? "Tel" : language === "fa" ? "تلفن" : "ტელ"}: <a href="tel:+995599161187" className="underline underline-offset-4">+995 599 161 187</a> · {language === "en" ? "Email" : language === "ru" ? "Эл. почта" : language === "tr" ? "E-posta" : language === "fa" ? "ایمیل" : "ელ. ფოსტა"}: <a href="mailto:dailycheaper@gmail.com" className="underline underline-offset-4">dailycheaper@gmail.com</a>
         </p>
       </footer>
+      </PageFade>
+
     </div>
   );
 }
