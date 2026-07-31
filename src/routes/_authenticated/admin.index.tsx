@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAllStores, useAllOrders, formatGel } from "@/lib/db";
-import { useAllOffers, useOnlinePresence, use{t("admin.dashboard.realtime")}Activity } from "@/lib/admin-db";
+import { useAllOffers, useOnlinePresence, useRealtimeActivity } from "@/lib/admin-db";
 import { loadAdminSettings } from "@/lib/admin-settings";
 import {
   Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity, Inbox, ArrowRight,
@@ -21,7 +21,7 @@ function AdminOverview() {
   const { orders } = useAllOrders();
   const { offers } = useAllOffers();
   const online = useOnlinePresence();
-  const feed = use{t("admin.dashboard.realtime")}Activity(orders, offers);
+  const feed = useRealtimeActivity(orders, offers);
   const settings = loadAdminSettings();
 
   const today = useMemo(() => {

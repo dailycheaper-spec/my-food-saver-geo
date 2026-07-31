@@ -136,7 +136,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
           storageKey="cheaper-admin-location-map"
         />
         <p className="mt-2 text-xs text-muted-foreground">
-          {t("admin.partners.circleHint")
+          {t("admin.partners.circleHint")}
         </p>
 
 
@@ -165,7 +165,7 @@ export function AdminStoreLocationModal({ store, onClose, onSaved }: Props) {
 
         {outsideGeorgia && (
           <div className="mt-3 text-xs text-warm-foreground bg-warm/40 border border-warm rounded-xl p-3">
-            {t("admin.partners.outsideGeorgia")
+            {t("admin.partners.outsideGeorgia")}
           </div>
         )}
 
