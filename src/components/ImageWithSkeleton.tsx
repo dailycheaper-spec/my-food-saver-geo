@@ -48,6 +48,20 @@ export function ImageWithSkeleton({
     setLoaded(Boolean(imgRef.current?.complete && imgRef.current.naturalWidth > 0));
   }, [src]);
 
+  useEffect(() => {
+    const image = imgRef.current;
+    if (!image || !currentSrc) return;
+    let alive = true;
+    const reveal = () => {
+      if (alive && image.naturalWidth > 0) setLoaded(true);
+    };
+    if (image.complete) reveal();
+    else if (typeof image.decode === "function") void image.decode().then(reveal).catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [currentSrc]);
+
   const showFallback = failed || !currentSrc;
 
   return (
