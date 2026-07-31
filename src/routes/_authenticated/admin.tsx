@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, redirect, useRouterState } from "@tansta
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Store, ShoppingBag, Users, LogOut, Package,
-  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield,
+  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield, Image as ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CitySelector } from "@/components/CitySelector";
@@ -43,6 +43,7 @@ function useNav(L: (ka: string, en: string, ru: string) => string): NavItem[] {
     { to: "/admin", label: L("მთავარი", "Home", "Главная"), icon: LayoutDashboard, exact: true },
     { to: "/admin/partners", label: L("პარტნიორები", "Partners", "Партнёры"), icon: Store },
     { to: "/admin/offers", label: L("შემოთავაზებები", "Offers", "Предложения"), icon: Package },
+    { to: "/admin/banners", label: L("ბანერები", "Banners", "Баннеры"), icon: ImageIcon },
     { to: "/admin/orders", label: L("შეკვეთები", "Orders", "Заказы"), icon: ShoppingBag },
     { to: "/admin/payments", label: L("გადახდები", "Payments", "Платежи"), icon: Wallet },
     { to: "/admin/users", label: L("მომხმარებლები", "Users", "Пользователи"), icon: Users },
