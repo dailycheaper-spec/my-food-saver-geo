@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-address";
 import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
@@ -299,13 +301,14 @@ function OfferPage() {
     <div className="pb-32">
       {/* ---- Image "gallery" ---- */}
       <div className="relative aspect-[4/3] bg-muted">
-        <img
+        <ImageWithSkeleton
           src={offer.image}
           alt={offerText.title}
-          width={1200}
-          height={900}
-          className={`w-full h-full object-cover ${soldOut ? "grayscale opacity-80" : ""}`}
+          priority
+          aspect="absolute inset-0 w-full h-full"
+          imgClassName={soldOut ? "grayscale opacity-80" : ""}
         />
+
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
 

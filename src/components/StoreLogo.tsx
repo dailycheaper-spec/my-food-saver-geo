@@ -1,4 +1,6 @@
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
 // Small helper for rendering a store's logo which may be either:
+
 // - a URL (uploaded image via store-logos bucket → signed URL stored in logo_url), or
 // - an emoji / short text (legacy `logo` column).
 // Consumers pass whichever value they have (URL preferred, emoji fallback).
@@ -21,7 +23,15 @@ interface Props {
  */
 export function StoreLogo({ value, className = "w-full h-full object-cover", emojiClassName, alt = "", fallback = "🏪" }: Props) {
   if (isLogoUrl(value)) {
-    return <img src={value as string} alt={alt} className={className} />;
+    return (
+      <ImageWithSkeleton
+        src={value as string}
+        alt={alt}
+        aspect="w-full h-full"
+        imgClassName={className}
+      />
+    );
   }
   return <span className={emojiClassName}>{value || fallback}</span>;
 }
+

@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { PROMO_BANNERS, localizedText, type PromoBanner } from "@/lib/promo-banners";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 // Banner targets come from data, so the typed Link surface is widened here.
 const AnyLink = Link as unknown as React.FC<Record<string, unknown>>;
@@ -156,12 +158,13 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                   className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
                   {b.imageSource && (
-                    <img
+                    <ImageWithSkeleton
                       src={b.imageSource}
                       alt=""
-                      loading={i === 0 ? "eager" : "lazy"}
-                      className="absolute inset-0 w-full h-full object-cover"
+                      priority={i === 0}
+                      aspect="absolute inset-0 w-full h-full"
                     />
+
                   )}
                   <div
                     className={

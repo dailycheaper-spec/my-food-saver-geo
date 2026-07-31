@@ -24,6 +24,10 @@ import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useCity, cityLabel } from "@/lib/city";
 import { PromoCarousel } from "@/components/PromoCarousel";
 import { useActiveBanners } from "@/lib/banners";
+import { PageFade } from "@/components/PageFade";
+import { HomeSkeleton } from "@/components/Skeleton";
+import { usePageReady } from "@/hooks/use-page-ready";
+
 
 /** Homepage carousel: DB-managed banners with a bundled fallback. */
 function HomePromoCarousel() {
@@ -54,7 +58,7 @@ function Home() {
   const { isAdmin, isPartner, loading: rolesLoading } = useMyRole();
   const favs = useFavorites();
   const hydrated = useHydrated();
-  const { offers: dbOffers, error: offersError } = useLiveDbCardOffers();
+  const { offers: dbOffers, loading: offersLoading, error: offersError } = useLiveDbCardOffers();
   const { city } = useCity();
 
   // Real offers only — filtered to the currently selected city.
@@ -211,6 +215,15 @@ function Home() {
 
   const firstName = user?.user_metadata?.first_name || user?.email?.split("@")[0] || "";
 
+  // Fade the feed in once offers resolved and the first above-the-fold images
+  // are decoded (capped, so slow connections never stare at a skeleton).
+  const criticalImages = useMemo(
+    () => [bestDeal?.image, ...nearby.slice(0, 2).map((o) => o.image)].filter(Boolean) as string[],
+    [bestDeal, nearby],
+  );
+  const pageReady = usePageReady({ dataReady: hydrated && !offersLoading, images: criticalImages });
+
+
   return (
     <div className="pb-28">
       {/* -------- Top bar (sticky, mobile-first) -------- */}
@@ -307,8 +320,10 @@ function Home() {
         </ScrollableRow>
       </section>
 
+      <PageFade ready={pageReady} skeleton={<HomeSkeleton />}>
       {/* -------- Promo carousel (managed in Admin → Banners) -------- */}
       <HomePromoCarousel />
+
 
       {/* -------- Savings tracker (signed-in only) -------- */}
       {user && <SavingsTracker />}
@@ -625,6 +640,8 @@ function Home() {
           {language === "en" ? "Phone" : language === "ru" ? "Тел" : language === "tr" ? "Tel" : language === "fa" ? "تلفن" : "ტელ"}: <a href="tel:+995599161187" className="underline underline-offset-4">+995 599 161 187</a> · {language === "en" ? "Email" : language === "ru" ? "Эл. почта" : language === "tr" ? "E-posta" : language === "fa" ? "ایمیل" : "ელ. ფოსტა"}: <a href="mailto:dailycheaper@gmail.com" className="underline underline-offset-4">dailycheaper@gmail.com</a>
         </p>
       </footer>
+      </PageFade>
+
     </div>
   );
 }

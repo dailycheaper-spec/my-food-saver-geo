@@ -1,48 +1,50 @@
 ## Goal
 
-Move the homepage promo carousel from a hard-coded file (`src/lib/promo-banners.ts`) to content the admin can add, edit, reorder, hide, and delete from the admin panel — with the three banners currently on the homepage carried over as real, fully editable and deletable records.
+Make pages feel instant and stable on mobile web, iOS and Android webviews: no image pop-in, no layout jumps, one smooth fade instead of piecemeal rendering.
 
-## Migrating the existing banners
+Approach follows the pro-tip: never a blank blocking screen — skeletons render immediately, content cross-fades in as it becomes ready.
 
-The three current banners (`daily-discount`, `save-more`, `popular-dish`) are inserted into the new table as part of the same migration, keeping:
+## 1. Reusable image component
 
-- all five language variants of badge, headline, subtext and button text exactly as they are today,
-- their current images (`hero-bakery-clean.jpg`, `bag-bakery.jpg`, `bag-khachapuri.jpg`),
-- their current order and `/search` link target.
+New `src/components/ImageWithSkeleton.tsx`:
 
-After the change they behave like any other banner: editable, hideable, reorderable, and deletable from the admin page. The homepage looks identical the moment the change lands.
+- Wrapper div owns the geometry (`aspect` class or explicit height passed via `className`), `overflow-hidden`, and a pulsing themed skeleton layer (`bg-muted animate-pulse`).
+- `<img>` sits absolutely on top at `opacity-0`, transitions to `opacity-100` over 250ms on `onLoad`; skeleton fades out at the same time.
+- `onError` falls back to a provided fallback source (keeps current fallback-image behaviour) and still resolves the fade so nothing stays stuck pulsing.
+- Props: `src`, `alt`, `aspect` (default `4/3`), `priority` (sets `loading="eager"` + `fetchpriority="high"`, otherwise `lazy` + `decoding="async"`), `objectFit`, `className`, `imgClassName`, `fallbackSrc`.
+- Cached images that are already complete skip the fade (no flash on back navigation).
 
-## What the admin will get
+## 2. Adopt it everywhere remote images render
 
-A new **"ბანერები / Banners"** item in the admin sidebar (`/admin/banners`) with:
+- `src/components/OfferCard.tsx` — card image (keeps existing `aspect-[16/10]` / `aspect-[4/3]`), lazy except when the card is marked featured/first.
+- `src/components/PromoCarousel.tsx` — hero banner slides; slide 0 eager, others lazy.
+- `src/routes/offer.$id.tsx` — offer hero (already `aspect-[4/3]`), eager.
+- `src/routes/store.$id.tsx` — store cover, eager.
+- `src/routes/search.tsx` — 40x40 result thumbs (fixed size, so no CLS) get the skeleton treatment.
+- `src/components/StoreLogo.tsx` — logo `<img>` gets a fixed-size skeleton so avatar rows don't jump.
 
-- A list of all banners in display order, each showing its image thumbnail, headline, active/hidden state, and link target.
-- **Add banner** and **Edit banner** form with:
-  - Badge, headline, subtext, button text — each with all five language fields (Georgian required, EN/RU/TR/FA optional and falling back to Georgian, the same rule the carousel already uses).
-  - Link target: a dropdown of real app routes (`/`, `/search`, `/map`, `/favorites`) plus an optional category filter, so no one can type a broken URL.
-  - Image: upload from device (stored in backend storage) or leave empty for the plain brand-green banner.
-  - Active toggle (hide without deleting).
-- **Reorder** with up/down buttons (controls the rotation order).
-- **Delete** with a confirmation.
-- Live preview of the banner as it will look on the homepage.
+## 3. Prevent layout shift
 
-Public homepage behaviour is unchanged visually: same carousel, same animation, same accessibility. It just reads its slides from the database now.
+Audit each of the above: every image container gets an explicit `aspect-*` or fixed `w-/h-` box before the image resolves. Search thumbs and store logos get fixed square boxes; carousel and card containers already have ratios and keep them.
 
-## Technical details
+## 4. Page-level readiness transition
 
-**Database migration**
-- New table `public.promo_banners`: ordering position, `active`, image path/url, overlay class override, link target (`link_to`, `link_search`), and per-language text columns for badge / headline / subtext / button text (`*_ka`, `*_en`, `*_ru`, `*_tr`, `*_fa`), plus `created_at` / `updated_at` with the existing update trigger.
-- GRANTs: `SELECT` to `anon` and `authenticated` (banners are public content), full CRUD to `authenticated`, `ALL` to `service_role`.
-- RLS: anyone may read rows where `active = true`; only admins (`has_role(auth.uid(), 'admin')`) may read all rows and insert/update/delete.
-- Literal `INSERT` statements seeding the three existing banners, as described above.
-- New public storage bucket `promo-banners` for uploaded images, with admin-only write policies. The three existing images stay as bundled assets referenced by URL, so nothing needs re-uploading.
+New tiny hook `src/hooks/use-page-ready.ts`:
 
-**Code**
-- `src/lib/promo-banners.ts`: keep the `PromoBanner` / `LocalizedText` types and `localizedText()`, keep the current array only as an offline fallback, and add a mapper from a database row to `PromoBanner`.
-- `src/lib/banners-admin.ts`: hook for the admin list plus create/update/delete/reorder helpers (browser Supabase client, RLS-protected).
-- `src/routes/_authenticated/admin.banners.tsx`: the new admin page, matching existing admin page styling (rounded cards, `L(ka, en, ru)` helper, LTR-forced admin shell).
-- `src/routes/_authenticated/admin.tsx`: add the sidebar/drawer nav entry.
-- `src/routes/index.tsx`: fetch active banners and pass them into `<PromoCarousel banners={...} />`; on empty/error it falls back to the built-in three so the homepage is never blank.
-- `PromoCarousel.tsx` needs no structural change — it already accepts a `banners` prop.
+- Takes `{ dataReady, images }` — a boolean for critical route data plus an optional list of above-the-fold image URLs.
+- Preloads those URLs with `new Image()`, resolving on load/error, and applies a short safety timeout (~1200ms) so a slow 3G asset never blocks the screen.
+- Returns `isReady`.
 
-Not touched: the TBC payments work from the previous turn, the partner panel, or any customer-facing copy.
+New `src/components/PageFade.tsx`: wraps route content with `opacity-0 → opacity-100`, `transition-opacity duration-250 ease-in-out`, and `will-change: opacity`. While not ready it renders the page's skeleton children (not a blank screen).
+
+Applied to the routes that currently feel laggiest: `/` (home), `/search`, `/offer/$id`, `/store/$id`. Home's critical asset set = first promo banner image + first offer card images; other routes = their hero image.
+
+## 5. Skeleton parity
+
+Extend `src/components/Skeleton.tsx` with a `PromoBannerSkeleton` and a home-page skeleton block so the pre-ready home render matches the real layout's geometry — that's what removes the perceived jump when content swaps in.
+
+## Technical notes
+
+- Pure frontend/presentation change: no data-fetching, backend, or business-logic edits. Existing hooks (`useLiveDbData`, banners query) keep their current behaviour; only their loading states are consumed differently.
+- Transitions use Tailwind utilities and standard React state, no new dependencies.
+- `prefers-reduced-motion` disables the fades (kept via existing CSS conventions in `src/styles.css`).

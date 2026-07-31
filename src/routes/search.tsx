@@ -14,6 +14,9 @@ import {
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
+import { OfferCardSkeleton } from "@/components/Skeleton";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -63,7 +66,7 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
-  const { offers: OFFERS, stores: STORES, error: offersError } = useLiveDbData();
+  const { offers: OFFERS, stores: STORES, loading: offersLoading, error: offersError } = useLiveDbData();
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
@@ -470,7 +473,7 @@ function SearchPage() {
                       params={{ id: o.id }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                     >
-                      <img src={o.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                      <ImageWithSkeleton src={o.image} alt="" aspect="w-10 h-10 shrink-0" className="rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate">{title}</div>
                         <div className="text-[11px] text-muted-foreground truncate">
@@ -597,6 +600,10 @@ function SearchPage() {
                 <div className="text-5xl mb-3">⚠️</div>
                 <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
               </div>
+            ) : offersLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <OfferCardSkeleton key={i} />)}
+              </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 bg-card rounded-3xl border border-border">
                 <div className="text-5xl mb-3">🔍</div>
@@ -607,6 +614,7 @@ function SearchPage() {
                 {filtered.map((o) => <OfferCard key={o.id} offer={o} />)}
               </div>
             )}
+
           </>
         )}
       </div>
