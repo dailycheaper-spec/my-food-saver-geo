@@ -56,7 +56,7 @@ export const startBogCheckout = createServerFn({ method: "POST" })
   .inputValidator((input: OrderInput) => input)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const order = await createPendingOrder(supabase, userId, data);
+    const order = await createPendingOrder(supabase, userId, data, "bog");
 
     let token: string;
     try {
@@ -77,15 +77,7 @@ export const startBogCheckout = createServerFn({ method: "POST" })
           { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
-      redirect_urls: data.nativeReturn
-        ? {
-            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
-            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
-          }
-        : {
-            success: `${origin}/orders/${order.id}?payment=processing`,
-            fail: `${origin}/orders/${order.id}?payment=failed`,
-          },
+      redirect_urls: buildRedirectUrls(origin, order.id, data.nativeReturn),
     };
 
     const createRes = await fetch(`${BOG_API_BASE}/ecommerce/orders`, {
