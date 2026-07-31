@@ -60,7 +60,9 @@ export function useActiveBanners(): { banners: PromoBanner[]; loading: boolean }
       // Empty or failed reads keep the bundled fallback so the homepage is
       // never blank.
       if (!error && data && data.length > 0) {
-        setBanners((data as PromoBannerRow[]).map(rowToBanner));
+        const rows = await withFreshImageUrls(data as PromoBannerRow[]);
+        if (!alive) return;
+        setBanners(rows.map(rowToBanner));
       }
       setLoading(false);
     })();
@@ -89,7 +91,7 @@ export function useAdminBanners() {
     if (err) setError(err.message);
     else {
       setError(null);
-      setRows((data ?? []) as PromoBannerRow[]);
+      setRows(await withFreshImageUrls((data ?? []) as PromoBannerRow[]));
     }
     setLoading(false);
   }, []);
