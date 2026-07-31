@@ -1,8 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
+import {
+  buildRedirectUrls,
+  cancelOrder,
+  createPendingOrder,
+  getPublicOrigin,
+  type OrderInput,
+} from "./orders-common";
 
 // ────────────────────────────────────────────────────────────
 // Bank of Georgia — Online Payment API
@@ -11,6 +15,9 @@ import type { Database } from "@/integrations/supabase/types";
 //
 // Credentials live only in server env: BOG_CLIENT_ID / BOG_CLIENT_SECRET.
 // They must never be shipped to the browser bundle.
+//
+// Shared order creation / cancellation lives in ./orders-common so the TBC
+// gateway inherits the exact same server-side amount computation.
 // ────────────────────────────────────────────────────────────
 
 const BOG_OAUTH_URL = "https://oauth2.bog.ge/auth/realms/bog/protocol/openid-connect/token";
@@ -40,89 +47,6 @@ async function getBogAccessToken(): Promise<string> {
   return json.access_token;
 }
 
-function getPublicOrigin(): string {
-  const envOrigin = process.env.PUBLIC_APP_URL;
-  if (envOrigin) return envOrigin.replace(/\/+$/, "");
-  try {
-    const req = getRequest();
-    const url = new URL(req.url);
-    const fwdHost = req.headers.get("x-forwarded-host");
-    const fwdProto = req.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
-    const host = fwdHost ?? url.host;
-    return `${fwdProto}://${host}`;
-  } catch {
-    return "https://cheaper.ge";
-  }
-}
-
-interface OrderInput {
-  offerId: string;
-  storeId: string;
-  amount: number;
-  quantity: number;
-  method: "pickup" | "delivery";
-  deliveryAddress?: string;
-  deliveryLat?: number | null;
-  deliveryLng?: number | null;
-  deliveryPlaceId?: string | null;
-  customerNote?: string;
-  // When true, redirect_urls point at the /orders/native-return bounce page so
-  // the Capacitor shell can pull the user back into the app via deep link.
-  nativeReturn?: boolean;
-}
-
-// Shared: create the pending order under the caller's RLS session so the
-// offer-price / minimum-amount triggers still apply. Returns the row.
-//
-// The amount is computed here from the offer's real price, not taken from
-// the client's `data.amount` — the client input is only used for offerId/
-// storeId/quantity/method. The orders table's own validate_order_amount
-// trigger already enforces this floor as a second, independent check, but
-// computing it server-side here means a tampered client request can't even
-// attempt a mismatched amount in the first place.
-async function createPendingOrder(
-  supabase: SupabaseClient<Database>,
-  userId: string,
-  data: OrderInput,
-) {
-  const { data: offer, error: offerError } = await supabase
-    .from("offers")
-    .select("discounted_price, store:stores(delivery_fee_base)")
-    .eq("id", data.offerId)
-    .single();
-  if (offerError || !offer) throw new Error(offerError?.message ?? "Offer not found");
-
-  // Matches the client's own total calculation (offer.$id.tsx: price * qty +
-  // deliveryFee) — flat per-store fee, not distance-based.
-  const deliveryFee = data.method === "delivery" ? Number(offer.store?.delivery_fee_base ?? 0) : 0;
-  const realAmount = Number(offer.discounted_price) * data.quantity + deliveryFee;
-
-  const note = data.customerNote?.trim();
-  const { data: order, error } = await supabase
-    .from("orders")
-    .insert({
-      offer_id: data.offerId,
-      store_id: data.storeId,
-      amount: realAmount,
-      quantity: data.quantity,
-      method: data.method,
-      delivery_address: data.deliveryAddress ?? null,
-      delivery_lat: data.deliveryLat ?? null,
-      delivery_lng: data.deliveryLng ?? null,
-      delivery_place_id: data.deliveryPlaceId ?? null,
-      customer_note: note ? note.slice(0, 300) : null,
-      user_id: userId,
-      status: "pending",
-    })
-    .select("id, amount, quantity")
-    .single();
-  if (error || !order) throw new Error(error?.message ?? "Failed to create order");
-  return order;
-}
-
-async function cancelOrder(supabase: SupabaseClient<Database>, orderId: string) {
-  await supabase.from("orders").update({ status: "cancelled" }).eq("id", orderId);
-}
 
 // ────────────────────────────────────────────────────────────
 // Hosted Payment Page — card / wallet redirect flow
