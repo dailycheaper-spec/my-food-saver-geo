@@ -6,6 +6,7 @@ import { useI18n, type Language } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { OrderCardSkeleton } from "@/components/Skeleton";
 import { StoreLogo } from "@/components/StoreLogo";
+import { ScrollableRow } from "@/components/ScrollableRow";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -78,7 +79,7 @@ function Orders() {
     <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{t("myOrders")}</h1>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
+      <ScrollableRow className="mt-4 gap-2 -mx-4 px-4">
         {TABS.map((s) => {
           const active = tab === s;
           const label = s === "all" ? allLabel : stageLabel(s);
@@ -100,7 +101,7 @@ function Orders() {
             </button>
           );
         })}
-      </div>
+      </ScrollableRow>
 
       {error && (
         <div className="mt-4 bg-destructive/10 text-destructive text-sm rounded-2xl border border-destructive/30 p-4">
