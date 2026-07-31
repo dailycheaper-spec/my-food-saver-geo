@@ -21,7 +21,15 @@ interface Props {
  */
 export function StoreLogo({ value, className = "w-full h-full object-cover", emojiClassName, alt = "", fallback = "🏪" }: Props) {
   if (isLogoUrl(value)) {
-    return <img src={value as string} alt={alt} className={className} />;
+    return (
+      <ImageWithSkeleton
+        src={value as string}
+        alt={alt}
+        aspect="w-full h-full"
+        imgClassName={className}
+      />
+    );
   }
   return <span className={emojiClassName}>{value || fallback}</span>;
 }
+
