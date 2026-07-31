@@ -65,9 +65,9 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.03 145);
 
-  --primary: oklch(0.50 0.186 148);         /* brand green (#0EAC45 family), darkened for WCAG AA text contrast (~5.3:1 on white) */
+  --primary: oklch(0.4688 0.1487 143.44);   /* official Cheaper brand green #0C6E14, sampled from the master logo */
   --primary-foreground: oklch(0.99 0.005 90);
-  --primary-glow: oklch(0.78 0.16 148);
+  --primary-glow: oklch(0.72 0.145 143.44);
 
   --secondary: oklch(0.945 0.03 90);
   --secondary-foreground: oklch(0.26 0.04 145);
@@ -108,9 +108,9 @@
   --card-foreground: oklch(0.97 0.01 90);
   --popover: oklch(0.23 0.025 145);
   --popover-foreground: oklch(0.97 0.01 90);
-  --primary: oklch(0.72 0.19 148);
+  --primary: oklch(0.72 0.15 143.44);
   --primary-foreground: oklch(0.16 0.02 145);
-  --primary-glow: oklch(0.84 0.17 148);
+  --primary-glow: oklch(0.84 0.13 143.44);
   --secondary: oklch(0.28 0.03 145);
   --secondary-foreground: oklch(0.97 0.01 90);
   --muted: oklch(0.26 0.025 145);
