@@ -1,30 +1,48 @@
 ## Goal
 
-Let customers choose their bank at checkout: Bank of Georgia (existing) or TBC (new), with the same security model — the server computes the amount, creates a pending order, redirects to the bank's hosted page, and only a server-to-server re-verification (never the callback payload) can flip an order to `paid`.
+Move the homepage promo carousel from a hard-coded file (`src/lib/promo-banners.ts`) to content the admin can add, edit, reorder, hide, and delete from the admin panel — with the three banners currently on the homepage carried over as real, fully editable and deletable records.
 
-## What I verified first
+## Migrating the existing banners
 
-- `src/lib/payments/bog.functions.ts` holds `createPendingOrder` (amount computed from the real offer price + flat store delivery fee) and `cancelOrder` privately — they are reusable as-is.
-- `src/routes/api/public/payments/bog-callback.ts` already does the pattern to mirror: parse → `verifyBogPayment` → only update rows still `pending` → 200 on ack, 500 to force retry.
-- Checkout calls `startBogCheckout` at `src/routes/offer.$id.tsx:221` and then `openExternal(redirectUrl)`; the Google Pay path is separate and stays BOG-only.
-- Stored secrets today: `BOG_CLIENT_ID`, `BOG_CLIENT_SECRET`, Google keys. **No TBC credentials exist yet** — I'll need `TBC_CLIENT_ID`, `TBC_CLIENT_SECRET`, `TBC_API_KEY` before any live test.
+The three current banners (`daily-discount`, `save-more`, `popular-dish`) are inserted into the new table as part of the same migration, keeping:
 
-## Steps
+- all five language variants of badge, headline, subtext and button text exactly as they are today,
+- their current images (`hero-bakery-clean.jpg`, `bag-bakery.jpg`, `bag-khachapuri.jpg`),
+- their current order and `/search` link target.
 
-1. **Migration** — `orders.payment_provider text not null default 'bog' check (in ('bog','tbc'))`. Default keeps existing rows attributed with no backfill.
+After the change they behave like any other banner: editable, hideable, reorderable, and deletable from the admin page. The homepage looks identical the moment the change lands.
 
-2. **Extract shared logic** into `src/lib/payments/orders-common.ts`: `OrderInput` type, `getPublicOrigin`, `createPendingOrder` (now accepting `paymentProvider`), `cancelOrder`. `bog.functions.ts` imports from it — no behaviour change, no duplicated amount math.
+## What the admin will get
 
-3. **`src/lib/payments/tbc.functions.ts`** — `getTbcAccessToken()` (form-urlencoded `client_id`/`client_secret` to `/v1/tpay/access-token`), `startTbcCheckout` (createServerFn, `requireSupabaseAuth`, POST `/v1/tpay/payments` with `apikey` + bearer headers, `merchantPaymentId = order.id`, callback to `/api/public/payments/tbc-callback`, same native-return redirect pattern, `cancelOrder` on any failure), and `verifyTbcPayment(payId)` (GET `/v1/tpay/payments/{payId}`). Returns the same `{ orderId, redirectUrl }` shape (extracted from the `approval_url` link), so the calling code is unchanged.
+A new **"ბანერები / Banners"** item in the admin sidebar (`/admin/banners`) with:
 
-4. **`src/routes/api/public/payments/tbc-callback.ts`** — structurally identical to the BOG callback: pull payId, ignore the posted status, call `verifyTbcPayment`, update only `pending` rows, 200 ack / 500 to retry.
+- A list of all banners in display order, each showing its image thumbnail, headline, active/hidden state, and link target.
+- **Add banner** and **Edit banner** form with:
+  - Badge, headline, subtext, button text — each with all five language fields (Georgian required, EN/RU/TR/FA optional and falling back to Georgian, the same rule the carousel already uses).
+  - Link target: a dropdown of real app routes (`/`, `/search`, `/map`, `/favorites`) plus an optional category filter, so no one can type a broken URL.
+  - Image: upload from device (stored in backend storage) or leave empty for the plain brand-green banner.
+  - Active toggle (hide without deleting).
+- **Reorder** with up/down buttons (controls the rotation order).
+- **Delete** with a confirmation.
+- Live preview of the banner as it will look on the homepage.
 
-5. **Checkout UI** (`src/routes/offer.$id.tsx`) — a two-option bank selector shown just before the pay action, localized across all 5 languages, defaulting to BOG. Text-only labels ("საქართველოს ბანკი" / "TBC") unless you give me a TBC logo asset. Google Pay button stays as-is (BOG-only).
+Public homepage behaviour is unchanged visually: same carousel, same animation, same accessibility. It just reads its slides from the database now.
 
-6. **Admin** — small `BOG` / `TBC` badge per order in `src/routes/_authenticated/admin.payments.tsx`.
+## Technical details
 
-## Technical notes and open items
+**Database migration**
+- New table `public.promo_banners`: ordering position, `active`, image path/url, overlay class override, link target (`link_to`, `link_search`), and per-language text columns for badge / headline / subtext / button text (`*_ka`, `*_en`, `*_ru`, `*_tr`, `*_fa`), plus `created_at` / `updated_at` with the existing update trigger.
+- GRANTs: `SELECT` to `anon` and `authenticated` (banners are public content), full CRUD to `authenticated`, `ALL` to `service_role`.
+- RLS: anyone may read rows where `active = true`; only admins (`has_role(auth.uid(), 'admin')`) may read all rows and insert/update/delete.
+- Literal `INSERT` statements seeding the three existing banners, as described above.
+- New public storage bucket `promo-banners` for uploaded images, with admin-only write policies. The three existing images stay as bundled assets referenced by URL, so nothing needs re-uploading.
 
-- TBC's exact create-payment body field names and callback payload shape vary between public sources. I'll code to the documented shape above and keep parsing defensive (accept `payId`/`PayId`/`merchantPaymentId` variants), but **if you have the Postman collection TBC sent with the test credentials, share it** and I'll match it exactly.
-- The success status string mapping (`Succeeded` / `Completed`) will be treated as a small allow-list and confirmed on the first real test transaction.
-- I can't run a live end-to-end test myself without the three TBC secrets. Once you add them, I'll drive a sandbox transaction and confirm: order flips to `paid` only after verification, a forged callback with a fake status does not, and BOG checkout still works unchanged after the refactor.
+**Code**
+- `src/lib/promo-banners.ts`: keep the `PromoBanner` / `LocalizedText` types and `localizedText()`, keep the current array only as an offline fallback, and add a mapper from a database row to `PromoBanner`.
+- `src/lib/banners-admin.ts`: hook for the admin list plus create/update/delete/reorder helpers (browser Supabase client, RLS-protected).
+- `src/routes/_authenticated/admin.banners.tsx`: the new admin page, matching existing admin page styling (rounded cards, `L(ka, en, ru)` helper, LTR-forced admin shell).
+- `src/routes/_authenticated/admin.tsx`: add the sidebar/drawer nav entry.
+- `src/routes/index.tsx`: fetch active banners and pass them into `<PromoCarousel banners={...} />`; on empty/error it falls back to the built-in three so the homepage is never blank.
+- `PromoCarousel.tsx` needs no structural change — it already accepts a `banners` prop.
+
+Not touched: the TBC payments work from the previous turn, the partner panel, or any customer-facing copy.
