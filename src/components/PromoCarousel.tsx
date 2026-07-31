@@ -144,7 +144,8 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                       src={b.imageSource}
                       alt=""
                       priority={i === 0}
-                      aspect="absolute inset-0 w-full h-full"
+                      aspect=""
+                      className="!absolute inset-0 w-full h-full"
                     />
 
                   )}
