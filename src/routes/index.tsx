@@ -307,8 +307,10 @@ function Home() {
         </ScrollableRow>
       </section>
 
+      <PageFade ready={pageReady} skeleton={<HomeSkeleton />}>
       {/* -------- Promo carousel (managed in Admin → Banners) -------- */}
       <HomePromoCarousel />
+
 
       {/* -------- Savings tracker (signed-in only) -------- */}
       {user && <SavingsTracker />}
