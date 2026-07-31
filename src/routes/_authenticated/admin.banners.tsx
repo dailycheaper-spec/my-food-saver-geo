@@ -188,7 +188,7 @@ function IconBtn({
   );
 }
 
-function BannerEditor({ language: _,
+function BannerEditor({
   initial, isNew, onClose, onSave, 
 }: {
   initial: BannerDraft;

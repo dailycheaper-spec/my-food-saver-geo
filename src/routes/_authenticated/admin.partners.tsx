@@ -43,9 +43,9 @@ const STORE_TYPES = [
   { value: "grocery", labelKey: "admin.partners.typeGrocery" },
   { value: "other", labelKey: "admin.partners.typeOther" },
 ];
-function storeTypeLabel(value: string, L: (ka: string, en: string, ru: string) => string): string {
-  const t = STORE_TYPES.find((t) => t.value === value);
-  return t ? t(t.labelKey) : value;
+function storeTypeLabel(value: string, t: (key: string) => string): string {
+  const found = STORE_TYPES.find((s) => s.value === value);
+  return found ? t(found.labelKey) : value;
 }
 
 export const Route = createFileRoute("/_authenticated/admin/partners")({
@@ -515,7 +515,7 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
               <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.storeType")}</span>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
-                {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, L)}</option>)}
+                {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, t)}</option>)}
               </select>
             </label>
           </div>
@@ -653,7 +653,7 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
             <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.storeType")}</span>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
-              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, L)}</option>)}
+              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, t)}</option>)}
             </select>
           </label>
 

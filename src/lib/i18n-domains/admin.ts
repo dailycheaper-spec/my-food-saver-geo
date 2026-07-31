@@ -250,8 +250,6 @@ export const adminPack: DomainPack = {
     "admin.payments.paid": "გადახდილი",
     "admin.payments.confirmPayout": "გადახდის დადასტურება",
     "admin.payments.ibanRequired": "IBAN საჭიროა გადახდის დადასტურებამდე",
-    "admin.payments.confirmPayment": "გადახდის დადასტურება",
-    "admin.payments.ibanRequired": "IBAN საჭიროა გადახდის დადასტურებამდე",
 
     "admin.settings.title": "პარამეტრები",
     "admin.settings.subtitle": "პლატფორმის კონფიგურაცია",
@@ -544,7 +542,6 @@ export const adminPack: DomainPack = {
     "admin.payments.confirmPayout": "Confirm payment",
     "admin.payments.ibanRequired": "IBAN required before confirming payment",
     "admin.payments.confirmPayment": "Confirm payment",
-    "admin.payments.ibanRequired": "IBAN required before confirming payment",
 
     "admin.settings.title": "Settings",
     "admin.settings.subtitle": "Platform configuration",
@@ -837,7 +834,6 @@ export const adminPack: DomainPack = {
     "admin.payments.confirmPayout": "Подтвердить оплату",
     "admin.payments.ibanRequired": "IBAN необходим перед подтверждением оплаты",
     "admin.payments.confirmPayment": "Подтвердить оплату",
-    "admin.payments.ibanRequired": "IBAN необходим перед подтверждением оплаты",
 
     "admin.settings.title": "Настройки",
     "admin.settings.subtitle": "Конфигурация платформы",
@@ -1130,7 +1126,6 @@ export const adminPack: DomainPack = {
     "admin.payments.confirmPayout": "Ödemeyi onayla",
     "admin.payments.ibanRequired": "Ödeme onaylanmadan önce IBAN gereklidir",
     "admin.payments.confirmPayment": "Ödemeyi onayla",
-    "admin.payments.ibanRequired": "Ödemeyi onaylamadan önce IBAN gereklidir",
 
     "admin.settings.title": "Ayarlar",
     "admin.settings.subtitle": "Platform yapılandırması",
@@ -1423,7 +1418,6 @@ export const adminPack: DomainPack = {
     "admin.payments.confirmPayout": "تایید پرداخت",
     "admin.payments.ibanRequired": "IBAN قبل از تایید پرداخت الزامی است",
     "admin.payments.confirmPayment": "تأیید پرداخت",
-    "admin.payments.ibanRequired": "قبل از تأیید پرداخت، شماره شبا لازم است",
 
     "admin.settings.title": "تنظیمات",
     "admin.settings.subtitle": "پیکربندی پلتفرم",
