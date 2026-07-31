@@ -536,9 +536,9 @@ function OfferPage() {
           <div className="font-bold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
-              { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
+              { id: "BOG", label: `${t("offer.byCard")} (BOG)`, icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "TBC", label: "ბარათით (TBC)", icon: "🏦" },
+              { id: "TBC", label: `${t("offer.byCard")} (TBC)`, icon: "🏦" },
 
 
             ].map((p) => (
