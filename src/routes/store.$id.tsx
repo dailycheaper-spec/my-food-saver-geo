@@ -128,14 +128,13 @@ function StorePage() {
       {/* Cover */}
       <div className="relative h-52 sm:h-64 w-full bg-muted overflow-hidden">
         {cover ? (
-          <img
+          <ImageWithSkeleton
             src={cover}
             alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
+            priority
+            aspect="absolute inset-0 w-full h-full"
           />
+
         ) : (
           <div className="w-full h-full gradient-warm" />
         )}
