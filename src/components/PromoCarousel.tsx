@@ -156,12 +156,13 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                   className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
                   {b.imageSource && (
-                    <img
+                    <ImageWithSkeleton
                       src={b.imageSource}
                       alt=""
-                      loading={i === 0 ? "eager" : "lazy"}
-                      className="absolute inset-0 w-full h-full object-cover"
+                      priority={i === 0}
+                      aspect="absolute inset-0 w-full h-full"
                     />
+
                   )}
                   <div
                     className={
