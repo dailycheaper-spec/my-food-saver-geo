@@ -599,6 +599,10 @@ function SearchPage() {
                 <div className="text-5xl mb-3">⚠️</div>
                 <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
               </div>
+            ) : offersLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <OfferCardSkeleton key={i} />)}
+              </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 bg-card rounded-3xl border border-border">
                 <div className="text-5xl mb-3">🔍</div>
@@ -609,6 +613,7 @@ function SearchPage() {
                 {filtered.map((o) => <OfferCard key={o.id} offer={o} />)}
               </div>
             )}
+
           </>
         )}
       </div>
