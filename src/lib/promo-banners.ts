@@ -1,39 +1,14 @@
 /**
  * ============================================================================
- * PROMO BANNERS — home screen carousel content ("mini CMS")
+ * PROMO BANNERS — home screen carousel content
  * ============================================================================
  *
- * This file is the SINGLE place to add, edit, or remove home-page banners.
- * No database, no admin panel needed — just edit the array below and save.
+ * Banners are managed in the ADMIN PANEL at /admin/banners (add, edit,
+ * reorder, hide, delete). The array at the bottom of this file is only the
+ * offline fallback used when the database has no banners or cannot be
+ * reached, so the homepage is never blank.
  *
- * ── HOW TO ADD A BANNER ─────────────────────────────────────────────────────
- *   1. (optional) import an image at the top:
- *        import myImage from "@/assets/my-banner.jpg";
- *   2. append an object to PROMO_BANNERS:
- *
- *        {
- *          id: "summer-sale",                        // unique, stable
- *          badge:      { ka: "ახალი", en: "New" },
- *          headline:   { ka: "ზაფხულის ფასდაკლება", en: "Summer sale" },
- *          subtext:    { ka: "-50% ყველაფერზე",      en: "-50% on everything" },
- *          buttonText: { ka: "ნახე", en: "Browse" },
- *          buttonAction: { to: "/search" },          // internal route
- *          imageSource: myImage,
- *        }
- *
- * ── HOW TO EDIT ─────────────────────────────────────────────────────────────
- *   Change any field in place. `ka` is required; en/ru/tr/fa are optional and
- *   fall back to `ka` when missing.
- *
- * ── HOW TO REMOVE / TEMPORARILY HIDE ────────────────────────────────────────
- *   Delete the object, or set `active: false` to keep it for later.
- *
- * ── ORDER ───────────────────────────────────────────────────────────────────
- *   Banners rotate top-to-bottom in array order.
- *
- * ── LATER: MOVING TO THE DATABASE ───────────────────────────────────────────
- *   This array maps 1:1 to a `promo_banners` table. Swap `PROMO_BANNERS` for a
- *   query result of the same shape — PromoCarousel needs no changes.
+ * `ka` is required on every text; en/ru/tr/fa fall back to `ka`.
  * ============================================================================
  */
 
@@ -41,6 +16,24 @@ import type { Language } from "@/lib/i18n";
 import heroImage from "@/assets/hero-bakery-clean.jpg";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
+
+/**
+ * Bundled artwork the seeded banners point at. The database stores the stable
+ * key `asset:<name>`; the real hashed URL is resolved here at build time.
+ * Admin uploads use a storage URL instead and never hit this map.
+ */
+export const BUNDLED_BANNER_IMAGES: Record<string, string> = {
+  "hero-bakery-clean": heroImage,
+  "bag-bakery": bagBakery,
+  "bag-khachapuri": bagKhachapuri,
+};
+
+export function resolveBannerImage(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.startsWith("asset:")) return BUNDLED_BANNER_IMAGES[value.slice(6)];
+  return value;
+}
+
 
 /** Localized string. `ka` is required, everything else falls back to it. */
 export type LocalizedText = {
