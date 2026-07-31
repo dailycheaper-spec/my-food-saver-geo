@@ -78,9 +78,10 @@ export function NearbyOffersSection({ offers }: Props) {
         {origin && nearby.length > 0 && (
           <Link
             to="/map"
+            search={{ radius }}
             className="text-xs font-semibold text-primary flex items-center gap-0.5 active:scale-95"
           >
-            {t("home.viewAll")} <ChevronRight className="w-3.5 h-3.5" />
+            {t("store.viewOnMap")} <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
           </Link>
         )}
       </div>

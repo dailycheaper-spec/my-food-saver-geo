@@ -58,6 +58,10 @@ function localizedHead(): { title: string; description: string } {
 }
 
 export const Route = createFileRoute("/map")({
+  validateSearch: (search: Record<string, unknown>): { radius?: RadiusOption } => {
+    const r = Number(search.radius);
+    return [1, 3, 5, 10, 20].includes(r) ? { radius: r as RadiusOption } : {};
+  },
   head: () => {
     const h = localizedHead();
     return {
@@ -134,8 +138,9 @@ function MapPage() {
   const favorites = useFavorites();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [radius, setRadius] = useState<RadiusOption>(5);
-  const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(5);
+  const { radius: radiusFromSearch } = Route.useSearch();
+  const [radius, setRadius] = useState<RadiusOption>(radiusFromSearch ?? 5);
+  const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(radiusFromSearch ?? 5);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
