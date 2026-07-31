@@ -40,8 +40,19 @@ function AdminPayments() {
     const partnerNet = gross - commission;
     const paidPayouts = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.amount), 0);
     const pendingPayouts = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.amount), 0);
-    return { gross, commission, partnerNet, paidPayouts, pendingPayouts };
+    // Turnover split by the bank that processed the payment.
+    const byProvider = valid.reduce(
+      (acc, o) => {
+        const key = (o as { payment_provider?: string }).payment_provider === "tbc" ? "tbc" : "bog";
+        acc[key].count += 1;
+        acc[key].amount += Number(o.amount);
+        return acc;
+      },
+      { bog: { count: 0, amount: 0 }, tbc: { count: 0, amount: 0 } },
+    );
+    return { gross, commission, partnerNet, paidPayouts, pendingPayouts, byProvider };
   }, [orders, payouts, rate]);
+
 
 
   return (
