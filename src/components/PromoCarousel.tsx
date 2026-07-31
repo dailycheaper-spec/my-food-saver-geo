@@ -151,10 +151,10 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                   <div
                     className={
                       b.overlayClass ??
-                      "absolute inset-0 bg-gradient-to-tr from-primary/95 via-primary/60 to-transparent"
+                      "absolute inset-0 bg-gradient-to-r from-primary/75 via-primary/25 to-transparent"
                     }
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
                   <div className="relative pt-4 sm:pt-6 pl-12 sm:pl-16 pr-12 sm:pr-16 pb-10 sm:pb-12 text-primary-foreground flex flex-col justify-end min-h-[200px] sm:min-h-[280px]">
                     {b.badge && (
                       <div className="inline-flex self-start items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
