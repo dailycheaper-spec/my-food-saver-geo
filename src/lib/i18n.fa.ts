@@ -32,7 +32,6 @@ export const faLabels: Record<string, string> = {
   navProfile: "پروفایل",
   delivery: "ارسال",
   km: "کیلومتر",
-  payAtPickup: "پرداخت هنگام تحویل",
   left: "باقی‌مانده",
   mapView: "نمای نقشه",
   myLocation: "موقعیت من",

@@ -8,7 +8,7 @@ export type AdminSettings = {
   deliveryEnabled: boolean;
   notificationsRadiusKm: number;
   language: "ka" | "en";
-  paymentProviders: { bog: boolean; tbc: boolean; card: boolean; cash: boolean };
+  paymentProviders: { bog: boolean; tbc: boolean; card: boolean };
   rules: string;
 };
 
@@ -17,7 +17,7 @@ const defaults: AdminSettings = {
   deliveryEnabled: true,
   notificationsRadiusKm: 2,
   language: "ka",
-  paymentProviders: { bog: true, tbc: true, card: true, cash: false },
+  paymentProviders: { bog: true, tbc: true, card: true },
   rules: "შემოთავაზება უნდა იყოს ხარისხიანი და შეესაბამებოდეს აღწერას.",
 };
 

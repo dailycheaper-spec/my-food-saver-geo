@@ -32,7 +32,6 @@ export const trLabels: Record<string, string> = {
   "navProfile": "Profil",
   "delivery": "Teslimat",
   "km": "km",
-  "payAtPickup": "Teslim alırken öde",
   "left": "Kaldı",
   "mapView": "Harita görünümü",
   "myLocation": "Konumum",
