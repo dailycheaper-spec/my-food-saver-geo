@@ -74,6 +74,7 @@ function OfferPage() {
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const startBogCheckoutFn = useServerFn(startBogCheckout);
+  const startTbcCheckoutFn = useServerFn(startTbcCheckout);
   const startBogGooglePayFn = useServerFn(startBogGooglePayCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
