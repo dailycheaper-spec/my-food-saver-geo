@@ -242,6 +242,7 @@ export type Database = {
           notes: string | null
           offer_id: string
           original_price_at_purchase: number | null
+          payment_provider: string
           payout_id: string | null
           quantity: number
           status: Database["public"]["Enums"]["order_status"]
@@ -267,6 +268,7 @@ export type Database = {
           notes?: string | null
           offer_id: string
           original_price_at_purchase?: number | null
+          payment_provider?: string
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]
@@ -292,6 +294,7 @@ export type Database = {
           notes?: string | null
           offer_id?: string
           original_price_at_purchase?: number | null
+          payment_provider?: string
           payout_id?: string | null
           quantity?: number
           status?: Database["public"]["Enums"]["order_status"]

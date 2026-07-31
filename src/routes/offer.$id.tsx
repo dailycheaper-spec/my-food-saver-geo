@@ -14,6 +14,7 @@ import { allergenLabels } from "@/lib/allergens";
 import { createOrder as createOrderDb } from "@/lib/db";
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
+import { startTbcCheckout } from "@/lib/payments/tbc.functions";
 import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
@@ -73,6 +74,7 @@ function OfferPage() {
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const startBogCheckoutFn = useServerFn(startBogCheckout);
+  const startTbcCheckoutFn = useServerFn(startTbcCheckout);
   const startBogGooglePayFn = useServerFn(startBogGooglePayCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
@@ -214,25 +216,27 @@ function OfferPage() {
         return;
       }
 
-      // Card / wallet payments → Bank of Georgia Hosted Payment Page.
+      // Card payments → the selected bank's hosted payment page.
       // Server creates a PENDING order and returns the hosted redirect URL.
-      // Order flips to paid only after BOG's server-to-server callback is
-      // independently verified against BOG's API.
-      const { redirectUrl } = await startBogCheckoutFn({
-        data: {
-          offerId: offer.id,
-          storeId: offer.storeId,
-          amount: total,
-          quantity,
-          method: methodDb,
-          deliveryAddress: isDelivery ? address : undefined,
-          deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
-          deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
-          deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
-          customerNote: customerNote.trim() || undefined,
-          nativeReturn: isNative(),
-        },
-      });
+      // The order flips to paid only after the bank's server-to-server
+      // callback is independently re-verified against the bank's API.
+      const checkoutInput = {
+        offerId: offer.id,
+        storeId: offer.storeId,
+        amount: total,
+        quantity,
+        method: methodDb,
+        deliveryAddress: isDelivery ? address : undefined,
+        deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
+        deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
+        deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
+        customerNote: customerNote.trim() || undefined,
+        nativeReturn: isNative(),
+      };
+      const { redirectUrl } =
+        payment === "TBC"
+          ? await startTbcCheckoutFn({ data: { ...checkoutInput, language } })
+          : await startBogCheckoutFn({ data: checkoutInput });
       await openExternal(redirectUrl);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -586,7 +590,7 @@ function OfferPage() {
             {[
               { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "TBC", label: "TBC Pay", icon: "🏦" },
+              { id: "TBC", label: "ბარათით (TBC)", icon: "🏦" },
               { id: "COD", label: t("payAtPickup"), icon: "💵" },
 
             ].map((p) => (

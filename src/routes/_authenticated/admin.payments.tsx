@@ -40,8 +40,19 @@ function AdminPayments() {
     const partnerNet = gross - commission;
     const paidPayouts = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.amount), 0);
     const pendingPayouts = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.amount), 0);
-    return { gross, commission, partnerNet, paidPayouts, pendingPayouts };
+    // Turnover split by the bank that processed the payment.
+    const byProvider = valid.reduce(
+      (acc, o) => {
+        const key = (o as { payment_provider?: string }).payment_provider === "tbc" ? "tbc" : "bog";
+        acc[key].count += 1;
+        acc[key].amount += Number(o.amount);
+        return acc;
+      },
+      { bog: { count: 0, amount: 0 }, tbc: { count: 0, amount: 0 } },
+    );
+    return { gross, commission, partnerNet, paidPayouts, pendingPayouts, byProvider };
   }, [orders, payouts, rate]);
+
 
 
   return (
@@ -79,6 +90,29 @@ function AdminPayments() {
         <StatCard label={`${L("კომისია", "Commission", "Комиссия")} (${settings.commissionPct}%)`} value={formatGel(stats.commission)} icon={Wallet} tint="warm" />
         <StatCard label={L("პარტნიორთა წილი", "Partner share", "Доля партнёров")} value={formatGel(stats.partnerNet)} icon={Check} tint="success" />
         <StatCard label={L("მოლოდინში", "Pending", "В ожидании")} value={formatGel(stats.pendingPayouts)} icon={Clock} tint="muted" />
+      </div>
+
+      <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
+        <h3 className="font-display font-bold text-lg mb-3">{L("ბანკების მიხედვით", "By bank", "По банкам")}</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            ["bog", "Bank of Georgia"],
+            ["tbc", "TBC Bank"],
+          ] as const).map(([key, name]) => (
+            <div key={key} className="rounded-2xl border border-border p-4">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-muted text-[11px] font-semibold uppercase tracking-wide">
+                  {key}
+                </span>
+                <span className="text-sm font-medium truncate">{name}</span>
+              </div>
+              <div className="mt-2 font-display text-xl font-bold">{formatGel(stats.byProvider[key].amount)}</div>
+              <div className="text-xs text-muted-foreground">
+                {stats.byProvider[key].count} {L("შეკვეთა", "orders", "заказов")}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
