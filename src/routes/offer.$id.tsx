@@ -216,25 +216,27 @@ function OfferPage() {
         return;
       }
 
-      // Card / wallet payments → Bank of Georgia Hosted Payment Page.
+      // Card payments → the selected bank's hosted payment page.
       // Server creates a PENDING order and returns the hosted redirect URL.
-      // Order flips to paid only after BOG's server-to-server callback is
-      // independently verified against BOG's API.
-      const { redirectUrl } = await startBogCheckoutFn({
-        data: {
-          offerId: offer.id,
-          storeId: offer.storeId,
-          amount: total,
-          quantity,
-          method: methodDb,
-          deliveryAddress: isDelivery ? address : undefined,
-          deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
-          deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
-          deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
-          customerNote: customerNote.trim() || undefined,
-          nativeReturn: isNative(),
-        },
-      });
+      // The order flips to paid only after the bank's server-to-server
+      // callback is independently re-verified against the bank's API.
+      const checkoutInput = {
+        offerId: offer.id,
+        storeId: offer.storeId,
+        amount: total,
+        quantity,
+        method: methodDb,
+        deliveryAddress: isDelivery ? address : undefined,
+        deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
+        deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
+        deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
+        customerNote: customerNote.trim() || undefined,
+        nativeReturn: isNative(),
+      };
+      const { redirectUrl } =
+        payment === "TBC"
+          ? await startTbcCheckoutFn({ data: { ...checkoutInput, language } })
+          : await startBogCheckoutFn({ data: checkoutInput });
       await openExternal(redirectUrl);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
