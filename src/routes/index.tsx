@@ -23,6 +23,13 @@ import { Star as StarIcon } from "lucide-react";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useCity, cityLabel } from "@/lib/city";
 import { PromoCarousel } from "@/components/PromoCarousel";
+import { useActiveBanners } from "@/lib/banners";
+
+/** Homepage carousel: DB-managed banners with a bundled fallback. */
+function HomePromoCarousel() {
+  const { banners } = useActiveBanners();
+  return <PromoCarousel banners={banners} />;
+}
 
 
 export const Route = createFileRoute("/")({
