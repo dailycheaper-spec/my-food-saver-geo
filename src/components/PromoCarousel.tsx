@@ -4,6 +4,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { PROMO_BANNERS, localizedText, type PromoBanner } from "@/lib/promo-banners";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 // Banner targets come from data, so the typed Link surface is widened here.
 const AnyLink = Link as unknown as React.FC<Record<string, unknown>>;
