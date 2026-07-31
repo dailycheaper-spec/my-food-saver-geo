@@ -129,7 +129,7 @@ export const startBogGooglePayCheckout = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const order = await createPendingOrder(supabase, userId, data);
+    const order = await createPendingOrder(supabase, userId, data, "bog");
 
     let token: string;
     try {
@@ -151,15 +151,7 @@ export const startBogGooglePayCheckout = createServerFn({ method: "POST" })
           { quantity: order.quantity, unit_price: Number(order.amount) / order.quantity, product_id: data.offerId },
         ],
       },
-      redirect_urls: data.nativeReturn
-        ? {
-            success: `${origin}/orders/native-return?orderId=${order.id}&payment=processing`,
-            fail: `${origin}/orders/native-return?orderId=${order.id}&payment=failed`,
-          }
-        : {
-            success: `${origin}/orders/${order.id}?payment=processing`,
-            fail: `${origin}/orders/${order.id}?payment=failed`,
-          },
+      redirect_urls: buildRedirectUrls(origin, order.id, data.nativeReturn),
     };
 
     // BOG "External Google Pay Order" endpoint — see docs link at top.
