@@ -189,13 +189,14 @@ function IconBtn({
 }
 
 function BannerEditor({ language: _,
-  initial, isNew, onClose, onSave, L,
+  initial, isNew, onClose, onSave, 
 }: {
   initial: BannerDraft;
   isNew: boolean;
   onClose: () => void;
   onSave: (draft: BannerDraft) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<BannerDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -219,7 +220,7 @@ function BannerEditor({ language: _,
 
   async function submit() {
     if (!draft.headline_ka.trim()) {
-      toast.error(L("ქართული სათაური სავალდებულოა", "Georgian headline is required", "Требуется заголовок на грузинском"));
+      toast.error(t("admin.banners.headlineRequired"));
       return;
     }
     setSaving(true);
@@ -239,7 +240,7 @@ function BannerEditor({ language: _,
       <div className="bg-card rounded-3xl border border-border w-full max-w-2xl my-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="font-display font-bold text-lg">
-            {isNew ? L("ახალი ბანერი", "New banner", "Новый баннер") : L("ბანერის რედაქტირება", "Edit banner", "Изменить баннер")}
+            {isNew ? t("admin.banners.newBanner") : t("admin.banners.editBanner")}
           </h3>
           <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
@@ -247,19 +248,19 @@ function BannerEditor({ language: _,
         <div className="p-5 space-y-5">
           {/* Image */}
           <div>
-            <div className="text-xs text-muted-foreground mb-2">{L("სურათი", "Image", "Изображение")}</div>
+            <div className="text-xs text-muted-foreground mb-2">{t("admin.banners.image")}</div>
             <div className="flex items-center gap-3">
               <div className="w-32 h-20 rounded-2xl overflow-hidden bg-muted grid place-items-center shrink-0">
                 {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
               </div>
               <label className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold flex items-center gap-2 cursor-pointer hover:opacity-90">
                 {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                {L("ატვირთვა", "Upload", "Загрузить")}
+                {t("admin.banners.upload")}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => pickImage(e.target.files?.[0])} />
               </label>
               {draft.image_url && (
                 <button onClick={() => set({ image_url: null, image_path: null })} className="text-sm text-destructive hover:underline">
-                  {L("წაშლა", "Remove", "Удалить")}
+                  {t("admin.banners.remove")}
                 </button>
               )}
             </div>
@@ -267,7 +268,7 @@ function BannerEditor({ language: _,
 
           {/* Link target */}
           <label className="block text-sm">
-            <span className="text-muted-foreground text-xs">{L("ბმული", "Link target", "Ссылка")}</span>
+            <span className="text-muted-foreground text-xs">{t("admin.banners.linkTarget")}</span>
             <select
               value={draft.link_to}
               onChange={(e) => set({ link_to: e.target.value })}
@@ -284,10 +285,10 @@ function BannerEditor({ language: _,
 
           {/* Localized text fields */}
           {([
-            ["badge", L("ბეიჯი (არასავალდებულო)", "Badge (optional)", "Бейдж (необязательно)")],
-            ["headline", L("სათაური", "Headline", "Заголовок")],
-            ["subtext", L("აღწერა", "Subtext", "Описание")],
-            ["button", L("ღილაკის ტექსტი", "Button text", "Текст кнопки")],
+            ["badge", t("admin.banners.badge")],
+            ["headline", t("admin.banners.headline")],
+            ["subtext", t("admin.banners.subtext")],
+            ["button", t("admin.banners.buttonText")],
           ] as const).map(([prefix, label]) => (
             <div key={prefix}>
               <div className="text-xs text-muted-foreground mb-2">{label}</div>
@@ -309,9 +310,9 @@ function BannerEditor({ language: _,
         </div>
 
         <div className="p-5 border-t border-border flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold">{L("გაუქმება", "Cancel", "Отмена")}</button>
+          <button onClick={onClose} className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold">{t("admin.banners.cancel")}</button>
           <button onClick={submit} disabled={saving || uploading} className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60">
-            {saving ? L("ინახება…", "Saving…", "Сохранение…") : L("შენახვა", "Save", "Сохранить")}
+            {saving ? t("admin.banners.saving") : t("admin.banners.save")}
           </button>
         </div>
       </div>
