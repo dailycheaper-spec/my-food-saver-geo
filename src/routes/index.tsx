@@ -24,6 +24,10 @@ import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useCity, cityLabel } from "@/lib/city";
 import { PromoCarousel } from "@/components/PromoCarousel";
 import { useActiveBanners } from "@/lib/banners";
+import { PageFade } from "@/components/PageFade";
+import { HomeSkeleton } from "@/components/Skeleton";
+import { usePageReady } from "@/hooks/use-page-ready";
+
 
 /** Homepage carousel: DB-managed banners with a bundled fallback. */
 function HomePromoCarousel() {
