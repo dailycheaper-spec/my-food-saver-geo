@@ -14,6 +14,8 @@ import {
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 export const Route = createFileRoute("/search")({
   head: () => ({
