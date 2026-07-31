@@ -18,6 +18,28 @@ type BannerTable = { from: (t: "promo_banners") => any };
 // this file compiling until types.ts is regenerated.
 const db = supabase as unknown as BannerTable;
 
+/**
+ * Signed URLs stored on the row eventually expire, which silently blanks the
+ * banner artwork. Re-sign from `image_path` on every read so the URL is fresh.
+ */
+async function withFreshImageUrls(rows: PromoBannerRow[]): Promise<PromoBannerRow[]> {
+  const paths = rows.map((r) => r.image_path).filter((p): p is string => !!p);
+  if (paths.length === 0) return rows;
+  const { data } = await supabase.storage
+    .from("promo-banners")
+    .createSignedUrls(paths, BANNER_SIGN_TTL_SECONDS);
+  const byPath = new Map<string, string>();
+  for (const item of data ?? []) {
+    if (item.path && item.signedUrl) byPath.set(item.path, item.signedUrl);
+  }
+  return rows.map((r) =>
+    r.image_path && byPath.has(r.image_path)
+      ? { ...r, image_url: byPath.get(r.image_path)! }
+      : r,
+  );
+}
+
+
 // ────────────────────────────────────────────────────────────
 // Public read — active banners for the homepage carousel
 // ────────────────────────────────────────────────────────────
@@ -38,7 +60,9 @@ export function useActiveBanners(): { banners: PromoBanner[]; loading: boolean }
       // Empty or failed reads keep the bundled fallback so the homepage is
       // never blank.
       if (!error && data && data.length > 0) {
-        setBanners((data as PromoBannerRow[]).map(rowToBanner));
+        const rows = await withFreshImageUrls(data as PromoBannerRow[]);
+        if (!alive) return;
+        setBanners(rows.map(rowToBanner));
       }
       setLoading(false);
     })();
@@ -67,7 +91,7 @@ export function useAdminBanners() {
     if (err) setError(err.message);
     else {
       setError(null);
-      setRows((data ?? []) as PromoBannerRow[]);
+      setRows(await withFreshImageUrls((data ?? []) as PromoBannerRow[]));
     }
     setLoading(false);
   }, []);
