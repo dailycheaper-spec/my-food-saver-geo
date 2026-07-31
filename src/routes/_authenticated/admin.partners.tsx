@@ -363,7 +363,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
                 {locStatus === "missing" && <div>{t("admin.partners.warnMissingCoords")}</div>}
                 {locStatus === "invalid" && <div>{t("admin.partners.warnInvalidCoords")}</div>}
                 {radiusMissing && <div>{t("admin.partners.warnRadiusMissing")}</div>}
-                {farFromDistrict && <div>{t("admin.partners.warnFarFromDistrict", { district: store.district })}</div>}
+                {farFromDistrict && <div>{t("admin.partners.warnFarFromDistrict", { district: store.district ?? "" })}</div>}
               </div>
             </div>
           )}

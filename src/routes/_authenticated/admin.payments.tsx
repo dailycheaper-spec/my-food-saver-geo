@@ -107,7 +107,7 @@ function AdminPayments() {
               </div>
               <div className="mt-2 font-display text-xl font-bold">{formatGel(stats.byProvider[key].amount)}</div>
               <div className="text-xs text-muted-foreground">
-                {stats.byProvider[key].count} {L("შეკვეთა", "orders", "заказов")}
+                {stats.byProvider[key].count} {t("admin.stats.orderCount")}
               </div>
             </div>
           ))}
@@ -194,7 +194,7 @@ function AdminPayments() {
                           `${t("admin.payments.colStore")}: ${p.store_name ?? ""}`,
                           `IBAN: ${p.bank_iban}`,
                           `${t("admin.payments.holder")}: ${p.account_holder ?? p.store_name ?? ""}`,
-                          `${L("თანხა", "Amount", "Сумма")}: ${Number(p.amount).toFixed(2)} GEL`,
+                          `${t("admin.payments.amount")}: ${Number(p.amount).toFixed(2)} GEL`,
                         ].join("\n");
                         try {
                           await navigator.clipboard.writeText(text);
