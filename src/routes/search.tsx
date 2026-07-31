@@ -14,6 +14,7 @@ import {
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
+import { OfferCardSkeleton } from "@/components/Skeleton";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
 
 
@@ -65,7 +66,7 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
-  const { offers: OFFERS, stores: STORES, error: offersError } = useLiveDbData();
+  const { offers: OFFERS, stores: STORES, loading: offersLoading, error: offersError } = useLiveDbData();
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
