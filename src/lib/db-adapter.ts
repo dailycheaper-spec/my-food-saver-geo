@@ -45,8 +45,9 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   const itemsLeft = Math.max(0, (row.quantity_available ?? 0) - (row.quantity_sold ?? 0));
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : undefined;
   const rowAny = row as unknown as {
-    title_en?: string | null; title_ru?: string | null;
+    title_en?: string | null; title_ru?: string | null; title_tr?: string | null; title_fa?: string | null;
     description_en?: string | null; description_ru?: string | null;
+    description_tr?: string | null; description_fa?: string | null;
   };
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;
@@ -64,9 +65,13 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     title: row.title,
     titleEn: rowAny.title_en ?? undefined,
     titleRu: rowAny.title_ru ?? undefined,
+    titleTr: rowAny.title_tr ?? undefined,
+    titleFa: rowAny.title_fa ?? undefined,
     description: row.description ?? "",
     descriptionEn: rowAny.description_en ?? undefined,
     descriptionRu: rowAny.description_ru ?? undefined,
+    descriptionTr: rowAny.description_tr ?? undefined,
+    descriptionFa: rowAny.description_fa ?? undefined,
     image: row.image_url || fallbackImage(cat),
     originalPrice: Number(row.original_price ?? 0),
     price: Number(row.discounted_price ?? 0),

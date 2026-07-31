@@ -20,10 +20,14 @@ export interface Offer {
   /** Optional partner-provided translations for title. */
   titleEn?: string;
   titleRu?: string;
+  titleTr?: string;
+  titleFa?: string;
   description: string;
   /** Optional partner-provided translations for description. */
   descriptionEn?: string;
   descriptionRu?: string;
+  descriptionTr?: string;
+  descriptionFa?: string;
   image: string;
   originalPrice: number;
   price: number;
@@ -317,14 +321,14 @@ export function getOfferText(offer: Offer, language: UiLanguage) {
   const title =
     language === "en" ? (offer.titleEn?.trim() || offer.title)
     : language === "ru" ? (offer.titleRu?.trim() || offer.title)
-    : language === "tr" ? (offer.titleEn?.trim() || offer.title)
-    : language === "fa" ? (offer.titleEn?.trim() || offer.title)
+    : language === "tr" ? (offer.titleTr?.trim() || offer.title)
+    : language === "fa" ? (offer.titleFa?.trim() || offer.title)
     : offer.title;
   const description =
     language === "en" ? (offer.descriptionEn?.trim() || offer.description)
     : language === "ru" ? (offer.descriptionRu?.trim() || offer.description)
-    : language === "tr" ? (offer.descriptionEn?.trim() || offer.description)
-    : language === "fa" ? (offer.descriptionEn?.trim() || offer.description)
+    : language === "tr" ? (offer.descriptionTr?.trim() || offer.description)
+    : language === "fa" ? (offer.descriptionFa?.trim() || offer.description)
     : offer.description;
   return { title, description };
 }
@@ -356,8 +360,8 @@ export function offerMatchesQuery(offer: Offer, query: string): boolean {
   // Partner-provided translations from DB rows.
   parts.push(
     offer.title, offer.description, offer.storeName, offer.category,
-    offer.titleEn ?? "", offer.titleRu ?? "",
-    offer.descriptionEn ?? "", offer.descriptionRu ?? "",
+    offer.titleEn ?? "", offer.titleRu ?? "", offer.titleTr ?? "", offer.titleFa ?? "",
+    offer.descriptionEn ?? "", offer.descriptionRu ?? "", offer.descriptionTr ?? "", offer.descriptionFa ?? "",
     offer.storeNameEn ?? "", offer.storeNameRu ?? "",
   );
   parts.push(...(OFFER_KEYWORDS[offer.id] ?? []));
