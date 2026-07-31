@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/Skeleton";
 import { useDbStore, useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useFollowedStoreIds, followStore, unfollowStore, useStoreFollowerCount } from "@/lib/follows";
 import { useAuth } from "@/lib/auth";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 // Reuse OSM embed logic — small enough to inline here to avoid coupling.
 const LazyMap = lazy(async () => {
