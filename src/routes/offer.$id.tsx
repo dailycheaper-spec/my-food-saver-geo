@@ -27,6 +27,8 @@ import { toast } from "sonner";
 import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-address";
 import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
