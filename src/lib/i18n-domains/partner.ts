@@ -602,6 +602,3 @@ const partnerExtensions = {
     "partner.store.category.other": "سایر",
   }
 };
-
-# This is a bit complex to merge manually with cat >> since the file structure is nested.
-# I will use a python script to merge the keys into the existing partnerPack.
