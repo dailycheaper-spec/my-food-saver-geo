@@ -18,7 +18,7 @@ function startOfMonth(): number {
 }
 
 export function SavingsTracker() {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const { orders } = useMyOrders();
   const [open, setOpen] = useState(false);
 
@@ -43,35 +43,15 @@ export function SavingsTracker() {
 
   const L = {
     saved:
-      language === "en" ? "saved" :
-      language === "ru" ? "сэкономлено" :
-      language === "tr" ? "tasarruf edildi" :
-      language === "fa" ? "صرفه‌جویی شد" :
-      "დაზოგილი",
+      t("home.saved"),
     today:
-      language === "en" ? "Today" :
-      language === "ru" ? "Сегодня" :
-      language === "tr" ? "Bugün" :
-      language === "fa" ? "امروز" :
-      "დღეს",
+      t("home.today"),
     week:
-      language === "en" ? "This week" :
-      language === "ru" ? "За неделю" :
-      language === "tr" ? "Bu hafta" :
-      language === "fa" ? "این هفته" :
-      "ამ კვირაში",
+      t("home.thisWeek"),
     month:
-      language === "en" ? "This month" :
-      language === "ru" ? "За месяц" :
-      language === "tr" ? "Bu ay" :
-      language === "fa" ? "این ماه" :
-      "ამ თვეში",
+      t("home.thisMonth"),
     details:
-      language === "en" ? "Show details" :
-      language === "ru" ? "Подробнее" :
-      language === "tr" ? "Detayları göster" :
-      language === "fa" ? "نمایش جزئیات" :
-      "დეტალურად",
+      t("home.showDetails"),
   };
 
   return (

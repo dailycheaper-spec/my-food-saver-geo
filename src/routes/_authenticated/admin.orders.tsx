@@ -12,8 +12,7 @@ export const Route = createFileRoute("/_authenticated/admin/orders")({
 const STATUSES = ["all", "pending", "paid", "ready", "collected", "gifted", "cancelled"] as const;
 
 function AdminOrders() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { orders, error: ordersError } = useAllOrders();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<(typeof STATUSES)[number]>("all");
@@ -45,39 +44,39 @@ function AdminOrders() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("შეკვეთები", "Orders", "Заказы")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {L("შეკვეთა", "orders", "заказов")} · Realtime</p>
+        <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.orders.title")}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{filtered.length} {t("admin.orders.count")} · {t("admin.orders.realtime")}</p>
       </div>
 
       {ordersError && (
         <div className="bg-destructive/10 rounded-2xl border border-destructive/30 p-4 text-center text-sm text-destructive">
-          {L("შეკვეთების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან.", "Could not load orders. Please try again.", "Не удалось загрузить заказы. Попробуйте снова.")}
+          {t("admin.orders.loadFailed")}
         </div>
       )}
 
       <div className="bg-card rounded-3xl border border-border p-4 shadow-sm space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა კოდით, პროდუქტით, მაღაზიით…", "Search by code, product, store…", "Поиск по коду, товару, магазину…")}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.orders.searchPlaceholder")}
             className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           <select value={status} onChange={(e) => setStatus(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            {STATUSES.map((s) => <option key={s} value={s}>{s === "all" ? L("ყველა სტატუსი", "All statuses", "Все статусы") : s}</option>)}
+            {STATUSES.map((s) => <option key={s} value={s}>{s === "all" ? t("admin.orders.allStatuses") : s}</option>)}
           </select>
           <select value={method} onChange={(e) => setMethod(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            <option value="all">{L("ყველა ტიპი", "All types", "Все типы")}</option>
-            <option value="pickup">{L("აღება", "Pickup", "Самовывоз")}</option>
-            <option value="delivery">{L("მიტანა", "Delivery", "Доставка")}</option>
+            <option value="all">{t("admin.orders.allTypes")}</option>
+            <option value="pickup">{t("admin.orders.pickup")}</option>
+            <option value="delivery">{t("admin.orders.delivery")}</option>
           </select>
           <select value={range} onChange={(e) => setRange(e.target.value as any)}
             className="px-3 py-2.5 rounded-2xl bg-muted/50 border border-border text-sm">
-            <option value="all">{L("ყველა დრო", "All time", "Всё время")}</option>
-            <option value="today">{L("დღეს", "Today", "Сегодня")}</option>
-            <option value="week">{L("7 დღე", "7 days", "7 дней")}</option>
-            <option value="month">{L("30 დღე", "30 days", "30 дней")}</option>
+            <option value="all">{t("admin.orders.allTime")}</option>
+            <option value="today">{t("admin.orders.today")}</option>
+            <option value="week">{t("admin.orders.days7")}</option>
+            <option value="month">{t("admin.orders.days30")}</option>
           </select>
         </div>
       </div>
@@ -87,14 +86,14 @@ function AdminOrders() {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="text-left p-3 font-semibold">{L("კოდი", "Code", "Код")}</th>
-                <th className="text-left p-3 font-semibold">{L("მაღაზია", "Store", "Магазин")}</th>
-                <th className="text-left p-3 font-semibold">{L("პროდუქტი", "Product", "Товар")}</th>
-                <th className="text-left p-3 font-semibold">{L("ტიპი", "Type", "Тип")}</th>
-                <th className="text-right p-3 font-semibold">{L("თანხა", "Amount", "Сумма")}</th>
-                <th className="text-left p-3 font-semibold">{L("გადახდა", "Payment", "Оплата")}</th>
-                <th className="text-left p-3 font-semibold">{L("სტატუსი", "Status", "Статус")}</th>
-                <th className="text-left p-3 font-semibold">{L("დრო", "Time", "Время")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colCode")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colStore")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colProduct")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colType")}</th>
+                <th className="text-right p-3 font-semibold">{t("admin.orders.colAmount")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colPayment")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colStatus")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colTime")}</th>
               </tr>
             </thead>
             <tbody>
@@ -106,13 +105,13 @@ function AdminOrders() {
                   <td className="p-3">
                     <span className="inline-flex items-center gap-1 text-xs">
                       {o.method === "delivery" ? <Truck className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
-                      {o.method === "delivery" ? L("მიტანა", "Delivery", "Доставка") : L("აღება", "Pickup", "Самовывоз")}
+                      {o.method === "delivery" ? t("admin.orders.delivery") : t("admin.orders.pickup")}
                     </span>
                   </td>
                   <td className="p-3 text-right font-semibold">{formatGel(Number(o.amount))}</td>
                   <td className="p-3">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-semibold ${["paid", "collected", "ready", "gifted"].includes(o.status) ? "bg-success/15 text-success" : o.status === "cancelled" ? "bg-destructive/10 text-destructive" : "bg-warm text-warm-foreground"}`}>
-                      {["paid", "collected", "ready", "gifted"].includes(o.status) ? L("გადახდილი", "Paid", "Оплачено") : o.status === "cancelled" ? L("გაუქმდა", "Cancelled", "Отменено") : L("მოლოდინი", "Pending", "Ожидание")}
+                      {["paid", "collected", "ready", "gifted"].includes(o.status) ? t("admin.orders.statusPaid") : o.status === "cancelled" ? t("admin.orders.statusCancelled") : t("admin.orders.statusPending")}
                     </span>
                   </td>
                   <td className="p-3">
@@ -126,7 +125,7 @@ function AdminOrders() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{L("შეკვეთა არ მოიძებნა.", "No orders found.", "Заказы не найдены.")}</p>}
+        {filtered.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">{t("admin.orders.noneFound")}</p>}
       </div>
     </div>
   );

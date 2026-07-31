@@ -20,36 +20,8 @@ function isStandalone() {
   );
 }
 
-const COPY = {
-  ka: {
-    iosTitle: "დაამატე Cheaper მთავარ ეკრანზე",
-    iosBody: 'დააჭირე გაზიარებას ⬆︎ Safari-ში და აირჩიე "მთავარ ეკრანზე დამატება".',
-    updateTitle: "ხელმისაწვდომია განახლება",
-    updateBody: "ახალი ვერსია მზადაა.",
-    reload: "განახლება",
-    dismiss: "დახურვა",
-  },
-  en: {
-    iosTitle: "Add Cheaper to your Home Screen",
-    iosBody: 'Tap the Share icon ⬆︎ in Safari, then choose "Add to Home Screen".',
-    updateTitle: "Update available",
-    updateBody: "A new version is ready.",
-    reload: "Reload",
-    dismiss: "Dismiss",
-  },
-  ru: {
-    iosTitle: "Добавьте Cheaper на главный экран",
-    iosBody: 'Нажмите «Поделиться» ⬆︎ в Safari и выберите «На экран «Домой»».',
-    updateTitle: "Доступно обновление",
-    updateBody: "Новая версия готова.",
-    reload: "Обновить",
-    dismiss: "Закрыть",
-  },
-};
-
 export function PwaInstall() {
-  const { language } = useI18n();
-  const t = COPY[(language as keyof typeof COPY) ?? "ka"] ?? COPY.ka;
+  const { t } = useI18n();
   const [showIos, setShowIos] = useState(false);
   const [update, setUpdate] = useState<null | (() => void)>(null);
 
@@ -76,14 +48,14 @@ export function PwaInstall() {
       {update && (
         <div className="fixed left-1/2 top-3 z-[100] -translate-x-1/2 rounded-xl bg-primary px-4 py-3 text-primary-foreground shadow-lg flex items-center gap-3 max-w-[92vw]">
           <div className="text-sm">
-            <div className="font-semibold">{t.updateTitle}</div>
-            <div className="opacity-90">{t.updateBody}</div>
+            <div className="font-semibold">{t("system.pwa.updateTitle")}</div>
+            <div className="opacity-90">{t("system.pwa.updateBody")}</div>
           </div>
           <button
             onClick={() => update()}
             className="rounded-md bg-white/15 px-3 py-1.5 text-xs font-semibold hover:bg-white/25"
           >
-            {t.reload}
+            {t("system.pwa.reload")}
           </button>
         </div>
       )}
@@ -93,16 +65,16 @@ export function PwaInstall() {
           <div className="flex items-start gap-3">
             <img src="/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
             <div className="flex-1 text-sm">
-              <div className="font-semibold">{t.iosTitle}</div>
+              <div className="font-semibold">{t("system.pwa.iosTitle")}</div>
               <div className="mt-1 text-muted-foreground text-xs leading-relaxed">
-                {t.iosBody}
+                {t("system.pwa.iosBody")}
               </div>
             </div>
             <button
               onClick={dismissIos}
               className="rounded-md px-2 py-1 text-xs text-muted-foreground"
             >
-              {t.dismiss}
+              {t("system.pwa.dismiss")}
             </button>
           </div>
         </div>

@@ -98,7 +98,7 @@ function writeCache(loc: UserLocation | null) {
 }
 
 export function UserLocationProvider({ children }: { children: ReactNode }) {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const L = useCallback(
     (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
       language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
@@ -153,35 +153,17 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
               setPermission("denied");
               setStatus("denied");
               setError(
-                L(
-                  "მდებარეობის წვდომა უარყოფილია. ჩართეთ ბრაუზერის პარამეტრებში ან აირჩიეთ მისამართი ხელით.",
-                  "Location access denied. Enable it in your browser settings or pick an address manually.",
-                  "Доступ к геолокации отклонён. Включите его в настройках браузера или выберите адрес вручную.",
-                  "Konum erişimi reddedildi. Tarayıcı ayarlarından açın ya da adresi elle seçin.",
-                  "دسترسی به موقعیت مکانی رد شد. آن را در تنظیمات مرورگر فعال کنید یا آدرس را دستی انتخاب کنید.",
-                ),
+                t("location.deniedHint"),
               );
             } else if (err.code === err.TIMEOUT) {
               setStatus("timeout");
               setError(
-                L(
-                  "მდებარეობის განსაზღვრას დიდი დრო დასჭირდა. სცადეთ ხელახლა.",
-                  "Finding your location took too long. Please try again.",
-                  "Определение местоположения заняло слишком много времени. Попробуйте снова.",
-                  "Konumunuzu bulmak çok uzun sürdü. Lütfen tekrar deneyin.",
-                  "یافتن موقعیت شما بیش از حد طول کشید. لطفاً دوباره تلاش کنید.",
-                ),
+                t("location.timeoutHint"),
               );
             } else {
               setStatus("unavailable");
               setError(
-                L(
-                  "მდებარეობა დროებით მიუწვდომელია. შეამოწმეთ ინტერნეტი ან აირჩიეთ მისამართი რუკაზე.",
-                  "Location is temporarily unavailable. Check your connection or pick a spot on the map.",
-                  "Местоположение временно недоступно. Проверьте соединение или укажите место на карте.",
-                  "Konum geçici olarak kullanılamıyor. Bağlantınızı kontrol edin veya haritadan bir nokta seçin.",
-                  "موقعیت مکانی موقتاً در دسترس نیست. اتصال خود را بررسی کنید یا مکانی را روی نقشه انتخاب کنید.",
-                ),
+                t("location.unavailableHint"),
               );
             }
             if (cached) {
@@ -262,13 +244,7 @@ export function UserLocationProvider({ children }: { children: ReactNode }) {
     if (!supported) {
       setStatus("unsupported");
       setError(
-        L(
-          "თქვენი ბრაუზერი არ უჭერს მხარს მდებარეობის განსაზღვრას.",
-          "Your browser does not support geolocation.",
-          "Ваш браузер не поддерживает геолокацию.",
-          "Tarayıcınız konum belirlemeyi desteklemiyor.",
-          "مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.",
-        ),
+        t("location.unsupported"),
       );
       return;
     }
@@ -336,7 +312,7 @@ export function useUserLocation() {
 }
 
 function LocationExplainModal() {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
     language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
   const { isExplaining, request, cancel, isLocating } = useUserLocation();
@@ -354,16 +330,10 @@ function LocationExplainModal() {
       >
         <div className="text-4xl mb-2">📍</div>
         <h3 className="font-display text-lg font-bold">
-          {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию", "Konumu aç", "فعال‌سازی موقعیت مکانی")}
+          {t("location.enableTitle")}
         </h3>
         <p className="mt-2 text-sm text-muted-foreground">
-          {L(
-            "ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები. თქვენი კოორდინატები არსად არ ინახება.",
-            "Enable location so we can show offers near you. Your coordinates are not stored anywhere.",
-            "Включите геолокацию, чтобы показать предложения рядом. Ваши координаты нигде не сохраняются.",
-            "Yakınınızdaki fırsatları gösterebilmemiz için konumu açın. Koordinatlarınız hiçbir yerde saklanmaz.",
-            "موقعیت مکانی را فعال کنید تا پیشنهادهای نزدیک شما را نشان دهیم. مختصات شما در هیچ جایی ذخیره نمی‌شود.",
-          )}
+          {t("location.enableExplain")}
         </p>
         <div className="mt-5 flex flex-col gap-2">
           <button
@@ -373,15 +343,15 @@ function LocationExplainModal() {
             className="w-full h-11 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm press disabled:opacity-60"
           >
             {isLocating
-              ? L("იძებნება…", "Locating…", "Определяем…", "Konum bulunuyor…", "در حال یافتن…")
-              : L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию", "Konumu aç", "فعال‌سازی موقعیت مکانی")}
+              ? t("address.locating")
+              : t("location.enableTitle")}
           </button>
           <button
             type="button"
             onClick={cancel}
             className="w-full h-11 rounded-2xl bg-secondary text-foreground font-semibold text-sm press"
           >
-            {L("არა ახლა", "Not now", "Не сейчас", "Şimdi değil", "الان نه")}
+            {t("location.notNow")}
           </button>
         </div>
       </div>

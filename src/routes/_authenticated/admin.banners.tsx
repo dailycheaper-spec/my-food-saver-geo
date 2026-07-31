@@ -34,8 +34,7 @@ const LANGS = [
 type FieldPrefix = "badge" | "headline" | "subtext" | "button";
 
 function AdminBanners() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { rows, loading, error, reload } = useAdminBanners();
   const [editing, setEditing] = useState<{ id: string | null; draft: BannerDraft } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -72,11 +71,11 @@ function AdminBanners() {
 
   async function remove(row: PromoBannerRow) {
     const label = row.headline_ka || row.headline_en || "";
-    if (!window.confirm(L(`წავშალოთ ბანერი „${label}“?`, `Delete banner "${label}"?`, `Удалить баннер «${label}»?`))) return;
+    if (!window.confirm(t("admin.banners.confirmDelete", { label }))) return;
     try {
       await deleteBanner(row.id);
       await removeBannerImage(row.image_path);
-      toast.success(L("წაიშალა", "Deleted", "Удалено"));
+      toast.success(t("admin.banners.deleted"));
       await reload();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
@@ -88,22 +87,22 @@ function AdminBanners() {
       <div className="sm:flex sm:items-end sm:justify-between sm:gap-3">
         <div className="min-w-0">
           <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-            {L("ბანერები", "Banners", "Баннеры")}
+            {t("admin.banners.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {L("მთავარი გვერდის სარეკლამო კარუსელი", "Homepage promo carousel", "Промо-карусель главной страницы")}
+            {t("admin.banners.subtitle")}
           </p>
         </div>
         <button
           onClick={() => setEditing({ id: null, draft: emptyBannerDraft(rows.length) })}
           className="mt-3 sm:mt-0 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-90"
         >
-          <Plus className="w-4 h-4" /> {L("ბანერის დამატება", "Add banner", "Добавить баннер")}
+          <Plus className="w-4 h-4" /> {t("admin.banners.add")}
         </button>
       </div>
 
       {error && <div className="text-sm text-destructive">{error}</div>}
-      {loading && <div className="text-sm text-muted-foreground">{L("იტვირთება…", "Loading…", "Загрузка…")}</div>}
+      {loading && <div className="text-sm text-muted-foreground">{t("common.loading")}</div>}
 
       <div className="space-y-3">
         {rows.map((row, i) => {
@@ -123,37 +122,37 @@ function AdminBanners() {
                 <div className="mt-1 flex items-center gap-2 text-[11px]">
                   <span className="px-2 py-0.5 rounded-full bg-muted font-mono">{row.link_to}</span>
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${row.active ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"}`}>
-                    {row.active ? L("აქტიური", "Active", "Активен") : L("დამალული", "Hidden", "Скрыт")}
+                    {row.active ? t("admin.banners.active") : t("admin.banners.hidden")}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <IconBtn disabled={busy || i === 0} onClick={() => move(i, -1)} label={L("ზემოთ", "Move up", "Вверх")}><ArrowUp className="w-4 h-4" /></IconBtn>
-                <IconBtn disabled={busy || i === rows.length - 1} onClick={() => move(i, 1)} label={L("ქვემოთ", "Move down", "Вниз")}><ArrowDown className="w-4 h-4" /></IconBtn>
-                <IconBtn onClick={() => toggleActive(row)} label={L("დამალვა", "Toggle", "Переключить")}>
+                <IconBtn disabled={busy || i === 0} onClick={() => move(i, -1)} label={t("admin.banners.moveUp")}><ArrowUp className="w-4 h-4" /></IconBtn>
+                <IconBtn disabled={busy || i === rows.length - 1} onClick={() => move(i, 1)} label={t("admin.banners.moveDown")}><ArrowDown className="w-4 h-4" /></IconBtn>
+                <IconBtn onClick={() => toggleActive(row)} label={t("admin.banners.toggle")}>
                   {row.active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                 </IconBtn>
-                <IconBtn onClick={() => setEditing({ id: row.id, draft: { ...row } })} label={L("რედაქტირება", "Edit", "Изменить")}><Pencil className="w-4 h-4" /></IconBtn>
-                <IconBtn onClick={() => remove(row)} label={L("წაშლა", "Delete", "Удалить")} danger><Trash2 className="w-4 h-4" /></IconBtn>
+                <IconBtn onClick={() => setEditing({ id: row.id, draft: { ...row } })} label={t("admin.banners.edit")}><Pencil className="w-4 h-4" /></IconBtn>
+                <IconBtn onClick={() => remove(row)} label={t("admin.banners.delete")} danger><Trash2 className="w-4 h-4" /></IconBtn>
               </div>
             </div>
           );
         })}
         {!loading && rows.length === 0 && (
-          <div className="text-sm text-muted-foreground">{L("ბანერები არ არის.", "No banners yet.", "Баннеров пока нет.")}</div>
+          <div className="text-sm text-muted-foreground">{t("admin.banners.noneYet")}</div>
         )}
       </div>
 
       {previewBanners.length > 0 && (
         <div className="bg-card rounded-3xl border border-border p-4 lg:p-6 shadow-sm">
-          <h3 className="font-display font-bold text-lg mb-3">{L("გადახედვა", "Preview", "Предпросмотр")}</h3>
+          <h3 className="font-display font-bold text-lg mb-3">{t("admin.banners.preview")}</h3>
           <PromoCarousel banners={previewBanners} />
         </div>
       )}
 
       {editing && (
         <BannerEditor
-          L={L}
+          
           initial={editing.draft}
           isNew={editing.id === null}
           onClose={() => setEditing(null)}
@@ -162,7 +161,7 @@ function AdminBanners() {
             else await createBanner(draft);
             setEditing(null);
             await reload();
-            toast.success(L("შენახულია", "Saved", "Сохранено"));
+            toast.success(t("admin.banners.saved"));
           }}
         />
       )}
@@ -190,14 +189,14 @@ function IconBtn({
 }
 
 function BannerEditor({
-  initial, isNew, onClose, onSave, L,
+  initial, isNew, onClose, onSave, 
 }: {
   initial: BannerDraft;
   isNew: boolean;
   onClose: () => void;
   onSave: (draft: BannerDraft) => Promise<void>;
-  L: (ka: string, en: string, ru: string) => string;
 }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState<BannerDraft>(initial);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -221,7 +220,7 @@ function BannerEditor({
 
   async function submit() {
     if (!draft.headline_ka.trim()) {
-      toast.error(L("ქართული სათაური სავალდებულოა", "Georgian headline is required", "Требуется заголовок на грузинском"));
+      toast.error(t("admin.banners.headlineRequired"));
       return;
     }
     setSaving(true);
@@ -241,7 +240,7 @@ function BannerEditor({
       <div className="bg-card rounded-3xl border border-border w-full max-w-2xl my-8 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="font-display font-bold text-lg">
-            {isNew ? L("ახალი ბანერი", "New banner", "Новый баннер") : L("ბანერის რედაქტირება", "Edit banner", "Изменить баннер")}
+            {isNew ? t("admin.banners.newBanner") : t("admin.banners.editBanner")}
           </h3>
           <button onClick={onClose} aria-label="Close" className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
@@ -249,19 +248,19 @@ function BannerEditor({
         <div className="p-5 space-y-5">
           {/* Image */}
           <div>
-            <div className="text-xs text-muted-foreground mb-2">{L("სურათი", "Image", "Изображение")}</div>
+            <div className="text-xs text-muted-foreground mb-2">{t("admin.banners.image")}</div>
             <div className="flex items-center gap-3">
               <div className="w-32 h-20 rounded-2xl overflow-hidden bg-muted grid place-items-center shrink-0">
                 {img ? <img src={img} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-5 h-5 text-muted-foreground" />}
               </div>
               <label className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold flex items-center gap-2 cursor-pointer hover:opacity-90">
                 {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                {L("ატვირთვა", "Upload", "Загрузить")}
+                {t("admin.banners.upload")}
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => pickImage(e.target.files?.[0])} />
               </label>
               {draft.image_url && (
                 <button onClick={() => set({ image_url: null, image_path: null })} className="text-sm text-destructive hover:underline">
-                  {L("წაშლა", "Remove", "Удалить")}
+                  {t("admin.banners.remove")}
                 </button>
               )}
             </div>
@@ -269,7 +268,7 @@ function BannerEditor({
 
           {/* Link target */}
           <label className="block text-sm">
-            <span className="text-muted-foreground text-xs">{L("ბმული", "Link target", "Ссылка")}</span>
+            <span className="text-muted-foreground text-xs">{t("admin.banners.linkTarget")}</span>
             <select
               value={draft.link_to}
               onChange={(e) => set({ link_to: e.target.value })}
@@ -280,16 +279,16 @@ function BannerEditor({
           </label>
 
           <label className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 cursor-pointer">
-            <span className="text-sm font-medium">{L("აქტიური", "Active", "Активен")}</span>
+            <span className="text-sm font-medium">{t("admin.banners.active")}</span>
             <input type="checkbox" checked={draft.active} onChange={(e) => set({ active: e.target.checked })} className="w-5 h-5 accent-[var(--color-primary)]" />
           </label>
 
           {/* Localized text fields */}
           {([
-            ["badge", L("ბეიჯი (არასავალდებულო)", "Badge (optional)", "Бейдж (необязательно)")],
-            ["headline", L("სათაური", "Headline", "Заголовок")],
-            ["subtext", L("აღწერა", "Subtext", "Описание")],
-            ["button", L("ღილაკის ტექსტი", "Button text", "Текст кнопки")],
+            ["badge", t("admin.banners.badge")],
+            ["headline", t("admin.banners.headline")],
+            ["subtext", t("admin.banners.subtext")],
+            ["button", t("admin.banners.buttonText")],
           ] as const).map(([prefix, label]) => (
             <div key={prefix}>
               <div className="text-xs text-muted-foreground mb-2">{label}</div>
@@ -311,9 +310,9 @@ function BannerEditor({
         </div>
 
         <div className="p-5 border-t border-border flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold">{L("გაუქმება", "Cancel", "Отмена")}</button>
+          <button onClick={onClose} className="px-4 py-2.5 rounded-2xl bg-muted text-sm font-semibold">{t("admin.banners.cancel")}</button>
           <button onClick={submit} disabled={saving || uploading} className="px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60">
-            {saving ? L("ინახება…", "Saving…", "Сохранение…") : L("შენახვა", "Save", "Сохранить")}
+            {saving ? t("admin.banners.saving") : t("admin.banners.save")}
           </button>
         </div>
       </div>

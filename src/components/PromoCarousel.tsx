@@ -14,7 +14,7 @@ const ROTATE_MS = 6000;
 const SWIPE_THRESHOLD = 48;
 
 export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBanner[] }) {
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const slides = useMemo(() => banners.filter((b) => b.active !== false), [banners]);
 
   const [index, setIndex] = useState(0);
@@ -28,35 +28,17 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
 
   const L = {
     carousel:
-      language === "en" ? "Promotions" :
-      language === "ru" ? "Акции" :
-      language === "tr" ? "Kampanyalar" :
-      language === "fa" ? "پیشنهادهای ویژه" : "აქციები",
+      t("promo.promotions"),
     slideWord:
-      language === "en" ? "Slide" :
-      language === "ru" ? "Слайд" :
-      language === "tr" ? "Slayt" :
-      language === "fa" ? "اسلاید" : "სლაიდი",
+      t("promo.slide"),
     of:
-      language === "en" ? "of" :
-      language === "ru" ? "из" :
-      language === "tr" ? "/" :
-      language === "fa" ? "از" : "/",
+      t("promo.of"),
     prev:
-      language === "en" ? "Previous slide" :
-      language === "ru" ? "Предыдущий слайд" :
-      language === "tr" ? "Önceki slayt" :
-      language === "fa" ? "اسلاید قبلی" : "წინა სლაიდი",
+      t("promo.previousSlide"),
     next:
-      language === "en" ? "Next slide" :
-      language === "ru" ? "Следующий слайд" :
-      language === "tr" ? "Sonraki slayt" :
-      language === "fa" ? "اسلاید بعدی" : "შემდეგი სლაიდი",
+      t("promo.nextSlide"),
     goTo:
-      language === "en" ? "Go to slide" :
-      language === "ru" ? "Перейти к слайду" :
-      language === "tr" ? "Slayta git" :
-      language === "fa" ? "رفتن به اسلاید" : "გადასვლა სლაიდზე",
+      t("promo.goToSlide"),
   };
 
   const slideLabel = useCallback(

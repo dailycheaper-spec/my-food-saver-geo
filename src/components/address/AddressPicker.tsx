@@ -62,10 +62,10 @@ function MapFlyTo({ pos }: { pos: [number, number] | null }) {
 }
 
 export default function AddressPicker({ open, onClose, onSelect, store, manageOnly, showCitySwitch }: Props) {
-  const { language } = useI18n();
+  const { t, language } = useI18n();
   const L = useCallback(
-    (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
-      language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka,
+    (ka: string, en: string, ru: string, tr: string, fa: string) =>
+      language === "en" ? en : language === "ru" ? ru : language === "tr" ? tr : language === "fa" ? fa : ka,
     [language],
   );
   const { user } = useAuth();
@@ -726,7 +726,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
                       onClick={() => void resolvePin(center[0], center[1])}
                       className="text-primary font-semibold underline"
                     >
-                      {L("ხელახლა", "Retry", "Повторить", "Tekrar dene", "تلاش دوباره")}
+                      {t("common.retry")}
                     </button>
                   </span>
                 </div>
@@ -878,7 +878,7 @@ export default function AddressPicker({ open, onClose, onSelect, store, manageOn
             >
               {saveAddress.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               {manageOnly
-                ? L("შენახვა", "Save", "Сохранить", "Kaydet", "ذخیره")
+                ? t("common.save")
                 : L("მისამართის გამოყენება", "Use this address", "Использовать адрес", "Bu adresi kullan", "استفاده از این آدرس")}
             </button>
           </div>

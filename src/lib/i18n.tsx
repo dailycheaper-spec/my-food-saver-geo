@@ -3,6 +3,8 @@ import { useRouterState } from "@tanstack/react-router";
 import { Check, Globe } from "lucide-react";
 import { trLabels } from "./i18n.tr";
 import { faLabels } from "./i18n.fa";
+import { domainLabels } from "./i18n-domains";
+
 
 export type Language = "ka" | "en" | "ru" | "tr" | "fa";
 
@@ -1524,11 +1526,64 @@ const labels: Record<Language, Record<string, string>> = {
   fa: faLabels,
 };
 
+// Merge the nested-by-domain packs on top of the legacy flat keys. Domain keys
+// win on collision, which lets a flat key be superseded without touching every
+// existing call site at once.
+for (const lang of SUPPORTED_LANGUAGES) {
+  Object.assign(labels[lang], domainLabels[lang]);
+}
+
+/** Values that can be interpolated into a translation string. */
+export type TParams = Record<string, string | number>;
+
+/** Replaces every `{{name}}` placeholder with the matching param. */
+function interpolate(template: string, params?: TParams): string {
+  if (!params) return template;
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) => {
+    const value = params[name];
+    return value === undefined ? match : String(value);
+  });
+}
+
+function translate(language: Language, key: string, params?: TParams): string {
+  const raw = labels[language][key] ?? labels.en[key] ?? labels.ka[key] ?? key;
+  return interpolate(raw, params);
+}
+
+/**
+ * Development-only guard: every key must exist in every language, otherwise a
+ * user silently gets an English (or Georgian) string mid-sentence.
+ */
+export function checkKeyParity(): Record<Language, string[]> {
+  const all = new Set<string>();
+  for (const lang of SUPPORTED_LANGUAGES) {
+    for (const key of Object.keys(labels[lang])) all.add(key);
+  }
+  const missing = {} as Record<Language, string[]>;
+  for (const lang of SUPPORTED_LANGUAGES) {
+    missing[lang] = [...all].filter((k) => !labels[lang][k]).sort();
+  }
+  return missing;
+}
+
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  const missing = checkKeyParity();
+  for (const lang of SUPPORTED_LANGUAGES) {
+    if (missing[lang].length > 0) {
+      console.warn(
+        `[i18n] ${missing[lang].length} key(s) missing for "${lang}":`,
+        missing[lang].slice(0, 40),
+      );
+    }
+  }
+}
+
 type I18nContextValue = {
   language: Language;
   setLanguage: (language: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: TParams) => string;
 };
+
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
@@ -1593,7 +1648,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     language,
     setLanguage,
-    t: (key: string) => labels[language][key] ?? labels.en[key] ?? labels.ka[key] ?? key,
+    t: (key: string, params?: TParams) => translate(language, key, params),
   }), [language]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -1604,9 +1659,122 @@ export function useI18n() {
   return value ?? {
     language: "ka" as Language,
     setLanguage: () => {},
-    t: (key: string) => labels.ka[key] ?? key,
+    t: (key: string, params?: TParams) => translate("ka", key, params),
   };
 }
+
+// ────── LOCALE-AWARE FORMATTING ──────
+
+const LOCALE_TAGS: Record<Language, string> = {
+  ka: "ka-GE",
+  en: "en-US",
+  ru: "ru-RU",
+  tr: "tr-TR",
+  fa: "fa-IR",
+};
+
+export function localeTag(language: Language): string {
+  return LOCALE_TAGS[language] ?? "en-US";
+}
+
+/** Currency word shown after the amount, per language. */
+export function currencyWord(language: Language): string {
+  return translate(language, "common.currency");
+}
+
+export function formatMoney(n: number, language: Language): string {
+  const amount = new Intl.NumberFormat(localeTag(language), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
+  return `${amount} ${currencyWord(language)}`;
+}
+
+export function formatNumber(n: number, language: Language): string {
+  return new Intl.NumberFormat(localeTag(language)).format(Number.isFinite(n) ? n : 0);
+}
+
+function toDate(value: string | number | Date): Date | null {
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function formatDate(
+  value: string | number | Date,
+  language: Language,
+  options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" },
+): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), options).format(d);
+}
+
+/** 24-hour clock everywhere — the product standard. */
+export function formatTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+export function formatDateTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+export function formatRelativeTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  const diffSec = Math.round((d.getTime() - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(localeTag(language), { numeric: "auto" });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [unit, sec] of units) {
+    if (Math.abs(diffSec) >= sec) return rtf.format(Math.round(diffSec / sec), unit);
+  }
+  return rtf.format(diffSec, "second");
+}
+
+export function formatDistance(km: number, language: Language): string {
+  if (!Number.isFinite(km)) return "";
+  if (km < 1) return translate(language, "common.distanceM", { value: Math.round(km * 1000) });
+  return translate(language, "common.distanceKm", {
+    value: new Intl.NumberFormat(localeTag(language), { maximumFractionDigits: 1 }).format(km),
+  });
+}
+
+/** Formatters bound to the active language. */
+export function useFormatters() {
+  const { language } = useI18n();
+  return useMemo(() => ({
+    language,
+    money: (n: number) => formatMoney(n, language),
+    number: (n: number) => formatNumber(n, language),
+    date: (v: string | number | Date, o?: Intl.DateTimeFormatOptions) => formatDate(v, language, o),
+    time: (v: string | number | Date) => formatTime(v, language),
+    dateTime: (v: string | number | Date) => formatDateTime(v, language),
+    relative: (v: string | number | Date) => formatRelativeTime(v, language),
+    distance: (km: number) => formatDistance(km, language),
+    currency: currencyWord(language),
+  }), [language]);
+}
+
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage, t } = useI18n();

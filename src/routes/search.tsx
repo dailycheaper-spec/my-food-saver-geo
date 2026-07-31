@@ -181,50 +181,41 @@ function SearchPage() {
     return { partners, foods, cats, districts };
   }, [q, language, OFFERS, STORES]);
 
-  const trendingTerms = language === "en"
-    ? ["Khachapuri", "Sushi", "Bakery", "Coffee", "Fruits"]
-    : language === "ru"
-      ? ["Хачапури", "Суши", "Пекарня", "Кофе", "Фрукты"]
-      : language === "tr"
-        ? ["Khachapuri", "Suşi", "Fırın", "Kahve", "Meyve"]
-        : language === "fa"
-          ? ["خاچاپوری", "سوشی", "نانوایی", "قهوه", "میوه"]
-          : ["ხაჭაპური", "სუში", "საცხობი", "ყავა", "ხილი"];
+  const trendingTerms = [
+    t("search.trendKhachapuri"), t("search.trendSushi"), t("search.trendBakery"), t("search.trendCoffee"), t("search.trendFruits"),
+  ];
 
-  const L = (ka: string, en: string, ru: string, tr?: string, fa?: string) =>
-    language === "en" ? en : language === "ru" ? ru : language === "tr" ? (tr ?? en) : language === "fa" ? (fa ?? en) : ka;
-
-  const recentLabel = L("ბოლო ძებნები", "Recent", "Недавние", "Son aramalar", "جستجوهای اخیر");
-  const trendingLabel = L("პოპულარული", "Popular", "Популярное", "Popüler", "محبوب");
-  const resultsLabel = L("შედეგი", "results", "результатов", "sonuç", "نتیجه");
-  const clearLabel = L("გასუფთავება", "Clear", "Очистить", "Temizle", "پاک کردن");
-  const filtersLabel = L("ფილტრები", "Filters", "Фильтры", "Filtreler", "فیلترها");
-  const partnersLabel = L("პარტნიორები", "Partners", "Партнёры", "Ortaklar", "همکاران");
-  const foodsLabel = L("კერძები", "Dishes", "Блюда", "Yemekler", "غذاها");
-  const catsLabel = L("კატეგორიები", "Categories", "Категории", "Kategoriler", "دسته‌بندی‌ها");
-  const locLabel = L("მდებარეობა", "Location", "Локация", "Konum", "موقعیت");
-  const distanceLabel = L("მანძილი", "Distance", "Расстояние", "Mesafe", "فاصله");
-  const priceLabel = L("ფასი", "Price", "Цена", "Fiyat", "قیمت");
-  const discountLabel = L("ფასდაკლება", "Discount", "Скидка", "İndirim", "تخفیف");
-  const ratingLabel = L("რეიტინგი", "Rating", "Рейтинг", "Puan", "امتیاز");
-  const openNowLabel = L("ღიაა ახლა", "Open now", "Открыто сейчас", "Şu an açık", "اکنون باز است");
-  const pickupLabel = L("აღება მდე", "Pickup by", "Забрать до", "Teslim alma saati", "زمان تحویل تا");
-  const dietLabel = L("დიეტა", "Dietary", "Диета", "Beslenme", "رژیم غذایی");
-  const sortLabel = L("დალაგება", "Sort", "Сорт.", "Sırala", "مرتب‌سازی");
-  const resetLabel = L("გადატვირთვა", "Reset", "Сброс", "Sıfırla", "بازنشانی");
+  const recentLabel = t("search.recent");
+  const trendingLabel = t("search.popular");
+  const resultsLabel = t("search.results");
+  const clearLabel = t("search.clear");
+  const filtersLabel = t("search.filters");
+  const partnersLabel = t("search.partners");
+  const foodsLabel = t("search.dishes");
+  const catsLabel = t("search.categories");
+  const locLabel = t("search.location");
+  const distanceLabel = t("search.distance");
+  const priceLabel = t("search.price");
+  const discountLabel = t("search.discount");
+  const ratingLabel = t("search.rating");
+  const openNowLabel = t("search.openNow");
+  const pickupLabel = t("search.pickupBy");
+  const dietLabel = t("search.dietary");
+  const sortLabel = t("search.sort");
+  const resetLabel = t("search.reset");
 
   const sortNames: Record<Sort, string> = {
-    distance: L("ახლოს", "Nearest", "Ближе", "En yakın", "نزدیک‌ترین"),
-    price: L("ფასი", "Price", "Цена", "Fiyat", "قیمت"),
-    discount: L("ფასდაკლება", "Discount", "Скидка", "İndirim", "تخفیف"),
-    rating: L("რეიტინგი", "Rating", "Рейтинг", "Puan", "امتیاز"),
+    distance: t("search.nearest"),
+    price: t("search.price2"),
+    discount: t("search.discount2"),
+    rating: t("search.rating2"),
   };
 
   const dietNames: Record<Diet, string> = {
-    vegetarian: L("ვეგეტარიანული", "Vegetarian", "Вегетарианское", "Vejetaryen", "گیاهی"),
-    vegan: L("ვეგანური", "Vegan", "Веган", "Vegan", "وگان"),
-    glutenFree: L("გლუტენის გარეშე", "Gluten-free", "Без глютена", "Glütensiz", "بدون گلوتن"),
-    halal: L("ჰალალი", "Halal", "Халяль", "Helal", "حلال"),
+    vegetarian: t("search.vegetarian"),
+    vegan: t("search.vegan"),
+    glutenFree: t("search.glutenFree"),
+    halal: t("search.halal"),
   };
 
   const toggleDiet = (d: Diet) => {
