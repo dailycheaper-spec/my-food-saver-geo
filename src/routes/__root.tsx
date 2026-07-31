@@ -94,8 +94,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Cheaper — იაფად, 50%+ ფასდაკლებით" },
       { name: "twitter:description", content: "იყიდე ხაჭაპური, სუში, ხილი, ცომეული და მარკეტის კალათები 50%-ზე მეტი ფასდაკლებით — ვაკე, საბურთალო, ვერა და მთელი თბილისი." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
+      { property: "og:image", content: "https://cheaper.ge/og-image.png" },
+      { name: "twitter:image", content: "https://cheaper.ge/og-image.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
