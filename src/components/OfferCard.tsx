@@ -94,6 +94,8 @@ export function OfferCard({ offer, featured = false }: { offer: Offer; featured?
     >
       <div className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/10]" : "aspect-[4/3]"}`}>
         <OfferImage
+          priority={featured}
+
           src={offer.image}
           alt={offerText.title}
           soldOut={soldOut}
