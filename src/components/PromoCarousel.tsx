@@ -117,7 +117,7 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
           goTo(dx < 0 ? safeIndex + 1 : safeIndex - 1, true);
         }}
       >
-        <div className="relative overflow-hidden rounded-3xl shadow-elevated min-h-[200px] sm:min-h-[280px]">
+        <div className="relative overflow-hidden rounded-3xl shadow-elevated h-[200px] sm:h-[280px]">
           {slides.map((b, i) => {
             const active = i === safeIndex;
             return (
@@ -127,27 +127,35 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                 aria-roledescription="slide"
                 aria-label={slideLabel(i)}
                 aria-hidden={!active}
-                className={`transition-opacity duration-500 ${
-                  active
-                    ? "relative opacity-100"
-                    : "absolute inset-0 opacity-0 pointer-events-none"
+                className={`absolute inset-0 transition-opacity duration-500 ${
+                  active ? "opacity-100" : "opacity-0 pointer-events-none"
                 }`}
               >
                 <AnyLink
                   to={b.buttonAction.to}
                   search={b.buttonAction.search}
                   tabIndex={active ? 0 : -1}
-                  className="block relative min-h-[200px] sm:min-h-[280px] active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
+                  className="block absolute inset-0 overflow-hidden active:scale-[0.99] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-3xl"
                 >
                   {b.imageSource && (
-                    <ImageWithSkeleton
-                      src={b.imageSource}
-                      alt=""
-                      priority={i === 0}
-                      aspect=""
-                      className="!absolute inset-0 w-full h-full"
-                    />
-
+                    <>
+                      {/* Blurred cover fill keeps the letterbox areas uniform when the
+                          picture's aspect ratio doesn't match the fixed banner height. */}
+                      <img
+                        src={b.imageSource}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl"
+                      />
+                      <ImageWithSkeleton
+                        src={b.imageSource}
+                        alt=""
+                        priority={i === 0}
+                        aspect=""
+                        objectFit="contain"
+                        className="!absolute inset-0 w-full h-full !bg-transparent"
+                      />
+                    </>
                   )}
                   <div
                     className={
@@ -156,7 +164,8 @@ export function PromoCarousel({ banners = PROMO_BANNERS }: { banners?: PromoBann
                     }
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-                  <div className="relative pt-4 sm:pt-6 pl-12 sm:pl-16 pr-12 sm:pr-16 pb-10 sm:pb-12 text-primary-foreground flex flex-col justify-end min-h-[200px] sm:min-h-[280px]">
+                  <div className="absolute inset-0 pt-4 sm:pt-6 pl-12 sm:pl-16 pr-12 sm:pr-16 pb-10 sm:pb-12 text-primary-foreground flex flex-col justify-end">
+
                     {b.badge && (
                       <div className="inline-flex self-start items-center gap-1 text-[10px] font-bold uppercase tracking-wider bg-accent text-accent-foreground px-2 py-0.5 rounded-full">
                         <Sparkles className="w-3 h-3" aria-hidden="true" />
