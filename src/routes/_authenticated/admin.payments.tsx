@@ -93,6 +93,29 @@ function AdminPayments() {
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
+        <h3 className="font-display font-bold text-lg mb-3">{L("ბანკების მიხედვით", "By bank", "По банкам")}</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            ["bog", "Bank of Georgia"],
+            ["tbc", "TBC Bank"],
+          ] as const).map(([key, name]) => (
+            <div key={key} className="rounded-2xl border border-border p-4">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full bg-muted text-[11px] font-semibold uppercase tracking-wide">
+                  {key}
+                </span>
+                <span className="text-sm font-medium truncate">{name}</span>
+              </div>
+              <div className="mt-2 font-display text-xl font-bold">{formatGel(stats.byProvider[key].amount)}</div>
+              <div className="text-xs text-muted-foreground">
+                {stats.byProvider[key].count} {L("შეკვეთა", "orders", "заказов")}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
         <h3 className="font-display font-bold text-lg mb-4">{L("პარტნიორთა ბალანსი", "Partner balances", "Балансы партнёров")}</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
