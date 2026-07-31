@@ -58,7 +58,7 @@ function AdminSettingsPage() {
 
       <Section icon={CreditCard} title={t("admin.settings.paymentMethods")}>
         <div className="space-y-2">
-          {([["bog", "BOG"], ["tbc", "TBC Pay"], ["card", t("admin.settings.card")], ["cash", t("admin.settings.cash")]] as const).map(([key, label]) => (
+          {([["bog", "BOG"], ["tbc", "TBC Pay"], ["card", t("admin.settings.card")]] as const).map(([key, label]) => (
             <label key={key} className="flex items-center justify-between p-3 rounded-2xl bg-muted/40 cursor-pointer">
               <span className="text-sm font-medium">{label}</span>
               <Toggle checked={s.paymentProviders[key]} onChange={(v) => setS({ ...s, paymentProviders: { ...s.paymentProviders, [key]: v } })} />

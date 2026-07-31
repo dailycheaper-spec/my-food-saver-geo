@@ -125,7 +125,7 @@ function OfferPage() {
   );
   const deliveryBlocked = method === "მიტანა" && !deliveryZone.allowed;
   const [customerNote, setCustomerNote] = useState("");
-  const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY" | "COD">("BOG");
+  const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY">("BOG");
   const [copied, setCopied] = useState(false);
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
@@ -178,29 +178,6 @@ function OfferPage() {
       const isDelivery = method === "მიტანა";
       const methodDb: "pickup" | "delivery" = isDelivery ? "delivery" : "pickup";
 
-      // Cash / Pay-at-pickup: unchanged legacy flow — creates a paid order immediately.
-      if (payment === "COD") {
-        const order = await createOrderDb({
-          offer_id: offer.id,
-          store_id: offer.storeId,
-          amount: total,
-          quantity,
-          method: methodDb,
-          delivery_address: isDelivery ? address : undefined,
-          delivery_lat: isDelivery ? selectedAddr?.lat ?? null : null,
-          delivery_lng: isDelivery ? selectedAddr?.lng ?? null : null,
-          delivery_place_id: isDelivery ? selectedAddr?.placeId ?? null : null,
-          customer_note: customerNote.trim() || undefined,
-        });
-        if (isDelivery) {
-          dispatchDeliveryFn({ data: { orderId: order.id } }).catch((err) => {
-            console.error("Delivery dispatch failed:", err);
-            toast.error(t("offer.deliveryCouldnTBe"));
-          });
-        }
-        navigate({ to: "/orders/$id", params: { id: order.id } });
-        return;
-      }
 
       // Card payments → the selected bank's hosted payment page.
       // Server creates a PENDING order and returns the hosted redirect URL.
@@ -562,7 +539,7 @@ function OfferPage() {
               { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
               { id: "TBC", label: "ბარათით (TBC)", icon: "🏦" },
-              { id: "COD", label: t("payAtPickup"), icon: "💵" },
+
 
             ].map((p) => (
               <button
