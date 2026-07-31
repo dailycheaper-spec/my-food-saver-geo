@@ -540,3 +540,17 @@
 
 /* Maps stay LTR: Leaflet positions panes/controls with physical offsets. */
 [dir="rtl"] .leaflet-container { direction: ltr; }
+
+/* ---- Smooth image / page loading transitions ---- */
+.img-fade {
+  transition: opacity 250ms ease-in-out;
+  will-change: opacity;
+}
+.page-fade {
+  transition: opacity 250ms ease-in-out;
+  will-change: opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-fade,
+  .page-fade { transition: none !important; }
+}
