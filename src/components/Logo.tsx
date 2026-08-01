@@ -26,14 +26,14 @@ export function Logo({
       {compact ? (
         <>
           <img
-            src="/logo-tile.png"
+            src="/logo-tile-v2.png"
             alt={t("brand")}
             width={32}
             height={32}
             className="w-8 h-8 shrink-0 object-contain sm:hidden"
           />
           <img
-            src="/logo-lockup.png"
+            src="/logo-lockup-v2.png"
             alt={t("brand")}
             width={94}
             height={36}
@@ -42,7 +42,7 @@ export function Logo({
         </>
       ) : (
         <img
-          src="/logo-lockup.png"
+          src="/logo-lockup-v2.png"
           alt={t("brand")}
           width={104}
           height={40}

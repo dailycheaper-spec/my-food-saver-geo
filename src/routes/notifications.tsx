@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { useUserLocation } from "@/hooks/use-user-location";
 
 export const Route = createFileRoute("/notifications")({
-  head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
+  head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }, { name: "robots", content: "noindex" }] }),
   component: Notifications,
 });
 

@@ -6,7 +6,7 @@ import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/favorites")({
-  head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "პროდუქტები, რომლებიც მოგწონს." }] }),
+  head: () => ({ meta: [{ title: "ფავორიტები — Cheaper" }, { name: "description", content: "პროდუქტები, რომლებიც მოგწონს." }, { name: "robots", content: "noindex" }] }),
   component: Favorites,
 });
 

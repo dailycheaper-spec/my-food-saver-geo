@@ -36,12 +36,20 @@ function HomePromoCarousel() {
 }
 
 
+const HOME_TITLE = "Cheaper — იაფად, 50%+ ფასდაკლებით თბილისში";
+const HOME_DESC =
+  "იყიდე ხაჭაპური, სუში, ხილი, ცომეული და მარკეტის კალათები 50%-ზე მეტი ფასდაკლებით — ვაკე, საბურთალო, ვერა, ბათუმი, ქუთაისი და მთელი საქართველო.";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Cheaper — იაფად, 50%+ ფასდაკლებით" },
-      { name: "description", content: "იყიდე ხაჭაპური, სუში, ხილი, ცომეული და მარკეტის კალათები 50%-ზე მეტი ფასდაკლებით — ვაკე, საბურთალო, ვერა და მთელი თბილისი." },
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESC },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESC },
+      { property: "og:url", content: "https://cheaper.ge/" },
     ],
+    links: [{ rel: "canonical", href: "https://cheaper.ge/" }],
   }),
   component: Home,
 });

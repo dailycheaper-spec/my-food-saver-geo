@@ -25,12 +25,22 @@ const LazyMap = lazy(async () => {
 });
 
 export const Route = createFileRoute("/store/$id")({
-  head: () => ({
-    meta: [
-      { title: "მაღაზია — Cheaper" },
-      { name: "description", content: "პარტნიორის აქტიური შემოთავაზებები Cheaper-ზე." },
-    ],
-  }),
+  head: ({ params }) => {
+    const url = `https://cheaper.ge/store/${params.id}`;
+    const title = "პარტნიორი მაღაზია — Cheaper";
+    const description =
+      "ნახე ამ პარტნიორი მაღაზიის ან საცხობის აქტიური შემოთავაზებები 50%+ ფასდაკლებით, სამუშაო საათები, მდებარეობა და მომხმარებლების შეფასებები.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   errorComponent: ({ error, reset }) => (
     <div className="p-8 text-center">
       <p className="text-sm text-muted-foreground">{error.message}</p>
@@ -114,8 +124,35 @@ function StorePage() {
   const address = raw.address ?? "";
   const phone = raw.phone ?? "";
 
+  // LocalBusiness structured data — rendered from live store data so Google can
+  // show rich results for each partner page.
+  const localBusinessLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: store.name,
+    url: `https://cheaper.ge/store/${store.id}`,
+    ...(typeof store.logo === "string" && store.logo.startsWith("http") ? { logo: store.logo, image: store.logo } : {}),
+    ...(phone ? { telephone: phone } : {}),
+    ...(address || store.district
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            ...(address ? { streetAddress: address } : {}),
+            ...(store.district ? { addressLocality: store.district } : {}),
+            addressCountry: "GE",
+          },
+        }
+      : {}),
+    ...(coord ? { geo: { "@type": "GeoCoordinates", latitude: coord[0], longitude: coord[1] } } : {}),
+  };
+
   return (
     <div className="min-h-screen pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+      />
+
       {/* Cover */}
       <div className="relative h-52 sm:h-64 w-full bg-muted overflow-hidden">
         {cover ? (

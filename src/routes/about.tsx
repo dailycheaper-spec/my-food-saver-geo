@@ -3,12 +3,20 @@ import { LegalPage } from "@/components/LegalPage";
 import { ABOUT } from "@/lib/legal-content";
 import { useI18n } from "@/lib/i18n";
 
+const TITLE = "ჩვენ შესახებ — Cheaper";
+const DESC =
+  "Cheaper აერთიანებს თბილისის, ბათუმის და ქუთაისის საცხობებს, რესტორნებსა და მარკეტებს, რომ ყოველდღიური საკვები 50%+ ფასდაკლებით იყიდო.";
+
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Cheaper" },
-      { name: "description", content: "About Cheaper.ge — best deals every day." },
+      { title: TITLE },
+      { name: "description", content: DESC },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESC },
+      { property: "og:url", content: "https://cheaper.ge/about" },
     ],
+    links: [{ rel: "canonical", href: "https://cheaper.ge/about" }],
   }),
   component: AboutPage,
 });

@@ -49,17 +49,52 @@ export const Route = createFileRoute("/offer/$id")({
     if (offer) return { offer, realDb: false };
     throw notFound();
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.offer.title} — ${loaderData.offer.storeName} | Cheaper` },
-          { name: "description", content: loaderData.offer.description },
-          { property: "og:title", content: `${loaderData.offer.title} — Cheaper` },
-          { property: "og:description", content: loaderData.offer.description },
-          { property: "og:image", content: loaderData.offer.image },
-        ]
-      : [{ title: "შემოთავაზება — Cheaper" }, { name: "robots", content: "noindex" }],
-  }),
+  head: ({ params, loaderData }) => {
+    if (!loaderData) {
+      return { meta: [{ title: "შემოთავაზება — Cheaper" }, { name: "robots", content: "noindex" }] };
+    }
+    const o = loaderData.offer;
+    const url = `https://cheaper.ge/offer/${params.id}`;
+    const title = `${o.title} — ${o.storeName} | Cheaper`;
+    const description =
+      o.description && o.description.length >= 50
+        ? o.description
+        : `${o.title} — ${o.storeName}. ფასდაკლებული შემოთავაზება Cheaper-ზე, აიღე ან მიიღე მიტანით.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: `${o.title} — Cheaper` },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:image", content: o.image },
+        { name: "twitter:image", content: o.image },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: o.title,
+            description,
+            image: o.image,
+            brand: { "@type": "Brand", name: o.storeName },
+            offers: {
+              "@type": "Offer",
+              url,
+              price: o.price,
+              priceCurrency: "GEL",
+              availability: "https://schema.org/InStock",
+              seller: { "@type": "Organization", name: o.storeName },
+            },
+          }),
+        },
+      ],
+    };
+  },
   component: OfferPage,
   notFoundComponent: () => {
     const { t } = useI18n();
