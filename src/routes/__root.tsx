@@ -98,6 +98,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
 
+      // Warm up the connections the first screen needs (images + map tiles).
+      { rel: "preconnect", href: "https://creaijcvpqerdxdazdqt.supabase.co", crossOrigin: "anonymous" },
+      { rel: "dns-prefetch", href: "https://creaijcvpqerdxdazdqt.supabase.co" },
+      { rel: "preconnect", href: "https://tile.openstreetmap.org", crossOrigin: "anonymous" },
+
       { rel: "icon", href: "/favicon-v2.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon-v2.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },

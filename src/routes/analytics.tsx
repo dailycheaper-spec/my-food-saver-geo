@@ -128,7 +128,7 @@ function Analytics() {
                 params={{ id: offer!.id }}
                 className="flex items-center gap-3 p-2 rounded-xl hover:bg-muted/40 transition-colors"
               >
-                <img src={offer!.image} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                <img src={offer!.image} alt="" width={48} height={48} loading="lazy" decoding="async" className="w-12 h-12 rounded-lg object-cover" />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm truncate">{offer!.title}</div>
                   <div className="text-[11px] text-muted-foreground">{offer!.storeName}</div>

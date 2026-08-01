@@ -443,7 +443,7 @@ function MapPage() {
                       onClick={() => setSuggestOpen(false)}
                       className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-secondary focus:bg-secondary focus:outline-none"
                     >
-                      <img src={f.image} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                      <img src={f.image} alt="" width={28} height={28} loading="lazy" decoding="async" className="w-7 h-7 rounded-lg object-cover shrink-0" />
                       <span className="flex-1 min-w-0">
                         <span className="block truncate text-xs font-semibold">{f.title}</span>
                         <span className="block truncate text-[10px] text-muted-foreground">{f.storeName}</span>
@@ -743,7 +743,7 @@ function MapPage() {
                   params={{ id: o.id }}
                   className={`flex gap-3 p-2 rounded-xl border border-border bg-background hover:bg-secondary transition-colors ${unavailable ? "opacity-60" : ""}`}
                 >
-                  <img src={o.image} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                  <img src={o.image} alt="" width={64} height={64} loading="lazy" decoding="async" className="w-16 h-16 rounded-lg object-cover shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm truncate">{getOfferText(o, language).title}</div>
                     <div className="text-[11px] text-muted-foreground mt-0.5">

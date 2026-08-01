@@ -411,7 +411,7 @@ function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            {nearby.map((o) => <OfferCard key={o.id} offer={o} />)}
+            {nearby.map((o, i) => <OfferCard key={o.id} offer={o} priority={!bestDeal && i < 2} />)}
           </div>
 
         )}

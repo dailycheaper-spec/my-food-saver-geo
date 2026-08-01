@@ -86,7 +86,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
       )}
       <div className="flex items-start gap-3">
         {offer.image_url ? (
-          <img src={offer.image_url} alt={offer.title} className={`w-16 h-16 rounded-xl object-cover ${soldOut ? "grayscale" : ""}`} />
+          <img src={offer.image_url} alt={offer.title} width={64} height={64} loading="lazy" decoding="async" className={`w-16 h-16 rounded-xl object-cover ${soldOut ? "grayscale" : ""}`} />
         ) : (
           <div className="w-16 h-16 rounded-xl bg-muted grid place-items-center text-2xl">🍽</div>
         )}
