@@ -1,7 +1,41 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { Check, Globe } from "lucide-react";
+import { trLabels } from "./i18n.tr";
+import { faLabels } from "./i18n.fa";
+import { domainLabels } from "./i18n-domains";
 
-export type Language = "ka" | "en" | "ru";
+
+export type Language = "ka" | "en" | "ru" | "tr" | "fa";
+
+/** Persian is the only right-to-left language we support. */
+export const RTL_LANGUAGES: readonly Language[] = ["fa"];
+export function isRtlLanguage(l: Language): boolean {
+  return RTL_LANGUAGES.includes(l);
+}
+export function dirFor(l: Language): "rtl" | "ltr" {
+  return isRtlLanguage(l) ? "rtl" : "ltr";
+}
+
+export const SUPPORTED_LANGUAGES: Language[] = ["ka", "en", "ru", "tr", "fa"];
+
+function isLanguage(v: unknown): v is Language {
+  return typeof v === "string" && (SUPPORTED_LANGUAGES as string[]).includes(v);
+}
+
+/** Map a navigator language tag to the closest supported language. */
+export function detectLanguage(tags: readonly string[]): Language {
+  for (const raw of tags) {
+    const tag = (raw || "").toLowerCase();
+    const base = tag.split("-")[0];
+    if (base === "ka") return "ka";
+    if (base === "tr") return "tr";
+    if (base === "fa" || base === "per" || base === "prs") return "fa";
+    if (base === "ru") return "ru";
+    if (base === "en") return "en";
+  }
+  return "en";
+}
 
 const STORAGE_KEY = "cheaper-language";
 
@@ -39,7 +73,6 @@ const labels: Record<Language, Record<string, string>> = {
     navProfile: "პროფილი",
     delivery: "მიტანა",
     km: "კმ",
-    payAtPickup: "ადგილზე გადახდა",
     left: "დარჩა",
     mapView: "რუკის ხედი",
     myLocation: "ჩემი მდებარეობა",
@@ -212,11 +245,15 @@ const labels: Record<Language, Record<string, string>> = {
     uploadFailed: "ატვირთვა ვერ მოხერხდა",
     orPasteUrl: "ან ჩასვი ბმული",
     productName: "პროდუქტის სახელი",
-    translationsOptional: "თარგმანები (არასავალდებულო)",
+    translationsOptional: "თარგმანები (არასავალდებულო — ცარიელი ველები ავტომატურად ითარგმნება)",
     titleEnOptional: "სახელი ინგლისურად (არასავალდებულო)",
     titleRuOptional: "სახელი რუსულად (არასავალდებულო)",
     descriptionEnOptional: "აღწერა ინგლისურად (არასავალდებულო)",
     descriptionRuOptional: "აღწერა რუსულად (არასავალდებულო)",
+    titleTrOptional: "სახელი თურქულად (არასავალდებულო)",
+    titleFaOptional: "სახელი სპარსულად (არასავალდებულო)",
+    descriptionTrOptional: "აღწერა თურქულად (არასავალდებულო)",
+    descriptionFaOptional: "აღწერა სპარსულად (არასავალდებულო)",
     storeNameEnOptional: "მაღაზიის სახელი ინგლისურად (არასავალდებულო)",
     storeNameRuOptional: "მაღაზიის სახელი რუსულად (არასავალდებულო)",
     category: "კატეგორია",
@@ -225,6 +262,7 @@ const labels: Record<Language, Record<string, string>> = {
     meal: "კერძი",
     bakery: "საცხობი",
     confectionery: "საკონდიტრო",
+    homeKitchen: "საოჯახო სამზრეულო",
     pizza: "პიცა",
     sushi: "სუში",
     grocery: "პროდუქტი",
@@ -457,6 +495,9 @@ const labels: Record<Language, Record<string, string>> = {
     "auth.native.title": "ვამოწმებთ შესვლას…",
     "auth.native.notOpened": "თუ აპლიკაცია არ გაიხსნა ავტომატურად,",
     "auth.native.openManually": "გახსენით ხელით",
+    "auth.native.openApp": "აპლიკაციის გახსნა",
+    "auth.native.tapButton": "აპლიკაცია არ გაიხსნა? დააჭირეთ ზემოთ ღილაკს.",
+    "auth.native.retry": "შესვლა ვერ დასრულდა. სცადეთ ხელახლა.",
     "offer.notFound": "შემოთავაზება ვერ მოიძებნა.",
     "offer.backHome": "მთავარზე დაბრუნება",
     "orders.native.returning": "ბრუნდებით აპლიკაციაში…",
@@ -516,7 +557,6 @@ const labels: Record<Language, Record<string, string>> = {
     navProfile: "Profile",
     delivery: "Delivery",
     km: "km",
-    payAtPickup: "Pay at pickup",
     left: "Left",
     mapView: "Map view",
     myLocation: "My location",
@@ -689,11 +729,15 @@ const labels: Record<Language, Record<string, string>> = {
     uploadFailed: "Upload failed",
     orPasteUrl: "or paste a URL",
     productName: "Product name",
-    translationsOptional: "Translations (optional)",
+    translationsOptional: "Translations (optional — blank fields are filled in automatically)",
     titleEnOptional: "Title in English (optional)",
     titleRuOptional: "Title in Russian (optional)",
     descriptionEnOptional: "Description in English (optional)",
     descriptionRuOptional: "Description in Russian (optional)",
+    titleTrOptional: "Title in Turkish (optional)",
+    titleFaOptional: "Title in Persian (optional)",
+    descriptionTrOptional: "Description in Turkish (optional)",
+    descriptionFaOptional: "Description in Persian (optional)",
     storeNameEnOptional: "Store name in English (optional)",
     storeNameRuOptional: "Store name in Russian (optional)",
     category: "Category",
@@ -702,6 +746,7 @@ const labels: Record<Language, Record<string, string>> = {
     meal: "Meal",
     bakery: "Bakery",
     confectionery: "Patisserie",
+    homeKitchen: "Home Kitchen",
     pizza: "Pizza",
     sushi: "Sushi",
     grocery: "Grocery",
@@ -933,6 +978,9 @@ const labels: Record<Language, Record<string, string>> = {
     "auth.native.title": "Verifying sign-in…",
     "auth.native.notOpened": "If the app didn't open automatically,",
     "auth.native.openManually": "open it manually",
+    "auth.native.openApp": "Open the app",
+    "auth.native.tapButton": "App didn't open? Tap the button above.",
+    "auth.native.retry": "Sign-in wasn't completed. Please try again.",
     "offer.notFound": "Offer not found.",
     "offer.backHome": "Back to home",
     "orders.native.returning": "Returning to the app…",
@@ -992,7 +1040,6 @@ const labels: Record<Language, Record<string, string>> = {
     navProfile: "Профиль",
     delivery: "Доставка",
     km: "км",
-    payAtPickup: "Оплата при получении",
     left: "Осталось",
     mapView: "Карта",
     myLocation: "Моя локация",
@@ -1165,11 +1212,15 @@ const labels: Record<Language, Record<string, string>> = {
     uploadFailed: "Не удалось загрузить",
     orPasteUrl: "или вставьте ссылку",
     productName: "Название продукта",
-    translationsOptional: "Переводы (необязательно)",
+    translationsOptional: "Переводы (необязательно — пустые поля заполняются автоматически)",
     titleEnOptional: "Название на английском (необязательно)",
     titleRuOptional: "Название на русском (необязательно)",
     descriptionEnOptional: "Описание на английском (необязательно)",
     descriptionRuOptional: "Описание на русском (необязательно)",
+    titleTrOptional: "Название на турецком (необязательно)",
+    titleFaOptional: "Название на фарси (необязательно)",
+    descriptionTrOptional: "Описание на турецком (необязательно)",
+    descriptionFaOptional: "Описание на фарси (необязательно)",
     storeNameEnOptional: "Название магазина на английском (необязательно)",
     storeNameRuOptional: "Название магазина на русском (необязательно)",
     category: "Категория",
@@ -1178,6 +1229,7 @@ const labels: Record<Language, Record<string, string>> = {
     meal: "Блюдо",
     bakery: "Пекарня",
     confectionery: "Кондитерская",
+    homeKitchen: "Домашняя кухня",
     pizza: "Пицца",
     sushi: "Суши",
     grocery: "Продукты",
@@ -1409,6 +1461,9 @@ const labels: Record<Language, Record<string, string>> = {
     "auth.native.title": "Проверяем вход…",
     "auth.native.notOpened": "Если приложение не открылось автоматически,",
     "auth.native.openManually": "откройте вручную",
+    "auth.native.openApp": "Открыть приложение",
+    "auth.native.tapButton": "Приложение не открылось? Нажмите кнопку выше.",
+    "auth.native.retry": "Вход не завершён. Попробуйте ещё раз.",
     "offer.notFound": "Предложение не найдено.",
     "offer.backHome": "Вернуться на главную",
     "orders.native.returning": "Возвращаемся в приложение…",
@@ -1434,13 +1489,68 @@ const labels: Record<Language, Record<string, string>> = {
     "analytics.noViewsYet": "Пока никто не смотрел.",
     "analytics.views": "просмотров",
   },
+  tr: trLabels,
+  fa: faLabels,
 };
+
+// Merge the nested-by-domain packs on top of the legacy flat keys. Domain keys
+// win on collision, which lets a flat key be superseded without touching every
+// existing call site at once.
+for (const lang of SUPPORTED_LANGUAGES) {
+  Object.assign(labels[lang], domainLabels[lang]);
+}
+
+/** Values that can be interpolated into a translation string. */
+export type TParams = Record<string, string | number>;
+
+/** Replaces every `{{name}}` placeholder with the matching param. */
+function interpolate(template: string, params?: TParams): string {
+  if (!params) return template;
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) => {
+    const value = params[name];
+    return value === undefined ? match : String(value);
+  });
+}
+
+function translate(language: Language, key: string, params?: TParams): string {
+  const raw = labels[language][key] ?? labels.en[key] ?? labels.ka[key] ?? key;
+  return interpolate(raw, params);
+}
+
+/**
+ * Development-only guard: every key must exist in every language, otherwise a
+ * user silently gets an English (or Georgian) string mid-sentence.
+ */
+export function checkKeyParity(): Record<Language, string[]> {
+  const all = new Set<string>();
+  for (const lang of SUPPORTED_LANGUAGES) {
+    for (const key of Object.keys(labels[lang])) all.add(key);
+  }
+  const missing = {} as Record<Language, string[]>;
+  for (const lang of SUPPORTED_LANGUAGES) {
+    missing[lang] = [...all].filter((k) => !labels[lang][k]).sort();
+  }
+  return missing;
+}
+
+if (import.meta.env.DEV && typeof window !== "undefined") {
+  const missing = checkKeyParity();
+  for (const lang of SUPPORTED_LANGUAGES) {
+    if (missing[lang].length > 0) {
+      console.warn(
+        `[i18n] ${missing[lang].length} key(s) missing for "${lang}":`,
+        missing[lang].slice(0, 40),
+      );
+    }
+  }
+}
 
 type I18nContextValue = {
   language: Language;
   setLanguage: (language: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: TParams) => string;
 };
+
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
@@ -1449,17 +1559,48 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY) as Language | null;
-    if (saved === "ka" || saved === "en" || saved === "ru") setLanguageState(saved);
-    setReady(true);
+    let cancelled = false;
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (isLanguage(saved)) {
+      setLanguageState(saved);
+      setReady(true);
+      return;
+    }
+    // First visit: detect once from the device (native) or browser language,
+    // then persist. getDeviceLanguageTags() falls back to navigator.language.
+    void (async () => {
+      let tags: string[] = [];
+      try {
+        const { getDeviceLanguageTags } = await import("@/lib/native");
+        tags = await getDeviceLanguageTags();
+      } catch {
+        tags = [
+          ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+          navigator.language,
+        ].filter(Boolean) as string[];
+      }
+      if (cancelled) return;
+      const detected = detectLanguage(tags);
+      setLanguageState(detected);
+      try { window.localStorage.setItem(STORAGE_KEY, detected); } catch {}
+      setReady(true);
+    })();
+    return () => { cancelled = true; };
   }, []);
+
+
+  // Partner/admin dashboards stay LTR: their copy is ka/en/ru only, so
+  // mirroring them would be wrong even when the account language is fa.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const forceLtr = /^\/(partner|admin)/.test(pathname);
 
   useEffect(() => {
     if (!ready) return;
     document.documentElement.lang = language;
+    document.documentElement.dir = forceLtr ? "ltr" : dirFor(language);
     window.localStorage.setItem(STORAGE_KEY, language);
     window.dispatchEvent(new CustomEvent("cheaper-language-changed", { detail: language }));
-  }, [language, ready]);
+  }, [language, ready, forceLtr]);
 
   const setLanguage = (l: Language) => {
     // write localStorage synchronously so formatGel/currencyLabel pick up
@@ -1474,7 +1615,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     language,
     setLanguage,
-    t: (key: string) => labels[language][key] ?? labels.ka[key] ?? key,
+    t: (key: string, params?: TParams) => translate(language, key, params),
   }), [language]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -1485,9 +1626,122 @@ export function useI18n() {
   return value ?? {
     language: "ka" as Language,
     setLanguage: () => {},
-    t: (key: string) => labels.ka[key] ?? key,
+    t: (key: string, params?: TParams) => translate("ka", key, params),
   };
 }
+
+// ────── LOCALE-AWARE FORMATTING ──────
+
+const LOCALE_TAGS: Record<Language, string> = {
+  ka: "ka-GE",
+  en: "en-US",
+  ru: "ru-RU",
+  tr: "tr-TR",
+  fa: "fa-IR",
+};
+
+export function localeTag(language: Language): string {
+  return LOCALE_TAGS[language] ?? "en-US";
+}
+
+/** Currency word shown after the amount, per language. */
+export function currencyWord(language: Language): string {
+  return translate(language, "common.currency");
+}
+
+export function formatMoney(n: number, language: Language): string {
+  const amount = new Intl.NumberFormat(localeTag(language), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(n) ? n : 0);
+  return `${amount} ${currencyWord(language)}`;
+}
+
+export function formatNumber(n: number, language: Language): string {
+  return new Intl.NumberFormat(localeTag(language)).format(Number.isFinite(n) ? n : 0);
+}
+
+function toDate(value: string | number | Date): Date | null {
+  const d = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function formatDate(
+  value: string | number | Date,
+  language: Language,
+  options: Intl.DateTimeFormatOptions = { day: "2-digit", month: "short", year: "numeric" },
+): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), options).format(d);
+}
+
+/** 24-hour clock everywhere — the product standard. */
+export function formatTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+export function formatDateTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  return new Intl.DateTimeFormat(localeTag(language), {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+}
+
+export function formatRelativeTime(value: string | number | Date, language: Language): string {
+  const d = toDate(value);
+  if (!d) return "—";
+  const diffSec = Math.round((d.getTime() - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat(localeTag(language), { numeric: "auto" });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["year", 31536000],
+    ["month", 2592000],
+    ["day", 86400],
+    ["hour", 3600],
+    ["minute", 60],
+  ];
+  for (const [unit, sec] of units) {
+    if (Math.abs(diffSec) >= sec) return rtf.format(Math.round(diffSec / sec), unit);
+  }
+  return rtf.format(diffSec, "second");
+}
+
+export function formatDistance(km: number, language: Language): string {
+  if (!Number.isFinite(km)) return "";
+  if (km < 1) return translate(language, "common.distanceM", { value: Math.round(km * 1000) });
+  return translate(language, "common.distanceKm", {
+    value: new Intl.NumberFormat(localeTag(language), { maximumFractionDigits: 1 }).format(km),
+  });
+}
+
+/** Formatters bound to the active language. */
+export function useFormatters() {
+  const { language } = useI18n();
+  return useMemo(() => ({
+    language,
+    money: (n: number) => formatMoney(n, language),
+    number: (n: number) => formatNumber(n, language),
+    date: (v: string | number | Date, o?: Intl.DateTimeFormatOptions) => formatDate(v, language, o),
+    time: (v: string | number | Date) => formatTime(v, language),
+    dateTime: (v: string | number | Date) => formatDateTime(v, language),
+    relative: (v: string | number | Date) => formatRelativeTime(v, language),
+    distance: (km: number) => formatDistance(km, language),
+    currency: currencyWord(language),
+  }), [language]);
+}
+
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { language, setLanguage, t } = useI18n();
@@ -1495,7 +1749,10 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     { value: "ka", label: "ქართული", short: "ქარ" },
     { value: "en", label: "English", short: "EN" },
     { value: "ru", label: "Русский", short: "РУ" },
+    { value: "tr", label: "Türkçe", short: "TR" },
+    { value: "fa", label: "فارسی", short: "FA" },
   ];
+  const current = options.find((o) => o.value === language) ?? options[0];
 
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1514,81 +1771,49 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     };
   }, [open]);
 
-  const pills = (
-    <div
-      role="group"
-      aria-label={t("language")}
-      className={`${compact ? "hidden sm:inline-flex" : "inline-flex"} items-center rounded-full border border-border bg-card p-0.5 shadow-soft gap-0.5`}
-    >
-      {options.map((option) => {
-        const active = language === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => setLanguage(option.value)}
-            aria-pressed={active}
-            aria-label={option.label}
-            title={option.label}
-            className={`inline-flex items-center justify-center rounded-full font-bold leading-none transition-colors ${
-              compact
-                ? "min-w-[36px] h-8 px-2.5 text-[11px]"
-                : "min-w-[44px] h-9 px-3 text-xs"
-            } ${
-              active
-                ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-foreground hover:bg-muted"
-            }`}
-          >
-            {option.short}
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  if (!compact) return pills;
-
   return (
-    <>
-      {pills}
-      <div ref={ref} className="relative sm:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={t("language")}
-          className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("language")}
+        title={current.label}
+        className={`tap-target inline-flex items-center gap-1.5 rounded-full border border-border bg-card press shadow-soft focus-visible:outline-none ${
+          compact ? "h-9 px-2.5" : "h-10 px-3"
+        }`}
+      >
+        <Globe className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+        <span className={`font-bold leading-none ${compact ? "text-[11px]" : "text-xs"}`}>
+          {current.short}
+        </span>
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[170px] rounded-2xl border border-border bg-card p-1 shadow-elevated animate-scale-in"
         >
-          <Globe className="w-[18px] h-[18px]" aria-hidden="true" />
-        </button>
-        {open && (
-          <div
-            role="listbox"
-            className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[160px] rounded-2xl border border-border bg-card p-1 shadow-elevated animate-scale-in"
-          >
-            {options.map((option) => {
-              const active = language === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => { setLanguage(option.value); setOpen(false); }}
-                  className={`w-full min-h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-semibold transition-colors ${
-                    active ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                  }`}
-                >
-                  {option.label}
-                  {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </>
+          {options.map((option) => {
+            const active = language === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={active}
+                onClick={() => { setLanguage(option.value); setOpen(false); }}
+                className={`w-full min-h-11 px-3 rounded-xl flex items-center justify-between gap-2 text-sm font-semibold transition-colors ${
+                  active ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                }`}
+              >
+                {option.label}
+                {active && <Check className="w-4 h-4 shrink-0" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

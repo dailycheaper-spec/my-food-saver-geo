@@ -9,9 +9,8 @@ import { isNative, openExternal } from "@/lib/native";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "შესვლა / რეგისტრაცია — Cheaper" }, { name: "robots", content: "noindex" }] }),
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
-  }),
+  validateSearch: (search: { redirect?: unknown }): { redirect?: string } =>
+    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
   component: AuthPage,
 });
 
@@ -89,19 +88,38 @@ function AuthPage() {
     setMsg(null);
     sessionStorage.setItem("auth_redirect", redirectTarget);
 
-    // Native (Capacitor): Google blocks OAuth inside embedded WebViews, so we
-    // open the authorize URL in the system browser (SFSafariViewController /
-    // Chrome Custom Tab) and let the /auth/native-return bounce page hand
-    // tokens back via the ge.cheaper.app:// deep-link scheme. The listener in
-    // __root.tsx calls supabase.auth.setSession() and navigates.
+    // Native (Capacitor): the auth backend only accepts HTTPS URLs from its
+    // redirect allow-list. Return through our public bounce page, which then
+    // opens the app's registered ge.cheaper.app:// scheme with the tokens/code.
     if (isNative()) {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-      const bounce = "https://cheaper.ge/auth/native-return";
-      const url =
-        `${supabaseUrl}/auth/v1/authorize?provider=${provider}` +
-        `&redirect_to=${encodeURIComponent(bounce)}`;
       try {
-        await openExternal(url);
+        const nativePlatform = (await import("@capacitor/core")).Capacitor.getPlatform();
+        const nativeReturnUrl = new URL("/auth/native-return", window.location.origin);
+        nativeReturnUrl.searchParams.set("platform", nativePlatform);
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: nativeReturnUrl.toString(),
+            skipBrowserRedirect: true,
+          },
+        });
+        if (error || !data.url) throw error ?? new Error("Missing OAuth URL");
+
+        // Recover the screen if the user dismisses the system browser (or it
+        // closes) without the deep-link handoff having signed us in.
+        const { onBrowserFinished, isNativeOAuthCallbackPending } = await import("@/lib/native");
+        const off = await onBrowserFinished(() => {
+          off();
+          window.setTimeout(() => {
+            if (isNativeOAuthCallbackPending()) return;
+            void supabase.auth.getSession().then(({ data }) => {
+              if (data.session || isNativeOAuthCallbackPending()) return;
+              setLoading(false);
+              setMsg({ type: "err", text: t("auth.native.retry") });
+            });
+          }, 700);
+        });
+        await openExternal(data.url);
       } catch {
         setLoading(false);
         setMsg({ type: "err", text: `${t("oauthFailed")} (${provider})` });
@@ -119,7 +137,9 @@ function AuthPage() {
       // full-page redirect works.
       try {
         window.open(window.location.href, "_blank", "noopener,noreferrer");
-      } catch {}
+      } catch {
+        // The message below still tells the user how to continue manually.
+      }
       setLoading(false);
       setMsg({ type: "ok", text: t("openInNewTab") });
       return;

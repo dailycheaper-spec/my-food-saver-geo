@@ -1,34 +1,21 @@
 ## Goal
+Remove cash ("pay at pickup" / ნაღდი) as a payment option entirely, so every order goes through a card gateway (BOG, TBC, or Google Pay).
 
-Everywhere we currently print raw coordinates (`Latitude: 41.716… · Longitude: 44.783…`), show the actual street address for that point instead — resolved from the map pin — plus a search box so the location can be found by typing an address, like the customer-side delivery picker.
+## Changes
 
-## Where it changes
+**Checkout page (`src/routes/offer.$id.tsx`)**
+- Drop `"COD"` from the payment state type; keep `"TBC" | "BOG" | "GPAY"` with `BOG` as default.
+- Remove the `{ id: "COD", label: t("payAtPickup"), icon: "💵" }` entry from the payment-method selector list.
+- Delete the `if (payment === "COD") { ... }` branch in `handleReserve` — the legacy path that created an already-paid order directly via `createOrderDb`. All orders then flow through the hosted bank checkout (pending order → verified callback → paid).
 
-1. **Partner application** (`partner-apply.tsx`) — coordinate line under the map.
-2. **Partner store settings** (`partner.store.tsx`) — coordinate line under the map.
-3. **Admin partner card** (`admin.partners.tsx`) — "Coordinates: 41.7…, 44.7…" row.
-4. **Admin store location modal** (`AdminStoreLocationModal.tsx`) — same treatment as the partner map.
+**Admin settings (`src/lib/admin-settings.ts`, `src/routes/_authenticated/admin.settings.tsx`)**
+- Remove `cash` from the `paymentProviders` type and defaults.
+- Remove the "ნაღდი / Cash" toggle row from the payment methods section.
 
-## What gets built
+**Translations (`src/lib/i18n-domains/`)**
+- Remove the now-unused `admin.settings.cash` key in all 5 languages, and the `payAtPickup` key if nothing else references it.
 
-**New shared component: `src/components/address/MapAddressField.tsx`**
-
-A thin wrapper around the existing `StoreLocationPicker` that adds the address layer, reusing the same server functions the customer `AddressPicker` already uses (`reverseGeocode`, `autocompleteAddress`, `placeDetails` in `src/lib/geocode.functions.ts`):
-
-- **Search input** on top: type an address → debounced autocomplete suggestions (biased to the selected city) → picking one moves the map pin and sets lat/lng.
-- **Map** below, unchanged behaviour (tap / drag / "use my current location").
-- **Resolved address card** under the map replacing the coordinate text: pin icon + street line, resolved by debounced reverse-geocoding ~400ms after the pin settles, with a "resolving…" skeleton state.
-- **Graceful fallback**: if geocoding is unavailable (the existing `MapsUnavailableError` / billing-disabled path), it quietly falls back to showing the coordinates in small mono text, so the form never breaks.
-- Coordinates stay available but demoted: a tiny "coordinates" line only shown on demand / in the fallback.
-- Optional `onAddressResolved(address)` callback.
-
-**Auto-fill the address field.** In partner-apply and partner.store, when the pin resolves and the store's `address` field is still empty (or the user hasn't manually edited it), prefill it with the resolved street line, with a small "use this address" button when it differs — so partners don't type the address twice.
-
-**Admin views.** `admin.partners.tsx` shows the reverse-geocoded address as the primary line with coordinates as a secondary, muted mono line; the resolution is cached per store so scrolling the list doesn't spam geocoding. The admin location modal uses the same `MapAddressField`.
-
-## Technical notes
-
-- No DB changes. The store `address` column already exists; we only improve how it's filled and displayed.
-- Reverse-geocode results are cached in a module-level `Map` keyed by `lat,lng,language` (same pattern as `AddressPicker`) to limit Google Maps calls.
-- All new strings go through the existing trilingual `L(...)` / i18n helpers (KA/EN/RU).
-- `MapAddressField` keeps the lazy `Suspense` loading of the Leaflet map already used in these routes.
+## Notes
+- Delivery dispatch still fires for delivery orders — it already runs on the paid-order path via the callback flow, so nothing is lost by removing the COD branch.
+- No database changes: the `orders` table has no cash-specific column; `payment_provider` stays `bog` / `tbc`.
+- Legal text already states payment is cashless only, so it stays as is.

@@ -18,8 +18,7 @@ export const Route = createFileRoute("/_authenticated/admin/stats")({
 const KG_PER_ORDER = 0.4;
 
 function AdminStats() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { orders } = useAllOrders();
   const { stores } = useAllStores();
   const { offers } = useAllOffers();
@@ -82,24 +81,24 @@ function AdminStats() {
     <div className="space-y-6">
       <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("სტატისტიკა", "Statistics", "Статистика")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{days === 1 ? L("ბოლო 24 საათი", "Last 24 hours", "Последние 24 часа") : days === 7 ? L("ბოლო 7 დღე", "Last 7 days", "Последние 7 дней") : L("ბოლო 30 დღე", "Last 30 days", "Последние 30 дней")}</p>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.stats.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{days === 1 ? t("admin.stats.last24h") : days === 7 ? t("admin.stats.last7d") : t("admin.stats.last30d")}</p>
         </div>
         <div className="flex gap-1 p-1 rounded-2xl bg-muted">
           {(["day", "week", "month"] as const).map((r) => (
             <button key={r} onClick={() => setRange(r)}
               className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors ${range === r ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              {r === "day" ? L("დღიური", "Daily", "День") : r === "week" ? L("კვირა", "Weekly", "Неделя") : L("თვე", "Monthly", "Месяц")}
+              {r === "day" ? t("admin.stats.daily") : r === "week" ? t("admin.stats.weekly") : t("admin.stats.monthly")}
             </button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <Kpi icon={TrendingUp} label={L("შემოსავალი", "Revenue", "Доход")} value={formatGel(revenue)} tint="success" />
-        <Kpi icon={Package} label={L("შეკვეთა", "Orders", "Заказы")} value={filtered.length.toString()} tint="primary" />
-        <Kpi icon={Leaf} label={L("დაზოგილი (კგ)", "Saved (kg)", "Сэкономлено (кг)")} value={kgSaved.toFixed(1)} tint="success" />
-        <Kpi icon={Users} label={L("აქტიური კლიენტი", "Active customers", "Активные клиенты")} value={new Set(filtered.map((o) => o.user_id)).size.toString()} tint="warm" />
+        <Kpi icon={TrendingUp} label={t("admin.stats.revenue")} value={formatGel(revenue)} tint="success" />
+        <Kpi icon={Package} label={t("admin.stats.orders")} value={filtered.length.toString()} tint="primary" />
+        <Kpi icon={Leaf} label={t("admin.stats.savedKg")} value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Users} label={t("admin.stats.activeCustomers")} value={new Set(filtered.map((o) => o.user_id)).size.toString()} tint="warm" />
       </div>
 
       <PlatformInsights orders={orders} />
@@ -108,7 +107,7 @@ function AdminStats() {
 
       {/* Revenue chart */}
       <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
-        <h3 className="font-display font-bold text-lg mb-4">{L("შემოსავალი დღეების მიხედვით", "Revenue by day", "Доход по дням")}</h3>
+        <h3 className="font-display font-bold text-lg mb-4">{t("admin.stats.revenueByDay")}</h3>
         <div className="flex items-end gap-1 h-48">
           {buckets.map(([date, value]) => (
             <div key={date} className="flex-1 flex flex-col items-center gap-1 group">
@@ -128,22 +127,22 @@ function AdminStats() {
         <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Store className="w-5 h-5 text-primary" />
-            <h3 className="font-display font-bold text-lg">{L("TOP მაღაზიები", "Top stores", "Топ магазины")}</h3>
+            <h3 className="font-display font-bold text-lg">{t("admin.stats.topStores")}</h3>
           </div>
           <div className="space-y-2">
-            {topStores.map((t, i) => (
-              <div key={t.store!.id} className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-muted/50">
+            {topStores.map((row, i) => (
+              <div key={row.store!.id} className="flex items-center justify-between p-2.5 rounded-2xl hover:bg-muted/50">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary grid place-items-center text-sm font-bold shrink-0">{i + 1}</div>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{t.store!.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.orders} {L("შეკვეთა", "orders", "заказов")}</div>
+                    <div className="text-sm font-medium truncate">{row.store!.name}</div>
+                    <div className="text-xs text-muted-foreground">{row.orders} {t("admin.stats.orderCount")}</div>
                   </div>
                 </div>
-                <div className="font-bold text-sm shrink-0">{formatGel(t.revenue)}</div>
+                <div className="font-bold text-sm shrink-0">{formatGel(row.revenue)}</div>
               </div>
             ))}
-            {topStores.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{L("ცარიელია.", "Empty.", "Пусто.")}</p>}
+            {topStores.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{t("admin.stats.empty")}</p>}
           </div>
         </div>
 
@@ -151,7 +150,7 @@ function AdminStats() {
         <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <Package className="w-5 h-5 text-primary" />
-            <h3 className="font-display font-bold text-lg">{L("TOP პროდუქტები", "Top products", "Топ товары")}</h3>
+            <h3 className="font-display font-bold text-lg">{t("admin.stats.topProducts")}</h3>
           </div>
           <div className="space-y-2">
             {topOffers.map((t, i) => (
@@ -166,7 +165,7 @@ function AdminStats() {
                 <div className="font-bold text-sm shrink-0">{t.count}×</div>
               </div>
             ))}
-            {topOffers.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{L("ცარიელია.", "Empty.", "Пусто.")}</p>}
+            {topOffers.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{t("admin.stats.empty")}</p>}
           </div>
         </div>
       </div>
@@ -192,34 +191,32 @@ function Kpi({ icon: Icon, label, value, tint }: { icon: React.ElementType; labe
 }
 
 function PlatformInsights({ orders }: { orders: Parameters<typeof returningCustomerPct>[0] }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const returning = useMemo(() => returningCustomerPct(orders, 30), [orders]);
   const basket = useMemo(() => averageBasketValue(orders), [orders]);
   const avgDisc = useMemo(() => averageDiscountPct(orders as Parameters<typeof averageDiscountPct>[0], 30), [orders]);
-  const insufficientData = L("მონაცემი არასაკმარისია", "Not enough data", "Недостаточно данных");
 
   return (
     <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
-      <h3 className="font-display font-bold text-lg mb-4">{L("პლატფორმის ჭრილი (30 დღე)", "Platform overview (30 days)", "Обзор платформы (30 дней)")}</h3>
+      <h3 className="font-display font-bold text-lg mb-4">{t("admin.stats.platformOverview")}</h3>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         <MiniStat
           icon={Repeat}
-          label={L("დაბრუნებადი კლიენტი", "Returning customers", "Постоянные клиенты")}
+          label={t("admin.stats.returningCustomers")}
           value={returning ? `${returning.pct.toFixed(0)}%` : "—"}
-          note={returning ? `${returning.returning}/${returning.total}` : insufficientData}
+          note={returning ? `${returning.returning}/${returning.total}` : t("admin.stats.notEnoughData")}
         />
         <MiniStat
           icon={Wallet}
-          label={L("საშ. კალათა", "Avg. basket", "Средняя корзина")}
+          label={t("admin.stats.avgBasket")}
           value={basket === null ? "—" : formatGel(basket)}
-          note={basket === null ? insufficientData : undefined}
+          note={basket === null ? t("admin.stats.notEnoughData") : undefined}
         />
         <MiniStat
           icon={Percent}
-          label={L("საშ. ფასდაკლება", "Avg. discount", "Средняя скидка")}
+          label={t("admin.stats.avgDiscount")}
           value={avgDisc === null ? "—" : `${avgDisc.toFixed(0)}%`}
-          note={avgDisc === null ? insufficientData : undefined}
+          note={avgDisc === null ? t("admin.stats.notEnoughData") : undefined}
         />
       </div>
     </div>

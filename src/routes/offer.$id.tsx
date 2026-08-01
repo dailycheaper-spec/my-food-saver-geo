@@ -11,9 +11,10 @@ import {
 } from "@/lib/mock-data";
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
 import { allergenLabels } from "@/lib/allergens";
-import { createOrder as createOrderDb } from "@/lib/db";
+
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
+import { startTbcCheckout } from "@/lib/payments/tbc.functions";
 import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
@@ -26,6 +27,8 @@ import { toast } from "sonner";
 import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-address";
 import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
 
@@ -73,6 +76,7 @@ function OfferPage() {
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const startBogCheckoutFn = useServerFn(startBogCheckout);
+  const startTbcCheckoutFn = useServerFn(startTbcCheckout);
   const startBogGooglePayFn = useServerFn(startBogGooglePayCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
@@ -121,7 +125,7 @@ function OfferPage() {
   );
   const deliveryBlocked = method === "მიტანა" && !deliveryZone.allowed;
   const [customerNote, setCustomerNote] = useState("");
-  const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY" | "COD">("BOG");
+  const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY">("BOG");
   const [copied, setCopied] = useState(false);
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
@@ -154,11 +158,7 @@ function OfferPage() {
   async function handleReserve() {
     if (soldOut) return;
     if (!realDb) {
-      toast.error(language === "en"
-        ? "This is a demo listing — not available for purchase."
-        : language === "ru"
-        ? "Это демо-предложение — покупка недоступна."
-        : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+      toast.error(t("offer.thisIsADemo"));
       return;
     }
     if (!user) {
@@ -178,62 +178,33 @@ function OfferPage() {
       const isDelivery = method === "მიტანა";
       const methodDb: "pickup" | "delivery" = isDelivery ? "delivery" : "pickup";
 
-      // Cash / Pay-at-pickup: unchanged legacy flow — creates a paid order immediately.
-      if (payment === "COD") {
-        const order = await createOrderDb({
-          offer_id: offer.id,
-          store_id: offer.storeId,
-          amount: total,
-          quantity,
-          method: methodDb,
-          delivery_address: isDelivery ? address : undefined,
-          delivery_lat: isDelivery ? selectedAddr?.lat ?? null : null,
-          delivery_lng: isDelivery ? selectedAddr?.lng ?? null : null,
-          delivery_place_id: isDelivery ? selectedAddr?.placeId ?? null : null,
-          customer_note: customerNote.trim() || undefined,
-        });
-        if (isDelivery) {
-          dispatchDeliveryFn({ data: { orderId: order.id } }).catch((err) => {
-            console.error("Delivery dispatch failed:", err);
-            toast.error(language === "en"
-              ? "Delivery couldn't be arranged automatically — the store will contact you."
-              : language === "ru"
-              ? "Не удалось автоматически организовать доставку — магазин свяжется с вами."
-              : "მიწოდების ავტომატურად დაგეგმვა ვერ მოხერხდა — მაღაზია დაგიკავშირდებათ.");
-          });
-        }
-        navigate({ to: "/orders/$id", params: { id: order.id } });
-        return;
-      }
 
-      // Card / wallet payments → Bank of Georgia Hosted Payment Page.
+      // Card payments → the selected bank's hosted payment page.
       // Server creates a PENDING order and returns the hosted redirect URL.
-      // Order flips to paid only after BOG's server-to-server callback is
-      // independently verified against BOG's API.
-      const { redirectUrl } = await startBogCheckoutFn({
-        data: {
-          offerId: offer.id,
-          storeId: offer.storeId,
-          amount: total,
-          quantity,
-          method: methodDb,
-          deliveryAddress: isDelivery ? address : undefined,
-          deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
-          deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
-          deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
-          customerNote: customerNote.trim() || undefined,
-          nativeReturn: isNative(),
-        },
-      });
+      // The order flips to paid only after the bank's server-to-server
+      // callback is independently re-verified against the bank's API.
+      const checkoutInput = {
+        offerId: offer.id,
+        storeId: offer.storeId,
+        amount: total,
+        quantity,
+        method: methodDb,
+        deliveryAddress: isDelivery ? address : undefined,
+        deliveryLat: isDelivery ? selectedAddr?.lat ?? null : null,
+        deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
+        deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
+        customerNote: customerNote.trim() || undefined,
+        nativeReturn: isNative(),
+      };
+      const { redirectUrl } =
+        payment === "TBC"
+          ? await startTbcCheckoutFn({ data: { ...checkoutInput, language } })
+          : await startBogCheckoutFn({ data: checkoutInput });
       await openExternal(redirectUrl);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes("Store staff cannot place orders on their own store")) {
-        toast.error(language === "en"
-          ? "You can't order from your own store."
-          : language === "ru"
-          ? "Нельзя заказывать в своём собственном магазине."
-          : "საკუთარი მაღაზიიდან შეკვეთის გაკეთება არ შეიძლება.");
+        toast.error(t("offer.youCanTOrder"));
       } else {
         toast.error(msg);
       }
@@ -263,19 +234,19 @@ function OfferPage() {
 
   // ---- Localized labels ----
   const L = {
-    back: language === "en" ? "Back" : language === "ru" ? "Назад" : t("back"),
-    share: language === "en" ? "Share" : language === "ru" ? "Поделиться" : "გაზიარება",
-    copied: language === "en" ? "Link copied" : language === "ru" ? "Ссылка скопирована" : "ბმული დაკოპირდა",
-    aboutBag: language === "en" ? "About this surprise bag" : language === "ru" ? "Об этом пакете" : "პაკეტის შესახებ",
-    ingredients: language === "en" ? "May include" : language === "ru" ? "Возможный состав" : "შესაძლო შემადგენლობა",
-    allergens: language === "en" ? "Allergens" : language === "ru" ? "Аллергены" : "ალერგენები",
-    noAllergens: language === "en" ? "No common allergens listed" : language === "ru" ? "Без распространённых аллергенов" : "გავრცელებული ალერგენების გარეშე",
-    pickupHow: language === "en" ? "Pickup instructions" : language === "ru" ? "Инструкции по получению" : "აღების ინსტრუქცია",
-    getDirections: language === "en" ? "Get directions" : language === "ru" ? "Построить маршрут" : "მარშრუტი",
-    aboutStore: language === "en" ? "About the partner" : language === "ru" ? "О партнёре" : "პარტნიორის შესახებ",
-    trustedPartner: language === "en" ? "Trusted partner" : language === "ru" ? "Надёжный партнёр" : "სანდო პარტნიორი",
-    similar: language === "en" ? "Similar offers" : language === "ru" ? "Похожие предложения" : "მსგავსი შემოთავაზებები",
-    soldOut: language === "en" ? "Sold out" : language === "ru" ? "Распродано" : "გაყიდულია",
+    back: t("back"),
+    share: t("offer.share"),
+    copied: t("offer.linkCopied"),
+    aboutBag: t("offer.aboutThisSurpriseBag"),
+    ingredients: t("offer.mayInclude"),
+    allergens: t("offer.allergens"),
+    noAllergens: t("offer.noCommonAllergensListed"),
+    pickupHow: t("offer.pickupInstructions"),
+    getDirections: t("offer.getDirections"),
+    aboutStore: t("offer.aboutThePartner"),
+    trustedPartner: t("offer.trustedPartner"),
+    similar: t("offer.similarOffers"),
+    soldOut: t("offer.soldOut"),
     reviews: t("gift") /* placeholder unused */,
   };
 
@@ -283,25 +254,27 @@ function OfferPage() {
     <div className="pb-32">
       {/* ---- Image "gallery" ---- */}
       <div className="relative aspect-[4/3] bg-muted">
-        <img
+        <ImageWithSkeleton
           src={offer.image}
           alt={offerText.title}
-          width={1200}
-          height={900}
-          className={`w-full h-full object-cover ${soldOut ? "grayscale opacity-80" : ""}`}
+          priority
+          aspect="absolute inset-0 w-full h-full"
+          imgClassName={soldOut ? "grayscale opacity-80" : ""}
         />
+
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
 
         <button
           onClick={() => history.back()}
-          className="absolute top-4 left-4 w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform pt-[env(safe-area-inset-top)]"
+          className="absolute top-[max(1rem,env(safe-area-inset-top))] left-4 w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform"
           aria-label={L.back}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-[max(1rem,env(safe-area-inset-top))] right-4 flex gap-2">
+
           <button
             onClick={handleShare}
             className="w-11 h-11 rounded-full bg-card/95 backdrop-blur grid place-items-center shadow-soft active:scale-95 transition-transform"
@@ -373,7 +346,7 @@ function OfferPage() {
             <StatChip icon={<Clock className="w-4 h-4 text-primary" />} label={t("pickupTime")}>
               <div className="font-semibold text-sm">{offer.pickupFrom}–{offer.pickupTo}</div>
             </StatChip>
-            <StatChip icon={<MapPin className="w-4 h-4 text-primary" />} label={language === "en" ? "Distance" : language === "ru" ? "Расстояние" : "მანძილი"}>
+            <StatChip icon={<MapPin className="w-4 h-4 text-primary" />} label={t("offer.distance")}>
               <div className="font-semibold text-sm">{offer.distanceKm} {t("km")}</div>
             </StatChip>
             <StatChip icon={<ShoppingBag className="w-4 h-4 text-primary" />} label={t("left")}>
@@ -497,8 +470,8 @@ function OfferPage() {
               </span>
               <span className="text-xs font-semibold text-primary shrink-0 mt-0.5">
                 {selectedAddr
-                  ? language === "en" ? "Change" : language === "ru" ? "Изменить" : "შეცვლა"
-                  : language === "en" ? "Choose" : language === "ru" ? "Выбрать" : "არჩევა"}
+                  ? t("offer.change")
+                  : t("offer.choose")}
               </span>
             </button>
           )}
@@ -511,7 +484,7 @@ function OfferPage() {
                 onClick={() => setPickerOpen(true)}
                 className="font-semibold underline shrink-0"
               >
-                {language === "en" ? "Choose another" : language === "ru" ? "Выбрать другой" : "სხვის არჩევა"}
+                {t("offer.chooseAnother")}
               </button>
             </div>
           )}
@@ -536,24 +509,20 @@ function OfferPage() {
           <div className="mt-5">
             <label className="text-sm font-bold mb-1.5 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-primary" />
-              {language === "en" ? "Special request (optional)" : language === "ru" ? "Особый запрос (необязательно)" : "სპეციალური მოთხოვნა (არასავალდებულო)"}
+              {t("offer.specialRequestOptional")}
             </label>
             <textarea
               value={customerNote}
               onChange={(e) => setCustomerNote(e.target.value.slice(0, 300))}
               maxLength={300}
               rows={2}
-              placeholder={language === "en" ? "e.g. no onions / no hazelnuts" : language === "ru" ? "напр.: без лука / без фундука" : "მაგ: ხახვის გარეშე / თხილის გარეშე"}
+              placeholder={t("offer.eGNoOnions")}
               className="w-full px-3 py-2.5 rounded-2xl bg-secondary border border-transparent focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
             />
             <div className="mt-1 flex items-start justify-between gap-2 text-[11px]">
               <p className="text-muted-foreground leading-snug flex items-start gap-1">
                 <AlertTriangle className="w-3 h-3 mt-0.5 text-warm-foreground shrink-0" />
-                <span>{language === "en"
-                  ? "The partner will try to accommodate your request, but cannot fully guarantee it — please keep this in mind if you have serious allergies."
-                  : language === "ru"
-                  ? "Партнёр постарается учесть ваш запрос, но не может дать полной гарантии — при серьёзной аллергии, пожалуйста, учитывайте это при заказе."
-                  : "პარტნიორი შეეცდება გაითვალისწინოს თქვენი მოთხოვნა, თუმცა სრულ გარანტიას ვერ იძლევა — სერიოზული ალერგიის შემთხვევაში."}</span>
+                <span>{t("offer.thePartnerWillTry")}</span>
               </p>
               <span className="text-muted-foreground shrink-0 tabular-nums">{customerNote.length}/300</span>
             </div>
@@ -567,10 +536,10 @@ function OfferPage() {
           <div className="font-bold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
-              { id: "BOG", label: "ბარათით (BOG)", icon: "💳" },
+              { id: "BOG", label: `${t("offer.byCard")} (BOG)`, icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "TBC", label: "TBC Pay", icon: "🏦" },
-              { id: "COD", label: t("payAtPickup"), icon: "💵" },
+              { id: "TBC", label: `${t("offer.byCard")} (TBC)`, icon: "🏦" },
+
 
             ].map((p) => (
               <button
@@ -594,11 +563,7 @@ function OfferPage() {
                 disabled={soldOut || deliveryBlocked || (method === "მიტანა" && address.length < 3)}
                 onPaymentAuthorized={async (googlePayToken) => {
                   if (!realDb) {
-                    toast.error(language === "en"
-                      ? "This is a demo listing — not available for purchase."
-                      : language === "ru"
-                      ? "Это демо-предложение — покупка недоступна."
-                      : "დემო შემოთავაზება — შეძენა შეუძლებელია.");
+                    toast.error(t("offer.thisIsADemo2"));
                     return;
                   }
                   if (!user) {
@@ -636,11 +601,7 @@ function OfferPage() {
                 onFallback={() => setPayment("BOG")}
               />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {language === "en"
-                  ? "Google Pay (TEST mode) — 3DS may be required to complete the charge."
-                  : language === "ru"
-                  ? "Google Pay (тест) — может потребоваться 3DS-подтверждение."
-                  : "Google Pay (ტესტ-რეჟიმი) — შესაძლოა საჭირო გახდეს 3DS-დადასტურება."}
+                {t("offer.googlePayTestMode")}
               </p>
             </div>
           )}
@@ -665,7 +626,7 @@ function OfferPage() {
               </div>
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
-                {offer.rating} · {offer.reviewCount} {language === "en" ? "reviews" : language === "ru" ? "отзывов" : "შეფასება"}
+                {offer.rating} · {offer.reviewCount} {t("offer.reviews")}
               </div>
               {trusted && (
                 <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -687,7 +648,7 @@ function OfferPage() {
                 <Utensils className="w-4 h-4 text-primary" /> {L.similar}
               </h2>
               <Link to="/search" className="text-xs font-semibold text-primary flex items-center gap-0.5">
-                {language === "en" ? "See all" : language === "ru" ? "Все" : "ყველა"} <ChevronRight className="w-3.5 h-3.5" />
+                {t("offer.seeAll")} <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
@@ -725,7 +686,7 @@ function OfferPage() {
             {soldOut
               ? L.soldOut
               : !user
-              ? (language === "en" ? "Sign in to reserve" : language === "ru" ? "Войти для брони" : "შედი დასაჯავშნად")
+              ? (t("offer.signInToReserve"))
               : t("reserve")}
           </button>
         </div>

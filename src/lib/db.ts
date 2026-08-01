@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { SUPPORTED_LANGUAGES, currencyWord, formatMoney, type Language } from "@/lib/i18n";
 import { listAdminStores } from "@/lib/admin-store.functions";
 import { getMyPartnerAccess } from "@/lib/partner-store.functions";
 import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
@@ -544,14 +545,20 @@ export async function reactivateStore(storeId: string) {
 }
 
 // ────── FORMATTING HELPERS ──────
+// Non-component modules can't use hooks, so they read the persisted language and
+// delegate to the locale-aware formatters in @/lib/i18n.
+function activeLanguage(): Language {
+  if (typeof window === "undefined") return "ka";
+  const raw = window.localStorage.getItem("cheaper-language");
+  return (SUPPORTED_LANGUAGES as string[]).includes(raw ?? "") ? (raw as Language) : "ka";
+}
 export function currencyLabel(): string {
-  if (typeof window === "undefined") return "ლარი";
-  const lang = window.localStorage.getItem("cheaper-language") || "ka";
-  return lang === "en" ? "GEL" : lang === "ru" ? "Лари" : "ლარი";
+  return currencyWord(activeLanguage());
 }
 export function formatGel(n: number): string {
-  return `${n.toFixed(2)} ${currencyLabel()}`;
+  return formatMoney(n, activeLanguage());
 }
+
 
 export function timeShort(t: string): string {
   return t?.slice(0, 5) ?? "";

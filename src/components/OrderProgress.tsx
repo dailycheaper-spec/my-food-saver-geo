@@ -26,17 +26,15 @@ export function stageOfOrder(o: Order): OrderStage {
 }
 
 export function useStageLabel(): (s: OrderStage) => string {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
+  const { t } = useI18n();
   return (s) => {
     switch (s) {
-      case "pending": return L("მოლოდინში", "Pending", "В ожидании");
-      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено");
-      case "preparing": return L("მზადდება", "Preparing", "Готовится");
-      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче");
-      case "completed": return L("დასრულებული", "Completed", "Завершено");
-      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено");
+      case "pending": return t("orders.pending");
+      case "confirmed": return t("orders.confirmed");
+      case "preparing": return t("orders.preparing");
+      case "ready": return t("orders.readyForPickup");
+      case "completed": return t("orders.completed");
+      case "cancelled": return t("orders.cancelled");
     }
   };
 }

@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Bell, MapPin, Check } from "lucide-react";
-import { CATEGORIES } from "@/lib/mock-data";
+import { CATEGORIES, getCategoryLabel } from "@/lib/mock-data";
 import { saveNotifSettings, useNotifSettings } from "@/lib/storage";
 import { useI18n } from "@/lib/i18n";
+import { useUserLocation } from "@/hooks/use-user-location";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({ meta: [{ title: "შეტყობინებები — Cheaper" }, { name: "description", content: "მიიღე შეტყობინება, როცა ახლომდებარე უბანში ახალი შემოთავაზება გამოჩნდება." }] }),
@@ -12,10 +13,9 @@ export const Route = createFileRoute("/notifications")({
 
 function Notifications() {
   const { t, language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
   const settings = useNotifSettings();
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const { location, askPermission, isLocating } = useUserLocation();
   const [demo, setDemo] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,20 +32,12 @@ function Notifications() {
   }
 
   function requestLocation() {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => setLocation({ lat: 41.7151, lng: 44.8271 }), // Tbilisi fallback
-    );
+    askPermission();
   }
 
   function triggerDemo() {
-    const title = L("🥖 ახალი პაკეტი 1.2 კმ-ში", "🥖 New bag 1.2 km away", "🥖 Новый пакет в 1.2 км");
-    const body = L(
-      `პური გულიანი — სიურპრიზ პაკეტი 10 ${t("currency")}-ად`,
-      `Puri Guliani — surprise bag for 10 ${t("currency")}`,
-      `Пури Гулиани — сюрприз-пакет за 10 ${t("currency")}`,
-    );
+    const title = t("notifications.newBag12");
+    const body = t("notifications.demoBody", { currency: t("currency") });
     if (permission === "granted") {
       new Notification(title, { body, icon: "/favicon.ico" });
     }
@@ -101,7 +93,7 @@ function Notifications() {
           <div className="flex-1">
             <div className="font-semibold">{t("address")}</div>
             <div className="text-xs text-muted-foreground">
-              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : L("ვერ ვხედავ შენს ლოკაციას", "Location not available", "Местоположение недоступно")}
+              {location ? `✓ ${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}` : t("notifications.locationNotAvailable")}
             </div>
           </div>
           <button onClick={requestLocation} className="px-4 py-2 rounded-full bg-card border border-border text-sm font-semibold">
@@ -141,7 +133,7 @@ function Notifications() {
                   on ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"
                 }`}
               >
-                {c.icon} {c.label}
+                {c.icon} {getCategoryLabel(c.id, language)}
               </button>
             );
           })}

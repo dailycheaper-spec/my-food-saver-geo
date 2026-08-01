@@ -42,10 +42,26 @@ function localizedHead(): { title: string; description: string } {
       description: "Смотрите предложения на карте с точным местоположением и расстоянием.",
     };
   }
+  if (lang === "tr") {
+    return {
+      title: "Harita — Yakınlardaki fırsatlar | Cheaper",
+      description: "Fırsatları harita üzerinde gör, tam konumu ve mesafeyi öğren.",
+    };
+  }
+  if (lang === "fa") {
+    return {
+      title: "نقشه — پیشنهادهای نزدیک | Cheaper",
+      description: "پیشنهادها را روی نقشه ببینید و موقعیت دقیق و فاصله را بیابید.",
+    };
+  }
   return fallback;
 }
 
 export const Route = createFileRoute("/map")({
+  validateSearch: (search: Record<string, unknown>): { radius?: RadiusOption } => {
+    const r = Number(search.radius);
+    return [1, 3, 5, 10, 20].includes(r) ? { radius: r as RadiusOption } : {};
+  },
   head: () => {
     const h = localizedHead();
     return {
@@ -118,12 +134,13 @@ function MapPage() {
     () => allOffers.filter((o) => (o.city ?? "თბილისი") === city),
     [allOffers, city],
   );
-  const { location, status, askPermission, request } = useUserLocation();
+  const { location, status, askPermission, request, refresh, isLocating, permission } = useUserLocation();
   const favorites = useFavorites();
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [radius, setRadius] = useState<RadiusOption>(5);
-  const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(5);
+  const { radius: radiusFromSearch } = Route.useSearch();
+  const [radius, setRadius] = useState<RadiusOption>(radiusFromSearch ?? 5);
+  const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(radiusFromSearch ?? 5);
   const [showUnavailable, setShowUnavailable] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [query, setQuery] = useState("");
@@ -302,7 +319,7 @@ function MapPage() {
   }, [query, offers, language]);
 
   const askOrRefresh = () => {
-    if (status === "granted") void request();
+    if (location || permission === "granted" || permission === "denied") void refresh();
     else askPermission();
   };
 
@@ -584,13 +601,13 @@ function MapPage() {
 
 
       <div className="flex-1 relative">
-        {!location && status !== "prompting" && (
+        {!location && !isLocating && (
           <div className="absolute right-3 bottom-24 z-[1000] pointer-events-auto bg-card/95 backdrop-blur border border-border rounded-full shadow-elevated pl-3 pr-1 py-1 flex items-center gap-2 max-w-[92%]">
             <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
             <p className="text-[11px] font-semibold text-foreground truncate">{t("map.locationOff")}</p>
             <button
               type="button"
-              onClick={status === "denied" ? () => void request() : askPermission}
+              onClick={permission === "prompt" || permission === "unknown" ? askPermission : () => void request()}
               className="h-7 px-3 rounded-full bg-primary text-primary-foreground text-[11px] font-semibold press shrink-0"
             >
               {status === "denied" ? t("map.retry") : t("map.enable")}

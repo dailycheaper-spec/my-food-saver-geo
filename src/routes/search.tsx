@@ -14,6 +14,9 @@ import {
 import { OfferCard } from "@/components/OfferCard";
 import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
+import { OfferCardSkeleton } from "@/components/Skeleton";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 export const Route = createFileRoute("/search")({
   head: () => ({
@@ -63,7 +66,7 @@ type Sort = typeof SORTS[number];
 
 function SearchPage() {
   const { t, language } = useI18n();
-  const { offers: OFFERS, stores: STORES, error: offersError } = useLiveDbData();
+  const { offers: OFFERS, stores: STORES, loading: offersLoading, error: offersError } = useLiveDbData();
 
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | "ყველა">("ყველა");
@@ -178,46 +181,41 @@ function SearchPage() {
     return { partners, foods, cats, districts };
   }, [q, language, OFFERS, STORES]);
 
-  const trendingTerms = language === "en"
-    ? ["Khachapuri", "Sushi", "Bakery", "Coffee", "Fruits"]
-    : language === "ru"
-      ? ["Хачапури", "Суши", "Пекарня", "Кофе", "Фрукты"]
-      : ["ხაჭაპური", "სუში", "საცხობი", "ყავა", "ხილი"];
+  const trendingTerms = [
+    t("search.trendKhachapuri"), t("search.trendSushi"), t("search.trendBakery"), t("search.trendCoffee"), t("search.trendFruits"),
+  ];
 
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
-
-  const recentLabel = L("ბოლო ძებნები", "Recent", "Недавние");
-  const trendingLabel = L("პოპულარული", "Popular", "Популярное");
-  const resultsLabel = L("შედეგი", "results", "результатов");
-  const clearLabel = L("გასუფთავება", "Clear", "Очистить");
-  const filtersLabel = L("ფილტრები", "Filters", "Фильтры");
-  const partnersLabel = L("პარტნიორები", "Partners", "Партнёры");
-  const foodsLabel = L("კერძები", "Dishes", "Блюда");
-  const catsLabel = L("კატეგორიები", "Categories", "Категории");
-  const locLabel = L("მდებარეობა", "Location", "Локация");
-  const distanceLabel = L("მანძილი", "Distance", "Расстояние");
-  const priceLabel = L("ფასი", "Price", "Цена");
-  const discountLabel = L("ფასდაკლება", "Discount", "Скидка");
-  const ratingLabel = L("რეიტინგი", "Rating", "Рейтинг");
-  const openNowLabel = L("ღიაა ახლა", "Open now", "Открыто сейчас");
-  const pickupLabel = L("აღება მდე", "Pickup by", "Забрать до");
-  const dietLabel = L("დიეტა", "Dietary", "Диета");
-  const sortLabel = L("დალაგება", "Sort", "Сорт.");
-  const resetLabel = L("გადატვირთვა", "Reset", "Сброс");
+  const recentLabel = t("search.recent");
+  const trendingLabel = t("search.popular");
+  const resultsLabel = t("search.results");
+  const clearLabel = t("search.clear");
+  const filtersLabel = t("search.filters");
+  const partnersLabel = t("search.partners");
+  const foodsLabel = t("search.dishes");
+  const catsLabel = t("search.categories");
+  const locLabel = t("search.location");
+  const distanceLabel = t("search.distance");
+  const priceLabel = t("search.price");
+  const discountLabel = t("search.discount");
+  const ratingLabel = t("search.rating");
+  const openNowLabel = t("search.openNow");
+  const pickupLabel = t("search.pickupBy");
+  const dietLabel = t("search.dietary");
+  const sortLabel = t("search.sort");
+  const resetLabel = t("search.reset");
 
   const sortNames: Record<Sort, string> = {
-    distance: L("ახლოს", "Nearest", "Ближе"),
-    price: L("ფასი", "Price", "Цена"),
-    discount: L("ფასდაკლება", "Discount", "Скидка"),
-    rating: L("რეიტინგი", "Rating", "Рейтинг"),
+    distance: t("search.nearest"),
+    price: t("search.price2"),
+    discount: t("search.discount2"),
+    rating: t("search.rating2"),
   };
 
   const dietNames: Record<Diet, string> = {
-    vegetarian: L("ვეგეტარიანული", "Vegetarian", "Вегетарианское"),
-    vegan: L("ვეგანური", "Vegan", "Веган"),
-    glutenFree: L("გლუტენის გარეშე", "Gluten-free", "Без глютена"),
-    halal: L("ჰალალი", "Halal", "Халяль"),
+    vegetarian: t("search.vegetarian"),
+    vegan: t("search.vegan"),
+    glutenFree: t("search.glutenFree"),
+    halal: t("search.halal"),
   };
 
   const toggleDiet = (d: Diet) => {
@@ -231,7 +229,7 @@ function SearchPage() {
   return (
     <div className="min-h-screen">
       {/* Sticky search header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border pt-[env(safe-area-inset-top)]">
+      <div className="app-header">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
@@ -466,7 +464,7 @@ function SearchPage() {
                       params={{ id: o.id }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                     >
-                      <img src={o.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                      <ImageWithSkeleton src={o.image} alt="" aspect="w-10 h-10 shrink-0" className="rounded-lg" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold truncate">{title}</div>
                         <div className="text-[11px] text-muted-foreground truncate">
@@ -593,6 +591,10 @@ function SearchPage() {
                 <div className="text-5xl mb-3">⚠️</div>
                 <p className="text-sm text-destructive">{t("loadErrorGeneric")}</p>
               </div>
+            ) : offersLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => <OfferCardSkeleton key={i} />)}
+              </div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-16 bg-card rounded-3xl border border-border">
                 <div className="text-5xl mb-3">🔍</div>
@@ -603,6 +605,7 @@ function SearchPage() {
                 {filtered.map((o) => <OfferCard key={o.id} offer={o} />)}
               </div>
             )}
+
           </>
         )}
       </div>

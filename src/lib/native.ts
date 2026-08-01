@@ -8,6 +8,16 @@ import { App, type URLOpenListenerEvent } from "@capacitor/app";
 
 export const NATIVE_SCHEME = "ge.cheaper.app";
 
+let nativeOAuthCallbackPending = false;
+
+export function setNativeOAuthCallbackPending(pending: boolean): void {
+  nativeOAuthCallbackPending = pending;
+}
+
+export function isNativeOAuthCallbackPending(): boolean {
+  return nativeOAuthCallbackPending;
+}
+
 export function isNative(): boolean {
   try {
     return Capacitor.isNativePlatform();
@@ -33,6 +43,15 @@ export async function closeExternal(): Promise<void> {
   }
 }
 
+// Fires when the system browser is dismissed (user taps Done / back) or closed
+// programmatically. Used to recover the sign-in screen when the deep-link
+// handoff never happened. No-op on web.
+export async function onBrowserFinished(cb: () => void): Promise<() => void> {
+  if (!isNative()) return () => {};
+  const sub = await Browser.addListener("browserFinished", cb);
+  return () => { void sub.remove(); };
+}
+
 // Register the single deep-link listener. The app receives
 //   ge.cheaper.app://auth-callback#access_token=...&refresh_token=...
 //   ge.cheaper.app://order-return?orderId=...&payment=success
@@ -43,4 +62,48 @@ export async function registerDeepLinkHandler(handler: Handler): Promise<() => v
   if (!isNative()) return () => {};
   const sub = await App.addListener("appUrlOpen", handler);
   return () => { sub.remove(); };
+}
+
+// When OAuth launches a terminated app, appUrlOpen can fire before React has
+// mounted its listener. Capacitor retains that first URL for explicit pickup.
+export async function getNativeLaunchUrl(): Promise<string | null> {
+  if (!isNative()) return null;
+  try {
+    const result = await App.getLaunchUrl();
+    return result?.url ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Read the OS-level device language inside the packaged app. Some Android OEM
+// WebViews report a wrong/stale navigator.language, so on native we ask the
+// system directly and only fall back to the browser tags if that fails.
+export async function getDeviceLanguageTags(): Promise<string[]> {
+  const browserTags = () =>
+    (typeof navigator === "undefined"
+      ? []
+      : [
+          ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+          navigator.language,
+        ]
+    ).filter(Boolean) as string[];
+
+  if (!isNative()) return browserTags();
+
+  try {
+    const { Device } = await import("@capacitor/device");
+    const tags: string[] = [];
+    try {
+      const { value } = await Device.getLanguageTag();
+      if (value) tags.push(value);
+    } catch { /* older plugin versions */ }
+    try {
+      const { value } = await Device.getLanguageCode();
+      if (value) tags.push(value);
+    } catch { /* ignore */ }
+    if (tags.length) return [...tags, ...browserTags()];
+  } catch { /* plugin unavailable */ }
+
+  return browserTags();
 }

@@ -16,8 +16,7 @@ export const Route = createFileRoute("/_authenticated/admin/")({
 const KG_PER_ORDER = 0.4;
 
 function AdminOverview() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   const { stores } = useAllStores();
   const { orders } = useAllOrders();
   const { offers } = useAllOffers();
@@ -41,11 +40,11 @@ function AdminOverview() {
     <div className="space-y-6">
       <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("მთავარი", "Home", "Главная")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{L("დღევანდელი მიმოხილვა და რეალურ დროში აქტივობა", "Today's overview and real-time activity", "Обзор за сегодня и активность в реальном времени")}</p>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.dashboard.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("admin.dashboard.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> Realtime
+          <span className="w-2 h-2 rounded-full bg-success animate-pulse" /> {t("admin.dashboard.realtime")}
         </div>
       </div>
 
@@ -57,7 +56,7 @@ function AdminOverview() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="font-display font-bold text-warm-foreground">
-              {L(`${pendingStores.length} ახალი განაცხადი პარტნიორობაზე`, `${pendingStores.length} new partnership application(s)`, `${pendingStores.length} новых заявок на партнёрство`)}
+              {t("admin.dashboard.newApplications", { count: pendingStores.length })}
             </div>
             <div className="text-xs text-warm-foreground/80 mt-0.5 truncate">
               {pendingStores.slice(0, 3).map((s) => s.name).join(" · ")}
@@ -71,22 +70,22 @@ function AdminOverview() {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
-        <Kpi icon={ShoppingBag} label={L("დღევანდელი შეკვეთა", "Today's orders", "Заказы за сегодня")} value={today.length.toString()} tint="primary" />
-        <Kpi icon={TrendingUp} label={L("დღევანდელი შემოსავალი", "Today's revenue", "Доход за сегодня")} value={formatGel(todayRevenue)} tint="success" />
-        <Kpi icon={Percent} label={L(`კომისია (${settings.commissionPct}%)`, `Commission (${settings.commissionPct}%)`, `Комиссия (${settings.commissionPct}%)`)} value={formatGel(commission)} tint="warm" />
-        <Kpi icon={Leaf} label={L("დაზოგილი (კგ)", "Saved (kg)", "Сэкономлено (кг)")} value={kgSaved.toFixed(1)} tint="success" />
-        <Kpi icon={Store} label={L("აქტიური პარტნიორები", "Active partners", "Активные партнёры")} value={activeStores.toString()} tint="primary" />
-        <Kpi icon={Radio} label={L("ონლაინ მომხმარებელი", "Users online", "Пользователей онлайн")} value={online.toString()} tint="warm" />
-        <Kpi icon={Users} label={L("სულ შეკვეთა", "Total orders", "Всего заказов")} value={totalOrders.toString()} tint="muted" />
-        <Kpi icon={Activity} label={L("აქტიური შემოთავაზება", "Active offers", "Активные предложения")} value={offers.filter((o) => o.is_active).length.toString()} tint="muted" />
+        <Kpi icon={ShoppingBag} label={t("admin.dashboard.todayOrders")} value={today.length.toString()} tint="primary" />
+        <Kpi icon={TrendingUp} label={t("admin.dashboard.todayRevenue")} value={formatGel(todayRevenue)} tint="success" />
+        <Kpi icon={Percent} label={t("admin.dashboard.commission", { pct: settings.commissionPct })} value={formatGel(commission)} tint="warm" />
+        <Kpi icon={Leaf} label={t("admin.dashboard.savedKg")} value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Store} label={t("admin.dashboard.activePartners")} value={activeStores.toString()} tint="primary" />
+        <Kpi icon={Radio} label={t("admin.dashboard.usersOnline")} value={online.toString()} tint="warm" />
+        <Kpi icon={Users} label={t("admin.dashboard.totalOrders")} value={totalOrders.toString()} tint="muted" />
+        <Kpi icon={Activity} label={t("admin.dashboard.activeOffers")} value={offers.filter((o) => o.is_active).length.toString()} tint="muted" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Recent orders */}
         <div className="lg:col-span-2 bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-lg">{L("უახლესი შეკვეთები", "Latest orders", "Последние заказы")}</h3>
-            <span className="text-xs text-muted-foreground">{orders.length} {L("სულ", "total", "всего")}</span>
+            <h3 className="font-display font-bold text-lg">{t("admin.dashboard.latestOrders")}</h3>
+            <span className="text-xs text-muted-foreground">{orders.length} {t("admin.dashboard.total")}</span>
           </div>
           <div className="space-y-2">
             {orders.slice(0, 8).map((o) => (
@@ -104,14 +103,14 @@ function AdminOverview() {
                 </div>
               </div>
             ))}
-            {orders.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{L("ჯერ არაა შეკვეთა.", "No orders yet.", "Заказов пока нет.")}</p>}
+            {orders.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">{t("admin.dashboard.noOrdersYet")}</p>}
           </div>
         </div>
 
-        {/* Realtime feed */}
+        {/* {t("admin.dashboard.realtime")} feed */}
         <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-display font-bold text-lg">{L("აქტივობის არხი", "Activity feed", "Лента активности")}</h3>
+            <h3 className="font-display font-bold text-lg">{t("admin.dashboard.activityFeed")}</h3>
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
           </div>
           <div className="space-y-3 max-h-[500px] overflow-y-auto">
@@ -124,7 +123,7 @@ function AdminOverview() {
                 </div>
               </div>
             ))}
-            {feed.length === 0 && <p className="text-sm text-muted-foreground">{L("ცარიელია.", "Empty.", "Пусто.")}</p>}
+            {feed.length === 0 && <p className="text-sm text-muted-foreground">{t("admin.dashboard.empty")}</p>}
           </div>
         </div>
       </div>

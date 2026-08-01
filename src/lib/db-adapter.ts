@@ -14,6 +14,7 @@ function mapCategory(raw: string | null | undefined, ...extra: (string | null | 
   if (c.includes("pizza") || c.includes("პიცა")) return "პიცა";
   if (c.includes("sushi") || c.includes("სუში")) return "სუში";
   if (c.includes("confection") || c.includes("patisserie") || c.includes("საკონდიტრო") || c.includes("კონდიტ")) return "საკონდიტრო";
+  if (c.includes("home kitchen") || c.includes("homekitchen") || c.includes("home_kitchen") || c.includes("საოჯახო") || c.includes("домашн")) return "საოჯახო სამზრეულო";
   if (c.includes("bak") || c.includes("საცხობი") || c.includes("bakery")) return "საცხობი";
   if (c.includes("market") || c.includes("super") || c.includes("grocery") || c.includes("produce") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
   if (c.includes("cafe") || c.includes("caf") || c.includes("dessert") || c.includes("კაფე")) return "კაფე";
@@ -24,6 +25,7 @@ function fallbackImage(cat: Category): string {
   switch (cat) {
     case "საცხობი": return bagBakery;
     case "საკონდიტრო": return bagSweets;
+    case "საოჯახო სამზრეულო": return bagKhachapuri;
     case "სუში": return bagSushi;
     case "პიცა": return bagKhachapuri;
     case "სუპერმარკეტი": return bagProduce;
@@ -43,12 +45,13 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
   const itemsLeft = Math.max(0, (row.quantity_available ?? 0) - (row.quantity_sold ?? 0));
   const createdAt = row.created_at ? new Date(row.created_at).getTime() : undefined;
   const rowAny = row as unknown as {
-    title_en?: string | null; title_ru?: string | null;
+    title_en?: string | null; title_ru?: string | null; title_tr?: string | null; title_fa?: string | null;
     description_en?: string | null; description_ru?: string | null;
+    description_tr?: string | null; description_fa?: string | null;
   };
   const storeAny = row.store as unknown as (null | {
     name_en?: string | null; name_ru?: string | null;
-    visibility_radius_km?: number | null; city?: string | null;
+    visibility_radius_km?: number | null; city?: string | null; delivery_radius_km?: number | null;
     logo_url?: string | null;
   });
   return {
@@ -62,9 +65,13 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     title: row.title,
     titleEn: rowAny.title_en ?? undefined,
     titleRu: rowAny.title_ru ?? undefined,
+    titleTr: rowAny.title_tr ?? undefined,
+    titleFa: rowAny.title_fa ?? undefined,
     description: row.description ?? "",
     descriptionEn: rowAny.description_en ?? undefined,
     descriptionRu: rowAny.description_ru ?? undefined,
+    descriptionTr: rowAny.description_tr ?? undefined,
+    descriptionFa: rowAny.description_fa ?? undefined,
     image: row.image_url || fallbackImage(cat),
     originalPrice: Number(row.original_price ?? 0),
     price: Number(row.discounted_price ?? 0),
@@ -80,6 +87,7 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     itemsLeft,
     delivery: Boolean(row.delivery_available ?? row.store?.delivery_enabled ?? false),
     deliveryFee: Number(row.store?.delivery_fee_base ?? 0),
+    deliveryRadiusKm: storeAny?.delivery_radius_km != null ? Number(storeAny.delivery_radius_km) : undefined,
     lat: row.store?.lat ?? undefined,
     lng: row.store?.lng ?? undefined,
     visibilityRadiusKm: storeAny?.visibility_radius_km ?? undefined,

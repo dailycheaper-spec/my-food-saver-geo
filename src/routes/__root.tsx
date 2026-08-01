@@ -13,6 +13,9 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { AppTracker } from "@/components/AppTracker";
 import { AndroidBackHandler } from "@/components/AndroidBackHandler";
+import { IosSwipeBack } from "@/components/IosSwipeBack";
+import { PullToRefresh } from "@/components/PullToRefresh";
+
 import { PwaInstall } from "@/components/PwaInstall";
 import { UpdatePrompt } from "@/components/UpdatePrompt";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#3d7a4a" },
+      { name: "theme-color", content: "#0C6E14" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -91,13 +94,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Cheaper — იაფად, 50%+ ფასდაკლებით" },
       { name: "twitter:description", content: "იყიდე ხაჭაპური, სუში, ხილი, ცომეული და მარკეტის კალათები 50%-ზე მეტი ფასდაკლებით — ვაკე, საბურთალო, ვერა და მთელი თბილისი." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/09b7cf16-3e6f-4195-b08e-503d732108a8/id-preview-e9d84b2d--d22d8f17-b970-4d52-b002-48ff4a24743c.lovable.app-1783946305502.png" },
+      { property: "og:image", content: "https://cheaper.ge/og-image.png" },
+      { name: "twitter:image", content: "https://cheaper.ge/og-image.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
 
-      { rel: "icon", href: "/icon-512.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
@@ -137,24 +140,65 @@ function RootComponent() {
     // (/order-return). No-op in the browser.
     let unsubscribeDeepLink: (() => void) | null = null;
     void (async () => {
-      const { startNativeSessionPersistence } = await import("@/lib/native-session");
-      await startNativeSessionPersistence();
-      const { registerDeepLinkHandler, closeExternal } = await import("@/lib/native");
-      unsubscribeDeepLink = await registerDeepLinkHandler(async ({ url }) => {
+      const {
+        registerDeepLinkHandler,
+        getNativeLaunchUrl,
+        closeExternal,
+        setNativeOAuthCallbackPending,
+      } = await import("@/lib/native");
+      let lastHandledUrl: string | null = null;
+      const processingUrls = new Set<string>();
+      const handleNativeUrl = async (url: string) => {
+        if (url === lastHandledUrl || processingUrls.has(url)) return;
+        processingUrls.add(url);
         try {
           const u = new URL(url);
           const host = u.host || u.pathname.replace(/^\/+/, "");
           if (host.startsWith("auth-callback")) {
-            // Tokens arrive in the hash (implicit flow) or query.
-            const raw = (u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash) || u.search.replace(/^\?/, "");
-            const params = new URLSearchParams(raw);
-            const access_token = params.get("access_token");
-            const refresh_token = params.get("refresh_token");
+            setNativeOAuthCallbackPending(true);
+            // Tokens arrive in the hash (implicit flow); PKCE returns ?code=.
+            const hashRaw = u.hash?.startsWith("#") ? u.hash.slice(1) : u.hash || "";
+            const hashParams = new URLSearchParams(hashRaw);
+            const queryParams = new URLSearchParams(u.search.replace(/^\?/, ""));
+            const access_token = hashParams.get("access_token") || queryParams.get("access_token");
+            const refresh_token = hashParams.get("refresh_token") || queryParams.get("refresh_token");
+            const code = queryParams.get("code");
+            const oauthError =
+              queryParams.get("error_description") ||
+              queryParams.get("error") ||
+              hashParams.get("error_description") ||
+              hashParams.get("error");
+
+            let ok = false;
             if (access_token && refresh_token) {
-              await supabase.auth.setSession({ access_token, refresh_token });
+              const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+              ok = !error;
+            } else if (code) {
+              const { error } = await supabase.auth.exchangeCodeForSession(code);
+              ok = !error;
             }
+
             await closeExternal();
-            const target = sessionStorage.getItem("auth_redirect") || "/";
+            if (!ok) {
+              setNativeOAuthCallbackPending(false);
+              const { toast } = await import("sonner");
+              toast.error(oauthError || "Sign-in could not be completed. Please try again.");
+              router.navigate({ to: "/auth" });
+              return;
+            }
+            const storedTarget = sessionStorage.getItem("auth_redirect") || "/";
+            sessionStorage.removeItem("auth_redirect");
+            let target = "/";
+            try {
+              const parsedTarget = new URL(storedTarget, window.location.origin);
+              if (parsedTarget.origin === window.location.origin) {
+                target = `${parsedTarget.pathname}${parsedTarget.search}${parsedTarget.hash}`;
+              }
+            } catch {
+              target = "/";
+            }
+            lastHandledUrl = url;
+            setNativeOAuthCallbackPending(false);
             router.navigate({ to: target });
           } else if (host.startsWith("order-return")) {
             const p = u.searchParams;
@@ -162,14 +206,25 @@ function RootComponent() {
             const payment = p.get("payment") || "processing";
             await closeExternal();
             if (orderId) {
+              lastHandledUrl = url;
               router.navigate({ to: "/orders/$id", params: { id: orderId }, search: { payment } as never });
             }
           }
         } catch (err) {
-          // eslint-disable-next-line no-console
+          setNativeOAuthCallbackPending(false);
           console.warn("[deep-link] failed to handle", url, err);
+        } finally {
+          processingUrls.delete(url);
         }
-      });
+      };
+
+      // Register first so a foreground callback cannot race session hydration.
+      unsubscribeDeepLink = await registerDeepLinkHandler(({ url }) => handleNativeUrl(url));
+      const { startNativeSessionPersistence } = await import("@/lib/native-session");
+      await startNativeSessionPersistence();
+
+      const launchUrl = await getNativeLaunchUrl();
+      if (launchUrl) await handleNativeUrl(launchUrl);
     })();
 
     return () => {
@@ -189,12 +244,16 @@ function RootComponent() {
             >
               Skip to content
             </a>
-            <main id="content" className="pb-[env(safe-area-inset-bottom,0px)]">
+            <main id="content">
               <Outlet />
             </main>
             <BottomNav />
             <AppTracker />
             <AndroidBackHandler />
+            <IosSwipeBack />
+            <PullToRefresh />
+
+
             <PwaInstall />
             <Toaster position="top-center" richColors />
             <UpdatePrompt />

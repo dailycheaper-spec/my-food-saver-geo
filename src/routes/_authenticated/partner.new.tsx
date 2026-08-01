@@ -1,3 +1,4 @@
+import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -18,6 +19,7 @@ const CATEGORIES = [
   { value: "meal", icon: "🍽", key: "meal" },
   { value: "bakery", icon: "🥐", key: "bakery" },
   { value: "confectionery", icon: "🍰", key: "confectionery" },
+  { value: "home_kitchen", icon: "🍲", key: "homeKitchen" },
   { value: "pizza", icon: "🍕", key: "pizza" },
   { value: "sushi", icon: "🍣", key: "sushi" },
   { value: "grocery", icon: "🛒", key: "grocery" },
@@ -55,7 +57,8 @@ const SURPRISE_L10N = {
 
 function NewOfferPage() {
   const { t, language } = useI18n();
-  const sl = SURPRISE_L10N[language];
+  // Partner panel stays ka/en/ru; other UI languages fall back to English.
+  const sl = SURPRISE_L10N[language as "ka" | "en" | "ru"] ?? SURPRISE_L10N.en;
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const navigate = useNavigate();
@@ -65,9 +68,13 @@ function NewOfferPage() {
     title: "",
     title_en: "",
     title_ru: "",
+    title_tr: "",
+    title_fa: "",
     description: "",
     description_en: "",
     description_ru: "",
+    description_tr: "",
+    description_fa: "",
     category: "meal",
     original_price: "20",
     discounted_price: "7",
@@ -102,14 +109,19 @@ function NewOfferPage() {
     const finalDesc = form.is_surprise && contents
       ? (baseDesc ? `${baseDesc}\n\n${sl.contentsLabel}: ${contents}` : `${sl.contentsLabel}: ${contents}`)
       : baseDesc;
+    const tr = await resolveOfferTranslations(form, finalDesc);
     const payload = {
       store_id: store.id,
       title: form.title.trim(),
-      title_en: form.title_en.trim() || null,
-      title_ru: form.title_ru.trim() || null,
+      title_en: tr.title_en,
+      title_ru: tr.title_ru,
+      title_tr: tr.title_tr,
+      title_fa: tr.title_fa,
       description: finalDesc,
-      description_en: form.description_en.trim() || null,
-      description_ru: form.description_ru.trim() || null,
+      description_en: tr.description_en,
+      description_ru: tr.description_ru,
+      description_tr: tr.description_tr,
+      description_fa: tr.description_fa,
       category: form.category,
       original_price: orig,
       discounted_price: disc,
@@ -205,6 +217,10 @@ function NewOfferPage() {
             <Field label={t("titleRuOptional")} value={form.title_ru} onChange={(v) => setForm({ ...form, title_ru: v })} />
             <Field label={t("descriptionEnOptional")} value={form.description_en} onChange={(v) => setForm({ ...form, description_en: v })} />
             <Field label={t("descriptionRuOptional")} value={form.description_ru} onChange={(v) => setForm({ ...form, description_ru: v })} />
+            <Field label={t("titleTrOptional")} value={form.title_tr} onChange={(v) => setForm({ ...form, title_tr: v })} />
+            <Field label={t("titleFaOptional")} value={form.title_fa} onChange={(v) => setForm({ ...form, title_fa: v })} />
+            <Field label={t("descriptionTrOptional")} value={form.description_tr} onChange={(v) => setForm({ ...form, description_tr: v })} />
+            <Field label={t("descriptionFaOptional")} value={form.description_fa} onChange={(v) => setForm({ ...form, description_fa: v })} />
           </div>
         </details>
 

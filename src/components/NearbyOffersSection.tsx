@@ -47,9 +47,8 @@ export function computeNearbyOffers(
 }
 
 export function NearbyOffersSection({ offers }: Props) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
-  const { location, status, askPermission, request } = useUserLocation();
+  const { t } = useI18n();
+  const { location, status, askPermission, request, isLocating, permission } = useUserLocation();
   const { address } = useDeliveryAddress();
   const [radius, setRadius] = useState<RadiusOption>(3);
   const [effectiveRadius, setEffectiveRadius] = useState<RadiusOption>(3);
@@ -74,14 +73,15 @@ export function NearbyOffersSection({ offers }: Props) {
     <section className="mx-auto max-w-6xl px-4 mt-5 sm:mt-6">
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-display text-lg font-bold flex items-center gap-2">
-          <MapPin className="w-[18px] h-[18px] text-primary" /> 📍 {L("თქვენთან ახლოს", "Near you", "Рядом с вами")}
+          <MapPin className="w-[18px] h-[18px] text-primary" /> 📍 {t("home.nearYou")}
         </h2>
         {origin && nearby.length > 0 && (
           <Link
             to="/map"
+            search={{ radius }}
             className="text-xs font-semibold text-primary flex items-center gap-0.5 active:scale-95"
           >
-            {L("ყველას ნახვა", "View all", "Смотреть все")} <ChevronRight className="w-3.5 h-3.5" />
+            {t("store.viewOnMap")} <ChevronRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
           </Link>
         )}
       </div>
@@ -92,20 +92,20 @@ export function NearbyOffersSection({ offers }: Props) {
             {origin.kind === "gps" ? (
               <>
                 <Navigation className="w-3 h-3 text-primary" />
-                {L("თქვენი მიმდინარე მდებარეობიდან", "From your current location", "От вашего текущего местоположения")}
+                {t("home.fromYourCurrentLocation")}
               </>
             ) : (
               <>
                 <HomeIcon className="w-3 h-3 text-primary" />
                 <span className="truncate">
-                  {L("მისამართიდან", "From", "От адреса")}: {origin.label}
+                  {t("home.from")}: {origin.label}
                 </span>
                 <button
                   type="button"
                   onClick={askPermission}
                   className="underline underline-offset-2 font-semibold shrink-0"
                 >
-                  {L("GPS-ის გამოყენება", "Use GPS", "Использовать GPS")}
+                  {t("home.useGps")}
                 </button>
               </>
             )}
@@ -114,35 +114,37 @@ export function NearbyOffersSection({ offers }: Props) {
         </div>
       )}
 
-      {!origin && status !== "prompting" && (
+      {!origin && isLocating && (
+        <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center text-sm text-muted-foreground" role="status">
+          {t("home.findingYourLocation")}
+        </div>
+      )}
+
+      {!origin && !isLocating && (
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-5 text-center">
           <div className="text-3xl mb-2">📍</div>
           <p className="text-sm font-semibold">
-            {L("გაიგე, რა შემოთავაზებებია შენს ახლოს", "See what's near you", "Узнай, что есть рядом")}
+            {t("home.seeWhatSNear")}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {L(
-              "ჩართეთ მდებარეობა, რათა გაჩვენოთ თქვენთან ახლოს არსებული შეთავაზებები.",
-              "Enable location so we can show offers near you.",
-              "Включите геолокацию, чтобы показать предложения рядом.",
-            )}
+            {t("home.enableLocationSoWe")}
           </p>
           <button
             type="button"
-            onClick={askPermission}
+            onClick={permission === "granted" ? () => void request() : askPermission}
             className="mt-4 inline-flex items-center gap-1.5 h-10 px-4 rounded-full bg-primary text-primary-foreground text-sm font-semibold press"
           >
-            <Navigation className="w-4 h-4" /> {L("მდებარეობის ჩართვა", "Enable location", "Включить геолокацию")}
+            <Navigation className="w-4 h-4" /> {t("home.enableLocation")}
           </button>
           {status === "denied" && (
             <p className="mt-3 text-[11px] text-muted-foreground">
-              {L("წვდომა უარყოფილია. შეგიძლიათ", "Access denied. You can", "Доступ отклонён. Вы можете")}{" "}
+              {t("home.accessDeniedYouCan")}{" "}
               <button
                 type="button"
                 onClick={() => void request()}
                 className="underline underline-offset-2 font-semibold"
               >
-                {L("ხელახლა ცადოთ", "try again", "попробовать снова")}
+                {t("home.tryAgain")}
               </button>
               .
             </p>
@@ -152,7 +154,7 @@ export function NearbyOffersSection({ offers }: Props) {
 
       {status === "prompting" && !origin && (
         <div className="rounded-3xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-          {L("იძებნება მდებარეობა…", "Locating…", "Определяем местоположение…")}
+          {t("home.locating")}
         </div>
       )}
 
@@ -160,11 +162,7 @@ export function NearbyOffersSection({ offers }: Props) {
         <div className="rounded-3xl border border-border bg-card p-4 sm:p-6 text-center">
           <div className="text-3xl mb-2">🥲</div>
           <p className="text-sm text-muted-foreground">
-            {L(
-              "თქვენთან ახლოს აქტიური შეთავაზებები ვერ მოიძებნა.",
-              "No active offers near you right now.",
-              "Активных предложений рядом сейчас нет.",
-            )}
+            {t("home.noActiveOffersNear")}
           </p>
           {radius < 20 && (
             <button
@@ -176,7 +174,7 @@ export function NearbyOffersSection({ offers }: Props) {
               }}
               className="mt-3 inline-flex items-center gap-1.5 h-9 px-4 rounded-full bg-secondary text-foreground text-xs font-semibold press"
             >
-              {L("რადიუსის გაზრდა", "Expand radius", "Увеличить радиус")}
+              {t("home.expandRadius")}
             </button>
           )}
         </div>

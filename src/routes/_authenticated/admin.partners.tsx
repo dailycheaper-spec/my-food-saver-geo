@@ -34,17 +34,18 @@ function storeExtras(s: DbStore): StoreExtras {
 const FLAG_THRESHOLD = 5;
 
 const STORE_TYPES = [
-  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
-  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
-  { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
-  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
-  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
-  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продукты" },
-  { value: "other", ka: "სხვა", en: "Other", ru: "Другое" },
+  { value: "restaurant", labelKey: "admin.partners.typeRestaurant" },
+  { value: "bakery", labelKey: "admin.partners.typeBakery" },
+  { value: "confectionery", labelKey: "admin.partners.typeConfectionery" },
+  { value: "home_kitchen", labelKey: "admin.partners.typeHomeKitchen" },
+  { value: "cafe", labelKey: "admin.partners.typeCafe" },
+  { value: "market", labelKey: "admin.partners.typeMarket" },
+  { value: "grocery", labelKey: "admin.partners.typeGrocery" },
+  { value: "other", labelKey: "admin.partners.typeOther" },
 ];
-function storeTypeLabel(value: string, L: (ka: string, en: string, ru: string) => string): string {
-  const t = STORE_TYPES.find((t) => t.value === value);
-  return t ? L(t.ka, t.en, t.ru) : value;
+function storeTypeLabel(value: string, t: (key: string) => string): string {
+  const found = STORE_TYPES.find((s) => s.value === value);
+  return found ? t(found.labelKey) : value;
 }
 
 export const Route = createFileRoute("/_authenticated/admin/partners")({
@@ -57,18 +58,18 @@ export const Route = createFileRoute("/_authenticated/admin/partners")({
 });
 
 const LOC_FILTERS = [
-  { key: "missing_coords", ka: "მდებარეობის გარეშე", en: "No location", ru: "Без местоположения" },
-  { key: "invalid_coords", ka: "არასწორი კოორდინატები", en: "Invalid coordinates", ru: "Неверные координаты" },
-  { key: "no_radius", ka: "რადიუსი მითითებული არაა", en: "Radius not set", ru: "Радиус не указан" },
-  { key: "city_wide", ka: "მთელი ქალაქი", en: "Whole city", ru: "Весь город" },
-  { key: "has_offers", ka: "აქტიური შეთავაზებები", en: "Active offers", ru: "Активные предложения" },
-  { key: "no_offers", ka: "შეთავაზების გარეშე", en: "No offers", ru: "Без предложений" },
+  { key: "missing_coords", labelKey: "admin.partners.locFilterMissingCoords" },
+  { key: "invalid_coords", labelKey: "admin.partners.locFilterInvalidCoords" },
+  { key: "no_radius", labelKey: "admin.partners.locFilterNoRadius" },
+  { key: "city_wide", labelKey: "admin.partners.locFilterCityWide" },
+  { key: "has_offers", labelKey: "admin.partners.locFilterHasOffers" },
+  { key: "no_offers", labelKey: "admin.partners.locFilterNoOffers" },
 ] as const;
 type LocFilterKey = typeof LOC_FILTERS[number]["key"];
 
 function AdminPartners() {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
+
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
   const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
@@ -127,11 +128,11 @@ function AdminPartners() {
   const pendingCount = stores.filter((s) => s.status === "pending").length;
 
   const tabs = [
-    { key: "all", label: L("ყველა", "All", "Все") },
-    { key: "pending", label: L("მოლოდინი", "Pending", "Ожидание") },
-    { key: "active", label: L("აქტიური", "Active", "Активные") },
-    { key: "suspended", label: L("შეჩერებული", "Suspended", "Приостановлены") },
-    { key: "flagged", label: "🚩 " + L("გასაჩივრებული", "Flagged", "С жалобами") },
+    { key: "all", label: t("admin.partners.tabAll") },
+    { key: "pending", label: t("admin.partners.tabPending") },
+    { key: "active", label: t("admin.partners.tabActive") },
+    { key: "suspended", label: t("admin.partners.tabSuspended") },
+    { key: "flagged", label: "🚩 " + t("admin.partners.tabFlagged") },
   ] as const;
 
   function toggleLoc(k: LocFilterKey) {
@@ -149,25 +150,25 @@ function AdminPartners() {
         <div className="flex items-start gap-3 p-4 rounded-2xl bg-destructive/10 border border-destructive/30">
           <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
           <div className="text-sm">
-            <div className="font-semibold text-destructive">{L(`${flaggedCount} ობიექტს დაუგროვდა ${FLAG_THRESHOLD}+ უარყოფითი შეფასება`, `${flaggedCount} place(s) have accumulated ${FLAG_THRESHOLD}+ negative reports`, `${flaggedCount} заведени${flaggedCount === 1 ? "е" : "й"} набрал${flaggedCount === 1 ? "о" : "и"} ${FLAG_THRESHOLD}+ негативных отзывов`)}</div>
-            <div className="text-muted-foreground mt-0.5">{L('gadaxede „gasachivrebuli" tabs da miighe gadatsqvetileba (shechereba an washla).', 'Review the "Flagged" tab and take a decision (suspend or delete).', 'Просмотрите вкладку «С жалобами» и примите решение (приостановить или удалить).')}</div>
+            <div className="font-semibold text-destructive">{t("admin.partners.flaggedWarning", { count: flaggedCount, threshold: FLAG_THRESHOLD })}</div>
+            <div className="text-muted-foreground mt-0.5">{t("admin.partners.flaggedHint")}</div>
           </div>
         </div>
       )}
 
       <div className="grid gap-3 sm:flex sm:items-start sm:justify-between sm:flex-wrap">
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{L("პარტნიორები", "Partners", "Партнёры")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{L("მართე რესტორნები და საცხობები", "Manage restaurants and bakeries", "Управляйте ресторанами и пекарнями")}</p>
+          <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.partners.title")}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("admin.partners.subtitle")}</p>
         </div>
         <div className="grid grid-cols-1 gap-2 sm:flex sm:items-center sm:flex-wrap">
           <button onClick={() => { reload(); loadActiveOffers(); loadReports(); }} disabled={loading}
             className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-card border border-border text-sm font-semibold shadow-sm hover:bg-muted disabled:opacity-60">
-            <RefreshCcw className={`w-4 h-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> <span className="truncate">{L("განაცხადების შემოწმება", "Check applications", "Проверить заявки")} ({pendingCount})</span>
+            <RefreshCcw className={`w-4 h-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> <span className="truncate">{t("admin.partners.checkApplications")} ({pendingCount})</span>
           </button>
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center justify-center min-h-11 gap-1.5 px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:opacity-90">
-            <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">{L("პარტნიორის დამატება", "Add partner", "Добавить партнёра")}</span>
+            <Plus className="w-4 h-4 shrink-0" /> <span className="truncate">{t("admin.partners.addPartner")}</span>
           </button>
         </div>
       </div>
@@ -176,14 +177,14 @@ function AdminPartners() {
 
       {error && (
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-          {L("განაცხადების ჩატვირთვა ვერ მოხერხდა:", "Failed to load applications:", "Не удалось загрузить заявки:")} {error}
+          {t("admin.partners.loadFailed")} {error}
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L("ძებნა სახელით ან კატეგორიით…", "Search by name or category…", "Поиск по названию или категории…")}
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.partners.searchPlaceholder")}
             className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div className="flex gap-1 overflow-x-auto scrollbar-hide">
@@ -202,20 +203,20 @@ function AdminPartners() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <span className="text-xs text-muted-foreground self-center mr-1">{L("მდებარეობის ფილტრები:", "Location filters:", "Фильтры местоположения:")}</span>
+        <span className="text-xs text-muted-foreground self-center mr-1">{t("admin.partners.locationFilters")}</span>
         {LOC_FILTERS.map((f) => {
           const active = locFilters.has(f.key);
           return (
             <button key={f.key} onClick={() => toggleLoc(f.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${active ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border hover:bg-muted"}`}>
-              {L(f.ka, f.en, f.ru)}
+              {t(f.labelKey)}
             </button>
           );
         })}
         {locFilters.size > 0 && (
           <button onClick={() => setLocFilters(new Set())}
             className="px-3 py-1.5 rounded-full text-xs font-semibold text-muted-foreground hover:text-foreground">
-            {L("გასუფთავება", "Clear", "Очистить")}
+            {t("admin.partners.clear")}
           </button>
         )}
       </div>
@@ -232,12 +233,13 @@ function AdminPartners() {
             onEdit={() => setEditingStore(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
         ))}
-        {filtered.length === 0 && <p className="text-sm text-muted-foreground">{L("ცარიელია.", "Empty.", "Пусто.")}</p>}
+        {filtered.length === 0 && <p className="text-sm text-muted-foreground">{t("admin.partners.empty")}</p>}
       </div>
 
       {addOpen && <AddStoreModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); reload(); }} />}
       {editingLocation && (
         <AdminStoreLocationModal
+          key={editingLocation.id}
           store={editingLocation}
           onClose={() => setEditingLocation(null)}
           onSaved={() => { setEditingLocation(null); reload(); }}
@@ -256,8 +258,8 @@ function AdminPartners() {
 }
 
 function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, bank, onEditLocation, onEdit, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; bank: StoreBankInfo | null; onEditLocation: () => void; onEdit: () => void; onChange: () => void }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
+
   const [busy, setBusy] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
@@ -287,16 +289,16 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
             <StatusBadge status={store.status} />
             {ibanValid ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-success/15 text-success" title={`${bank!.iban}${bank!.account_holder ? " · " + bank!.account_holder : ""}`}>
-                <Check className="w-3 h-3" /> {L("IBAN მითითებულია", "IBAN provided", "IBAN указан")}{bank?.account_holder ? ` · ${bank.account_holder}` : ""}
+                <Check className="w-3 h-3" /> {t("admin.partners.ibanProvided")}{bank?.account_holder ? ` · ${bank.account_holder}` : ""}
               </span>
             ) : (
               <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-destructive/10 text-destructive">
-                <AlertTriangle className="w-3 h-3" /> {L("IBAN არ არის მითითებული", "IBAN not provided", "IBAN не указан")}
+                <AlertTriangle className="w-3 h-3" /> {t("admin.partners.ibanMissing")}
               </span>
             )}
             {reportCount > 0 && (
               <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 ${isFlagged ? "bg-destructive text-destructive-foreground" : "bg-warm text-warm-foreground"}`}>
-                <AlertTriangle className="w-3 h-3" /> {reportCount} {L("ჩივილი", "report(s)", "жалоб")}
+                <AlertTriangle className="w-3 h-3" /> {reportCount} {t("admin.partners.reportCount", { count: reportCount })}
               </span>
             )}
           </div>
@@ -306,11 +308,11 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           {store.address && <div className="text-xs text-muted-foreground truncate mt-0.5">{store.address}</div>}
           {(store.company_id_number || store.contact_email || bank?.iban) && (
             <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-              {store.company_id_number && <div>{L("ს/ნ", "ID No.", "ИНН")}: <span className="font-medium text-foreground">{store.company_id_number}</span></div>}
-              {store.contact_email && <div>{L("მეილი", "Email", "Email")}: <span className="font-medium text-foreground">{store.contact_email}</span></div>}
+              {store.company_id_number && <div>{t("admin.partners.idNumber")}: <span className="font-medium text-foreground">{store.company_id_number}</span></div>}
+              {store.contact_email && <div>{t("admin.partners.email")}: <span className="font-medium text-foreground">{store.contact_email}</span></div>}
               {bank?.iban && (
                 <div>
-                  {L("ანგარიშის ნომერი", "Bank account", "Счёт")}: <span className="font-medium text-foreground font-mono">{bank.iban}</span>
+                  {t("admin.partners.bankAccount")}: <span className="font-medium text-foreground font-mono">{bank.iban}</span>
                   {bank.account_holder ? ` · ${bank.account_holder}` : ""}
                 </div>
               )}
@@ -320,22 +322,22 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         <button
           type="button"
           onClick={onEdit}
-          title={L("რედაქტირება", "Edit", "Редактировать")}
+          title={t("admin.partners.edit")}
           className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
         >
-          <Pencil className="w-3 h-3" /> {L("რედაქტ.", "Edit", "Ред.")}
+          <Pencil className="w-3 h-3" /> {t("admin.partners.editShort")}
         </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{L("მდებარეობა", "Location", "Местоположение")}</div>
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("admin.partners.location")}</div>
           <button
             type="button"
             onClick={onEditLocation}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border text-xs font-semibold hover:bg-muted"
           >
-            <Pencil className="w-3 h-3" /> {L("რედაქტირება", "Edit", "Редактировать")}
+            <Pencil className="w-3 h-3" /> {t("admin.partners.edit")}
           </button>
         </div>
         <StoreLocationPreview lat={lat} lng={lng} height={130} />
@@ -344,24 +346,24 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <StoreAddressLine lat={lat} lng={lng} />
           <div className="text-muted-foreground">
 
-            {L("რადიუსი", "Radius", "Радиус")}: <span className="font-semibold text-foreground">
+            {t("admin.partners.radius")}: <span className="font-semibold text-foreground">
               {visibility_radius_km == null
-                ? L("მითითებული არაა", "Not set", "Не указан")
+                ? t("admin.partners.radiusNotSet")
                 : visibility_radius_km >= 50
-                  ? L("მთელი ქალაქი", "Whole city", "Весь город")
-                  : `${visibility_radius_km} ${L("კმ", "km", "км")}`}
+                  ? t("admin.partners.wholeCity")
+                  : `${visibility_radius_km} ${t("admin.partners.km")}`}
             </span>
             {" · "}
-            {L("აქტიური შეთავაზება", "Active offers", "Активные предложения")}: <span className="font-semibold text-foreground">{activeOffers}</span>
+            {t("admin.partners.activeOffers")}: <span className="font-semibold text-foreground">{activeOffers}</span>
           </div>
           {store.status === "pending" && (locStatus !== "ok" || radiusMissing || farFromDistrict) && (
             <div className="mt-2 text-[11px] rounded-lg bg-warm/40 border border-warm text-warm-foreground p-2 flex items-start gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                {locStatus === "missing" && <div>{L("კოორდინატები არ არის მითითებული — შეამოწმეთ დამტკიცებამდე.", "Coordinates are not set — verify before approving.", "Координаты не указаны — проверьте перед одобрением.")}</div>}
-                {locStatus === "invalid" && <div>{L("კოორდინატები საქართველოს საზღვრებს გარეთაა.", "Coordinates are outside Georgia's borders.", "Координаты находятся за пределами границ Грузии.")}</div>}
-                {radiusMissing && <div>{L("ხილვადობის რადიუსი მითითებული არაა.", "Visibility radius is not set.", "Радиус видимости не указан.")}</div>}
-                {farFromDistrict && <div>{L(`კოორდინატები შორსაა უბნისგან „${store.district}"-.`, `Coordinates are far from the district "${store.district}".`, `Координаты далеки от района «${store.district}».`)}</div>}
+                {locStatus === "missing" && <div>{t("admin.partners.warnMissingCoords")}</div>}
+                {locStatus === "invalid" && <div>{t("admin.partners.warnInvalidCoords")}</div>}
+                {radiusMissing && <div>{t("admin.partners.warnRadiusMissing")}</div>}
+                {farFromDistrict && <div>{t("admin.partners.warnFarFromDistrict", { district: store.district ?? "" })}</div>}
               </div>
             </div>
           )}
@@ -371,11 +373,11 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
       <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
 
         <div className="p-2.5 rounded-2xl bg-muted/50">
-          <div className="text-muted-foreground">{L("ბალანსი", "Balance", "Баланс")}</div>
+          <div className="text-muted-foreground">{t("admin.partners.balance")}</div>
           <div className="font-bold text-sm">{formatGel(balance)}</div>
         </div>
         <div className="p-2.5 rounded-2xl bg-muted/50">
-          <div className="text-muted-foreground">{L("კომისია", "Commission", "Комиссия")}</div>
+          <div className="text-muted-foreground">{t("admin.partners.commission")}</div>
           <div className="font-bold text-sm">{commissionPct}%</div>
         </div>
       </div>
@@ -385,42 +387,42 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <>
             <button onClick={() => act(async () => { await approveStoreFn({ data: { storeId: store.id, ownerId: store.owner_id } }); })} disabled={busy}
               className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
-              <Check className="w-3.5 h-3.5" /> {L("დამტკიცება", "Approve", "Одобрить")}
+              <Check className="w-3.5 h-3.5" /> {t("admin.partners.approve")}
             </button>
             <button
               onClick={() => {
-                if (!confirm(L(`უარვყოთ „${store.name}"-ის განაცხადი?`, `Reject "${store.name}"'s application?`, `Отклонить заявку «${store.name}»?`))) return;
+                if (!confirm(t("admin.partners.confirmReject", { name: store.name }))) return;
                 act(async () => {
                   await deleteStoreFn({ data: { storeId: store.id } });
                 });
               }}
               disabled={busy}
               className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
-              <Ban className="w-3.5 h-3.5" /> {L("უარყოფა", "Reject", "Отклонить")}
+              <Ban className="w-3.5 h-3.5" /> {t("admin.partners.reject")}
             </button>
           </>
         )}
         {store.status === "active" && (
           <button onClick={() => act(async () => { await setStatusFn({ data: { storeId: store.id, status: "suspended" } }); })} disabled={busy}
             className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
-            <Ban className="w-3.5 h-3.5" /> {L("შეჩერება", "Suspend", "Приостановить")}
+            <Ban className="w-3.5 h-3.5" /> {t("admin.partners.suspend")}
           </button>
         )}
         {store.status === "suspended" && (
           <button onClick={() => act(async () => { await setStatusFn({ data: { storeId: store.id, status: "active" } }); })} disabled={busy}
             className="flex-1 py-2.5 rounded-2xl bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-primary/20">
-            <RefreshCcw className="w-3.5 h-3.5" /> {L("გააქტიურება", "Activate", "Активировать")}
+            <RefreshCcw className="w-3.5 h-3.5" /> {t("admin.partners.activate")}
           </button>
         )}
         <button
           onClick={() => {
-            if (!confirm(L(`დარწმუნებული ხართ, რომ გსურთ „${store.name}"-ის სამუდამოდ წაშლა? ეს მოქმედება ვერ დაბრუნდება.`, `Are you sure you want to permanently delete "${store.name}"? This action cannot be undone.`, `Вы уверены, что хотите навсегда удалить «${store.name}»? Это действие нельзя отменить.`))) return;
+            if (!confirm(t("admin.partners.confirmDelete", { name: store.name }))) return;
             act(async () => {
               await deleteStoreFn({ data: { storeId: store.id } });
             });
           }}
           disabled={busy}
-          title={L("წაშლა", "Delete", "Удалить")}
+          title={t("admin.partners.delete")}
           className="shrink-0 w-10 h-10 grid place-items-center rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-60"
         >
           <Trash2 className="w-4 h-4" />
@@ -432,22 +434,22 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
 
 /** Shows the reverse-geocoded street address for a store pin; coordinates stay as a muted fallback line. */
 function StoreAddressLine({ lat, lng }: { lat: number | null; lng: number | null }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
+
   const { address, loading } = useReverseAddress(lat, lng);
   if (lat == null || lng == null) {
     return (
       <div className="text-muted-foreground">
-        {L("მისამართი", "Address", "Адрес")}: <span className="text-foreground">—</span>
+        {t("admin.partners.address")}: <span className="text-foreground">—</span>
       </div>
     );
   }
   return (
     <div className="text-muted-foreground">
       <div>
-        {L("მისამართი", "Address", "Адрес")}:{" "}
+        {t("admin.partners.address")}:{" "}
         <span className="text-foreground font-medium">
-          {address || (loading ? L("იტვირთება…", "Loading…", "Загрузка…") : L("ვერ დადგინდა", "Unavailable", "Не определён"))}
+          {address || (loading ? t("common.loading") : t("admin.partners.addressUnavailable"))}
         </span>
       </div>
       <div className="font-mono text-[11px] opacity-70">
@@ -458,11 +460,11 @@ function StoreAddressLine({ lat, lng }: { lat: number | null; lng: number | null
 }
 
 function LocStatusLine({ status }: { status: StoreLocationStatus }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
-  if (status === "ok") return <div className="text-success font-semibold">✓ {L("მდებარეობა გამართულია", "Location is valid", "Местоположение корректно")}</div>;
-  if (status === "invalid") return <div className="text-destructive font-semibold">✗ {L("კოორდინატები არასწორია", "Coordinates are invalid", "Координаты неверны")}</div>;
-  return <div className="text-warm-foreground font-semibold">⚠ {L("მდებარეობა არ არის მითითებული", "Location is not set", "Местоположение не указано")}</div>;
+  const { t } = useI18n();
+
+  if (status === "ok") return <div className="text-success font-semibold">✓ {t("admin.partners.locationOk")}</div>;
+  if (status === "invalid") return <div className="text-destructive font-semibold">✗ {t("admin.partners.locationInvalid")}</div>;
+  return <div className="text-warm-foreground font-semibold">⚠ {t("admin.partners.locationMissing")}</div>;
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -475,8 +477,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
+
   const [form, setForm] = useState<{ name: string; logo: string; city: City; district: string; address: string; phone: string; contact_email: string; company_id_number: string; category: string; description: string }>({
     name: "", logo: "🏪", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_id_number: "", category: "საცხობი", description: "",
   });
@@ -499,54 +501,54 @@ function AddStoreModal({ onClose, onCreated }: { onClose: () => void; onCreated:
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1200] bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
       <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl font-bold">{L("ახალი პარტნიორი", "New partner", "Новый партнёр")}</h2>
+          <h2 className="font-display text-xl font-bold">{t("admin.partners.newPartner")}</h2>
           <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={submit} className="space-y-3">
-          <FieldInput label={L("სახელი *", "Name *", "Название *")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+          <FieldInput label={t("admin.partners.name")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
           <div className="grid grid-cols-2 gap-3">
-            <FieldInput label={L("ლოგო (emoji)", "Logo (emoji)", "Логотип (emoji)")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} />
+            <FieldInput label={t("admin.partners.logoEmoji")} value={form.logo} onChange={(v) => setForm({ ...form, logo: v })} />
             <label className="block">
-              <span className="text-xs font-medium text-muted-foreground">{L("ობიექტის ტიპი", "Store type", "Тип заведения")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.storeType")}</span>
               <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
-                {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, L)}</option>)}
+                {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, t)}</option>)}
               </select>
             </label>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs font-medium text-muted-foreground">{L("ქალაქი", "City", "Город")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.city")}</span>
               <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
                 {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </label>
             <label className="block">
-              <span className="text-xs font-medium text-muted-foreground">{L("უბანი", "District", "Район")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.district")}</span>
               <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
                 {DISTRICTS.filter((d) => d !== "ყველა უბანი").map((d) => <option key={d} value={d}>{d}</option>)}
               </select>
             </label>
           </div>
-          <FieldInput label={L("მისამართი *", "Address *", "Адрес *")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
-          <FieldInput label={L("კომპანიის საიდენტიფიკაციო ნომერი *", "Company ID number *", "Идентификационный номер компании *")} value={form.company_id_number} onChange={(v) => setForm({ ...form, company_id_number: v })} required />
-          <FieldInput label={L("მეილი *", "Email *", "Email *")} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} placeholder="name@example.com" type="email" required />
-          <FieldInput label={L("ტელეფონი", "Phone", "Телефон")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
+          <FieldInput label={t("admin.partners.addressRequired")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label={t("admin.partners.companyIdRequired")} value={form.company_id_number} onChange={(v) => setForm({ ...form, company_id_number: v })} required />
+          <FieldInput label={t("admin.partners.emailRequired")} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} placeholder="name@example.com" type="email" required />
+          <FieldInput label={t("admin.partners.phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">{L("აღწერა", "Description", "Описание")}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.description")}</span>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
               className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
           </label>
           {err && <div className="text-sm text-destructive">{err}</div>}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">{L("გაუქმება", "Cancel", "Отмена")}</button>
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">{t("common.cancel")}</button>
             <button type="submit" disabled={busy} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
-              {busy ? L("იტვირთება…", "Loading…", "Загрузка…") : L("დამატება", "Add", "Добавить")}
+              {busy ? t("common.loading") : t("admin.partners.add")}
             </button>
           </div>
         </form>
@@ -568,8 +570,8 @@ function FieldInput({ label, value, onChange, placeholder, required, type = "tex
 type EntityType = "company" | "individual_entrepreneur";
 
 function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: () => void; onSaved: () => void }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
+
   const s = store as unknown as Record<string, any>;
   const [form, setForm] = useState({
     name: store.name ?? "",
@@ -622,21 +624,21 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1200] bg-foreground/40 backdrop-blur-sm grid place-items-center p-4" onClick={onClose}>
       <div className="w-full max-w-lg bg-card rounded-3xl border border-border shadow-2xl p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-xl font-bold">{L("პარტნიორის რედაქტირება", "Edit partner", "Редактирование партнёра")}</h2>
+          <h2 className="font-display text-xl font-bold">{t("admin.partners.editPartner")}</h2>
           <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
         </div>
         <form onSubmit={submit} className="space-y-3">
-          <FieldInput label={L("სახელი (ქართული) *", "Name (Georgian) *", "Название (грузинский) *")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+          <FieldInput label={t("admin.partners.nameGeorgian")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
           <div className="grid grid-cols-2 gap-3">
-            <FieldInput label={L("სახელი (English)", "Name (English)", "Название (English)")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
-            <FieldInput label={L("სახელი (Русский)", "Name (Русский)", "Название (Русский)")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
+            <FieldInput label={t("admin.partners.nameEnglish")} value={form.name_en} onChange={(v) => setForm({ ...form, name_en: v })} />
+            <FieldInput label={t("admin.partners.nameRussian")} value={form.name_ru} onChange={(v) => setForm({ ...form, name_ru: v })} />
           </div>
 
           <div>
-            <span className="text-xs font-medium text-muted-foreground">{L("ლოგო", "Logo", "Логотип")}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.logo")}</span>
             <div className="mt-1">
               <StoreLogoPicker
                 storeId={store.id}
@@ -648,28 +650,28 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
           </div>
 
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">{L("ობიექტის ტიპი", "Store type", "Тип заведения")}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.storeType")}</span>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
-              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, L)}</option>)}
+              {STORE_TYPES.map((type) => <option key={type.value} value={type.value}>{storeTypeLabel(type.value, t)}</option>)}
             </select>
           </label>
 
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">{L("იურიდიული ფორმა", "Legal form", "Юридическая форма")}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.legalForm")}</span>
             <div className="mt-1 grid grid-cols-2 gap-2">
               {(["company", "individual_entrepreneur"] as EntityType[]).map((et) => (
                 <button type="button" key={et}
                   onClick={() => setForm({ ...form, entity_type: et, company_id_number: "" })}
                   className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.entity_type === et ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}>
-                  {et === "company" ? L("შპს / კომპანია", "LLC / Company", "ООО / Компания") : L("ინდივიდუალური მეწარმე", "Individual entrepreneur", "Индивидуальный предприниматель")}
+                  {et === "company" ? t("admin.partners.legalLlc") : t("admin.partners.legalIndividual")}
                 </button>
               ))}
             </div>
           </label>
 
           <FieldInput
-            label={form.entity_type === "individual_entrepreneur" ? L("პირადი ნომერი (11 ციფრი) *", "Personal number (11 digits) *", "Личный номер (11 цифр) *") : L("საიდენტიფიკაციო ნომერი (9 ციფრი) *", "ID number (9 digits) *", "Идентификационный номер (9 цифр) *")}
+            label={form.entity_type === "individual_entrepreneur" ? t("admin.partners.personalNumber") : t("admin.partners.idNumberDigits")}
             value={form.company_id_number}
             onChange={(v) => setForm({ ...form, company_id_number: v.replace(/\D/g, "").slice(0, idMax) })}
             required
@@ -677,14 +679,14 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs font-medium text-muted-foreground">{L("ქალაქი", "City", "Город")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.city")}</span>
               <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
                 {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </label>
             <label className="block">
-              <span className="text-xs font-medium text-muted-foreground">{L("უბანი", "District", "Район")}</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.district")}</span>
               <select value={form.district} onChange={(e) => setForm({ ...form, district: e.target.value })}
                 className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
                 {DISTRICTS.filter((d) => d !== "ყველა უბანი").map((d) => <option key={d} value={d}>{d}</option>)}
@@ -692,25 +694,25 @@ function EditStoreModal({ store, onClose, onSaved }: { store: DbStore; onClose: 
             </label>
           </div>
 
-          <FieldInput label={L("მისამართი *", "Address *", "Адрес *")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
-          <FieldInput label={L("მეილი *", "Email *", "Email *")} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} type="email" required />
-          <FieldInput label={L("ტელეფონი", "Phone", "Телефон")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
+          <FieldInput label={t("admin.partners.addressRequired")} value={form.address} onChange={(v) => setForm({ ...form, address: v })} required />
+          <FieldInput label={t("admin.partners.emailRequired")} value={form.contact_email} onChange={(v) => setForm({ ...form, contact_email: v })} type="email" required />
+          <FieldInput label={t("admin.partners.phone")} value={form.phone} onChange={(v) => setForm({ ...form, phone: v })} placeholder="+995..." />
 
           <label className="block">
-            <span className="text-xs font-medium text-muted-foreground">{L("აღწერა", "Description", "Описание")}</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.description")}</span>
             <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3}
               className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
           </label>
 
           <p className="text-[11px] text-muted-foreground">
-            {L("IBAN და ანგარიშის მფლობელი იცვლება პარტნიორის საბანკო დეტალების ცალკე ფლოუდან.", "The IBAN and account holder are changed via the partner's separate bank details flow.", "IBAN и владелец счёта изменяются через отдельный процесс банковских реквизитов партнёра.")}
+            {t("admin.partners.ibanNote")}
           </p>
 
           {err && <div className="text-sm text-destructive">{err}</div>}
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">{L("გაუქმება", "Cancel", "Отмена")}</button>
+            <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl border border-border font-semibold">{t("common.cancel")}</button>
             <button type="submit" disabled={busy || !isDirty} className="flex-1 py-3 rounded-xl bg-primary text-primary-foreground font-semibold disabled:opacity-60">
-              {busy ? L("ინახება…", "Saving…", "Сохранение…") : L("შენახვა", "Save", "Сохранить")}
+              {busy ? t("admin.partners.savingEllipsis") : t("common.save")}
             </button>
           </div>
         </form>

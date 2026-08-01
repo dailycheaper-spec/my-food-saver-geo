@@ -17,13 +17,14 @@ import MapAddressField from "@/components/address/MapAddressField";
 type EntityType = "company" | "individual_entrepreneur";
 
 const STORE_TYPES = [
-  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
-  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
-  { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
-  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе" },
-  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет" },
-  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продуктовый" },
-  { value: "other", ka: "სხვა", en: "Other", ru: "Другое" },
+  { value: "restaurant", ka: "რესტორანი", en: "Restaurant", ru: "Ресторан", tr: "Restoran", fa: "رستوران" },
+  { value: "bakery", ka: "საცხობი", en: "Bakery", ru: "Пекарня", tr: "Fırın", fa: "نانوایی" },
+  { value: "confectionery", ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская", tr: "Pastane", fa: "شیرینی‌فروشی" },
+  { value: "home_kitchen", ka: "საოჯახო სამზრეულო", en: "Home Kitchen", ru: "Домашняя кухня", tr: "Ev Mutfağı", fa: "آشپزخانه خانگی" },
+  { value: "cafe", ka: "კაფე", en: "Cafe", ru: "Кафе", tr: "Kafe", fa: "کافه" },
+  { value: "market", ka: "მარკეტი", en: "Market", ru: "Маркет", tr: "Market", fa: "بازار" },
+  { value: "grocery", ka: "სასურსათო", en: "Grocery", ru: "Продуктовый", tr: "Bakkal", fa: "خواربارفروشی" },
+  { value: "other", ka: "სხვა", en: "Other", ru: "Другое", tr: "Diğer", fa: "سایر" },
 ];
 
 export const Route = createFileRoute("/_authenticated/partner-apply")({
@@ -41,11 +42,10 @@ function PartnerApply() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
   const [locBusy, setLocBusy] = useState(false);
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
 
   function useCurrentLocation() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setMsg(L("თქვენი ბრაუზერი ლოკაციის ავტომატურ განსაზღვრას არ უჭერს მხარს.", "Your browser doesn't support automatic location.", "Ваш браузер не поддерживает автоматическое определение местоположения."));
+      setMsg(t("partner.apply.geoUnsupported"));
       return;
     }
     setLocBusy(true);
@@ -53,13 +53,13 @@ function PartnerApply() {
       (pos) => {
         setLocBusy(false);
         setForm((f) => ({ ...f, lat: pos.coords.latitude, lng: pos.coords.longitude }));
-        setMsg(L("მდებარეობა წარმატებით განისაზღვრა.", "Location detected successfully.", "Местоположение определено."));
+        setMsg(t("partner.apply.geoSuccess"));
       },
       (err) => {
         setLocBusy(false);
-        let text = L("მდებარეობის განსაზღვრა ვერ მოხერხდა. სცადეთ რუკაზე ხელით მონიშვნა.", "Couldn't detect location. Try picking it on the map.", "Не удалось определить местоположение. Отметьте на карте.");
-        if (err.code === err.PERMISSION_DENIED) text = L("ლოკაციაზე წვდომა არ არის ნებადართული. მონიშნეთ ობიექტი რუკაზე.", "Location access denied. Please pick the store on the map.", "Доступ к геолокации запрещён. Отметьте магазин на карте.");
-        else if (err.code === err.TIMEOUT) text = L("მდებარეობის განსაზღვრას ძალიან დიდი დრო დასჭირდა. სცადეთ ხელახლა.", "Location took too long. Try again.", "Определение местоположения заняло слишком много времени. Попробуйте снова.");
+        let text = t("partner.apply.geoFailed");
+        if (err.code === err.PERMISSION_DENIED) text = t("partner.apply.geoDenied");
+        else if (err.code === err.TIMEOUT) text = t("partner.apply.geoTimeout");
         setMsg(text);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -88,12 +88,12 @@ function PartnerApply() {
       return;
     }
     if (!isValidLatLng(form.lat, form.lng)) {
-      setMsg(L("გთხოვთ, მონიშნოთ ობიექტის მდებარეობა რუკაზე.", "Please mark the store location on the map.", "Пожалуйста, отметьте местоположение магазина на карте."));
+      setMsg(t("partner.apply.markLocation"));
       return;
     }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
     if (!/^GE\d{2}[A-Z]{2}\d{16}$/.test(ibanNormalized)) {
-      setMsg(language === "en" ? "Bank IBAN must be a valid Georgian IBAN (e.g. GE29NB0000000101904917)." : language === "ru" ? "IBAN должен быть в грузинском формате (напр. GE29NB0000000101904917)." : "საბანკო IBAN უნდა იყოს ქართული ფორმატით (მაგ. GE29NB0000000101904917).");
+      setMsg(t("validation.ibanFormat"));
       return;
     }
     setSubmitting(true);
@@ -106,7 +106,7 @@ function PartnerApply() {
       .maybeSingle();
     if (existingPending) {
       setSubmitting(false);
-      setMsg(language === "en" ? "You already have a pending application." : language === "ru" ? "У вас уже есть заявка на рассмотрении." : "თქვენ უკვე გაქვთ განაცხადი განხილვის პროცესში.");
+      setMsg(t("partner.apply.pendingExists"));
       return;
     }
     // Strip fields that don't belong to `stores` and any preview blob url.
@@ -118,7 +118,7 @@ function PartnerApply() {
     }).select("id").single();
     if (error || !newStore) {
       setSubmitting(false);
-      setMsg((language === "en" ? "Error: " : language === "ru" ? "Ошибка: " : "შეცდომა: ") + (error?.message ?? ""));
+      setMsg(t("partner.apply.errorPrefix") + (error?.message ?? ""));
       return;
     }
     // Upload logo image if one was selected during the form.
@@ -143,7 +143,7 @@ function PartnerApply() {
       account_holder: form.account_holder.trim() || form.company_name.trim() || null,
     });
     setSubmitting(false);
-    if (bankErr) setMsg((language === "en" ? "Error: " : language === "ru" ? "Ошибка: " : "შეცდომა: ") + bankErr.message);
+    if (bankErr) setMsg(t("partner.apply.errorPrefix") + bankErr.message);
     else {
       setMsg(t("applicationSent"));
       setTimeout(() => navigate({ to: "/partner" }), 1000);
@@ -151,15 +151,11 @@ function PartnerApply() {
   }
 
   if (!partnerLoading && pendingStore) {
-    const title = language === "en" ? "Your application is under review" : language === "ru" ? "Ваша заявка на рассмотрении" : "თქვენი განაცხადი განიხილება";
-    const body = language === "en"
-      ? "We'll notify you by email as soon as an admin approves your store. You don't need to submit again."
-      : language === "ru"
-      ? "Мы уведомим вас по электронной почте, как только администратор одобрит ваш магазин. Повторно отправлять заявку не нужно."
-      : "როგორც კი ადმინი დაამტკიცებს თქვენს ობიექტს, გამოგიგზავნით შეტყობინებას ელ.ფოსტაზე. ხელახლა გაგზავნა საჭირო არ არის.";
-    const submittedLabel = language === "en" ? "Submitted store" : language === "ru" ? "Отправленный магазин" : "გაგზავნილი ობიექტი";
-    const backHome = language === "en" ? "Back to home" : language === "ru" ? "На главную" : "მთავარზე დაბრუნება";
-    const supportLine = language === "en" ? "Questions? Email" : language === "ru" ? "Вопросы? Пишите на" : "შეკითხვები? მოგვწერეთ";
+    const title = t("partner.apply.pendingTitle");
+    const body = t("partner.apply.pendingBody");
+    const submittedLabel = t("partner.apply.submittedStore");
+    const backHome = t("partner.apply.backHome");
+    const supportLine = t("partner.apply.supportLine");
     return (
       <div className="mx-auto max-w-xl px-4 py-6">
         <div className="flex justify-end mb-3"><LanguageSwitcher /></div>
@@ -206,10 +202,10 @@ function PartnerApply() {
         {/* Highlighted required contact block */}
         <div className="rounded-2xl border-2 border-primary/40 bg-primary/5 p-4 space-y-3">
           <div className="text-xs font-bold uppercase tracking-wider text-primary">
-            {language === "en" ? "Required contact details" : language === "ru" ? "Обязательные контактные данные" : "სავალდებულო საკონტაქტო ინფორმაცია"}
+            {t("partner.apply.requiredContact")}
           </div>
           <Field
-            label={language === "en" ? "Email *" : language === "ru" ? "Эл. почта *" : "ელ. ფოსტა *"}
+            label={t("partner.apply.emailLabel")}
             value={form.contact_email}
             onChange={(v) => setForm({ ...form, contact_email: v })}
             placeholder="name@example.com"
@@ -217,10 +213,10 @@ function PartnerApply() {
             required
           />
           <Field
-            label={language === "en" ? "Company name *" : language === "ru" ? "Название компании *" : "კომპანიის დასახელება *"}
+            label={t("partner.apply.companyNameLabel")}
             value={form.company_name}
             onChange={(v) => setForm({ ...form, company_name: v })}
-            placeholder={language === "en" ? "LLC Example" : language === "ru" ? "ООО Пример" : "შპს მაგალითი"}
+            placeholder={t("partner.apply.companyNamePlaceholder")}
             required
           />
           <label className="block">
@@ -240,8 +236,8 @@ function PartnerApply() {
           </label>
           <Field
             label={form.entity_type === "individual_entrepreneur"
-              ? (language === "en" ? "Personal ID (11 digits) *" : language === "ru" ? "Личный номер (11 цифр) *" : "პირადი ნომერი (11 ციფრი) *")
-              : (language === "en" ? "Company ID number (9 digits) *" : language === "ru" ? "Идентификационный номер компании (9 цифр) *" : "კომპანიის საიდენტიფიკაციო ნომერი (9 ციფრი) *")}
+              ? t("partner.apply.personalIdLabel")
+              : t("partner.apply.companyIdLabel")}
             value={form.company_id_number}
             onChange={(v) => {
               const max = form.entity_type === "individual_entrepreneur" ? 11 : 9;
@@ -254,7 +250,7 @@ function PartnerApply() {
             required
           />
           <Field
-            label={language === "en" ? "Bank IBAN (Georgian) *" : language === "ru" ? "Банковский IBAN (Грузия) *" : "საბანკო IBAN (ქართული) *"}
+            label={t("partner.apply.ibanLabel")}
             value={form.bank_iban}
             onChange={(v) => setForm({ ...form, bank_iban: v.replace(/\s+/g, "").toUpperCase().slice(0, 22) })}
             placeholder="GE29NB0000000101904917"
@@ -262,22 +258,22 @@ function PartnerApply() {
             required
           />
           <Field
-            label={language === "en" ? "Account holder (optional)" : language === "ru" ? "Владелец счёта (необязательно)" : "ანგარიშის მფლობელი (არასავალდებულო)"}
+            label={t("partner.apply.accountHolderLabel")}
             value={form.account_holder}
             onChange={(v) => setForm({ ...form, account_holder: v })}
-            placeholder={language === "en" ? "Same as company name if empty" : language === "ru" ? "По умолчанию — название компании" : "თუ ცარიელია, კომპანიის სახელი გამოიყენება"}
+            placeholder={t("partner.apply.accountHolderPlaceholder")}
           />
         </div>
 
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
-            {language === "en" ? "What type of object is it? *" : language === "ru" ? "Какой это тип объекта? *" : "რა ტიპის ობიექტია? *"}
+            {t("partner.apply.objectTypeLabel")}
           </span>
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
             {STORE_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>{language === "en" ? type.en : language === "ru" ? type.ru : type.ka}</option>
+              <option key={type.value} value={type.value}>{language === "en" ? type.en : language === "ru" ? type.ru : language === "tr" ? type.tr : language === "fa" ? type.fa : type.ka}</option>
             ))}
           </select>
         </label>
@@ -292,7 +288,7 @@ function PartnerApply() {
 
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">
-            {language === "en" ? "City" : language === "ru" ? "Город" : "ქალაქი"}
+            {t("partner.apply.cityLabel")}
           </span>
           <select value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value as City })}
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm">
@@ -315,7 +311,7 @@ function PartnerApply() {
         <div className="rounded-2xl border border-border p-4 space-y-3">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-primary" />
-            <h2 className="font-semibold text-sm">{L("ობიექტის მდებარეობა *", "Store location *", "Местоположение магазина *")}</h2>
+            <h2 className="font-semibold text-sm">{t("partner.apply.locationHeading")}</h2>
           </div>
           <button
             type="button"
@@ -324,7 +320,7 @@ function PartnerApply() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary hover:bg-secondary/80 text-sm font-medium disabled:opacity-60"
           >
             <LocateFixed className="w-4 h-4" />
-            {locBusy ? L("მდებარეობის მოძიება…", "Detecting location…", "Определяем местоположение…") : L("ჩემი მიმდინარე მდებარეობის გამოყენება", "Use my current location", "Использовать моё текущее местоположение")}
+            {locBusy ? t("partner.apply.geoDetecting") : t("partner.apply.useCurrentLocation")}
           </button>
           <MapAddressField
             value={{ lat: form.lat, lng: form.lng }}

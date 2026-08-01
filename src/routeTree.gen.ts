@@ -27,7 +27,7 @@ import { Route as StoreIdRouteImport } from './routes/store.$id'
 import { Route as OrdersNativeReturnRouteImport } from './routes/orders.native-return'
 import { Route as OrdersIdRouteImport } from './routes/orders.$id'
 import { Route as OfferIdRouteImport } from './routes/offer.$id'
-import { Route as AuthNativeReturnRouteImport } from './routes/auth.native-return'
+import { Route as AuthNativeReturnRouteImport } from './routes/auth_.native-return'
 import { Route as AuthenticatedPartnerApplyRouteImport } from './routes/_authenticated/partner-apply'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -53,6 +53,8 @@ import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authenticated/admin.partners'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
+import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
+import { Route as ApiPublicPaymentsTbcCallbackRouteImport } from './routes/api/public/payments/tbc-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
 import { Route as ApiPublicDeliveryGlovoRouteImport } from './routes/api/public/delivery/glovo'
@@ -148,9 +150,9 @@ const OfferIdRoute = OfferIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthNativeReturnRoute = AuthNativeReturnRouteImport.update({
-  id: '/native-return',
-  path: '/native-return',
-  getParentRoute: () => AuthRoute,
+  id: '/auth_/native-return',
+  path: '/auth/native-return',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPartnerApplyRoute =
   AuthenticatedPartnerApplyRouteImport.update({
@@ -294,6 +296,18 @@ const AuthenticatedAdminOffersRoute =
     path: '/offers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminBannersRoute =
+  AuthenticatedAdminBannersRouteImport.update({
+    id: '/banners',
+    path: '/banners',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const ApiPublicPaymentsTbcCallbackRoute =
+  ApiPublicPaymentsTbcCallbackRouteImport.update({
+    id: '/api/public/payments/tbc-callback',
+    path: '/api/public/payments/tbc-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsBogCallbackRoute =
   ApiPublicPaymentsBogCallbackRouteImport.update({
     id: '/api/public/payments/bog-callback',
@@ -320,7 +334,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -338,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -364,12 +379,13 @@ export interface FileRoutesByFullPath {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -385,6 +401,7 @@ export interface FileRoutesByTo {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders': typeof OrdersIndexRoute
+  '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -411,6 +428,7 @@ export interface FileRoutesByTo {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -418,7 +436,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/favorites': typeof FavoritesRoute
   '/map': typeof MapRoute
   '/notifications': typeof NotificationsRoute
@@ -430,12 +448,13 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/partner': typeof AuthenticatedPartnerRouteWithChildren
   '/_authenticated/partner-apply': typeof AuthenticatedPartnerApplyRoute
-  '/auth/native-return': typeof AuthNativeReturnRoute
+  '/auth_/native-return': typeof AuthNativeReturnRoute
   '/offer/$id': typeof OfferIdRoute
   '/orders/$id': typeof OrdersIdRoute
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/_authenticated/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/partners': typeof AuthenticatedAdminPartnersRoute
@@ -462,6 +481,7 @@ export interface FileRoutesById {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -487,6 +507,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
@@ -513,6 +534,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/tbc-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -534,6 +556,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders'
+    | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
     | '/admin/partners'
@@ -560,6 +583,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/tbc-callback'
   id:
     | '__root__'
     | '/'
@@ -578,12 +602,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/partner'
     | '/_authenticated/partner-apply'
-    | '/auth/native-return'
+    | '/auth_/native-return'
     | '/offer/$id'
     | '/orders/$id'
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/_authenticated/admin/banners'
     | '/_authenticated/admin/offers'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/partners'
@@ -610,6 +635,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/tbc-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -617,7 +643,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  AuthRoute: typeof AuthRouteWithChildren
+  AuthRoute: typeof AuthRoute
   FavoritesRoute: typeof FavoritesRoute
   MapRoute: typeof MapRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -626,6 +652,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  AuthNativeReturnRoute: typeof AuthNativeReturnRoute
   OfferIdRoute: typeof OfferIdRoute
   OrdersIdRoute: typeof OrdersIdRoute
   OrdersNativeReturnRoute: typeof OrdersNativeReturnRoute
@@ -637,6 +664,7 @@ export interface RootRouteChildren {
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
   ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
   ApiPublicPaymentsBogCallbackRoute: typeof ApiPublicPaymentsBogCallbackRoute
+  ApiPublicPaymentsTbcCallbackRoute: typeof ApiPublicPaymentsTbcCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -767,12 +795,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OfferIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/native-return': {
-      id: '/auth/native-return'
-      path: '/native-return'
+    '/auth_/native-return': {
+      id: '/auth_/native-return'
+      path: '/auth/native-return'
       fullPath: '/auth/native-return'
       preLoaderRoute: typeof AuthNativeReturnRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/partner-apply': {
       id: '/_authenticated/partner-apply'
@@ -949,6 +977,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOffersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/banners': {
+      id: '/_authenticated/admin/banners'
+      path: '/banners'
+      fullPath: '/admin/banners'
+      preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/public/payments/tbc-callback': {
+      id: '/api/public/payments/tbc-callback'
+      path: '/api/public/payments/tbc-callback'
+      fullPath: '/api/public/payments/tbc-callback'
+      preLoaderRoute: typeof ApiPublicPaymentsTbcCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/bog-callback': {
       id: '/api/public/payments/bog-callback'
       path: '/api/public/payments/bog-callback'
@@ -981,6 +1023,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminBannersRoute: typeof AuthenticatedAdminBannersRoute
   AuthenticatedAdminOffersRoute: typeof AuthenticatedAdminOffersRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminPartnersRoute: typeof AuthenticatedAdminPartnersRoute
@@ -992,6 +1035,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminBannersRoute: AuthenticatedAdminBannersRoute,
   AuthenticatedAdminOffersRoute: AuthenticatedAdminOffersRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminPartnersRoute: AuthenticatedAdminPartnersRoute,
@@ -1053,22 +1097,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface AuthRouteChildren {
-  AuthNativeReturnRoute: typeof AuthNativeReturnRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthNativeReturnRoute: AuthNativeReturnRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AnalyticsRoute: AnalyticsRoute,
-  AuthRoute: AuthRouteWithChildren,
+  AuthRoute: AuthRoute,
   FavoritesRoute: FavoritesRoute,
   MapRoute: MapRoute,
   NotificationsRoute: NotificationsRoute,
@@ -1077,6 +1111,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  AuthNativeReturnRoute: AuthNativeReturnRoute,
   OfferIdRoute: OfferIdRoute,
   OrdersIdRoute: OrdersIdRoute,
   OrdersNativeReturnRoute: OrdersNativeReturnRoute,
@@ -1088,17 +1123,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
   ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
   ApiPublicPaymentsBogCallbackRoute: ApiPublicPaymentsBogCallbackRoute,
+  ApiPublicPaymentsTbcCallbackRoute: ApiPublicPaymentsTbcCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

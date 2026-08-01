@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { reverseGeocode } from "@/lib/geocode.functions";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Language } from "@/lib/i18n";
 
 export interface ReverseResult {
   addressLine: string;
@@ -24,6 +24,16 @@ export function setCachedAddress(lat: number, lng: number, language: string, val
   cache.set(cacheKey(lat, lng, language), value);
 }
 
+/**
+ * The geocoding provider only returns ka/en/ru address text, so Turkish and
+ * Persian UI languages fall back to Latin-script English addresses.
+ */
+export function geocodeLang(language: Language): "ka" | "en" | "ru" {
+  if (language === "ka") return "ka";
+  if (language === "ru") return "ru";
+  return "en";
+}
+
 type ReverseFn = (opts: { data: { lat: number; lng: number; language: "ka" | "en" | "ru" } }) => Promise<{
   addressLine?: string;
   formatted?: string;
@@ -35,16 +45,17 @@ export async function resolveAddress(
   reverse: ReverseFn,
   lat: number,
   lng: number,
-  language: "ka" | "en" | "ru",
+  language: Language,
 ): Promise<ReverseResult | null> {
-  const key = cacheKey(lat, lng, language);
+  const geoLang = geocodeLang(language);
+  const key = cacheKey(lat, lng, geoLang);
   const hit = cache.get(key);
   if (hit) return hit;
   const pending = inflight.get(key);
   if (pending) return pending;
   const p = (async () => {
     try {
-      const res = await reverse({ data: { lat, lng, language } });
+      const res = await reverse({ data: { lat, lng, language: geoLang } });
       const value: ReverseResult = {
         addressLine: res.addressLine || res.formatted || "",
         city: res.city ?? null,
@@ -68,7 +79,7 @@ export async function resolveAddress(
 export function useReverseAddress(lat: number | null | undefined, lng: number | null | undefined) {
   const { language } = useI18n();
   const reverse = useServerFn(reverseGeocode) as unknown as ReverseFn;
-  const lang = (language === "en" || language === "ru" ? language : "ka") as "ka" | "en" | "ru";
+  const lang = geocodeLang(language);
   const [address, setAddress] = useState<string | null>(() =>
     lat != null && lng != null ? (getCachedAddress(lat, lng, lang)?.addressLine ?? null) : null,
   );

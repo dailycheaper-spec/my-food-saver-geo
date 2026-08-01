@@ -1,10 +1,11 @@
+import { formatGel } from "@/lib/db";
 import bagBakery from "@/assets/bag-bakery.jpg";
 import bagKhachapuri from "@/assets/bag-khachapuri.jpg";
 import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-export type Category = "საცხობი" | "საკონდიტრო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
+export type Category = "საცხობი" | "საკონდიტრო" | "საოჯახო სამზრეულო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
 
 export interface Offer {
   id: string;
@@ -19,10 +20,14 @@ export interface Offer {
   /** Optional partner-provided translations for title. */
   titleEn?: string;
   titleRu?: string;
+  titleTr?: string;
+  titleFa?: string;
   description: string;
   /** Optional partner-provided translations for description. */
   descriptionEn?: string;
   descriptionRu?: string;
+  descriptionTr?: string;
+  descriptionFa?: string;
   image: string;
   originalPrice: number;
   price: number;
@@ -36,6 +41,8 @@ export interface Offer {
   itemsLeft: number;
   delivery: boolean;
   deliveryFee: number;
+  /** Store-configured delivery radius in km (from the store row). */
+  deliveryRadiusKm?: number;
   lat?: number;
   lng?: number;
   /** Partner-configured visibility radius in km (never shown to customers directly). */
@@ -177,6 +184,7 @@ export const CATEGORIES: { id: Category | "ყველა"; label: string; icon
   { id: "ყველა", label: "ყველა", icon: "✨" },
   { id: "საცხობი", label: "საცხობი", icon: "🥖" },
   { id: "საკონდიტრო", label: "საკონდიტრო", icon: "🍰" },
+  { id: "საოჯახო სამზრეულო", label: "საოჯახო სამზრეულო", icon: "🍲" },
   { id: "რესტორანი", label: "რესტორანი", icon: "🍽️" },
   { id: "სუპერმარკეტი", label: "მარკეტი", icon: "🛒" },
   { id: "კაფე", label: "კაფე", icon: "☕" },
@@ -186,41 +194,42 @@ export const CATEGORIES: { id: Category | "ყველა"; label: string; icon
 
 export const DISTRICTS = ["ყველა უბანი", "ვაკე", "საბურთალო", "ვერა", "ისანი", "დიღომი", "მთაწმინდა", "ჩუღურეთი", "ნაძალადევი", "სამგორი"];
 
-type UiLanguage = "ka" | "en" | "ru";
+type UiLanguage = "ka" | "en" | "ru" | "tr" | "fa";
 
 const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, string>> = {
-  "ყველა": { ka: "ყველა", en: "All", ru: "Все" },
-  "საცხობი": { ka: "საცხობი", en: "Bakery", ru: "Пекарня" },
-  "საკონდიტრო": { ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская" },
-  "რესტორანი": { ka: "რესტორანი", en: "Restaurant", ru: "Ресторан" },
-  "სუპერმარკეტი": { ka: "მარკეტი", en: "Market", ru: "Маркет" },
-  "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе" },
-  "სუში": { ka: "სუში", en: "Sushi", ru: "Суши" },
-  "პიცა": { ka: "პიცა", en: "Pizza", ru: "Пицца" },
+  "ყველა": { ka: "ყველა", en: "All", ru: "Все", tr: "Tümü", fa: "همه" },
+  "საცხობი": { ka: "საცხობი", en: "Bakery", ru: "Пекарня", tr: "Fırın", fa: "نانوایی" },
+  "საკონდიტრო": { ka: "საკონდიტრო", en: "Patisserie", ru: "Кондитерская", tr: "Pastane", fa: "شیرینی‌فروشی" },
+  "საოჯახო სამზრეულო": { ka: "საოჯახო სამზრეულო", en: "Home Kitchen", ru: "Домашняя кухня", tr: "Ev Yemekleri", fa: "غذای خانگی" },
+  "რესტორანი": { ka: "რესტორანი", en: "Restaurant", ru: "Ресторан", tr: "Restoran", fa: "رستوران" },
+  "სუპერმარკეტი": { ka: "მარკეტი", en: "Market", ru: "Маркет", tr: "Market", fa: "سوپرمارکت" },
+  "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе", tr: "Kafe", fa: "کافه" },
+  "სუში": { ka: "სუში", en: "Sushi", ru: "Суши", tr: "Suşi", fa: "سوشی" },
+  "პიცა": { ka: "პიცა", en: "Pizza", ru: "Пицца", tr: "Pizza", fa: "پیتزا" },
 };
 
 const DISTRICT_LABELS: Record<string, Record<UiLanguage, string>> = {
-  "ყველა უბანი": { ka: "ყველა უბანი", en: "All districts", ru: "Все районы" },
-  "ვაკე": { ka: "ვაკე", en: "Vake", ru: "Ваке" },
-  "საბურთალო": { ka: "საბურთალო", en: "Saburtalo", ru: "Сабуртало" },
-  "ვერა": { ka: "ვერა", en: "Vera", ru: "Вера" },
-  "ისანი": { ka: "ისანი", en: "Isani", ru: "Исани" },
-  "დიღომი": { ka: "დიღომი", en: "Dighomi", ru: "Дигоми" },
-  "მთაწმინდა": { ka: "მთაწმინდა", en: "Mtatsminda", ru: "Мтацминда" },
-  "ჩუღურეთი": { ka: "ჩუღურეთი", en: "Chughureti", ru: "Чугурети" },
-  "ნაძალადევი": { ka: "ნაძალადევი", en: "Nadzaladevi", ru: "Надзаладеви" },
-  "სამგორი": { ka: "სამგორი", en: "Samgori", ru: "Самгори" },
+  "ყველა უბანი": { ka: "ყველა უბანი", en: "All districts", ru: "Все районы", tr: "Tüm semtler", fa: "همه محله‌ها" },
+  "ვაკე": { ka: "ვაკე", en: "Vake", ru: "Ваке", tr: "Vake", fa: "واکه" },
+  "საბურთალო": { ka: "საბურთალო", en: "Saburtalo", ru: "Сабуртало", tr: "Saburtalo", fa: "سابورتالو" },
+  "ვერა": { ka: "ვერა", en: "Vera", ru: "Вера", tr: "Vera", fa: "ورا" },
+  "ისანი": { ka: "ისანი", en: "Isani", ru: "Исани", tr: "İsani", fa: "ایسانی" },
+  "დიღომი": { ka: "დიღომი", en: "Dighomi", ru: "Дигоми", tr: "Dighomi", fa: "دیقومی" },
+  "მთაწმინდა": { ka: "მთაწმინდა", en: "Mtatsminda", ru: "Мтацминда", tr: "Mtatsminda", fa: "متاتسمیندا" },
+  "ჩუღურეთი": { ka: "ჩუღურეთი", en: "Chughureti", ru: "Чугурети", tr: "Chughureti", fa: "چوقورتی" },
+  "ნაძალადევი": { ka: "ნაძალადევი", en: "Nadzaladevi", ru: "Надзаладеви", tr: "Nadzaladevi", fa: "نادزالادوی" },
+  "სამგორი": { ka: "სამგორი", en: "Samgori", ru: "Самгори", tr: "Samgori", fa: "سامگوری" },
 };
 
 const STORE_LABELS: Record<string, Record<UiLanguage, string>> = {
-  s1: { ka: "პური გულიანი", en: "Puri Guliani", ru: "Пури Гулиани" },
-  s2: { ka: "ენტრე", en: "Entree", ru: "Энтре" },
-  s3: { ka: "მაჭახელა", en: "Machakhela", ru: "Мачахела" },
-  s4: { ka: "კარფური", en: "Carrefour", ru: "Карфур" },
-  s5: { ka: "ნიკალა", en: "Nikala", ru: "Никала" },
-  s6: { ka: "ტოკიო სუში", en: "Tokyo Sushi", ru: "Токио Суши" },
-  s7: { ka: "კულა კაფე", en: "Kula Cafe", ru: "Кула Кафе" },
-  s8: { ka: "აგრო-ჰაბი", en: "Agrohub", ru: "Агрохаб" },
+  s1: { ka: "პური გულიანი", en: "Puri Guliani", ru: "Пури Гулиани", tr: "Puri Guliani", fa: "پوری گولیانی" },
+  s2: { ka: "ენტრე", en: "Entree", ru: "Энтре", tr: "Entree", fa: "آنتره" },
+  s3: { ka: "მაჭახელა", en: "Machakhela", ru: "Мачахела", tr: "Machakhela", fa: "ماچاخلا" },
+  s4: { ka: "კარფური", en: "Carrefour", ru: "Карфур", tr: "Carrefour", fa: "کارفور" },
+  s5: { ka: "ნიკალა", en: "Nikala", ru: "Никала", tr: "Nikala", fa: "نیکالا" },
+  s6: { ka: "ტოკიო სუში", en: "Tokyo Sushi", ru: "Токио Суши", tr: "Tokyo Suşi", fa: "توکیو سوشی" },
+  s7: { ka: "კულა კაფე", en: "Kula Cafe", ru: "Кула Кафе", tr: "Kula Kafe", fa: "کولا کافه" },
+  s8: { ka: "აგრო-ჰაბი", en: "Agrohub", ru: "Агрохаб", tr: "Agrohub", fa: "آگروهاب" },
 };
 
 const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description: string }>> = {
@@ -228,43 +237,55 @@ const OFFER_TEXT: Record<string, Record<UiLanguage, { title: string; description
     ka: { title: "სიურპრიზ პაკეტი — საცხობი", description: "ხაჭაპური, ლობიანი და დღის ცხობილი პური. ზუსტი შემადგენლობა სიურპრიზია!" },
     en: { title: "Bakery surprise bag", description: "Khachapuri, lobiani, and fresh bread from today. The exact mix is a surprise!" },
     ru: { title: "Сюрприз-пакет из пекарни", description: "Хачапури, лобиани и свежий хлеб дня. Точный состав — сюрприз!" },
+    tr: { title: "Fırın sürpriz paketi", description: "Haçapuri, lobiani ve günün taze ekmeği. Tam içeriği sürpriz!" },
+    fa: { title: "بسته سورپرایز نانوایی", description: "خاچاپوری، لوبیانی و نان تازه امروز. ترکیب دقیق آن سورپرایز است!" },
   },
   o2: {
     ka: { title: "ფრანგული საცხობის პაკეტი", description: "კრუასანები, ბაგეტები და ტკბილეული — ყველა დღეს გამომცხვარი." },
     en: { title: "French bakery bag", description: "Croissants, baguettes, and pastries — all baked today." },
     ru: { title: "Пакет французской пекарни", description: "Круассаны, багеты и сладкая выпечка — всё испечено сегодня." },
+    tr: { title: "Fransız fırın paketi", description: "Kruvasanlar, baget ekmekler ve tatlılar — hepsi bugün pişirildi." },
+    fa: { title: "بسته نانوایی فرانسوی", description: "کروسان، باگت و شیرینی — همه امروز پخته شده." },
   },
   o3: {
     ka: { title: "სუშის ნაკრები", description: "12-16 ცალი სუში დღის ასორტიმენტიდან." },
     en: { title: "Sushi set", description: "12–16 sushi pieces from today's selection." },
     ru: { title: "Суши-сет", description: "12–16 кусочков суши из ассортимента дня." },
+    tr: { title: "Suşi seti", description: "Günün seçkisinden 12–16 parça suşi." },
+    fa: { title: "ست سوشی", description: "۱۲ تا ۱۶ تکه سوشی از انتخاب امروز." },
   },
   o4: {
     ka: { title: "ბოსტნეულის და ხილის კალათა", description: "სეზონური ბოსტნეული და ხილი — სრულიად კარგი, უბრალოდ ესთეტიკურად „არასრულყოფილი“." },
     en: { title: "Fruit and vegetable basket", description: "Seasonal fruit and vegetables — perfectly good, just visually imperfect." },
     ru: { title: "Корзина овощей и фруктов", description: "Сезонные овощи и фрукты — полностью хорошие, просто внешне неидеальные." },
+    tr: { title: "Meyve ve sebze sepeti", description: "Mevsim meyve ve sebzeleri — tamamen taze, sadece görsel olarak kusurlu." },
+    fa: { title: "سبد میوه و سبزیجات", description: "میوه و سبزیجات فصلی — کاملاً سالم، فقط از نظر ظاهری کامل نیست." },
   },
   o5: {
     ka: { title: "ტკბილეულის სიურპრიზი", description: "ჩურჩხელა, ფელამუში და ტკბილი გოზინაყი." },
     en: { title: "Dessert surprise", description: "Churchkhela, pelamushi, and sweet gozinaki." },
     ru: { title: "Сладкий сюрприз", description: "Чурчхела, пеламуши и сладкий гозинаки." },
+    tr: { title: "Tatlı sürprizi", description: "Çurçhela, pelamuşi ve tatlı gozinaki." },
+    fa: { title: "سورپرایز شیرینی", description: "چورچخلا، پلاموشی و گوزیناکی شیرین." },
   },
   o6: {
     ka: { title: "ქართული სამზარეულოს პაკეტი", description: "ხინკალი, ხაჭაპური, სალათი — რესტორნის დღის საუკეთესო." },
     en: { title: "Georgian cuisine bag", description: "Khinkali, khachapuri, salad — the restaurant's best of the day." },
     ru: { title: "Пакет грузинской кухни", description: "Хинкали, хачапури, салат — лучшее за день из ресторана." },
+    tr: { title: "Gürcü mutfağı paketi", description: "Hinkali, haçapuri, salata — restoranın günün en iyileri." },
+    fa: { title: "بسته آشپزی گرجی", description: "خینکالی، خاچاپوری، سالاد — بهترین‌های امروز رستوران." },
   },
   o7: {
     ka: { title: "დილის კაფე + ორცხობილა", description: "ცხელი ცომეული და კაფე ან ჩაი 50%+ ფასდაკლებით." },
     en: { title: "Morning coffee + cookies", description: "Fresh pastries plus coffee or tea, 50%+ off." },
     ru: { title: "Утренний кофе + печенье", description: "Свежая выпечка и кофе или чай со скидкой 50%+." },
+    tr: { title: "Sabah kahvesi + kurabiye", description: "Taze hamur işleri artı kahve veya çay, %50+ indirimli." },
+    fa: { title: "قهوه صبحگاهی + بیسکویت", description: "شیرینی تازه به همراه قهوه یا چای، با ۵۰٪+ تخفیف." },
   },
 };
 
 export function formatPrice(n: number) {
-  const lang = typeof window !== "undefined" ? (window.localStorage.getItem("cheaper-language") || "ka") : "ka";
-  const sym = lang === "en" ? "GEL" : lang === "ru" ? "Лари" : "ლარი";
-  return `${n.toFixed(2)} ${sym}`;
+  return formatGel(n);
 }
 
 export function getCategoryLabel(id: Category | "ყველა", language: UiLanguage) {
@@ -290,6 +311,7 @@ export function getStoreName(
   const ru = "storeNameRu" in offerOrStore ? offerOrStore.storeNameRu : (offerOrStore as { nameRu?: string }).nameRu;
   if (language === "en" && en && en.trim()) return en;
   if (language === "ru" && ru && ru.trim()) return ru;
+  if ((language === "tr" || language === "fa") && en && en.trim()) return en;
   return fallback;
 }
 
@@ -299,10 +321,14 @@ export function getOfferText(offer: Offer, language: UiLanguage) {
   const title =
     language === "en" ? (offer.titleEn?.trim() || offer.title)
     : language === "ru" ? (offer.titleRu?.trim() || offer.title)
+    : language === "tr" ? (offer.titleTr?.trim() || offer.title)
+    : language === "fa" ? (offer.titleFa?.trim() || offer.title)
     : offer.title;
   const description =
     language === "en" ? (offer.descriptionEn?.trim() || offer.description)
     : language === "ru" ? (offer.descriptionRu?.trim() || offer.description)
+    : language === "tr" ? (offer.descriptionTr?.trim() || offer.description)
+    : language === "fa" ? (offer.descriptionFa?.trim() || offer.description)
     : offer.description;
   return { title, description };
 }
@@ -322,7 +348,7 @@ const OFFER_KEYWORDS: Record<string, string[]> = {
 export function offerMatchesQuery(offer: Offer, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  const langs: UiLanguage[] = ["ka", "en", "ru"];
+  const langs: UiLanguage[] = ["ka", "en", "ru", "tr", "fa"];
   const parts: string[] = [];
   for (const l of langs) {
     const t = OFFER_TEXT[offer.id]?.[l];
@@ -334,8 +360,8 @@ export function offerMatchesQuery(offer: Offer, query: string): boolean {
   // Partner-provided translations from DB rows.
   parts.push(
     offer.title, offer.description, offer.storeName, offer.category,
-    offer.titleEn ?? "", offer.titleRu ?? "",
-    offer.descriptionEn ?? "", offer.descriptionRu ?? "",
+    offer.titleEn ?? "", offer.titleRu ?? "", offer.titleTr ?? "", offer.titleFa ?? "",
+    offer.descriptionEn ?? "", offer.descriptionRu ?? "", offer.descriptionTr ?? "", offer.descriptionFa ?? "",
     offer.storeNameEn ?? "", offer.storeNameRu ?? "",
   );
   parts.push(...(OFFER_KEYWORDS[offer.id] ?? []));
@@ -357,70 +383,75 @@ type Localized = Record<UiLanguage, string>;
 
 const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
   "საცხობი": [
-    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
-    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
-    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца", tr: "Yumurta", fa: "تخم‌مرغ" },
   ],
   "საკონდიტრო": [
-    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
-    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
-    { ka: "კვერცხი", en: "Eggs", ru: "Яйца" },
-    { ka: "თხილეული", en: "Nuts", ru: "Орехи" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца", tr: "Yumurta", fa: "تخم‌مرغ" },
+    { ka: "თხილეული", en: "Nuts", ru: "Орехи", tr: "Kuruyemiş", fa: "آجیل" },
+  ],
+  "საოჯახო სამზრეულო": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца", tr: "Yumurta", fa: "تخم‌مرغ" },
   ],
   "რესტორანი": [
-    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
-    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
   ],
   "სუპერმარკეტი": [],
   "კაფე": [
-    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
-    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
   ],
   "სუში": [
-    { ka: "თევზი", en: "Fish", ru: "Рыба" },
-    { ka: "სოია", en: "Soy", ru: "Соя" },
-    { ka: "მოლუსკები", en: "Shellfish", ru: "Моллюски" },
+    { ka: "თევზი", en: "Fish", ru: "Рыба", tr: "Balık", fa: "ماهی" },
+    { ka: "სოია", en: "Soy", ru: "Соя", tr: "Soya", fa: "سویا" },
+    { ka: "მოლუსკები", en: "Shellfish", ru: "Моллюски", tr: "Kabuklu deniz ürünleri", fa: "صدف‌داران" },
   ],
   "პიცა": [
-    { ka: "გლუტენი", en: "Gluten", ru: "Глютен" },
-    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные" },
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
   ],
 };
 
 const INGREDIENTS_BY_OFFER: Record<string, Localized[]> = {
   o1: [
-    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури" },
-    { ka: "ლობიანი", en: "Lobiani", ru: "Лобиани" },
-    { ka: "დღის პური", en: "Fresh bread", ru: "Свежий хлеб" },
+    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури", tr: "Haçapuri", fa: "خاچاپوری" },
+    { ka: "ლობიანი", en: "Lobiani", ru: "Лобиани", tr: "Lobiani", fa: "لوبیانی" },
+    { ka: "დღის პური", en: "Fresh bread", ru: "Свежий хлеб", tr: "Taze ekmek", fa: "نان تازه" },
   ],
   o2: [
-    { ka: "კრუასანი", en: "Croissant", ru: "Круассан" },
-    { ka: "ბაგეტი", en: "Baguette", ru: "Багет" },
-    { ka: "ტკბილი ცომეული", en: "Sweet pastry", ru: "Сладкая выпечка" },
+    { ka: "კრუასანი", en: "Croissant", ru: "Круассан", tr: "Kruvasan", fa: "کروسان" },
+    { ka: "ბაგეტი", en: "Baguette", ru: "Багет", tr: "Baget", fa: "باگت" },
+    { ka: "ტკბილი ცომეული", en: "Sweet pastry", ru: "Сладкая выпечка", tr: "Tatlı hamur işi", fa: "شیرینی" },
   ],
   o3: [
-    { ka: "ორაგული", en: "Salmon", ru: "Лосось" },
-    { ka: "ტუნა", en: "Tuna", ru: "Тунец" },
-    { ka: "ავოკადო", en: "Avocado", ru: "Авокадо" },
-    { ka: "ბრინჯი", en: "Rice", ru: "Рис" },
+    { ka: "ორაგული", en: "Salmon", ru: "Лосось", tr: "Somon", fa: "سالمون" },
+    { ka: "ტუნა", en: "Tuna", ru: "Тунец", tr: "Ton balığı", fa: "تن ماهی" },
+    { ka: "ავოკადო", en: "Avocado", ru: "Авокадо", tr: "Avokado", fa: "آووکادو" },
+    { ka: "ბრინჯი", en: "Rice", ru: "Рис", tr: "Pirinç", fa: "برنج" },
   ],
   o4: [
-    { ka: "სეზონური ხილი", en: "Seasonal fruit", ru: "Сезонные фрукты" },
-    { ka: "სეზონური ბოსტნეული", en: "Seasonal vegetables", ru: "Сезонные овощи" },
+    { ka: "სეზონური ხილი", en: "Seasonal fruit", ru: "Сезонные фрукты", tr: "Mevsim meyvesi", fa: "میوه فصلی" },
+    { ka: "სეზონური ბოსტნეული", en: "Seasonal vegetables", ru: "Сезонные овощи", tr: "Mevsim sebzesi", fa: "سبزیجات فصلی" },
   ],
   o5: [
-    { ka: "ჩურჩხელა", en: "Churchkhela", ru: "Чурчхела" },
-    { ka: "ფელამუში", en: "Pelamushi", ru: "Пеламуши" },
-    { ka: "გოზინაყი", en: "Gozinaki", ru: "Гозинаки" },
+    { ka: "ჩურჩხელა", en: "Churchkhela", ru: "Чурчхела", tr: "Çurçhela", fa: "چورچخلا" },
+    { ka: "ფელამუში", en: "Pelamushi", ru: "Пеламуши", tr: "Pelamuşi", fa: "پلاموشی" },
+    { ka: "გოზინაყი", en: "Gozinaki", ru: "Гозинаки", tr: "Gozinaki", fa: "گوزیناکی" },
   ],
   o6: [
-    { ka: "ხინკალი", en: "Khinkali", ru: "Хинкали" },
-    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури" },
-    { ka: "სალათი", en: "Salad", ru: "Салат" },
+    { ka: "ხინკალი", en: "Khinkali", ru: "Хинкали", tr: "Hinkali", fa: "خینکالی" },
+    { ka: "ხაჭაპური", en: "Khachapuri", ru: "Хачапури", tr: "Haçapuri", fa: "خاچاپوری" },
+    { ka: "სალათი", en: "Salad", ru: "Салат", tr: "Salata", fa: "سالاد" },
   ],
   o7: [
-    { ka: "ყავა ან ჩაი", en: "Coffee or tea", ru: "Кофе или чай" },
-    { ka: "ცომეული", en: "Pastry", ru: "Выпечка" },
+    { ka: "ყავა ან ჩაი", en: "Coffee or tea", ru: "Кофе или чай", tr: "Kahve veya çay", fa: "قهوه یا چای" },
+    { ka: "ცომეული", en: "Pastry", ru: "Выпечка", tr: "Hamur işi", fa: "شیرینی" },
   ],
 };
 
@@ -440,7 +471,13 @@ export function getPickupInstructions(offer: Offer, language: UiLanguage): strin
   if (language === "ru") {
     return `Покажите QR-код на кассе ${store} с ${offer.pickupFrom} до ${offer.pickupTo}. Приходите вовремя — пакет готовится непосредственно перед выдачей.`;
   }
-  return `მიუტანე QR კოდი ${store}-ის კასაზე ${offer.pickupFrom}–${offer.pickupTo}. მიბრძანდით დროულად — პაკეტი მზადდება აღების წინ.`;
+  if (language === "tr") {
+    return `QR kodunuzu ${store} kasasında ${offer.pickupFrom} ile ${offer.pickupTo} arasında gösterin. Lütfen zamanında gelin — paketler alım öncesinde hazırlanır.`;
+  }
+  if (language === "fa") {
+    return `کد QR خود را در صندوق ${store} بین ساعت ${offer.pickupFrom} تا ${offer.pickupTo} نشان دهید. لطفاً به‌موقع مراجعه کنید — بسته‌ها درست قبل از تحویل آماده می‌شوند.`;
+  }
+  return `მიუტანე QR კოდი ${store}-ის სალაროზე ${offer.pickupFrom}–${offer.pickupTo}. მიბრძანდით დროულად — პაკეტი მზადდება აღების წინ.`;
 }
 
 export function getSimilarOffers(offer: Offer, limit = 4): Offer[] {

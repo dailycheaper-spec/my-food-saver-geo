@@ -31,3 +31,30 @@ export function OrderCardSkeleton() {
     </div>
   );
 }
+
+export function PromoBannerSkeleton() {
+  return (
+    <section className="mx-auto max-w-6xl px-4 mt-4 sm:mt-5">
+      <Skeleton className="min-h-[200px] sm:min-h-[280px] w-full rounded-3xl" />
+    </section>
+  );
+}
+
+/** Matches the homepage geometry so the real content swaps in without a jump. */
+export function HomeSkeleton() {
+  return (
+    <div className="space-y-4">
+      <PromoBannerSkeleton />
+      <section className="mx-auto max-w-6xl px-4 space-y-3">
+        <Skeleton className="h-5 w-40" />
+        <div className="grid grid-cols-2 gap-3">
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+          <OfferCardSkeleton />
+        </div>
+      </section>
+    </div>
+  );
+}
+

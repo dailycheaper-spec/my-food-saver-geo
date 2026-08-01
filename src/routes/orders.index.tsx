@@ -6,6 +6,7 @@ import { useI18n, type Language } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { OrderCardSkeleton } from "@/components/Skeleton";
 import { StoreLogo } from "@/components/StoreLogo";
+import { ScrollableRow } from "@/components/ScrollableRow";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -38,16 +39,15 @@ export function stageOfDbOrder(o: OrderWithRelations): Stage {
 }
 
 export function useStageLabel(): (s: Stage) => string {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   return (s) => {
     switch (s) {
-      case "pending": return L("მოლოდინში", "Pending", "В ожидании");
-      case "confirmed": return L("დადასტურდა", "Confirmed", "Подтверждено");
-      case "preparing": return L("მზადდება", "Preparing", "Готовится");
-      case "ready": return L("მზადაა აღებისთვის", "Ready for pickup", "Готово к выдаче");
-      case "completed": return L("დასრულებული", "Completed", "Завершено");
-      case "cancelled": return L("გაუქმებული", "Cancelled", "Отменено");
+      case "pending": return t("orders.pending");
+      case "confirmed": return t("orders.confirmed");
+      case "preparing": return t("orders.preparing");
+      case "ready": return t("orders.readyForPickup");
+      case "completed": return t("orders.completed");
+      case "cancelled": return t("orders.cancelled");
     }
   };
 }
@@ -58,7 +58,7 @@ function Orders() {
   const [tab, setTab] = useState<Stage | "all">("all");
   const stageLabel = useStageLabel();
 
-  const allLabel = language === "en" ? "All" : language === "ru" ? "Все" : "ყველა";
+  const allLabel = t("orders.all");
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: orders.length };
@@ -79,7 +79,7 @@ function Orders() {
     <div className="page-shell">
       <h1 className="font-display text-2xl font-bold">{t("myOrders")}</h1>
 
-      <div className="mt-4 flex gap-2 overflow-x-auto -mx-4 px-4 scrollbar-hide">
+      <ScrollableRow className="mt-4 gap-2 -mx-4 px-4">
         {TABS.map((s) => {
           const active = tab === s;
           const label = s === "all" ? allLabel : stageLabel(s);
@@ -101,7 +101,7 @@ function Orders() {
             </button>
           );
         })}
-      </div>
+      </ScrollableRow>
 
       {error && (
         <div className="mt-4 bg-destructive/10 text-destructive text-sm rounded-2xl border border-destructive/30 p-4">

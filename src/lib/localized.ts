@@ -15,7 +15,7 @@ import type { Language } from "@/lib/i18n";
 
 type WithField<F extends string> = {
   [K in F]?: string | null;
-} & Partial<Record<`${F}_en` | `${F}_ru`, string | null>>;
+} & Partial<Record<`${F}_en` | `${F}_ru` | `${F}_tr` | `${F}_fa`, string | null>>;
 
 export function localizedField<F extends string>(
   row: WithField<F> | null | undefined,
@@ -29,6 +29,12 @@ export function localizedField<F extends string>(
     if (typeof v === "string" && v.trim()) return v;
   } else if (language === "ru") {
     const v = (row as Record<string, unknown>)[`${field}_ru`];
+    if (typeof v === "string" && v.trim()) return v;
+  } else if (language === "tr") {
+    const v = (row as Record<string, unknown>)[`${field}_tr`];
+    if (typeof v === "string" && v.trim()) return v;
+  } else if (language === "fa") {
+    const v = (row as Record<string, unknown>)[`${field}_fa`];
     if (typeof v === "string" && v.trim()) return v;
   }
   return base;

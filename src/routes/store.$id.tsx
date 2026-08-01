@@ -15,6 +15,8 @@ import { Skeleton } from "@/components/Skeleton";
 import { useDbStore, useLiveDbCardOffers } from "@/lib/db-adapter";
 import { useFollowedStoreIds, followStore, unfollowStore, useStoreFollowerCount } from "@/lib/follows";
 import { useAuth } from "@/lib/auth";
+import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+
 
 // Reuse OSM embed logic — small enough to inline here to avoid coupling.
 const LazyMap = lazy(async () => {
@@ -41,7 +43,7 @@ export const Route = createFileRoute("/store/$id")({
 
 function StorePage() {
   const { id } = Route.useParams();
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { store, raw, loading, notFound, error: storeError } = useDbStore(id);
@@ -89,7 +91,7 @@ function StorePage() {
   if (storeError) {
     return (
       <div className="p-8 text-center text-destructive text-sm">
-        {language === "en" ? "Couldn't load data. Please try again." : language === "ru" ? "Не удалось загрузить данные. Попробуйте снова." : "მონაცემების ჩატვირთვა ვერ მოხერხდა. სცადეთ თავიდან."}
+        {t("store.couldnTLoadData")}
       </div>
     );
   }
@@ -100,14 +102,7 @@ function StorePage() {
 
   const storeName = getStoreName(store, language);
 
-  const L = (ka: string, en: string, ru: string) =>
-    language === "en" ? en : language === "ru" ? ru : ka;
-
-  const description = raw.description ?? L(
-    `${storeName} — სანდო პარტნიორი Cheaper-ზე.`,
-    `${storeName} is a trusted partner on Cheaper.`,
-    `${storeName} — надёжный партнёр на Cheaper.`,
-  );
+  const description = raw.description ?? t("store.trustedPartnerDesc", { store: storeName });
 
   const heroOffer = storeOffers[0];
   const cover = heroOffer?.image;
@@ -124,14 +119,13 @@ function StorePage() {
       {/* Cover */}
       <div className="relative h-52 sm:h-64 w-full bg-muted overflow-hidden">
         {cover ? (
-          <img
+          <ImageWithSkeleton
             src={cover}
             alt=""
-            className="w-full h-full object-cover"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
+            priority
+            aspect="absolute inset-0 w-full h-full"
           />
+
         ) : (
           <div className="w-full h-full gradient-warm" />
         )}
@@ -201,13 +195,13 @@ function StorePage() {
             >
               {isFollowing ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
               {isFollowing
-                ? L("გამოწერილია", "Following", "Вы подписаны")
-                : L("გამოწერა", "Follow", "Подписаться")}
+                ? t("store.following")
+                : t("store.follow")}
             </button>
             {followerCount !== null && followerCount > 0 && (
               <div className="text-xs text-muted-foreground whitespace-nowrap">
                 <span className="font-bold text-foreground">{followerCount}</span>{" "}
-                {L("გამომწერი", "followers", "подписч.")}
+                {t("store.followers")}
               </div>
             )}
           </div>
@@ -237,7 +231,7 @@ function StorePage() {
         <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="font-display font-bold text-lg">
-              {L("აქტიური შეთავაზებები", "Active offers", "Активные предложения")}
+              {t("store.activeOffers")}
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">{storeOffers.length}</span>
           </div>
@@ -245,7 +239,7 @@ function StorePage() {
             <div className="text-center py-8 sm:py-10 bg-card rounded-2xl border border-border">
               <div className="text-4xl mb-2">🕒</div>
               <p className="text-sm text-muted-foreground">
-                {L("ამჟამად აქტიური შეთავაზება არ არის.", "No active offers right now.", "Нет активных предложений.")}
+                {t("store.noActiveOffersRight")}
               </p>
             </div>
           ) : (
@@ -260,7 +254,7 @@ function StorePage() {
           <section>
             <div className="mb-3 px-1">
               <h2 className="font-display font-bold text-lg">
-                {L("მდებარეობა", "Location", "Локация")}
+                {t("store.location")}
               </h2>
             </div>
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-3xl" />}>
@@ -273,7 +267,7 @@ function StorePage() {
             target="_blank" rel="noreferrer"
             className="block bg-card rounded-2xl border border-border p-4 text-sm font-semibold text-primary"
           >
-            {L("რუკაზე ნახვა", "View on map", "Открыть на карте")}
+            {t("store.viewOnMap")}
           </a>
         )}
 
@@ -281,7 +275,7 @@ function StorePage() {
         <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="font-display font-bold text-lg">
-              {L("შეფასებები", "Reviews", "Отзывы")}
+              {t("store.reviews")}
             </h2>
             <span className="text-xs text-muted-foreground font-semibold">
               {hydrated ? reviews.length : "—"}
@@ -297,7 +291,7 @@ function StorePage() {
 
               <div className="text-4xl mb-2">💬</div>
               <p className="text-sm text-muted-foreground">
-                {L("ჯერ არაფერი დაწერილა.", "No reviews yet.", "Пока нет отзывов.")}
+                {t("store.noReviewsYet")}
               </p>
               {heroOffer && (
                 <Link
@@ -305,7 +299,7 @@ function StorePage() {
                   params={{ id: heroOffer.id }}
                   className="inline-block mt-3 text-sm text-primary font-semibold"
                 >
-                  {L("დაწერე პირველი შეფასება", "Write the first review", "Оставить первый отзыв")}
+                  {t("store.writeTheFirstReview")}
                 </Link>
               )}
             </div>

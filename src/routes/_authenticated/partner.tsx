@@ -14,21 +14,20 @@ export const Route = createFileRoute("/_authenticated/partner")({
 });
 
 function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }) {
-  const { language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
   return (
     <div className="min-h-screen bg-background grid place-items-center px-4">
       <div className="max-w-md text-center bg-card rounded-3xl border border-border p-6 shadow-card">
         <div className="text-4xl mb-3">🏪</div>
-        <h1 className="font-display text-xl font-bold">{L("პარტნიორის პანელი ვერ ჩაიტვირთა", "Partner panel failed to load", "Не удалось загрузить панель партнёра")}</h1>
+        <h1 className="font-display text-xl font-bold">{t("partner.error.loadFailed")}</h1>
         <p className="text-sm text-muted-foreground mt-2 break-words">
-          {error?.message || L("სცადეთ თავიდან.", "Please try again.", "Попробуйте снова.")}
+          {error?.message || t("partner.error.tryAgain")}
         </p>
         <button
           onClick={reset}
           className="mt-5 px-5 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold"
         >
-          {L("თავიდან ცდა", "Try again", "Попробовать снова")}
+          {t("partner.error.retryButton")}
         </button>
       </div>
     </div>
@@ -37,8 +36,7 @@ function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }
 
 
 function PartnerLayout() {
-  const { t, language } = useI18n();
-  const L = (ka: string, en: string, ru: string) => (language === "en" ? en : language === "ru" ? ru : ka);
+  const { t } = useI18n();
 
   const { stores, role, loading, error, isAdmin, isPartner } = usePartnerAccount();
   const store = stores.find((s) => s.status === "active") ?? null;
@@ -155,8 +153,8 @@ function PartnerLayout() {
             <button
               onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
               className="grid place-items-center tap-target rounded-full hover:bg-muted/50"
-              aria-label={sound.enabled ? L("ხმის გამორთვა", "Turn sound off", "Выключить звук") : L("ხმის ჩართვა", "Turn sound on", "Включить звук")}
-              title={sound.enabled ? L("ხმა ჩართულია", "Sound on", "Звук включён") : L("ხმა გამორთულია", "Sound off", "Звук выключен")}
+              aria-label={sound.enabled ? t("partner.dashboard.soundOffAria") : t("partner.dashboard.soundOnAria")}
+              title={sound.enabled ? t("partner.dashboard.soundOnTitle") : t("partner.dashboard.soundOffTitle")}
             >
               {sound.enabled
                 ? <Volume2 className="w-5 h-5 text-primary" />
@@ -201,7 +199,7 @@ function PartnerLayout() {
         {showSoundBanner && (
           <div className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3">
             <span className="text-lg">🔔</span>
-            <p className="flex-1 text-sm">{L("ჩართეთ ხმოვანი შეტყობინება ახალი შეკვეთისთვის", "Enable sound alert for new orders", "Включить звуковое уведомление о новых заказах")}</p>
+            <p className="flex-1 text-sm">{t("partner.dashboard.soundBanner")}</p>
             <button
               onClick={() => { sound.enable(); setShowSoundBanner(false); }}
               className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
