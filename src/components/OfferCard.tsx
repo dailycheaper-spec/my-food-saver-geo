@@ -55,7 +55,7 @@ function OfferImage({ src, alt, soldOut, fallbackLabel, priority }: { src: strin
 }
 
 
-export function OfferCard({ offer, featured = false }: { offer: Offer; featured?: boolean }) {
+export function OfferCard({ offer, featured = false, priority = false }: { offer: Offer; featured?: boolean; priority?: boolean }) {
   const { t, language } = useI18n();
 
   const favs = useFavorites();
@@ -94,7 +94,7 @@ export function OfferCard({ offer, featured = false }: { offer: Offer; featured?
     >
       <div className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/10]" : "aspect-[4/3]"}`}>
         <OfferImage
-          priority={featured}
+          priority={featured || priority}
 
           src={offer.image}
           alt={offerText.title}
