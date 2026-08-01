@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp } from "lucide-react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { StoreLogo } from "@/components/StoreLogo";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute('/_authenticated/partner/')({
   head: () => ({ meta: [{ title: "პარტნიორის დაფა — Cheaper" }] }),
@@ -20,6 +21,14 @@ function PartnerHome() {
   const dataError = offersError || ordersError;
   const [dupMsg, setDupMsg] = useState<string | null>(null);
   const [dupBusy, setDupBusy] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const yesterdayOffers = useMemo(() => {
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const y = yesterday.toDateString();
+    return offers.filter((o) => new Date(o.created_at).toDateString() === y);
+  }, [offers]);
 
   const stats = useMemo(() => {
     const today = new Date().toDateString();
@@ -31,20 +40,30 @@ function PartnerHome() {
     return { revenue, active, pending, todayCount: todaysOrders.length, soldToday };
   }, [orders, offers]);
 
-  async function duplicateYesterday() {
-    if (!store) return;
-    setDupBusy(true);
-    setDupMsg(null);
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const y = yesterday.toDateString();
-    const last = offers.filter((o) => new Date(o.created_at).toDateString() === y);
-    if (last.length === 0) {
+  function openPicker() {
+    if (yesterdayOffers.length === 0) {
       setDupMsg(t("noYesterdayOffer"));
-      setDupBusy(false);
       setTimeout(() => setDupMsg(null), 2500);
       return;
     }
-    const payload = last.map((o) => ({
+    setSelected(new Set(yesterdayOffers.map((o) => o.id)));
+    setPickerOpen(true);
+  }
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function duplicateSelected() {
+    if (!store || selected.size === 0) return;
+    setDupBusy(true);
+    setDupMsg(null);
+    const chosen = yesterdayOffers.filter((o) => selected.has(o.id));
+    const payload = chosen.map((o) => ({
       store_id: store.id,
       title: o.title,
       description: o.description,
@@ -62,6 +81,7 @@ function PartnerHome() {
     }));
     const { error } = await supabase.from("offers").insert(payload);
     setDupBusy(false);
+    setPickerOpen(false);
     setDupMsg(error ? error.message : t("duplicated"));
     setTimeout(() => setDupMsg(null), 2500);
   }
@@ -110,7 +130,7 @@ function PartnerHome() {
             <TrendingUp className="w-4 h-4 text-primary" /> {t("todaySummary")}
           </h3>
           <button
-            onClick={duplicateYesterday}
+            onClick={openPicker}
             disabled={dupBusy}
             className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary text-primary-foreground flex items-center gap-1 shadow-soft disabled:opacity-50 active:scale-95 transition-transform"
           >
@@ -191,6 +211,43 @@ function PartnerHome() {
           </div>
         )}
       </div>
+
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("duplicateYesterdayPickTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[50vh] overflow-y-auto space-y-2">
+            {yesterdayOffers.map((o) => {
+              const checked = selected.has(o.id);
+              return (
+                <label
+                  key={o.id}
+                  className={`flex items-center gap-3 p-3 rounded-2xl border cursor-pointer transition-colors ${checked ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  <span className={`grid place-items-center w-5 h-5 rounded-md border shrink-0 ${checked ? "bg-primary border-primary text-primary-foreground" : "border-border"}`}>
+                    {checked && <Check className="w-3.5 h-3.5" />}
+                  </span>
+                  <input type="checkbox" checked={checked} onChange={() => toggleSelected(o.id)} className="sr-only" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium truncate">{o.title}</span>
+                    <span className="block text-xs text-muted-foreground">{formatGel(o.discounted_price)}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <DialogFooter>
+            <button
+              onClick={duplicateSelected}
+              disabled={dupBusy || selected.size === 0}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+            >
+              {t("duplicateYesterdayConfirm", { count: selected.size })}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -55,7 +55,7 @@ export function BottomNav() {
                   to={to}
                   aria-label={l}
                   aria-current={active ? "page" : undefined}
-                  className="relative flex w-full flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 min-h-11 tap-target press focus-visible:outline-none rounded-2xl"
+                  className="relative flex w-full flex-col items-center justify-center gap-0.5 py-2 sm:py-2.5 min-h-14 tap-target press focus-visible:outline-none rounded-2xl"
                 >
 
                   <span
@@ -67,7 +67,7 @@ export function BottomNav() {
                     <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2.6 : 2} />
                   </span>
                   <span
-                    className={`max-w-full truncate px-0.5 text-[10px] font-semibold tracking-tight ${
+                    className={`max-w-full line-clamp-2 text-center px-0.5 text-[9px] leading-tight font-semibold tracking-tight ${
                       active ? "text-primary" : "text-muted-foreground"
                     }`}
                   >
