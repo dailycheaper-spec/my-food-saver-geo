@@ -57,7 +57,7 @@ function PartnerInsights() {
         <ArrowLeft className="w-4 h-4" /> {L("უკან", "Back", "Назад")}
       </button>
       <div>
-        <h1 className="font-display text-2xl font-bold">{L("ბიზნეს Insights", "Business Insights", "Бизнес-инсайты")}</h1>
+        <h1 className="font-display text-2xl font-bold">{L("ბიზნეს ანალიტიკა", "Business Insights", "Бизнес-инсайты")}</h1>
         <p className="text-sm text-muted-foreground mt-1">{store.name} — {L("რეალურ მონაცემებზე დაფუძნებული ჭრილი", "based on real data", "на основе реальных данных")}</p>
       </div>
 

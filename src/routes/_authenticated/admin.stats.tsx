@@ -15,8 +15,6 @@ export const Route = createFileRoute("/_authenticated/admin/stats")({
   component: AdminStats,
 });
 
-const KG_PER_ORDER = 0.4;
-
 function AdminStats() {
   const { t } = useI18n();
   const { orders } = useAllOrders();
@@ -32,7 +30,11 @@ function AdminStats() {
   }, [orders, days]);
 
   const revenue = filtered.reduce((s, o) => s + Number(o.amount), 0);
-  const kgSaved = filtered.length * KG_PER_ORDER;
+  const customerSavings = filtered.reduce((s, o) => {
+    const original = o.original_price_at_purchase ?? o.offer?.original_price ?? 0;
+    const discounted = o.offer?.discounted_price ?? 0;
+    return s + Math.max(0, original - discounted) * o.quantity;
+  }, 0);
 
   // Daily buckets
   const buckets = useMemo(() => {
@@ -97,7 +99,7 @@ function AdminStats() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <Kpi icon={TrendingUp} label={t("admin.stats.revenue")} value={formatGel(revenue)} tint="success" />
         <Kpi icon={Package} label={t("admin.stats.orders")} value={filtered.length.toString()} tint="primary" />
-        <Kpi icon={Leaf} label={t("admin.stats.savedKg")} value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Leaf} label={t("admin.stats.savedKg")} value={formatGel(customerSavings)} tint="success" />
         <Kpi icon={Users} label={t("admin.stats.activeCustomers")} value={new Set(filtered.map((o) => o.user_id)).size.toString()} tint="warm" />
       </div>
 

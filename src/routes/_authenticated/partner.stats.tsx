@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeft, TrendingUp, ShoppingBag, Leaf, Trophy } from "lucide-react";
+import { ArrowLeft, TrendingUp, ShoppingBag, Wallet, Trophy } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
-import { KG_PER_OFFER } from "@/lib/partner-db";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/stats")({
@@ -11,8 +10,7 @@ export const Route = createFileRoute("/_authenticated/partner/stats")({
 });
 
 function StatsPage() {
-  const { t, language } = useI18n();
-  const kg = language === "en" ? "kg" : language === "ru" ? "кг" : "კგ";
+  const { t } = useI18n();
 
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
@@ -31,7 +29,11 @@ function StatsPage() {
       counts.set(title, (counts.get(title) ?? 0) + 1);
     }
     const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const saved = paid.reduce((a) => a + KG_PER_OFFER, 0);
+    const saved = paid.reduce((a, o) => {
+      const original = o.original_price_at_purchase ?? o.offer?.original_price ?? 0;
+      const discounted = o.offer?.discounted_price ?? 0;
+      return a + Math.max(0, original - discounted) * o.quantity;
+    }, 0);
     return { todayCount: todayPaid.length, revenue, top, saved, totalSold: paid.length, activeOffers: offers.filter((x) => x.is_active).length };
   }, [orders, offers]);
 
@@ -49,7 +51,7 @@ function StatsPage() {
         <Kpi color="from-primary to-primary/70" icon={<ShoppingBag className="w-5 h-5" />} label={t("todayOrders")} value={String(s.todayCount)} />
         <Kpi color="from-orange-500 to-amber-400" icon={<TrendingUp className="w-5 h-5" />} label={t("todayRevenue")} value={formatGel(s.revenue)} />
         <Kpi color="from-blue-500 to-cyan-400" icon={<Trophy className="w-5 h-5" />} label={t("totalSold")} value={String(s.totalSold)} />
-        <Kpi color="from-emerald-500 to-teal-400" icon={<Leaf className="w-5 h-5" />} label={t("foodSaved")} value={`${s.saved.toFixed(1)} ${kg}`} />
+        <Kpi color="from-emerald-500 to-teal-400" icon={<Wallet className="w-5 h-5" />} label={t("foodSaved")} value={formatGel(s.saved)} />
       </div>
 
       <div className="bg-card rounded-3xl border border-border p-5">

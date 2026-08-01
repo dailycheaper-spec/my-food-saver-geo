@@ -13,8 +13,6 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
 });
 
-const KG_PER_ORDER = 0.4;
-
 function AdminOverview() {
   const { t } = useI18n();
   const { stores } = useAllStores();
@@ -34,7 +32,13 @@ function AdminOverview() {
   const totalOrders = orders.length;
   const activeStores = stores.filter((s) => s.status === "active").length;
   const pendingStores = stores.filter((s) => s.status === "pending");
-  const kgSaved = orders.filter((o) => o.status !== "cancelled").length * KG_PER_ORDER;
+  const customerSavings = orders
+    .filter((o) => o.status !== "cancelled")
+    .reduce((s, o) => {
+      const original = o.original_price_at_purchase ?? o.offer?.original_price ?? 0;
+      const discounted = o.offer?.discounted_price ?? 0;
+      return s + Math.max(0, original - discounted) * o.quantity;
+    }, 0);
 
   return (
     <div className="space-y-6">
@@ -73,7 +77,7 @@ function AdminOverview() {
         <Kpi icon={ShoppingBag} label={t("admin.dashboard.todayOrders")} value={today.length.toString()} tint="primary" />
         <Kpi icon={TrendingUp} label={t("admin.dashboard.todayRevenue")} value={formatGel(todayRevenue)} tint="success" />
         <Kpi icon={Percent} label={t("admin.dashboard.commission", { pct: settings.commissionPct })} value={formatGel(commission)} tint="warm" />
-        <Kpi icon={Leaf} label={t("admin.dashboard.savedKg")} value={kgSaved.toFixed(1)} tint="success" />
+        <Kpi icon={Leaf} label={t("admin.dashboard.savedKg")} value={formatGel(customerSavings)} tint="success" />
         <Kpi icon={Store} label={t("admin.dashboard.activePartners")} value={activeStores.toString()} tint="primary" />
         <Kpi icon={Radio} label={t("admin.dashboard.usersOnline")} value={online.toString()} tint="warm" />
         <Kpi icon={Users} label={t("admin.dashboard.totalOrders")} value={totalOrders.toString()} tint="muted" />

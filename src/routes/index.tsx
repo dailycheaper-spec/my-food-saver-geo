@@ -304,14 +304,14 @@ function Home() {
               <button
                 key={c.id}
                 onClick={() => setCat(c.id)}
-                className={`snap-start shrink-0 flex flex-col items-center justify-center gap-1.5 w-[84px] h-[86px] rounded-2xl px-1 transition-all active:scale-95 ${
+                className={`snap-start shrink-0 flex flex-col items-center justify-center gap-1.5 w-[84px] h-[92px] rounded-2xl px-1.5 transition-all active:scale-95 ${
                   active
                     ? "bg-primary text-primary-foreground shadow-elevated"
                     : "bg-card border border-border text-foreground"
                 }`}
               >
                 <span className="text-2xl">{c.icon}</span>
-                <span className="max-w-full truncate text-[11px] font-bold tracking-tight">
+                <span className="max-w-full line-clamp-2 text-center text-[10px] leading-tight font-bold tracking-tight">
                   {getCategoryLabel(c.id, language)}
                 </span>
               </button>

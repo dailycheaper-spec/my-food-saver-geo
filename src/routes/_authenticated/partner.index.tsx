@@ -37,29 +37,29 @@ function PartnerHome() {
     setDupMsg(null);
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     const y = yesterday.toDateString();
-    const last = offers.find((o) => new Date(o.created_at).toDateString() === y);
-    if (!last) {
+    const last = offers.filter((o) => new Date(o.created_at).toDateString() === y);
+    if (last.length === 0) {
       setDupMsg(t("noYesterdayOffer"));
       setDupBusy(false);
       setTimeout(() => setDupMsg(null), 2500);
       return;
     }
-    const payload = {
+    const payload = last.map((o) => ({
       store_id: store.id,
-      title: last.title,
-      description: last.description,
-      category: last.category,
-      original_price: last.original_price,
-      discounted_price: last.discounted_price,
-      quantity_available: last.quantity_available,
-      pickup_from: last.pickup_from,
-      pickup_to: last.pickup_to,
-      delivery_available: last.delivery_available,
-      image_url: last.image_url,
-      image_path: (last as any).image_path ?? null,
-      image_signed_url_expires_at: (last as any).image_signed_url_expires_at ?? null,
+      title: o.title,
+      description: o.description,
+      category: o.category,
+      original_price: o.original_price,
+      discounted_price: o.discounted_price,
+      quantity_available: o.quantity_available,
+      pickup_from: o.pickup_from,
+      pickup_to: o.pickup_to,
+      delivery_available: o.delivery_available,
+      image_url: o.image_url,
+      image_path: (o as any).image_path ?? null,
+      image_signed_url_expires_at: (o as any).image_signed_url_expires_at ?? null,
       is_active: true,
-    };
+    }));
     const { error } = await supabase.from("offers").insert(payload);
     setDupBusy(false);
     setDupMsg(error ? error.message : t("duplicated"));
@@ -161,7 +161,7 @@ function PartnerHome() {
       {/* Quick shortcuts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label={t("aiMode")} />
-        <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label="Insights" />
+        <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label={t("insights")} />
         <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />
         <Shortcut to="/partner/profile" icon={<StoreIcon className="w-4 h-4" />} label={t("profile")} />
       </div>

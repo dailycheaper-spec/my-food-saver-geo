@@ -8,7 +8,7 @@ export type AdminSettings = {
   deliveryEnabled: boolean;
   notificationsRadiusKm: number;
   language: "ka" | "en";
-  paymentProviders: { bog: boolean; tbc: boolean; card: boolean };
+  paymentProviders: { bog: boolean; tbc: boolean; card: boolean; googlepay: boolean };
   rules: string;
 };
 
@@ -17,7 +17,7 @@ const defaults: AdminSettings = {
   deliveryEnabled: true,
   notificationsRadiusKm: 2,
   language: "ka",
-  paymentProviders: { bog: true, tbc: true, card: true },
+  paymentProviders: { bog: true, tbc: true, card: true, googlepay: true },
   rules: "შემოთავაზება უნდა იყოს ხარისხიანი და შეესაბამებოდეს აღწერას.",
 };
 
@@ -26,7 +26,8 @@ export function loadAdminSettings(): AdminSettings {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return defaults;
-    return { ...defaults, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    return { ...defaults, ...parsed, paymentProviders: { ...defaults.paymentProviders, ...parsed.paymentProviders } };
   } catch { return defaults; }
 }
 

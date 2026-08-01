@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Truck, ShoppingBag, Search } from "lucide-react";
 import { useAllOrders, formatGel } from "@/lib/db";
+import { listAdminUsers } from "@/lib/admin-users.functions";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({
@@ -19,6 +21,20 @@ function AdminOrders() {
   const [method, setMethod] = useState<"all" | "pickup" | "delivery">("all");
   const [range, setRange] = useState<"all" | "today" | "week" | "month">("all");
 
+  const loadUsers = useServerFn(listAdminUsers);
+  const [customerById, setCustomerById] = useState<Map<string, { name: string; email: string | null }>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    loadUsers().then((users) => {
+      if (!alive) return;
+      const map = new Map(
+        users.map((u) => [u.id, { name: [u.first_name, u.last_name].filter(Boolean).join(" ") || "—", email: u.email }]),
+      );
+      setCustomerById(map);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [loadUsers]);
+
   const filtered = useMemo(() => {
     const now = Date.now();
     const cutoffs: Record<typeof range, number> = {
@@ -33,13 +49,16 @@ function AdminOrders() {
       if (range !== "all" && new Date(o.created_at).getTime() < cutoffs[range]) return false;
       if (q) {
         const s = q.toLowerCase();
+        const customer = customerById.get(o.user_id);
         if (!o.code?.toLowerCase().includes(s)
           && !o.offer?.title?.toLowerCase().includes(s)
-          && !o.store?.name?.toLowerCase().includes(s)) return false;
+          && !o.store?.name?.toLowerCase().includes(s)
+          && !customer?.name.toLowerCase().includes(s)
+          && !customer?.email?.toLowerCase().includes(s)) return false;
       }
       return true;
     });
-  }, [orders, q, status, method, range]);
+  }, [orders, q, status, method, range, customerById]);
 
   return (
     <div className="space-y-6">
@@ -87,6 +106,7 @@ function AdminOrders() {
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="text-left p-3 font-semibold">{t("admin.orders.colCode")}</th>
+                <th className="text-left p-3 font-semibold">{t("admin.orders.colCustomer")}</th>
                 <th className="text-left p-3 font-semibold">{t("admin.orders.colStore")}</th>
                 <th className="text-left p-3 font-semibold">{t("admin.orders.colProduct")}</th>
                 <th className="text-left p-3 font-semibold">{t("admin.orders.colType")}</th>
@@ -100,6 +120,12 @@ function AdminOrders() {
               {filtered.slice(0, 200).map((o) => (
                 <tr key={o.id} className="border-t border-border hover:bg-muted/30">
                   <td className="p-3 font-mono font-bold">#{o.code}</td>
+                  <td className="p-3 truncate max-w-[160px]">
+                    <div className="truncate">{customerById.get(o.user_id)?.name ?? "—"}</div>
+                    {customerById.get(o.user_id)?.email && (
+                      <div className="text-[10px] text-muted-foreground truncate">{customerById.get(o.user_id)?.email}</div>
+                    )}
+                  </td>
                   <td className="p-3 truncate max-w-[160px]">{o.store?.name ?? "—"}</td>
                   <td className="p-3 truncate max-w-[200px]">{o.offer?.title ?? "—"}</td>
                   <td className="p-3">

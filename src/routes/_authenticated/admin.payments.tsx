@@ -107,7 +107,7 @@ function AdminPayments() {
               </div>
               <div className="mt-2 font-display text-xl font-bold">{formatGel(stats.byProvider[key].amount)}</div>
               <div className="text-xs text-muted-foreground">
-                {stats.byProvider[key].count} {t("admin.stats.orderCount")}
+                {stats.byProvider[key].count} {t("analytics.orderCount")}
               </div>
             </div>
           ))}
