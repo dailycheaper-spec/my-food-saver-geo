@@ -1,2 +1,14 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /partner
+Disallow: /partner-apply
+Disallow: /auth
+Disallow: /orders
+Disallow: /analytics
+Disallow: /notifications
+Disallow: /profile
+Disallow: /favorites
+Disallow: /api/
+
+Sitemap: https://cheaper.ge/sitemap.xml

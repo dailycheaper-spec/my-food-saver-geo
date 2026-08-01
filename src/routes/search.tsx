@@ -18,12 +18,20 @@ import { OfferCardSkeleton } from "@/components/Skeleton";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
 
 
+const SEARCH_TITLE = "ძებნა — ფასდაკლებული საკვები შენს გარშემო | Cheaper";
+const SEARCH_DESC =
+  "მოძებნე ხაჭაპური, სუში, ცომეული, ხილი და მარკეტის კალათები 50%+ ფასდაკლებით — გაფილტრე უბნის, კატეგორიის, ფასის და გატანის დროის მიხედვით.";
+
 export const Route = createFileRoute("/search")({
   head: () => ({
     meta: [
-      { title: "ძებნა — Cheaper" },
-      { name: "description", content: "იპოვე ფასდაკლებული საკვები შენს გარშემო." },
+      { title: SEARCH_TITLE },
+      { name: "description", content: SEARCH_DESC },
+      { property: "og:title", content: SEARCH_TITLE },
+      { property: "og:description", content: SEARCH_DESC },
+      { property: "og:url", content: "https://cheaper.ge/search" },
     ],
+    links: [{ rel: "canonical", href: "https://cheaper.ge/search" }],
   }),
   component: SearchPage,
 });
@@ -430,6 +438,7 @@ function SearchPage() {
       </div>
 
       <div className="page-shell">
+        <h1 className="sr-only">{SEARCH_TITLE}</h1>
         {/* Instant suggestions */}
         {showSuggestions && (
           <div className="mb-4 bg-card border border-border rounded-2xl overflow-hidden animate-fade-in">

@@ -82,7 +82,7 @@ export function AppTracker() {
         new Notification(`🎉 ${t("newOffer")}`, {
           body: `${storeName}: ${title} — ${Number(offer.discounted_price).toFixed(2)} ${t("currency")}`,
           tag: `cheaper-live-${offer.id}`,
-          icon: "/icon-192.png",
+          icon: "/icon-192-v2.png",
         });
       } catch { /* browser blocked */ }
     };

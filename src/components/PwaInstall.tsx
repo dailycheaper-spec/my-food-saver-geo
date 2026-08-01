@@ -63,7 +63,7 @@ export function PwaInstall() {
       {showIos && (
         <div className="fixed inset-x-3 bottom-20 z-[90] rounded-2xl border border-border bg-card p-4 shadow-xl">
           <div className="flex items-start gap-3">
-            <img src="/icon-192.png" alt="" className="h-12 w-12 rounded-xl" />
+            <img src="/icon-192-v2.png" alt="" className="h-12 w-12 rounded-xl" />
             <div className="flex-1 text-sm">
               <div className="font-semibold">{t("system.pwa.iosTitle")}</div>
               <div className="mt-1 text-muted-foreground text-xs leading-relaxed">

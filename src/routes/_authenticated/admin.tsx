@@ -80,7 +80,7 @@ function AdminLayout() {
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 flex-col bg-card border-r border-border z-30">
         <div className="px-6 py-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo-tile.png" alt="Cheaper" width={36} height={36} className="w-9 h-9 object-contain" />
+            <img src="/logo-tile-v2.png" alt="Cheaper" width={36} height={36} className="w-9 h-9 object-contain" />
             <div>
               <div className="font-display font-bold text-lg leading-none">Cheaper</div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1"><Shield className="w-3 h-3" /> {t("admin.nav.admin")}</div>

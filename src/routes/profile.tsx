@@ -14,7 +14,7 @@ import { AvatarUploader } from "@/components/AvatarUploader";
 import { StoreLogo } from "@/components/StoreLogo";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "პროფილი — Cheaper" }, { name: "description", content: "შენი ანგარიში და გავლენა." }] }),
+  head: () => ({ meta: [{ title: "პროფილი — Cheaper" }, { name: "description", content: "შენი ანგარიში და გავლენა." }, { name: "robots", content: "noindex" }] }),
   component: Profile,
 });
 
@@ -55,6 +55,7 @@ function Profile() {
 
   return (
     <div className="page-shell">
+      <h1 className="sr-only">{t("navProfile")}</h1>
       <div className="mb-3 flex justify-end"><LanguageSwitcher /></div>
       <div className="bg-card rounded-2xl border border-border shadow-card p-5">
         <div className="flex items-center gap-4">

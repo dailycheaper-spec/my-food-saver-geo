@@ -68,7 +68,11 @@ export const Route = createFileRoute("/map")({
       meta: [
         { title: h.title },
         { name: "description", content: h.description },
+        { property: "og:title", content: h.title },
+        { property: "og:description", content: h.description },
+        { property: "og:url", content: "https://cheaper.ge/map" },
       ],
+      links: [{ rel: "canonical", href: "https://cheaper.ge/map" }],
     };
   },
   component: MapPage,
@@ -325,9 +329,10 @@ function MapPage() {
 
   return (
     <div className="fixed inset-0 top-0 bottom-16 flex flex-col bg-background">
+      <h1 className="sr-only">{localizedHead().title}</h1>
       {/* Back button (top-left) */}
       <div className="absolute top-3 left-3 z-[1000] pointer-events-none">
-        <Link to="/" className="pointer-events-auto w-10 h-10 rounded-full bg-card shadow-elevated grid place-items-center">
+        <Link to="/" aria-label={t("notFound.backHome")} className="pointer-events-auto w-10 h-10 rounded-full bg-card shadow-elevated grid place-items-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
       </div>
