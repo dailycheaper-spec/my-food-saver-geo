@@ -66,6 +66,18 @@ export default defineConfig({
               },
             },
             {
+              // Remote product / store imagery (Supabase Storage, signed URLs).
+              urlPattern: ({ request, url }) =>
+                request.destination === "image" &&
+                url.hostname.endsWith(".supabase.co"),
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "cheaper-remote-images",
+                expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 7 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
               urlPattern: ({ url }) =>
                 url.hostname === "fonts.googleapis.com" ||
                 url.hostname === "fonts.gstatic.com",
