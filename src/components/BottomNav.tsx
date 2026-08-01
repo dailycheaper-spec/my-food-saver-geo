@@ -67,7 +67,7 @@ export function BottomNav() {
                     <Icon className="w-[18px] h-[18px]" strokeWidth={active ? 2.6 : 2} />
                   </span>
                   <span
-                    className={`text-[10px] font-semibold tracking-tight ${
+                    className={`max-w-full truncate px-0.5 text-[10px] font-semibold tracking-tight ${
                       active ? "text-primary" : "text-muted-foreground"
                     }`}
                   >

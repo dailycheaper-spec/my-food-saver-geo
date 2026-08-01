@@ -17,7 +17,7 @@ export const Route = createFileRoute("/auth")({
 type Mode = "signin" | "signup" | "phone";
 
 function AuthPage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
   const isPartnerFlow = typeof redirect === "string" && redirect.startsWith("/partner-apply");
@@ -302,7 +302,13 @@ function AuthPage() {
           </div>
 
           <p className="mt-5 text-[10px] text-center text-muted-foreground">
-            {t("terms")}
+            {language === "en" ? (
+              <>By continuing you agree to Cheaper's <Link to="/terms" className="underline">Terms</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>.</>
+            ) : language === "ru" ? (
+              <>Продолжая, вы соглашаетесь с <Link to="/terms" className="underline">условиями</Link> и <Link to="/privacy" className="underline">политикой конфиденциальности</Link> Cheaper.</>
+            ) : (
+              <>გაგრძელებით ეთანხმები Cheaperს <Link to="/terms" className="underline">წესებსა</Link> და <Link to="/privacy" className="underline">კონფიდენციალურობის პოლიტიკას</Link>.</>
+            )}
           </p>
         </div>
       </div>

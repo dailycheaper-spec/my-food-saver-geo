@@ -9,6 +9,7 @@ import {
   findOffer, formatPrice, getCategoryLabel, getDistrictLabel, getOfferText, getStoreName,
   getAllergens, getIngredients, getPickupInstructions, getSimilarOffers,
 } from "@/lib/mock-data";
+import { useLiveDbCardOffers } from "@/lib/db-adapter";
 import { toggleFavorite, useFavorites, trackOfferView, isTrustedPartner } from "@/lib/storage";
 import { allergenLabels } from "@/lib/allergens";
 
@@ -141,7 +142,21 @@ function OfferPage() {
   }, [offer, language]);
   const ingredients = useMemo(() => getIngredients(offer, language), [offer, language]);
   const pickupInstructions = useMemo(() => getPickupInstructions(offer, language), [offer, language]);
-  const similar = useMemo(() => getSimilarOffers(offer, 4), [offer]);
+  const { offers: liveOffers } = useLiveDbCardOffers();
+  const similar = useMemo(() => {
+    if (!realDb) return getSimilarOffers(offer, 4);
+    // Real, purchasable offers only — never mix in the static mock/demo array here.
+    const candidates = liveOffers.filter((o) => o.id !== offer.id && o.itemsLeft > 0);
+    const scored = candidates.map((o) => {
+      let score = 0;
+      if (o.category === offer.category) score += 3;
+      if (o.district === offer.district) score += 2;
+      if (o.storeId !== offer.storeId) score += 1; // favor variety over duplicates from the same store
+      return { o, score };
+    });
+    scored.sort((a, b) => b.score - a.score || (b.o.createdAt ?? 0) - (a.o.createdAt ?? 0));
+    return scored.slice(0, 4).map((s) => s.o);
+  }, [offer, realDb, liveOffers]);
 
   useEffect(() => {
     setMounted(true);
@@ -253,7 +268,7 @@ function OfferPage() {
   return (
     <div className="pb-32">
       {/* ---- Image "gallery" ---- */}
-      <div className="relative aspect-[4/3] bg-muted">
+      <div className="relative aspect-[4/3] sm:max-w-2xl sm:mx-auto bg-muted">
         <ImageWithSkeleton
           src={offer.image}
           alt={offerText.title}

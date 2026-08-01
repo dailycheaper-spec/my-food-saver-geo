@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { Star, ThumbsUp, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Star, ThumbsUp, RotateCcw, Lock } from "lucide-react";
 import { useReviews, addReview } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
 export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: string }) {
   const { t } = useI18n();
+  const { user } = useAuth();
   const reviews = useReviews(offerId);
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(5);
@@ -13,6 +15,31 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
   const [author, setAuthor] = useState("");
   const [worthIt, setWorthIt] = useState(true);
   const [wouldBuyAgain, setWouldBuyAgain] = useState(true);
+  // Only customers who actually picked up this exact offer may leave a
+  // review — otherwise anyone could review without ever having ordered.
+  const [canReview, setCanReview] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    async function checkEligibility() {
+      if (!user) {
+        if (alive) { setCanReview(false); setCheckingEligibility(false); }
+        return;
+      }
+      const { data } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("offer_id", offerId)
+        .eq("status", "collected")
+        .limit(1)
+        .maybeSingle();
+      if (alive) { setCanReview(!!data); setCheckingEligibility(false); }
+    }
+    checkEligibility();
+    return () => { alive = false; };
+  }, [user, offerId]);
 
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const worthPct = reviews.length ? Math.round((reviews.filter((r) => r.worthIt).length / reviews.length) * 100) : 0;
@@ -47,12 +74,18 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
             </div>
           )}
         </div>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full"
-        >
-          {open ? t("closeBtn") : t("writeReviewBtn")}
-        </button>
+        {canReview ? (
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full"
+          >
+            {open ? t("closeBtn") : t("writeReviewBtn")}
+          </button>
+        ) : !checkingEligibility ? (
+          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground text-right max-w-[45%]">
+            <Lock className="w-3 h-3 shrink-0" /> {t("reviewAfterPickup")}
+          </span>
+        ) : null}
       </div>
 
       {reviews.length > 0 && (
@@ -70,7 +103,7 @@ export function ReviewSection({ offerId, storeId }: { offerId: string; storeId: 
         </div>
       )}
 
-      {open && (
+      {open && canReview && (
         <form onSubmit={submit} className="mt-4 space-y-3 border-t border-border pt-4">
           <input
             value={author}
