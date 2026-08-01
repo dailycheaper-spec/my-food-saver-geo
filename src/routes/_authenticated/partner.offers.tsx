@@ -31,7 +31,6 @@ function OffersPage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="font-display text-2xl font-bold">{t("activeOffers")}</h1>
         <div className="flex gap-2">
-          <Link to="/partner/quick" className="px-3 py-2 bg-muted rounded-xl text-sm font-medium">⚡ {t("quickOffer")}</Link>
           <Link to="/partner/new" className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl font-semibold text-sm shadow-soft">
             <Plus className="w-4 h-4" /> {t("newShort")}
           </Link>

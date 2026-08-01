@@ -38,7 +38,6 @@ import { Route as ApiPublicRefreshOfferImagesRouteImport } from './routes/api/pu
 import { Route as AuthenticatedPartnerStoreRouteImport } from './routes/_authenticated/partner.store'
 import { Route as AuthenticatedPartnerStatsRouteImport } from './routes/_authenticated/partner.stats'
 import { Route as AuthenticatedPartnerScanRouteImport } from './routes/_authenticated/partner.scan'
-import { Route as AuthenticatedPartnerQuickRouteImport } from './routes/_authenticated/partner.quick'
 import { Route as AuthenticatedPartnerProfileRouteImport } from './routes/_authenticated/partner.profile'
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
@@ -209,12 +208,6 @@ const AuthenticatedPartnerScanRoute =
     path: '/scan',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
-const AuthenticatedPartnerQuickRoute =
-  AuthenticatedPartnerQuickRouteImport.update({
-    id: '/quick',
-    path: '/quick',
-    getParentRoute: () => AuthenticatedPartnerRoute,
-  } as any)
 const AuthenticatedPartnerProfileRoute =
   AuthenticatedPartnerProfileRouteImport.update({
     id: '/profile',
@@ -360,7 +353,6 @@ export interface FileRoutesByFullPath {
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/profile': typeof AuthenticatedPartnerProfileRoute
-  '/partner/quick': typeof AuthenticatedPartnerQuickRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
@@ -408,7 +400,6 @@ export interface FileRoutesByTo {
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/partner/profile': typeof AuthenticatedPartnerProfileRoute
-  '/partner/quick': typeof AuthenticatedPartnerQuickRoute
   '/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/partner/store': typeof AuthenticatedPartnerStoreRoute
@@ -460,7 +451,6 @@ export interface FileRoutesById {
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
   '/_authenticated/partner/profile': typeof AuthenticatedPartnerProfileRoute
-  '/_authenticated/partner/quick': typeof AuthenticatedPartnerQuickRoute
   '/_authenticated/partner/scan': typeof AuthenticatedPartnerScanRoute
   '/_authenticated/partner/stats': typeof AuthenticatedPartnerStatsRoute
   '/_authenticated/partner/store': typeof AuthenticatedPartnerStoreRoute
@@ -512,7 +502,6 @@ export interface FileRouteTypes {
     | '/partner/offers'
     | '/partner/orders'
     | '/partner/profile'
-    | '/partner/quick'
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
@@ -560,7 +549,6 @@ export interface FileRouteTypes {
     | '/partner/offers'
     | '/partner/orders'
     | '/partner/profile'
-    | '/partner/quick'
     | '/partner/scan'
     | '/partner/stats'
     | '/partner/store'
@@ -611,7 +599,6 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
     | '/_authenticated/partner/profile'
-    | '/_authenticated/partner/quick'
     | '/_authenticated/partner/scan'
     | '/_authenticated/partner/stats'
     | '/_authenticated/partner/store'
@@ -857,13 +844,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerScanRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
-    '/_authenticated/partner/quick': {
-      id: '/_authenticated/partner/quick'
-      path: '/quick'
-      fullPath: '/partner/quick'
-      preLoaderRoute: typeof AuthenticatedPartnerQuickRouteImport
-      parentRoute: typeof AuthenticatedPartnerRoute
-    }
     '/_authenticated/partner/profile': {
       id: '/_authenticated/partner/profile'
       path: '/profile'
@@ -1034,7 +1014,6 @@ interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
   AuthenticatedPartnerProfileRoute: typeof AuthenticatedPartnerProfileRoute
-  AuthenticatedPartnerQuickRoute: typeof AuthenticatedPartnerQuickRoute
   AuthenticatedPartnerScanRoute: typeof AuthenticatedPartnerScanRoute
   AuthenticatedPartnerStatsRoute: typeof AuthenticatedPartnerStatsRoute
   AuthenticatedPartnerStoreRoute: typeof AuthenticatedPartnerStoreRoute
@@ -1050,7 +1029,6 @@ const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
   AuthenticatedPartnerProfileRoute: AuthenticatedPartnerProfileRoute,
-  AuthenticatedPartnerQuickRoute: AuthenticatedPartnerQuickRoute,
   AuthenticatedPartnerScanRoute: AuthenticatedPartnerScanRoute,
   AuthenticatedPartnerStatsRoute: AuthenticatedPartnerStatsRoute,
   AuthenticatedPartnerStoreRoute: AuthenticatedPartnerStoreRoute,
