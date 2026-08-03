@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 
-export const MIN_DISCOUNT_PCT = 50;
+export const MIN_DISCOUNT_PCT = 35;
 
 export function computePct(original: number, discounted: number): number {
   if (!original || original <= 0) return 0;

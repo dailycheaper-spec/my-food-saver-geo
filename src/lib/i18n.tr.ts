@@ -186,7 +186,7 @@ export const trLabels: Record<string, string> = {
   "pickupEnd": "Teslim alma bitişi",
   "originalPrice": "Orijinal (GEL)",
   "discountPct": "İndirim (%)",
-  "minDiscount50": "En az %50 indirim gerekli",
+  "minDiscount50": "En az %35 indirim gerekli",
   "creating": "Oluşturuluyor…",
   "approvePublish": "Onayla ve yayınla",
   "publish": "Yayınla",
