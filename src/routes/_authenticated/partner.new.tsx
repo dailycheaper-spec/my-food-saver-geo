@@ -190,7 +190,10 @@ function NewOfferPage() {
       is_surprise: form.is_surprise,
       is_active: true,
       allergens: form.allergens.length ? form.allergens : null,
+      unit_type: form.unit_type,
+      unit_weight_grams: form.unit_type === "weight" && form.unit_weight_grams ? Number(form.unit_weight_grams) : null,
     };
+
 
 
     const { error } = await supabase.from("offers").insert(payload);
@@ -211,7 +214,38 @@ function NewOfferPage() {
       <p className="text-sm text-muted-foreground mb-5">{t("fillAndPublish")}</p>
 
       <form onSubmit={publish} className="space-y-4">
+        <div className="p-3 rounded-3xl border border-border bg-card/50">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="text-sm font-bold flex items-center gap-1.5">
+              <UtensilsCrossed className="w-4 h-4 text-primary" /> {t("partner.menu.pickFromMenu")}
+            </div>
+            <Link to="/partner/menu" className="text-xs font-semibold text-primary shrink-0">
+              {t("partner.menu.title")}
+            </Link>
+          </div>
+          {menu.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("partner.menu.pickEmpty")}</p>
+          ) : (
+            <>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                {menu.map((it) => (
+                  <button
+                    key={it.id}
+                    type="button"
+                    onClick={() => applyMenuItem(it)}
+                    className={`shrink-0 px-3 py-2 rounded-2xl text-xs font-medium border whitespace-nowrap ${pickedId === it.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                  >
+                    {pickedId === it.id ? "✓ " : ""}{it.name}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{t("partner.menu.pickHint")}</p>
+            </>
+          )}
+        </div>
+
         <div>
+
           <Label>{t("photo")}</Label>
           <OfferPhotoPicker
             value={form.image_url}
