@@ -320,6 +320,13 @@ function PartnerApply() {
             placeholder={t("partner.apply.companyNamePlaceholder")}
             required
           />
+          <Field
+            label={t("partner.apply.representativeLabel")}
+            value={form.representative_name}
+            onChange={(v) => setForm({ ...form, representative_name: v })}
+            placeholder={t("partner.apply.representativePlaceholder")}
+            required
+          />
           <label className="block">
             <span className="text-xs font-medium text-muted-foreground">{t("entityTypeLabel")}</span>
             <div className="mt-1 grid grid-cols-2 gap-2">
