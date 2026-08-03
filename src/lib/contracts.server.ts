@@ -87,7 +87,14 @@ export function buildPlaceholderValues(
 ): Record<string, string> {
   const today = formatDate(new Date());
   const city = String(store.city ?? "თბილისი");
+  const cycle = String(store.settlement_cycle ?? "weekly");
+  const cycleDay =
+    typeof store.settlement_day === "number" ? (store.settlement_day as number) : null;
   return {
+    settlement_cycle: SETTLEMENT_CYCLE_LABEL[cycle] ?? SETTLEMENT_CYCLE_LABEL.weekly!,
+    settlement_day: settlementDayLabel(cycle, cycleDay),
+    // Unticked by default; the signed render flips every one of these to ☑.
+    ...annex3TokenValues(false),
     partner_legal_name: String(store.company_name || store.name || ""),
     partner_entity_type: ENTITY_TYPE_LABEL[String(store.entity_type)] ?? String(store.entity_type ?? ""),
     partner_identification_code: String(store.company_id_number ?? ""),
