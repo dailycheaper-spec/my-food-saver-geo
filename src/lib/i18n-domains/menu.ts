@@ -3,6 +3,16 @@ import type { DomainPack } from "./types";
 /** Partner saved-products menu + customer-facing unit labels. All five languages required. */
 export const menuPack: DomainPack = {
   ka: {
+    "partner.menu.edit": "რედაქტირება",
+    "partner.menu.delete": "წაშლა",
+    "partner.menu.edit": "Edit",
+    "partner.menu.delete": "Delete",
+    "partner.menu.edit": "Редактировать",
+    "partner.menu.delete": "Удалить",
+    "partner.menu.edit": "Düzenle",
+    "partner.menu.delete": "Sil",
+    "partner.menu.edit": "ویرایش",
+    "partner.menu.delete": "حذف",
     "partner.menu.shortcut": "მენიუ",
     "partner.menu.title": "ჩემი მენიუ",
     "partner.menu.subtitle": "შეინახე პროდუქტი ერთხელ — შემდეგ ყოველდღე უბრალოდ აირჩიე",
