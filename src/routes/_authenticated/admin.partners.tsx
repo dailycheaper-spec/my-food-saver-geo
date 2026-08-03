@@ -389,6 +389,8 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         <VerificationPanel store={store} onChange={onChange} />
       )}
 
+      <ContractPanel storeId={store.id} />
+
       <div className="mt-3 flex gap-2">
         {(store.status === "pending_verification" || store.status === "pending_documents" || store.status === "rejected") && (
           <>
