@@ -44,6 +44,7 @@ import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authen
 import { Route as AuthenticatedPartnerNewRouteImport } from './routes/_authenticated/partner.new'
 import { Route as AuthenticatedPartnerInsightsRouteImport } from './routes/_authenticated/partner.insights'
 import { Route as AuthenticatedPartnerDeliveryRouteImport } from './routes/_authenticated/partner.delivery'
+import { Route as AuthenticatedPartnerContractRouteImport } from './routes/_authenticated/partner.contract'
 import { Route as AuthenticatedPartnerBalanceRouteImport } from './routes/_authenticated/partner.balance'
 import { Route as AuthenticatedPartnerAiRouteImport } from './routes/_authenticated/partner.ai'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -245,6 +246,12 @@ const AuthenticatedPartnerDeliveryRoute =
     path: '/delivery',
     getParentRoute: () => AuthenticatedPartnerRoute,
   } as any)
+const AuthenticatedPartnerContractRoute =
+  AuthenticatedPartnerContractRouteImport.update({
+    id: '/contract',
+    path: '/contract',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerBalanceRoute =
   AuthenticatedPartnerBalanceRouteImport.update({
     id: '/balance',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
@@ -464,6 +473,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/partner/ai': typeof AuthenticatedPartnerAiRoute
   '/_authenticated/partner/balance': typeof AuthenticatedPartnerBalanceRoute
+  '/_authenticated/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/_authenticated/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/_authenticated/partner/insights': typeof AuthenticatedPartnerInsightsRoute
   '/_authenticated/partner/new': typeof AuthenticatedPartnerNewRoute
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
+    | '/partner/contract'
     | '/partner/delivery'
     | '/partner/insights'
     | '/partner/new'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/partner/ai'
     | '/partner/balance'
+    | '/partner/contract'
     | '/partner/delivery'
     | '/partner/insights'
     | '/partner/new'
@@ -618,6 +630,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/_authenticated/partner/ai'
     | '/_authenticated/partner/balance'
+    | '/_authenticated/partner/contract'
     | '/_authenticated/partner/delivery'
     | '/_authenticated/partner/insights'
     | '/_authenticated/partner/new'
@@ -914,6 +927,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerDeliveryRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/contract': {
+      id: '/_authenticated/partner/contract'
+      path: '/contract'
+      fullPath: '/partner/contract'
+      preLoaderRoute: typeof AuthenticatedPartnerContractRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/balance': {
       id: '/_authenticated/partner/balance'
       path: '/balance'
@@ -1052,6 +1072,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerAiRoute: typeof AuthenticatedPartnerAiRoute
   AuthenticatedPartnerBalanceRoute: typeof AuthenticatedPartnerBalanceRoute
+  AuthenticatedPartnerContractRoute: typeof AuthenticatedPartnerContractRoute
   AuthenticatedPartnerDeliveryRoute: typeof AuthenticatedPartnerDeliveryRoute
   AuthenticatedPartnerInsightsRoute: typeof AuthenticatedPartnerInsightsRoute
   AuthenticatedPartnerNewRoute: typeof AuthenticatedPartnerNewRoute
@@ -1067,6 +1088,7 @@ interface AuthenticatedPartnerRouteChildren {
 const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerAiRoute: AuthenticatedPartnerAiRoute,
   AuthenticatedPartnerBalanceRoute: AuthenticatedPartnerBalanceRoute,
+  AuthenticatedPartnerContractRoute: AuthenticatedPartnerContractRoute,
   AuthenticatedPartnerDeliveryRoute: AuthenticatedPartnerDeliveryRoute,
   AuthenticatedPartnerInsightsRoute: AuthenticatedPartnerInsightsRoute,
   AuthenticatedPartnerNewRoute: AuthenticatedPartnerNewRoute,
