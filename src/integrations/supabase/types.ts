@@ -1034,6 +1034,8 @@ export type Database = {
           rejection_reason: string | null
           representative_name: string | null
           service_start_date: string | null
+          settlement_cycle: string
+          settlement_day: number | null
           special_conditions: string | null
           status: Database["public"]["Enums"]["store_status"]
           updated_at: string
@@ -1072,6 +1074,8 @@ export type Database = {
           rejection_reason?: string | null
           representative_name?: string | null
           service_start_date?: string | null
+          settlement_cycle?: string
+          settlement_day?: number | null
           special_conditions?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
@@ -1110,6 +1114,8 @@ export type Database = {
           rejection_reason?: string | null
           representative_name?: string | null
           service_start_date?: string | null
+          settlement_cycle?: string
+          settlement_day?: number | null
           special_conditions?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
@@ -1226,6 +1232,7 @@ export type Database = {
         Args: {
           _commission?: number
           _generated_by?: string
+          _ignore_cycle?: boolean
           _min_payout?: number
         }
         Returns: {
