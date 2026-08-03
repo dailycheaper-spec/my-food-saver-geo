@@ -358,6 +358,8 @@ export const signContract = createServerFn({ method: "POST" })
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
     values.signing_date = signedAt.toISOString().slice(0, 10);
     values.effective_date = values.signing_date;
+    // Validation above guarantees the partner confirmed all 12 Annex 3 items.
+    Object.assign(values, annex3TokenValues(true));
 
     const { data: updated, error: updateError } = await supabaseAdmin
       .from("partner_contracts")
