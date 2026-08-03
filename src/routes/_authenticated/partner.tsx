@@ -78,6 +78,7 @@ function PartnerLayout() {
     { to: "/partner/orders", label: t("navOrders"), icon: ShoppingBag, badge: newCount },
     { to: "/partner/delivery", label: t("navDelivery"), icon: Truck },
     { to: "/partner/stats", label: t("stats"), icon: BarChart3 },
+    { to: "/partner/contract", label: t("partner.contract.navLabel"), icon: FileSignature },
   ];
 
   if (loading) {
