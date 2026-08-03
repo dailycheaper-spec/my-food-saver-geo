@@ -7,11 +7,17 @@ export async function contractHtmlToPdfBlob(node: HTMLElement): Promise<Blob> {
     import("jspdf"),
   ]);
 
+  // The node may live in a sandboxed iframe document (isolated from the app's
+  // oklch-based Tailwind tokens); size the capture from that document explicitly.
   const canvas = await html2canvas(node, {
     scale: Math.min(2, window.devicePixelRatio || 1.5),
     backgroundColor: "#ffffff",
     useCORS: true,
     logging: false,
+    width: node.scrollWidth,
+    height: node.scrollHeight,
+    windowWidth: node.scrollWidth,
+    windowHeight: node.scrollHeight,
   });
 
   const pdf = new jsPDF({ unit: "pt", format: "a4", compress: true });
