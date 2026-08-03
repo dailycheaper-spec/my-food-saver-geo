@@ -1,14 +1,30 @@
 import { resolveOfferTranslations } from "@/lib/offer-translate";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
-import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { AllergenPicker } from "@/components/AllergenPicker";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { toast } from "sonner";
+
+const UNIT_TYPES = ["piece", "weight", "portion"] as const;
+type UnitType = (typeof UNIT_TYPES)[number];
+
+type MenuItem = {
+  id: string;
+  name: string;
+  default_original_price: number;
+  default_discounted_price: number;
+  image_url: string | null;
+  unit_type: string;
+  unit_weight_grams: number | null;
+  composition: string | null;
+  default_allergens: string[] | null;
+};
+
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
