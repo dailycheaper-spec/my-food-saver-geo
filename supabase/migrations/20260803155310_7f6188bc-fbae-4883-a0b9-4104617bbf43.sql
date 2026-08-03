@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.guard_partner_contract_update() FROM PUBLIC, anon, authenticated;

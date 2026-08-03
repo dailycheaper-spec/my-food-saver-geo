@@ -12,6 +12,7 @@ export const applicationPatchSchema = z.object({
   phone: z.string().trim().max(40).optional().nullable(),
   contact_email: z.string().trim().email().max(255),
   company_name: z.string().trim().max(160).optional().nullable(),
+  representative_name: z.string().trim().min(2).max(160),
   company_id_number: z.string().trim().min(5).max(40),
   description: z.string().trim().max(2000).optional().nullable(),
   lat: z.number().min(-90).max(90),
