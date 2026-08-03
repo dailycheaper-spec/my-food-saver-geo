@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { Trash2, Eye, EyeOff, Search, Filter } from "lucide-react";
 import { useAllOffers, updateOfferAdmin, deleteOfferAdmin } from "@/lib/admin-db";
 import { formatGel, timeShort } from "@/lib/db";
+import { AuditLogButton } from "@/components/AuditLogPanel";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/offers")({
@@ -98,6 +99,7 @@ function AdminOffers() {
                         className="w-8 h-8 grid place-items-center rounded-xl hover:bg-destructive/10 text-destructive" title={t("admin.offers.delete")}>
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      <AuditLogButton entityType="offer" entityId={o.id} />
                     </div>
                   </td>
                 </tr>

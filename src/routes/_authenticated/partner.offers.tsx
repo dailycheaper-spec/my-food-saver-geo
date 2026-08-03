@@ -9,6 +9,7 @@ import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/Disco
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
+import { AuditLogButton } from "@/components/AuditLogPanel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
@@ -105,6 +106,7 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
             {offer.is_active ? <ToggleRight className="w-6 h-6 text-primary" /> : <ToggleLeft className="w-6 h-6 text-muted-foreground" />}
           </button>
           <button onClick={onEdit} className="p-1"><Edit2 className="w-4 h-4 text-muted-foreground" /></button>
+          <AuditLogButton entityType="offer" entityId={offer.id} />
         </div>
       </div>
 

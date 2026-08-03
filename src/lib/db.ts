@@ -183,6 +183,43 @@ export function useOrderStatusHistory(orderId: string | null) {
   return { events, loading };
 }
 
+export type AuditLogEntry = {
+  id: string;
+  actor_id: string | null;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  old_value: string | null;
+  new_value: string | null;
+  created_at: string;
+};
+
+/** Who changed what on an entity (currently: offer price/quantity edits). */
+export function useAuditLog(entityType: string, entityId: string | null) {
+  const [entries, setEntries] = useState<AuditLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!entityId) { setEntries([]); setLoading(false); return; }
+    let alive = true;
+    async function load() {
+      const { data } = await supabase
+        .from("audit_log")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId!)
+        .order("created_at", { ascending: false });
+      if (alive) { setEntries((data ?? []) as AuditLogEntry[]); setLoading(false); }
+    }
+    load();
+    const channel = supabase
+      .channel(`audit-log-${entityType}-${entityId}-${++realtimeChannelCounter}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "audit_log", filter: `entity_id=eq.${entityId}` }, () => load())
+      .subscribe();
+    return () => { alive = false; void supabase.removeChannel(channel); };
+  }, [entityType, entityId]);
+  return { entries, loading };
+}
+
 export async function createOrder(input: {
   offer_id: string;
   store_id: string;
