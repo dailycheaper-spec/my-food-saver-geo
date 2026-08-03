@@ -2,10 +2,11 @@ import { StoreLogo } from "@/components/StoreLogo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
 import {
-  MapPin, Search, Bell, Map as MapIcon, Shield, Store, Zap, Sparkles,
+  MapPin, Search, Map as MapIcon, Shield, Store, Zap, Sparkles,
   ChevronRight, Clock, Utensils, Gift, LogIn, User,
 
 } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { CATEGORIES, DISTRICTS, getCategoryLabel, getDistrictLabel, offerMatchesQuery, type Category, type Offer } from "@/lib/mock-data";
 import { useFavorites, isTrustedPartner, useHydrated } from "@/lib/storage";
 import { OfferCard } from "@/components/OfferCard";
@@ -251,13 +252,7 @@ function Home() {
 
           <div className="ml-auto flex shrink-0 items-center gap-1">
             <LanguageSwitcher compact />
-            <Link
-              to="/notifications"
-              aria-label={t("navNotifications")}
-              className="tap-target w-11 h-11 rounded-full bg-card border border-border grid place-items-center press focus-visible:outline-none"
-            >
-              <Bell className="w-[18px] h-[18px]" aria-hidden="true" />
-            </Link>
+            <NotificationBell userId={user?.id ?? null} />
             {!user && !rolesLoading && (
               <Link
                 to="/auth"

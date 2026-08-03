@@ -1,11 +1,13 @@
 import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Bell, Truck, Volume2, VolumeX, X } from "lucide-react";
+import { Home, PackageOpen, ShoppingBag, BarChart3, LogOut, Truck, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePartnerAccount, useStoreOrders } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
 import { LanguageSwitcher, useI18n } from "@/lib/i18n";
 import { useNewOrderSound, useSoundPref } from "@/lib/partner-sound";
 import { StoreLogo } from "@/components/StoreLogo";
+import { NotificationBell } from "@/components/NotificationBell";
 
 
 export const Route = createFileRoute("/_authenticated/partner")({
@@ -38,12 +40,12 @@ function PartnerRouteError({ error, reset }: { error: Error; reset: () => void }
 function PartnerLayout() {
   const { t } = useI18n();
 
+  const { user } = useAuth();
   const { stores, role, loading, error, isAdmin, isPartner } = usePartnerAccount();
   const store = stores.find((s) => s.status === "active") ?? null;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const { newCount, resetNewCount } = useStoreOrders(store?.id ?? null);
-  const [notifOpen, setNotifOpen] = useState(false);
   const hasPartnerAccess = isAdmin || isPartner || stores.length > 0;
 
   const sound = useSoundPref();
@@ -140,16 +142,12 @@ function PartnerLayout() {
             </span>
           </Link>
           <div className="flex shrink-0 items-center gap-0.5">
-            <button
-              onClick={() => { setNotifOpen(true); resetNewCount(); if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }}
-              className="relative grid place-items-center tap-target rounded-full hover:bg-muted/50"
-              aria-label={t("notificationsTitle")}
-            >
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              {newCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">{newCount}</span>
-              )}
-            </button>
+            <NotificationBell
+              userId={user?.id ?? null}
+              buttonClassName="relative grid place-items-center tap-target rounded-full hover:bg-muted/50"
+              iconClassName="w-5 h-5 text-muted-foreground"
+              onOpen={() => { resetNewCount(); if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }}
+            />
             <button
               onClick={() => (sound.enabled ? sound.disable() : sound.enable())}
               className="grid place-items-center tap-target rounded-full hover:bg-muted/50"
@@ -238,17 +236,6 @@ function PartnerLayout() {
         </div>
       </nav>
 
-      {notifOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 grid place-items-end sm:place-items-center p-0 sm:p-4" onClick={() => setNotifOpen(false)}>
-          <div className="w-full sm:max-w-md bg-card rounded-t-3xl sm:rounded-3xl p-6 max-h-[85dvh] overflow-y-auto overscroll-contain pb-safe shadow-elevated" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-display text-lg font-bold mb-3">{t("notificationsTitle")}</h3>
-            <p className="text-sm text-muted-foreground">
-              {t("realtimeNotifsBody")}
-            </p>
-            <button onClick={() => setNotifOpen(false)} className="mt-4 w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold">{t("close")}</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

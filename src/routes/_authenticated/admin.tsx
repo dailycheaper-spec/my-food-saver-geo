@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CitySelector } from "@/components/CitySelector";
 import { loadTheme, saveTheme } from "@/lib/admin-settings";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -54,6 +56,7 @@ function useNav(t: (key: string) => string): NavItem[] {
 
 function AdminLayout() {
   const { t } = useI18n();
+  const { user } = useAuth();
   const NAV = useNav(t);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -78,14 +81,19 @@ function AdminLayout() {
     <div className="min-h-screen bg-muted/30">
       {/* Sidebar (desktop) */}
       <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 flex-col bg-card border-r border-border z-30">
-        <div className="px-6 py-6 border-b border-border">
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo-tile-v2.png" alt="Cheaper" width={36} height={36} className="w-9 h-9 object-contain" />
-            <div>
+        <div className="px-6 py-6 border-b border-border flex items-center justify-between gap-2">
+          <Link to="/" className="flex items-center gap-2 min-w-0">
+            <img src="/logo-tile-v2.png" alt="Cheaper" width={36} height={36} className="w-9 h-9 object-contain shrink-0" />
+            <div className="min-w-0">
               <div className="font-display font-bold text-lg leading-none">Cheaper</div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-0.5 flex items-center gap-1"><Shield className="w-3 h-3" /> {t("admin.nav.admin")}</div>
             </div>
           </Link>
+          <NotificationBell
+            userId={user?.id ?? null}
+            buttonClassName="relative tap-target grid place-items-center rounded-full hover:bg-muted shrink-0 w-9 h-9"
+            iconClassName="w-4.5 h-4.5"
+          />
         </div>
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {NAV.map((n) => {
@@ -123,6 +131,11 @@ function AdminLayout() {
           <div className="font-display font-bold truncate min-w-0">Cheaper · {t("admin.nav.admin")}</div>
           <div className="flex items-center gap-1.5 shrink-0">
             <CitySelector variant="pill" />
+            <NotificationBell
+              userId={user?.id ?? null}
+              buttonClassName="relative tap-target grid place-items-center rounded-xl hover:bg-muted"
+              iconClassName="w-4 h-4"
+            />
             <button onClick={toggleTheme} aria-label="Theme" className="tap-target grid place-items-center rounded-xl hover:bg-muted">
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
