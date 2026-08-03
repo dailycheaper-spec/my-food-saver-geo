@@ -1,47 +1,42 @@
-## Goal
+# Partner verification workflow (Phase 0)
 
-Two things: (1) make Google stop showing the old Cheaper logo in search/social previews, and (2) bring the site's SEO up to best practice.
+Replace the destructive "reject = delete" behavior with a proper, reversible verification workflow, plus an admin checklist and an activity timeline. No contract system in this phase.
 
-## Why the old logo persists
+## What changes for people using the app
 
-Google and social platforms cache images by URL. The brand files were replaced but the URLs stayed the same (`/og-image.png`, `/favicon.png`, `/icon-512.png`), so crawlers keep serving what they cached. There is also no `Organization` structured data telling Google which image is the official brand logo, and no sitemap `Sitemap:` hint, so re-crawling is slow.
+- **Admin**: rejecting an application no longer deletes it. Instead you pick a reason (missing documents, wrong ID number, duplicate business, verification failed) and can add a note. Each pending application gets a verification checklist and a full activity timeline (who did what, when).
+- **Partner**: a rejected application stays visible with the reason shown, the partner can fix the data in the same application form and resubmit. They get an in-app notification when rejected (no email — decided).
+- Status labels shown everywhere: pending verification, pending documents, active, rejected, suspended, inactive.
 
-## 1. Logo / preview refresh
+## Database
 
-- Publish the current brand assets under new, versioned filenames (e.g. `og-image-v2.png`, `favicon-v2.png`, `icon-192-v2.png`, `icon-512-v2.png`, `icon-maskable-512-v2.png`, `apple-touch-icon-v2.png`, `logo-lockup-v2.png`, `logo-tile-v2.png`), keeping the same artwork.
-- Point `__root.tsx` head links, `public/manifest.webmanifest`, and `src/components/Logo.tsx` at the new URLs.
-- Add `Organization` JSON-LD in `__root.tsx` with `name`, `url: https://cheaper.ge`, and `logo` pointing to the new 512px logo — this is the signal Google uses for the brand knowledge panel / favicon.
-- Keep the old files in place so existing shared links don't break.
+1. Rename `store_status` value `pending` → `pending_verification`; add `pending_documents`, `rejected`, `inactive`. If `RENAME VALUE` is unsupported, I stop and report instead of leaving both values.
+2. `stores`: add `rejection_reason`, `rejected_at`, `admin_notes`, `verification_checklist` (jsonb, default `{}`).
+3. New table `partner_verification_events` (store_id, event_type, actor_user_id, actor_email, ip_address, metadata, created_at) with GRANTs, RLS: admins full access via `public.has_role(auth.uid(),'admin')`; partners can read events for stores they own.
 
-Note: crawler-side caches still refresh on Google's own schedule; the new URLs make it happen at the next crawl instead of never. I'll also point out where to request re-indexing.
+## Server functions (`src/lib/admin-store.functions.ts`)
 
-## 2. Metadata quality (fixes current SEO findings)
+- `rejectAdminStore(storeId, reason, note?)` — admin-only; sets status `rejected`, stores reason + timestamp + note, logs a `rejected` event, inserts an in-app notification for the store owner in their language. Does not delete.
+- `approveAdminStore` — unchanged behavior (store active + owner linked), now also logs an `approved` event.
+- `updateVerificationChecklist(storeId, checklist, admin_notes?)` — admin-only; checklist items: business_registration, identification_number, company_name, address, bank_account, phone, email, food_business_registration, documents_uploaded (each `pending` | `ok` | `failed`).
+- `listVerificationEvents(storeId)` — admin-only read for the timeline.
+- Partner resubmit: extend the existing partner-apply flow to edit mode when the owner's store is `rejected` — updates the row, sets status back to `pending_verification`, clears rejection fields, logs `resubmitted`. Also logs `registration_completed` on first submit.
+- `deleteAdminStore` stays available only as an explicit destructive admin action, no longer wired to Reject.
 
-- Add self-referencing `<link rel="canonical">` and `og:url` on every public leaf route (`/`, `/about`, `/privacy`, `/terms`, `/search`, `/map`, `/store/$id`, `/offer/$id`, `/favorites`, `/notifications`).
-- Differentiate the homepage title/description from the root defaults (root keeps sitewide fallbacks only).
-- Expand short descriptions on `/about`, `/privacy`, `/terms`, `/search`, `/store/$id` into unique 50–160 character Georgian copy.
-- Add unique `og:title` / `og:description` to those same routes; set `og:type: product` on `/offer/$id`.
-- Keep `noindex` on `/auth`, `/orders/*`, `/analytics`, native-return and admin/partner routes.
+## UI
 
-## 3. Structured data
-
-- `WebSite` + `Organization` (with `logo` and `SearchAction`) at root.
-- `Product` JSON-LD on `/offer/$id` from loader data: name, image, description, `offers.price`, `priceCurrency: GEL`, availability.
-- `LocalBusiness` JSON-LD on `/store/$id`: name, logo, address, geo coordinates, city.
-
-## 4. Crawlability
-
-- `public/robots.txt`: keep `Allow: /`, add `Disallow:` for `/admin`, `/partner`, `/auth`, `/orders`, `/analytics`, and add a `Sitemap: https://cheaper.ge/sitemap.xml` line.
-- `src/routes/sitemap[.]xml.ts`: set `BASE_URL = "https://cheaper.ge"` (currently empty, so the sitemap emits path-only `<loc>` values that Google rejects), drop the noindex routes (`/orders`, `/notifications`, `/profile`, `/favorites` are user-only), and generate offer/store entries from the live database instead of the mock `OFFERS` array.
-
-## 5. On-page content signals
-
-- Add a single `<h1>` to `/search`, `/map`, and `/profile` (currently missing), and an `aria-label` on the map back button.
+- `admin.partners.tsx`: Reject opens a dialog (reason dropdown + note) instead of `confirm()` + delete; new collapsible checklist panel and activity timeline per application; status badge map covering all six statuses; filter tabs updated for the renamed/new statuses.
+- `partner-apply.tsx`: rejected state screen showing the reason, with the form prefilled for editing and a "resubmit" action.
 
 ## Technical notes
 
-All head tags stay in each route's `head()` option per TanStack Start; canonical goes on leaf routes only (root would duplicate it). JSON-LD ships via the `scripts` array. No backend or business-logic changes.
+- Every code reference to store status `"pending"` is updated to `"pending_verification"` (admin.partners, admin.index, partner-apply, partner dashboards, db adapters).
+- Role checks reuse the existing `public.has_role`, matching the current admin function pattern.
+- Translations for new statuses, reasons, checklist items and dialog copy added to the admin/partner i18n domain packs (ka/en/ru, with tr/fa filled for customer-visible strings only).
 
-## Follow-up after publish
+## Verification
 
-Once live, I can connect Google Search Console and submit the sitemap so the new logo and pages get re-crawled quickly rather than waiting for an organic crawl.
+- Reject a test application → row still exists, status `rejected`, reason stored, owner sees an in-app notification.
+- Resubmit as that partner → status back to `pending_verification`, `resubmitted` event logged, application reappears in the admin queue.
+- Approve another application → owner linked, store active, `approved` event logged.
+- Non-admin calls to reject/checklist/events are rejected.
