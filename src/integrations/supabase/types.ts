@@ -47,6 +47,62 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_events: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          contract_id: string
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          contract_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          contract_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_events_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "partner_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_number_counters: {
+        Row: {
+          last_value: number
+          year: number
+        }
+        Insert: {
+          last_value?: number
+          year: number
+        }
+        Update: {
+          last_value?: number
+          year?: number
+        }
+        Relationships: []
+      }
       deliveries: {
         Row: {
           courier_lat: number | null
@@ -431,6 +487,59 @@ export type Database = {
           },
         ]
       }
+      partner_contracts: {
+        Row: {
+          contract_number: string
+          created_at: string
+          id: string
+          pdf_storage_path: string | null
+          placeholder_values: Json
+          signature_image_path: string | null
+          signed_at: string | null
+          signed_ip: string | null
+          status: string
+          store_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          contract_number: string
+          created_at?: string
+          id?: string
+          pdf_storage_path?: string | null
+          placeholder_values?: Json
+          signature_image_path?: string | null
+          signed_at?: string | null
+          signed_ip?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          contract_number?: string
+          created_at?: string
+          id?: string
+          pdf_storage_path?: string | null
+          placeholder_values?: Json
+          signature_image_path?: string | null
+          signed_at?: string | null
+          signed_ip?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_contracts_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_verification_events: {
         Row: {
           actor_email: string | null
@@ -527,6 +636,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_settings: {
+        Row: {
+          commission_percentage: number
+          created_at: string
+          cure_period_days: number
+          id: boolean
+          liability_cap_multiplier: number
+          termination_notice_days: number
+          updated_at: string
+        }
+        Insert: {
+          commission_percentage?: number
+          created_at?: string
+          cure_period_days?: number
+          id?: boolean
+          liability_cap_multiplier?: number
+          termination_notice_days?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_percentage?: number
+          created_at?: string
+          cure_period_days?: number
+          id?: boolean
+          liability_cap_multiplier?: number
+          termination_notice_days?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -875,6 +1014,9 @@ export type Database = {
           phone: string | null
           rejected_at: string | null
           rejection_reason: string | null
+          representative_name: string | null
+          service_start_date: string | null
+          special_conditions: string | null
           status: Database["public"]["Enums"]["store_status"]
           updated_at: string
           verification_checklist: Json
@@ -910,6 +1052,9 @@ export type Database = {
           phone?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
+          representative_name?: string | null
+          service_start_date?: string | null
+          special_conditions?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
           verification_checklist?: Json
@@ -945,6 +1090,9 @@ export type Database = {
           phone?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
+          representative_name?: string | null
+          service_start_date?: string | null
+          special_conditions?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
           verification_checklist?: Json
@@ -1088,6 +1236,7 @@ export type Database = {
         Args: { _store_id: string; _user_id: string }
         Returns: boolean
       }
+      next_contract_number: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "partner" | "user"
