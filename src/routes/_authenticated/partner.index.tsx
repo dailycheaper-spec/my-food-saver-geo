@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check } from "lucide-react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check, UtensilsCrossed } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
