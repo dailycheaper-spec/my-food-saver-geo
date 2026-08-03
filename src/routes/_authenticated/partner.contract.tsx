@@ -5,7 +5,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, ShieldCheck, Download, Loader2 } from "lucide-react";
 import { getMyContract, signContract } from "@/lib/contracts.functions";
 import { CONTRACT_PRINT_CSS } from "@/lib/contracts/template";
-import { CONSENT_KEYS, contractStatusTone, type ConsentKey, type PartnerContract } from "@/lib/contracts";
+import {
+  ANNEX3_KEYS,
+  CHECKBOX_CHECKED,
+  CHECKBOX_UNCHECKED,
+  CONSENT_KEYS,
+  contractStatusTone,
+  type Annex3Key,
+  type ConsentKey,
+  type PartnerContract,
+} from "@/lib/contracts";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
