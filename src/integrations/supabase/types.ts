@@ -14,39 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      audit_log: {
-        Row: {
-          action: string
-          actor_id: string | null
-          created_at: string
-          entity_id: string
-          entity_type: string
-          id: string
-          new_value: string | null
-          old_value: string | null
-        }
-        Insert: {
-          action: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id: string
-          entity_type: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-        }
-        Update: {
-          action?: string
-          actor_id?: string | null
-          created_at?: string
-          entity_id?: string
-          entity_type?: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-        }
-        Relationships: []
-      }
       deliveries: {
         Row: {
           courier_lat: number | null
@@ -148,39 +115,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      notifications: {
-        Row: {
-          body: string | null
-          created_at: string
-          id: string
-          link: string | null
-          read_at: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          link?: string | null
-          read_at?: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          body?: string | null
-          created_at?: string
-          id?: string
-          link?: string | null
-          read_at?: string | null
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       offers: {
         Row: {
@@ -285,35 +219,6 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      order_status_history: {
-        Row: {
-          changed_at: string
-          id: string
-          order_id: string
-          status: string
-        }
-        Insert: {
-          changed_at?: string
-          id?: string
-          order_id: string
-          status: string
-        }
-        Update: {
-          changed_at?: string
-          id?: string
-          order_id?: string
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "order_status_history_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
