@@ -352,7 +352,16 @@ export const signContract = createServerFn({ method: "POST" })
     if (error || !contract) throw new Error("Contract not found");
 
     const owner = (contract as unknown as { stores: { owner_id: string | null } | null }).stores;
-    if (owner?.owner_id !== context.userId) throw new Error("Forbidden");
+    if (owner?.owner_id !== context.userId) {
+      const { data: membership } = await supabaseAdmin
+        .from("store_members")
+        .select("store_id")
+        .eq("user_id", context.userId)
+        .eq("store_id", contract.store_id)
+        .maybeSingle();
+      if (!membership) throw new Error("Forbidden");
+    }
+
     if (contract.status === "signed") throw new Error("This contract is already signed");
     if (!["sent", "viewed"].includes(contract.status)) throw new Error("This contract cannot be signed");
 
