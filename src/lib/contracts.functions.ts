@@ -81,7 +81,7 @@ export const getAdminStoreContract = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const current = contracts?.[0] ?? null;
-    let events: unknown[] = [];
+    let events: Record<string, unknown>[] = [];
     let pdfUrl: string | null = null;
     let signatureUrl: string | null = null;
     if (current) {
