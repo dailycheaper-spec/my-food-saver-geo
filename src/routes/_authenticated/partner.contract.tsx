@@ -98,7 +98,7 @@ function PartnerContractPage() {
       `<!doctype html><html><head><meta charset="utf-8"><style>` +
         `html,body{margin:0;padding:16px;background:#ffffff;color:#111111;}` +
         CONTRACT_PRINT_CSS +
-        `</style></head><body>${html ?? ""}${
+        `</style></head><body>${displayHtml}${
           signature
             ? `<div style="margin-top:16px"><div style="font-size:12px;color:#444444">${
                 t("partner.contract.signatureLabel")
@@ -146,6 +146,7 @@ function PartnerContractPage() {
           pdfPath,
           signaturePath,
           consents: { readAll: true, authorised: true, electronicSignature: true },
+          annex3: Object.fromEntries(ANNEX3_KEYS.map((k) => [k, true])) as Record<Annex3Key, true>,
         },
       });
       await qc.invalidateQueries({ queryKey: ["partner-contract"] });
@@ -226,7 +227,7 @@ function PartnerContractPage() {
         className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-5"
       >
         <div className="bg-white p-2">
-          <div dangerouslySetInnerHTML={{ __html: html ?? "" }} />
+          <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
           {signature && (
             <div className="mt-4">
               <div className="text-xs text-[#444]">{t("partner.contract.signatureLabel")}</div>
@@ -264,6 +265,26 @@ function PartnerContractPage() {
                 />
                 <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
                   {t(`partner.contract.consent.${key}`)}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="space-y-2 pt-1 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground pt-3">
+              {t("partner.contract.annex3.heading")}
+            </p>
+            {ANNEX3_KEYS.map((key) => (
+              <label key={key} className="flex items-start gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={annex3Checked[key]}
+                  disabled={!scrolledToEnd}
+                  onChange={(e) => setAnnex3Checked((c) => ({ ...c, [key]: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                />
+                <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
+                  {t(`partner.contract.annex3.${key}`)}
                 </span>
               </label>
             ))}
