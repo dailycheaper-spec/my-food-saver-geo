@@ -99,6 +99,22 @@ export const approveAdminStore = createServerFn({ method: "POST" })
       link: "/partner",
     });
 
+    // Approval is also when the partnership agreement is issued and sent.
+    try {
+      const { createContractForStore } = await import("@/lib/contracts.server");
+      const contract = await createContractForStore(supabaseAdmin as never, data.storeId, context.userId);
+      if (contract) {
+        await notifyUser(supabaseAdmin as never, store.owner_id, {
+          type: "partner_contract_ready",
+          title: "ხელშეკრულება მზადაა / Contract ready to sign",
+          body: "გთხოვთ გაეცნოთ და ხელი მოაწეროთ პარტნიორობის ხელშეკრულებას. / Please review and sign your partnership agreement.",
+          link: "/partner/contract",
+        });
+      }
+    } catch (err) {
+      console.error("[contracts] approval hook failed:", err);
+    }
+
     return linkActiveStoreToOwner(supabaseAdmin, store);
   });
 
