@@ -126,6 +126,7 @@ function PartnerApply() {
               phone: form.phone || null,
               contact_email: form.contact_email,
               company_name: form.company_name || null,
+              representative_name: form.representative_name,
               company_id_number: form.company_id_number,
               description: form.description || null,
               lat: form.lat as number,
