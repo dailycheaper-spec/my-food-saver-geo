@@ -320,12 +320,21 @@ export const signContract = createServerFn({ method: "POST" })
           authorised: z.literal(true),
           electronicSignature: z.literal(true),
         }),
+        // Every Annex 3 item must be confirmed by the partner in this session.
+        annex3: z.object(
+          Object.fromEntries(ANNEX3_KEYS.map((k) => [k, z.literal(true)])) as Record<
+            (typeof ANNEX3_KEYS)[number],
+            z.ZodLiteral<true>
+          >,
+        ),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { logContractEvent, requestIp } = await import("@/lib/contracts.server");
+    const { annex3TokenValues } = await import("@/lib/contracts");
+
 
     const { data: contract, error } = await supabaseAdmin
       .from("partner_contracts")
