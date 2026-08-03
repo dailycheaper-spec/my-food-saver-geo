@@ -290,6 +290,27 @@ function NewOfferPage() {
 
         <Field label={t("quantityAvailable")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
 
+        <div>
+          <Label>{t("partner.menu.unitType")}</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {UNIT_TYPES.map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => setForm({ ...form, unit_type: u })}
+                className={`py-2.5 rounded-xl text-xs font-medium border ${form.unit_type === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+              >
+                {t(`partner.menu.unit${u.charAt(0).toUpperCase()}${u.slice(1)}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {form.unit_type === "weight" && (
+          <Field label={t("partner.menu.gramsPerUnit")} type="number" value={form.unit_weight_grams} onChange={(v) => setForm({ ...form, unit_weight_grams: v })} />
+        )}
+
+
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("pickupStart")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
           <Field label={t("pickupEnd")} type="time" value={form.pickup_to} onChange={(v) => setForm({ ...form, pickup_to: v })} />
