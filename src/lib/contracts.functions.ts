@@ -260,12 +260,19 @@ export const getMyContract = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { renderContractHtml, logContractEvent, requestIp } = await import("@/lib/contracts.server");
 
-    const { data: stores } = await supabaseAdmin
-      .from("stores")
-      .select("id")
-      .eq("owner_id", context.userId);
-    const storeIds = (stores ?? []).map((s) => s.id);
+    // Owner OR staff: mirrors app_private.is_store_member, since admin client bypasses RLS.
+    const [{ data: owned }, { data: memberships }] = await Promise.all([
+      supabaseAdmin.from("stores").select("id").eq("owner_id", context.userId),
+      supabaseAdmin.from("store_members").select("store_id").eq("user_id", context.userId),
+    ]);
+    const storeIds = Array.from(
+      new Set([
+        ...(owned ?? []).map((s) => s.id),
+        ...(memberships ?? []).map((m) => m.store_id),
+      ]),
+    );
     if (!storeIds.length) return { contract: null, html: null, pdfUrl: null };
+
 
     const { data: contract } = await supabaseAdmin
       .from("partner_contracts")
@@ -345,7 +352,16 @@ export const signContract = createServerFn({ method: "POST" })
     if (error || !contract) throw new Error("Contract not found");
 
     const owner = (contract as unknown as { stores: { owner_id: string | null } | null }).stores;
-    if (owner?.owner_id !== context.userId) throw new Error("Forbidden");
+    if (owner?.owner_id !== context.userId) {
+      const { data: membership } = await supabaseAdmin
+        .from("store_members")
+        .select("store_id")
+        .eq("user_id", context.userId)
+        .eq("store_id", contract.store_id)
+        .maybeSingle();
+      if (!membership) throw new Error("Forbidden");
+    }
+
     if (contract.status === "signed") throw new Error("This contract is already signed");
     if (!["sent", "viewed"].includes(contract.status)) throw new Error("This contract cannot be signed");
 
