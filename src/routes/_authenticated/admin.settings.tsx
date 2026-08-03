@@ -83,6 +83,8 @@ function AdminSettingsPage() {
           className="w-full px-4 py-3 rounded-2xl bg-muted/50 border border-border text-sm resize-none" />
       </Section>
 
+      <ContractSettingsSection />
+
       <div className="sticky bottom-4 flex justify-end">
         <button onClick={save} className="px-6 py-3 rounded-2xl bg-primary text-primary-foreground font-semibold shadow-lg flex items-center gap-2 hover:opacity-90">
           <Save className="w-4 h-4" /> {saved ? t("admin.settings.saved") : t("admin.settings.save")}
