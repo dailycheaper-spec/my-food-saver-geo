@@ -60,13 +60,50 @@ function PartnerContractPage() {
     if (el.scrollHeight <= el.clientHeight + 8) setScrolledToEnd(true);
   }, [html]);
 
+  /**
+   * html2canvas can't parse oklch() (Tailwind v4 tokens leak in through inherited
+   * styles), so the PDF is rasterised from an isolated iframe that only ever loads
+   * CONTRACT_PRINT_CSS.
+   */
+  async function renderPrintNode(): Promise<HTMLElement> {
+    const frame = pdfFrameRef.current;
+    if (!frame) throw new Error("print frame unavailable");
+    const doc = frame.contentDocument;
+    if (!doc) throw new Error("print frame document unavailable");
+    doc.open();
+    doc.write(
+      `<!doctype html><html><head><meta charset="utf-8"><style>` +
+        `html,body{margin:0;padding:16px;background:#ffffff;color:#111111;}` +
+        CONTRACT_PRINT_CSS +
+        `</style></head><body>${html ?? ""}${
+          signature
+            ? `<div style="margin-top:16px"><div style="font-size:12px;color:#444444">${
+                t("partner.contract.signatureLabel")
+              }</div><img src="${signature}" style="height:80px" /></div>`
+            : ""
+        }</body></html>`,
+    );
+    doc.close();
+    // Let the iframe lay out (and decode the signature image) before rasterising.
+    await new Promise((r) => setTimeout(r, 150));
+    const img = doc.querySelector("img");
+    if (img && !img.complete) {
+      await new Promise((r) => {
+        img.onload = r;
+        img.onerror = r;
+      });
+    }
+    frame.style.height = `${doc.body.scrollHeight + 32}px`;
+    return doc.body;
+  }
+
   async function handleSign() {
-    if (!contract || !signature || !printRef.current) return;
+    if (!contract || !signature) return;
     setBusy(true);
     setError("");
     try {
       const { contractHtmlToPdfBlob, dataUrlToBlob } = await import("@/lib/contract-pdf");
-      const pdfBlob = await contractHtmlToPdfBlob(printRef.current);
+      const pdfBlob = await contractHtmlToPdfBlob(await renderPrintNode());
       const stamp = Date.now();
       const pdfPath = `${contract.id}/contract-${stamp}.pdf`;
       const signaturePath = `${contract.id}/signature-${stamp}.png`;
