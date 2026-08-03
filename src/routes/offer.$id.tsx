@@ -1,3 +1,4 @@
+import { unitSuffix } from "@/lib/units";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, useMemo, lazy, Suspense } from "react";
@@ -552,7 +553,9 @@ function OfferPage() {
                 disabled={quantity >= offer.itemsLeft}
                 className="w-10 h-10 rounded-full border border-border grid place-items-center text-lg disabled:opacity-40 active:scale-95 transition-transform"
               >+</button>
+              {unitSuffix(offer, t) && <span className="text-xs font-medium text-foreground">{unitSuffix(offer, t)}</span>}
               <span className="text-xs text-muted-foreground ml-2">{t("left")} {offer.itemsLeft}</span>
+
             </div>
           </div>
 

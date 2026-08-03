@@ -42,6 +42,7 @@ import { Route as AuthenticatedPartnerProfileRouteImport } from './routes/_authe
 import { Route as AuthenticatedPartnerOrdersRouteImport } from './routes/_authenticated/partner.orders'
 import { Route as AuthenticatedPartnerOffersRouteImport } from './routes/_authenticated/partner.offers'
 import { Route as AuthenticatedPartnerNewRouteImport } from './routes/_authenticated/partner.new'
+import { Route as AuthenticatedPartnerMenuRouteImport } from './routes/_authenticated/partner.menu'
 import { Route as AuthenticatedPartnerInsightsRouteImport } from './routes/_authenticated/partner.insights'
 import { Route as AuthenticatedPartnerDeliveryRouteImport } from './routes/_authenticated/partner.delivery'
 import { Route as AuthenticatedPartnerContractRouteImport } from './routes/_authenticated/partner.contract'
@@ -234,6 +235,12 @@ const AuthenticatedPartnerNewRoute = AuthenticatedPartnerNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AuthenticatedPartnerRoute,
 } as any)
+const AuthenticatedPartnerMenuRoute =
+  AuthenticatedPartnerMenuRouteImport.update({
+    id: '/menu',
+    path: '/menu',
+    getParentRoute: () => AuthenticatedPartnerRoute,
+  } as any)
 const AuthenticatedPartnerInsightsRoute =
   AuthenticatedPartnerInsightsRouteImport.update({
     id: '/insights',
@@ -372,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
+  '/partner/menu': typeof AuthenticatedPartnerMenuRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -422,6 +430,7 @@ export interface FileRoutesByTo {
   '/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/partner/insights': typeof AuthenticatedPartnerInsightsRoute
+  '/partner/menu': typeof AuthenticatedPartnerMenuRoute
   '/partner/new': typeof AuthenticatedPartnerNewRoute
   '/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -476,6 +485,7 @@ export interface FileRoutesById {
   '/_authenticated/partner/contract': typeof AuthenticatedPartnerContractRoute
   '/_authenticated/partner/delivery': typeof AuthenticatedPartnerDeliveryRoute
   '/_authenticated/partner/insights': typeof AuthenticatedPartnerInsightsRoute
+  '/_authenticated/partner/menu': typeof AuthenticatedPartnerMenuRoute
   '/_authenticated/partner/new': typeof AuthenticatedPartnerNewRoute
   '/_authenticated/partner/offers': typeof AuthenticatedPartnerOffersRoute
   '/_authenticated/partner/orders': typeof AuthenticatedPartnerOrdersRoute
@@ -530,6 +540,7 @@ export interface FileRouteTypes {
     | '/partner/contract'
     | '/partner/delivery'
     | '/partner/insights'
+    | '/partner/menu'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -580,6 +591,7 @@ export interface FileRouteTypes {
     | '/partner/contract'
     | '/partner/delivery'
     | '/partner/insights'
+    | '/partner/menu'
     | '/partner/new'
     | '/partner/offers'
     | '/partner/orders'
@@ -633,6 +645,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner/contract'
     | '/_authenticated/partner/delivery'
     | '/_authenticated/partner/insights'
+    | '/_authenticated/partner/menu'
     | '/_authenticated/partner/new'
     | '/_authenticated/partner/offers'
     | '/_authenticated/partner/orders'
@@ -913,6 +926,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartnerNewRouteImport
       parentRoute: typeof AuthenticatedPartnerRoute
     }
+    '/_authenticated/partner/menu': {
+      id: '/_authenticated/partner/menu'
+      path: '/menu'
+      fullPath: '/partner/menu'
+      preLoaderRoute: typeof AuthenticatedPartnerMenuRouteImport
+      parentRoute: typeof AuthenticatedPartnerRoute
+    }
     '/_authenticated/partner/insights': {
       id: '/_authenticated/partner/insights'
       path: '/insights'
@@ -1075,6 +1095,7 @@ interface AuthenticatedPartnerRouteChildren {
   AuthenticatedPartnerContractRoute: typeof AuthenticatedPartnerContractRoute
   AuthenticatedPartnerDeliveryRoute: typeof AuthenticatedPartnerDeliveryRoute
   AuthenticatedPartnerInsightsRoute: typeof AuthenticatedPartnerInsightsRoute
+  AuthenticatedPartnerMenuRoute: typeof AuthenticatedPartnerMenuRoute
   AuthenticatedPartnerNewRoute: typeof AuthenticatedPartnerNewRoute
   AuthenticatedPartnerOffersRoute: typeof AuthenticatedPartnerOffersRoute
   AuthenticatedPartnerOrdersRoute: typeof AuthenticatedPartnerOrdersRoute
@@ -1091,6 +1112,7 @@ const AuthenticatedPartnerRouteChildren: AuthenticatedPartnerRouteChildren = {
   AuthenticatedPartnerContractRoute: AuthenticatedPartnerContractRoute,
   AuthenticatedPartnerDeliveryRoute: AuthenticatedPartnerDeliveryRoute,
   AuthenticatedPartnerInsightsRoute: AuthenticatedPartnerInsightsRoute,
+  AuthenticatedPartnerMenuRoute: AuthenticatedPartnerMenuRoute,
   AuthenticatedPartnerNewRoute: AuthenticatedPartnerNewRoute,
   AuthenticatedPartnerOffersRoute: AuthenticatedPartnerOffersRoute,
   AuthenticatedPartnerOrdersRoute: AuthenticatedPartnerOrdersRoute,
@@ -1150,13 +1172,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

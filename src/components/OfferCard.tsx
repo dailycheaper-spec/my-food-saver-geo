@@ -1,3 +1,4 @@
+import { unitSuffix } from "@/lib/units";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Clock, MapPin, Heart, Truck, Sparkles, Flame, TimerReset, ShieldCheck, Star, Gift, ImageOff } from "lucide-react";
@@ -206,7 +207,7 @@ export function OfferCard({ offer, featured = false, priority = false }: { offer
           <div className={`text-xs font-semibold ${soldOut ? "text-destructive" : almostGone ? "text-amber-600" : "text-muted-foreground"}`}>
             {soldOut
               ? t("offer.soldOut2")
-              : <>{t("left")} <span className="text-foreground font-bold">{offer.itemsLeft}</span></>}
+              : <>{t("left")} <span className="text-foreground font-bold">{offer.itemsLeft}</span> {unitSuffix(offer, t)}</>}
           </div>
         </div>
       </div>

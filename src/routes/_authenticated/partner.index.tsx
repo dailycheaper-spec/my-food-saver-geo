@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check } from "lucide-react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check, UtensilsCrossed } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -180,6 +180,7 @@ function PartnerHome() {
 
       {/* Quick shortcuts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Shortcut to="/partner/menu" icon={<UtensilsCrossed className="w-4 h-4" />} label={t("partner.menu.shortcut")} />
         <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label={t("aiMode")} />
         <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label={t("insights")} />
         <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />

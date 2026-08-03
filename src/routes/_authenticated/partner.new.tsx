@@ -1,14 +1,30 @@
 import { resolveOfferTranslations } from "@/lib/offer-translate";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
-import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { AllergenPicker } from "@/components/AllergenPicker";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { toast } from "sonner";
+
+const UNIT_TYPES = ["piece", "weight", "portion"] as const;
+type UnitType = (typeof UNIT_TYPES)[number];
+
+type MenuItem = {
+  id: string;
+  name: string;
+  default_original_price: number;
+  default_discounted_price: number;
+  image_url: string | null;
+  unit_type: string;
+  unit_weight_grams: number | null;
+  composition: string | null;
+  default_allergens: string[] | null;
+};
+
 
 export const Route = createFileRoute("/_authenticated/partner/new")({
   head: () => ({ meta: [{ title: "ახალი შეთავაზება — Cheaper" }] }),
@@ -89,7 +105,46 @@ function NewOfferPage() {
     surprise_contents: "",
     surprise_value: "",
     allergens: [] as string[],
+    unit_type: "piece" as UnitType,
+    unit_weight_grams: "",
   });
+
+  // Standing menu (saved products) — lets the partner publish in one tap.
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!store) return;
+    let cancelled = false;
+    supabase
+      .from("saved_products")
+      .select("id,name,default_original_price,default_discounted_price,image_url,unit_type,unit_weight_grams,composition,default_allergens")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!cancelled) setMenu(((data ?? []) as unknown as MenuItem[]));
+      });
+    return () => { cancelled = true; };
+  }, [store]);
+
+  function applyMenuItem(it: MenuItem) {
+    setPickedId(it.id);
+    setForm((f) => ({
+      ...f,
+      title: it.name,
+      original_price: String(it.default_original_price ?? f.original_price),
+      discounted_price: String(it.default_discounted_price ?? f.discounted_price),
+      image_url: it.image_url ?? "",
+      image_path: null,
+      image_signed_url_expires_at: null,
+      description: it.composition ? it.composition : f.description,
+      allergens: it.default_allergens ?? [],
+      unit_type: (UNIT_TYPES as readonly string[]).includes(it.unit_type) ? (it.unit_type as UnitType) : "piece",
+      unit_weight_grams: it.unit_weight_grams != null ? String(it.unit_weight_grams) : "",
+    }));
+  }
+
+
 
 
 
@@ -135,7 +190,10 @@ function NewOfferPage() {
       is_surprise: form.is_surprise,
       is_active: true,
       allergens: form.allergens.length ? form.allergens : null,
+      unit_type: form.unit_type,
+      unit_weight_grams: form.unit_type === "weight" && form.unit_weight_grams ? Number(form.unit_weight_grams) : null,
     };
+
 
 
     const { error } = await supabase.from("offers").insert(payload);
@@ -156,7 +214,38 @@ function NewOfferPage() {
       <p className="text-sm text-muted-foreground mb-5">{t("fillAndPublish")}</p>
 
       <form onSubmit={publish} className="space-y-4">
+        <div className="p-3 rounded-3xl border border-border bg-card/50">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="text-sm font-bold flex items-center gap-1.5">
+              <UtensilsCrossed className="w-4 h-4 text-primary" /> {t("partner.menu.pickFromMenu")}
+            </div>
+            <Link to="/partner/menu" className="text-xs font-semibold text-primary shrink-0">
+              {t("partner.menu.title")}
+            </Link>
+          </div>
+          {menu.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("partner.menu.pickEmpty")}</p>
+          ) : (
+            <>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
+                {menu.map((it) => (
+                  <button
+                    key={it.id}
+                    type="button"
+                    onClick={() => applyMenuItem(it)}
+                    className={`shrink-0 px-3 py-2 rounded-2xl text-xs font-medium border whitespace-nowrap ${pickedId === it.id ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                  >
+                    {pickedId === it.id ? "✓ " : ""}{it.name}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">{t("partner.menu.pickHint")}</p>
+            </>
+          )}
+        </div>
+
         <div>
+
           <Label>{t("photo")}</Label>
           <OfferPhotoPicker
             value={form.image_url}
@@ -200,6 +289,27 @@ function NewOfferPage() {
 
 
         <Field label={t("quantityAvailable")} type="number" value={form.quantity_available} onChange={(v) => setForm({ ...form, quantity_available: v })} required />
+
+        <div>
+          <Label>{t("partner.menu.unitType")}</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {UNIT_TYPES.map((u) => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => setForm({ ...form, unit_type: u })}
+                className={`py-2.5 rounded-xl text-xs font-medium border ${form.unit_type === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+              >
+                {t(`partner.menu.unit${u.charAt(0).toUpperCase()}${u.slice(1)}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {form.unit_type === "weight" && (
+          <Field label={t("partner.menu.gramsPerUnit")} type="number" value={form.unit_weight_grams} onChange={(v) => setForm({ ...form, unit_weight_grams: v })} />
+        )}
+
 
         <div className="grid grid-cols-2 gap-3">
           <Field label={t("pickupStart")} type="time" value={form.pickup_from} onChange={(v) => setForm({ ...form, pickup_from: v })} />
@@ -281,25 +391,9 @@ function NewOfferPage() {
         <div>
           <Label>{t("allergensLbl")}</Label>
           <p className="text-[11px] text-muted-foreground mb-2">{t("allergensHint")}</p>
-          <div className="flex flex-wrap gap-2">
-            {ALLERGEN_KEYS.map((k) => {
-              const active = form.allergens.includes(k);
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setForm((f) => ({
-                    ...f,
-                    allergens: active ? f.allergens.filter((x) => x !== k) : [...f.allergens, k],
-                  }))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${active ? "bg-amber-500 text-white border-amber-500" : "bg-card border-border text-muted-foreground"}`}
-                >
-                  {active ? "✓ " : ""}{allergenLabel(k, language)}
-                </button>
-              );
-            })}
-          </div>
+          <AllergenPicker value={form.allergens} onChange={(next) => setForm((f) => ({ ...f, allergens: next }))} />
         </div>
+
 
 
         {imgInvalid && (
