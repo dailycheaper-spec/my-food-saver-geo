@@ -122,7 +122,7 @@ function ContractSettingsSection() {
     }
   }
 
-  const fields: Array<[keyof PlatformSettings, string, number]> = [
+  const fields: Array<[Extract<keyof PlatformSettings, string>, string, number]> = [
     ["commission_percentage", t("admin.settings.contractCommission"), 0.5],
     ["liability_cap_multiplier", t("admin.settings.contractLiabilityCap"), 0.1],
     ["termination_notice_days", t("admin.settings.contractNoticeDays"), 1],
