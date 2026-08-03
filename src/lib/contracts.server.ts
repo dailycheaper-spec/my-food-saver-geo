@@ -23,7 +23,15 @@ export const CONTRACT_FIXED_VALUES = {
   /** The value the live schedule passes to generate_pending_payouts. */
   min_payout_amount: "5",
   delivery_fee_payer: "მომხმარებელი",
+  /** Annex 1 — delivery tariff itself (separate from who pays it). */
+  delivery_fee: "პლატფორმის მოქმედი ტარიფის შესაბამისად",
+  /** Annex 1 — who bears the payment-processing fee. */
+  payment_processing_fee_payer: "პლატფორმა",
   payment_processing_fee: "შედის პლატფორმის საკომისიოში, ცალკე არ ერიცხება",
+  /** Annex 1 — flat-fee alternative to commission_percentage. */
+  fixed_commission_amount: "—",
+  /** Annex 1 — how a refund is deducted. */
+  refund_deduction_method: "მომდევნო ანგარიშსწორებიდან",
 } as const;
 
 const ENTITY_TYPE_LABEL: Record<string, string> = {
