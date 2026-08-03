@@ -156,6 +156,33 @@ export async function fetchOrder(id: string): Promise<OrderWithRelations | null>
   return (data as OrderWithRelations) ?? null;
 }
 
+export type OrderStatusEvent = { id: string; order_id: string; status: string; changed_at: string };
+
+/** Append-only status history for one order — powers the Activity Timeline. */
+export function useOrderStatusHistory(orderId: string | null) {
+  const [events, setEvents] = useState<OrderStatusEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!orderId) { setEvents([]); setLoading(false); return; }
+    let alive = true;
+    async function load() {
+      const { data } = await supabase
+        .from("order_status_history")
+        .select("*")
+        .eq("order_id", orderId!)
+        .order("changed_at", { ascending: true });
+      if (alive) { setEvents((data ?? []) as OrderStatusEvent[]); setLoading(false); }
+    }
+    load();
+    const channel = supabase
+      .channel(`order-status-history-${orderId}-${++realtimeChannelCounter}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "order_status_history", filter: `order_id=eq.${orderId}` }, () => load())
+      .subscribe();
+    return () => { alive = false; void supabase.removeChannel(channel); };
+  }, [orderId]);
+  return { events, loading };
+}
+
 export async function createOrder(input: {
   offer_id: string;
   store_id: string;

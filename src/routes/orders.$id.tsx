@@ -7,6 +7,7 @@ import { fetchOrder, updateOrderStatus, formatGel, type OrderWithRelations } fro
 import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
 import { DeliveryTracker } from "@/components/DeliveryTracker";
+import { OrderTimeline } from "@/components/OrderTimeline";
 import { StoreLogo } from "@/components/StoreLogo";
 import { OrderCardSkeleton } from "@/components/Skeleton";
 import { stageOfDbOrder, useStageLabel } from "./orders.index";
@@ -174,6 +175,8 @@ function OrderDetail() {
           <DeliveryTracker orderId={order.id} />
         </div>
       )}
+
+      <OrderTimeline orderId={order.id} />
 
       {order.code && !isCancelled && (
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-4 sm:p-5 text-center">
