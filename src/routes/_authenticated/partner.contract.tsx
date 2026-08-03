@@ -39,7 +39,7 @@ function PartnerContractPage() {
   const html = data?.html ?? null;
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const printRef = useRef<HTMLDivElement | null>(null);
+  const pdfFrameRef = useRef<HTMLIFrameElement | null>(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
   const [consents, setConsents] = useState<Record<ConsentKey, boolean>>({
     readAll: false,
