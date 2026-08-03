@@ -259,10 +259,10 @@ function PartnerMenuPage() {
                 )}
               </div>
               <div className="flex flex-col gap-1.5 shrink-0">
-                <button onClick={() => openEdit(it)} aria-label={t("edit")} className="p-2 rounded-xl border border-border">
+                <button onClick={() => openEdit(it)} aria-label={t("partner.menu.edit")} className="p-2 rounded-xl border border-border">
                   <Pencil className="w-4 h-4" />
                 </button>
-                <button onClick={() => remove(it.id)} aria-label={t("delete")} className="p-2 rounded-xl border border-border text-destructive">
+                <button onClick={() => remove(it.id)} aria-label={t("partner.menu.delete")} className="p-2 rounded-xl border border-border text-destructive">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
