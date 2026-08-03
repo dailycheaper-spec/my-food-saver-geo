@@ -84,12 +84,19 @@ export const runPayoutGeneration = createServerFn({ method: "POST" })
     if (roleError || !adminRole) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: settings } = await supabaseAdmin
+      .from("platform_settings")
+      .select("commission_percentage")
+      .eq("id", true)
+      .maybeSingle();
     const { data, error } = await supabaseAdmin.rpc("generate_pending_payouts", {
-      _commission: 0.10,
+      _commission: Number(settings?.commission_percentage ?? 12) / 100,
       // No minimum threshold — any store with positive net revenue gets a payout row.
       _min_payout: 0,
       _generated_by: "manual",
-    });
+      // A manual run is deliberate — it ignores each store's settlement cycle.
+      _ignore_cycle: true,
+    } as never);
     if (error) throw new Error(error.message);
     return { generated: (data as unknown[] | null)?.length ?? 0, rows: data ?? [] };
   });
