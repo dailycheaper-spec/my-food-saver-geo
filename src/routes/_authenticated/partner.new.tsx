@@ -105,7 +105,46 @@ function NewOfferPage() {
     surprise_contents: "",
     surprise_value: "",
     allergens: [] as string[],
+    unit_type: "piece" as UnitType,
+    unit_weight_grams: "",
   });
+
+  // Standing menu (saved products) — lets the partner publish in one tap.
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!store) return;
+    let cancelled = false;
+    supabase
+      .from("saved_products")
+      .select("id,name,default_original_price,default_discounted_price,image_url,unit_type,unit_weight_grams,composition,default_allergens")
+      .eq("store_id", store.id)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!cancelled) setMenu(((data ?? []) as unknown as MenuItem[]));
+      });
+    return () => { cancelled = true; };
+  }, [store]);
+
+  function applyMenuItem(it: MenuItem) {
+    setPickedId(it.id);
+    setForm((f) => ({
+      ...f,
+      title: it.name,
+      original_price: String(it.default_original_price ?? f.original_price),
+      discounted_price: String(it.default_discounted_price ?? f.discounted_price),
+      image_url: it.image_url ?? "",
+      image_path: null,
+      image_signed_url_expires_at: null,
+      description: it.composition ? it.composition : f.description,
+      allergens: it.default_allergens ?? [],
+      unit_type: (UNIT_TYPES as readonly string[]).includes(it.unit_type) ? (it.unit_type as UnitType) : "piece",
+      unit_weight_grams: it.unit_weight_grams != null ? String(it.unit_weight_grams) : "",
+    }));
+  }
+
+
 
 
 
@@ -297,25 +336,9 @@ function NewOfferPage() {
         <div>
           <Label>{t("allergensLbl")}</Label>
           <p className="text-[11px] text-muted-foreground mb-2">{t("allergensHint")}</p>
-          <div className="flex flex-wrap gap-2">
-            {ALLERGEN_KEYS.map((k) => {
-              const active = form.allergens.includes(k);
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setForm((f) => ({
-                    ...f,
-                    allergens: active ? f.allergens.filter((x) => x !== k) : [...f.allergens, k],
-                  }))}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition ${active ? "bg-amber-500 text-white border-amber-500" : "bg-card border-border text-muted-foreground"}`}
-                >
-                  {active ? "✓ " : ""}{allergenLabel(k, language)}
-                </button>
-              );
-            })}
-          </div>
+          <AllergenPicker value={form.allergens} onChange={(next) => setForm((f) => ({ ...f, allergens: next }))} />
         </div>
+
 
 
         {imgInvalid && (
