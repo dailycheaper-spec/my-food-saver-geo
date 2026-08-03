@@ -126,9 +126,13 @@ function escapeHtml(value: string): string {
 
 /** Fills {{token}} placeholders in the legal template. Unknown tokens stay visible. */
 export function renderContractHtml(values: Record<string, string>): string {
-  return PARTNER_AGREEMENT_TEMPLATE_HTML.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
-    key in values ? escapeHtml(values[key] ?? "") : match,
-  );
+  const fallback = annex3TokenValues(false);
+  return PARTNER_AGREEMENT_TEMPLATE_HTML.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+    if (key in values) return escapeHtml(values[key] ?? "");
+    // Contracts issued before the checklist existed have no annex3_* snapshot.
+    if (key in fallback) return fallback[key]!;
+    return match;
+  });
 }
 
 export async function logContractEvent(
