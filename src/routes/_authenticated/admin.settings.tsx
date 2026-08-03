@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Save, Percent, Bell, Truck, CreditCard, Languages } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Save, Percent, Bell, Truck, CreditCard, Languages, FileSignature } from "lucide-react";
 import { loadAdminSettings, saveAdminSettings, type AdminSettings } from "@/lib/admin-settings";
+import { getPlatformSettings, updatePlatformSettings } from "@/lib/contracts.functions";
+import { DEFAULT_PLATFORM_SETTINGS, type PlatformSettings } from "@/lib/contracts";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
