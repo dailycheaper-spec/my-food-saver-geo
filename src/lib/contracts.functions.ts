@@ -81,16 +81,16 @@ export const getAdminStoreContract = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const current = contracts?.[0] ?? null;
-    let events: Record<string, unknown>[] = [];
     let pdfUrl: string | null = null;
     let signatureUrl: string | null = null;
+    const eventsRes = current
+      ? await supabaseAdmin
+          .from("contract_events")
+          .select("*")
+          .eq("contract_id", current.id)
+          .order("created_at", { ascending: false })
+      : null;
     if (current) {
-      const { data: rows } = await supabaseAdmin
-        .from("contract_events")
-        .select("*")
-        .eq("contract_id", current.id)
-        .order("created_at", { ascending: false });
-      events = rows ?? [];
       if (current.pdf_storage_path) {
         const { data: signed } = await supabaseAdmin.storage
           .from("partner-contracts")
@@ -104,7 +104,7 @@ export const getAdminStoreContract = createServerFn({ method: "POST" })
         signatureUrl = signed?.signedUrl ?? null;
       }
     }
-    return { contracts: contracts ?? [], current, events, pdfUrl, signatureUrl };
+    return { contracts: contracts ?? [], current, events: eventsRes?.data ?? [], pdfUrl, signatureUrl };
   });
 
 /** Admin: re-notify the partner about a pending contract. Does not regenerate anything. */
