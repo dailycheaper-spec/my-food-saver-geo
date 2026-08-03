@@ -16,7 +16,7 @@ type AnyClient = {
  */
 export const CONTRACT_FIXED_VALUES = {
   /** Mirrors MIN_DISCOUNT_PCT in src/components/DiscountFields.tsx. */
-  min_discount_pct: "50",
+  min_discount_pct: "35",
   /** Matches the live weekly payout cron ('0 3 * * 1'). */
   settlement_cycle: "ყოველკვირეულად",
   settlement_day: "ორშაბათი",

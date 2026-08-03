@@ -186,7 +186,7 @@ export const faLabels: Record<string, string> = {
   pickupEnd: "پایان زمان تحویل",
   originalPrice: "قیمت اصلی (لاری)",
   discountPct: "تخفیف (٪)",
-  minDiscount50: "حداقل تخفیف ۵۰٪ الزامی است",
+  minDiscount50: "حداقل تخفیف ۳۵٪ الزامی است",
   creating: "در حال ایجاد…",
   approvePublish: "تأیید و انتشار",
   publish: "انتشار",
