@@ -52,7 +52,12 @@ export interface Offer {
   city?: string; // store city ("თბილისი" | "ქუთაისი" | "ბათუმი")
   /** Optional partner-declared allergen keys (see src/lib/allergens.ts). */
   allergens?: string[];
+  /** How the item is sold: by piece (default), by weight or by portion. */
+  unitType?: "piece" | "weight" | "portion";
+  /** Grams per unit, when sold by weight. */
+  unitWeightGrams?: number;
 }
+
 
 
 // approx Tbilisi district centers

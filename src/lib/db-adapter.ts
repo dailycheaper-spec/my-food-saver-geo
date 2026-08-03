@@ -95,6 +95,8 @@ export function dbOfferToCardOffer(row: OfferWithStore): Offer {
     isSurprise: Boolean((row as unknown as { is_surprise?: boolean }).is_surprise),
     city: storeAny?.city ?? undefined,
     allergens: ((row as unknown as { allergens?: string[] | null }).allergens) ?? undefined,
+    unitType: ((row as unknown as { unit_type?: string | null }).unit_type as Offer["unitType"]) ?? "piece",
+    unitWeightGrams: (row as unknown as { unit_weight_grams?: number | null }).unit_weight_grams ?? undefined,
   };
 }
 
