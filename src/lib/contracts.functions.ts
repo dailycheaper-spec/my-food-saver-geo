@@ -383,7 +383,7 @@ export const signContract = createServerFn({ method: "POST" })
       eventType: "signed",
       actorUserId: context.userId,
       ip,
-      metadata: { consents: data.consents },
+      metadata: { consents: data.consents, annex3: data.annex3 },
     });
     return updated;
   });
