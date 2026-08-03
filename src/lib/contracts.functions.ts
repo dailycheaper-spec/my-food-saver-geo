@@ -260,12 +260,19 @@ export const getMyContract = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { renderContractHtml, logContractEvent, requestIp } = await import("@/lib/contracts.server");
 
-    const { data: stores } = await supabaseAdmin
-      .from("stores")
-      .select("id")
-      .eq("owner_id", context.userId);
-    const storeIds = (stores ?? []).map((s) => s.id);
+    // Owner OR staff: mirrors app_private.is_store_member, since admin client bypasses RLS.
+    const [{ data: owned }, { data: memberships }] = await Promise.all([
+      supabaseAdmin.from("stores").select("id").eq("owner_id", context.userId),
+      supabaseAdmin.from("store_members").select("store_id").eq("user_id", context.userId),
+    ]);
+    const storeIds = Array.from(
+      new Set([
+        ...(owned ?? []).map((s) => s.id),
+        ...(memberships ?? []).map((m) => m.store_id),
+      ]),
+    );
     if (!storeIds.length) return { contract: null, html: null, pdfUrl: null };
+
 
     const { data: contract } = await supabaseAdmin
       .from("partner_contracts")
