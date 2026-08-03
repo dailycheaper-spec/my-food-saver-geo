@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { ANNEX3_KEYS } from "@/lib/contracts";
 
 /** Admin: platform-wide contract settings. */
 export const getPlatformSettings = createServerFn({ method: "GET" })
