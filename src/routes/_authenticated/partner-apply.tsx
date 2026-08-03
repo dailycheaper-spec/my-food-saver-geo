@@ -40,7 +40,7 @@ function PartnerApply() {
   const { user } = useAuth();
   const { stores, loading: partnerLoading } = usePartnerAccount();
   const navigate = useNavigate();
-  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string; lat: number | null; lng: number | null }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "", lat: null, lng: null });
+  const [form, setForm] = useState<{ name: string; logo: string; logo_url: string | null; entity_type: EntityType; category: string; city: City; district: string; address: string; phone: string; contact_email: string; company_name: string; representative_name: string; company_id_number: string; description: string; bank_iban: string; account_holder: string; lat: number | null; lng: number | null }>({ name: "", logo: "🏪", logo_url: null, entity_type: "company", category: "restaurant", city: "თბილისი", district: "ვაკე", address: "", phone: "", contact_email: "", company_name: "", representative_name: "", company_id_number: "", description: "", bank_iban: "", account_holder: "", lat: null, lng: null });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
