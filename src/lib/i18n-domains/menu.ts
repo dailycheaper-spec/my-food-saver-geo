@@ -5,14 +5,6 @@ export const menuPack: DomainPack = {
   ka: {
     "partner.menu.edit": "რედაქტირება",
     "partner.menu.delete": "წაშლა",
-    "partner.menu.edit": "Edit",
-    "partner.menu.delete": "Delete",
-    "partner.menu.edit": "Редактировать",
-    "partner.menu.delete": "Удалить",
-    "partner.menu.edit": "Düzenle",
-    "partner.menu.delete": "Sil",
-    "partner.menu.edit": "ویرایش",
-    "partner.menu.delete": "حذف",
     "partner.menu.shortcut": "მენიუ",
     "partner.menu.title": "ჩემი მენიუ",
     "partner.menu.subtitle": "შეინახე პროდუქტი ერთხელ — შემდეგ ყოველდღე უბრალოდ აირჩიე",
@@ -44,6 +36,8 @@ export const menuPack: DomainPack = {
     "offer.unitGram": "გრ",
   },
   en: {
+    "partner.menu.edit": "Edit",
+    "partner.menu.delete": "Delete",
     "partner.menu.shortcut": "Menu",
     "partner.menu.title": "My menu",
     "partner.menu.subtitle": "Save a product once — then just pick it every day",
@@ -75,6 +69,8 @@ export const menuPack: DomainPack = {
     "offer.unitGram": "g",
   },
   ru: {
+    "partner.menu.edit": "Редактировать",
+    "partner.menu.delete": "Удалить",
     "partner.menu.shortcut": "Меню",
     "partner.menu.title": "Моё меню",
     "partner.menu.subtitle": "Сохрани продукт один раз — потом просто выбирай его каждый день",
@@ -106,6 +102,8 @@ export const menuPack: DomainPack = {
     "offer.unitGram": "г",
   },
   tr: {
+    "partner.menu.edit": "Düzenle",
+    "partner.menu.delete": "Sil",
     "partner.menu.shortcut": "Menü",
     "partner.menu.title": "Menüm",
     "partner.menu.subtitle": "Ürünü bir kez kaydet — sonra her gün sadece seç",
@@ -137,6 +135,8 @@ export const menuPack: DomainPack = {
     "offer.unitGram": "g",
   },
   fa: {
+    "partner.menu.edit": "ویرایش",
+    "partner.menu.delete": "حذف",
     "partner.menu.shortcut": "منو",
     "partner.menu.title": "منوی من",
     "partner.menu.subtitle": "محصول را یک بار ذخیره کن — بعد هر روز فقط انتخابش کن",
