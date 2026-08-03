@@ -81,3 +81,52 @@ export function contractStatusTone(status: ContractStatus): string {
       return "bg-muted text-muted-foreground";
   }
 }
+
+/**
+ * Annex 3 readiness checklist. Every item is a mandatory checkbox the partner
+ * ticks while reviewing the contract; each maps to one {{token}} in the legal
+ * text that renders as either ☐ or ☑ — never anything else.
+ */
+export const ANNEX3_KEYS = [
+  "docRegistration",
+  "bankConfirmation",
+  "foodRegistration",
+  "addressContact",
+  "categoriesAllergens",
+  "temperatureControl",
+  "traceability",
+  "packagingHandover",
+  "complaintsContact",
+  "dataAccess",
+  "staffTraining",
+  "liabilityInsurance",
+] as const;
+export type Annex3Key = (typeof ANNEX3_KEYS)[number];
+
+export const ANNEX3_TOKENS: Record<Annex3Key, string> = {
+  docRegistration: "annex3_doc_registration",
+  bankConfirmation: "annex3_bank_confirmation",
+  foodRegistration: "annex3_food_registration",
+  addressContact: "annex3_address_contact",
+  categoriesAllergens: "annex3_categories_allergens",
+  temperatureControl: "annex3_temperature_control",
+  traceability: "annex3_traceability",
+  packagingHandover: "annex3_packaging_handover",
+  complaintsContact: "annex3_complaints_contact",
+  dataAccess: "annex3_data_access",
+  staffTraining: "annex3_staff_training",
+  liabilityInsurance: "annex3_liability_insurance",
+};
+
+export const CHECKBOX_UNCHECKED = "☐";
+export const CHECKBOX_CHECKED = "☑";
+
+/** Token → glyph map for the Annex 3 checklist. */
+export function annex3TokenValues(checked: boolean): Record<string, string> {
+  const glyph = checked ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED;
+  return Object.fromEntries(ANNEX3_KEYS.map((k) => [ANNEX3_TOKENS[k], glyph]));
+}
+
+/** Settlement cycle the partner picks; drives both payouts and contract text. */
+export const SETTLEMENT_CYCLES = ["daily", "weekly", "monthly"] as const;
+export type SettlementCycle = (typeof SETTLEMENT_CYCLES)[number];

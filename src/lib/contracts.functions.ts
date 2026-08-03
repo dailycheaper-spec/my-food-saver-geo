@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { ANNEX3_KEYS } from "@/lib/contracts";
 
 /** Admin: platform-wide contract settings. */
 export const getPlatformSettings = createServerFn({ method: "GET" })
@@ -320,12 +321,21 @@ export const signContract = createServerFn({ method: "POST" })
           authorised: z.literal(true),
           electronicSignature: z.literal(true),
         }),
+        // Every Annex 3 item must be confirmed by the partner in this session.
+        annex3: z.object(
+          Object.fromEntries(ANNEX3_KEYS.map((k) => [k, z.literal(true)])) as Record<
+            (typeof ANNEX3_KEYS)[number],
+            z.ZodLiteral<true>
+          >,
+        ),
       })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { logContractEvent, requestIp } = await import("@/lib/contracts.server");
+    const { annex3TokenValues } = await import("@/lib/contracts");
+
 
     const { data: contract, error } = await supabaseAdmin
       .from("partner_contracts")
@@ -348,6 +358,8 @@ export const signContract = createServerFn({ method: "POST" })
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
     values.signing_date = signedAt.toISOString().slice(0, 10);
     values.effective_date = values.signing_date;
+    // Validation above guarantees the partner confirmed all 12 Annex 3 items.
+    Object.assign(values, annex3TokenValues(true));
 
     const { data: updated, error: updateError } = await supabaseAdmin
       .from("partner_contracts")
@@ -371,7 +383,7 @@ export const signContract = createServerFn({ method: "POST" })
       eventType: "signed",
       actorUserId: context.userId,
       ip,
-      metadata: { consents: data.consents },
+      metadata: { consents: data.consents, annex3: data.annex3 },
     });
     return updated;
   });

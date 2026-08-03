@@ -2,7 +2,7 @@
 // Kept out of *.functions.ts so those files stay thin wrappers.
 
 import type { ContractEventType, PlatformSettings } from "@/lib/contracts";
-import { DEFAULT_PLATFORM_SETTINGS } from "@/lib/contracts";
+import { DEFAULT_PLATFORM_SETTINGS, annex3TokenValues } from "@/lib/contracts";
 import { PARTNER_AGREEMENT_TEMPLATE_HTML } from "@/lib/contracts/template";
 
 type AnyClient = {
@@ -17,9 +17,6 @@ type AnyClient = {
 export const CONTRACT_FIXED_VALUES = {
   /** Mirrors MIN_DISCOUNT_PCT in src/components/DiscountFields.tsx. */
   min_discount_pct: "35",
-  /** Matches the live weekly payout cron ('0 3 * * 1'). */
-  settlement_cycle: "ყოველკვირეულად",
-  settlement_day: "ორშაბათი",
   /** The value the live schedule passes to generate_pending_payouts. */
   min_payout_amount: "5",
   delivery_fee_payer: "მომხმარებელი",
@@ -38,6 +35,30 @@ const ENTITY_TYPE_LABEL: Record<string, string> = {
   company: "იურიდიული პირი",
   individual_entrepreneur: "ინდივიდუალური მეწარმე",
 };
+
+const SETTLEMENT_CYCLE_LABEL: Record<string, string> = {
+  daily: "ყოველდღიურად",
+  weekly: "ყოველკვირეულად",
+  monthly: "ყოველთვიურად",
+};
+
+const WEEKDAY_LABEL: Record<number, string> = {
+  1: "ორშაბათი",
+  2: "სამშაბათი",
+  3: "ოთხშაბათი",
+  4: "ხუთშაბათი",
+  5: "პარასკევი",
+  6: "შაბათი",
+  7: "კვირა",
+};
+
+/** Human-readable settlement day for the contract text, per the store's own cycle. */
+function settlementDayLabel(cycle: string, day: number | null): string {
+  if (cycle === "daily") return "ყოველი დღე";
+  if (cycle === "monthly") return `თვის ${day ?? 1}-ე რიცხვი`;
+  return WEEKDAY_LABEL[day ?? 1] ?? WEEKDAY_LABEL[1]!;
+}
+
 
 function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -66,7 +87,14 @@ export function buildPlaceholderValues(
 ): Record<string, string> {
   const today = formatDate(new Date());
   const city = String(store.city ?? "თბილისი");
+  const cycle = String(store.settlement_cycle ?? "weekly");
+  const cycleDay =
+    typeof store.settlement_day === "number" ? (store.settlement_day as number) : null;
   return {
+    settlement_cycle: SETTLEMENT_CYCLE_LABEL[cycle] ?? SETTLEMENT_CYCLE_LABEL.weekly!,
+    settlement_day: settlementDayLabel(cycle, cycleDay),
+    // Unticked by default; the signed render flips every one of these to ☑.
+    ...annex3TokenValues(false),
     partner_legal_name: String(store.company_name || store.name || ""),
     partner_entity_type: ENTITY_TYPE_LABEL[String(store.entity_type)] ?? String(store.entity_type ?? ""),
     partner_identification_code: String(store.company_id_number ?? ""),
@@ -98,9 +126,13 @@ function escapeHtml(value: string): string {
 
 /** Fills {{token}} placeholders in the legal template. Unknown tokens stay visible. */
 export function renderContractHtml(values: Record<string, string>): string {
-  return PARTNER_AGREEMENT_TEMPLATE_HTML.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
-    key in values ? escapeHtml(values[key] ?? "") : match,
-  );
+  const fallback = annex3TokenValues(false);
+  return PARTNER_AGREEMENT_TEMPLATE_HTML.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
+    if (key in values) return escapeHtml(values[key] ?? "");
+    // Contracts issued before the checklist existed have no annex3_* snapshot.
+    if (key in fallback) return fallback[key]!;
+    return match;
+  });
 }
 
 export async function logContractEvent(

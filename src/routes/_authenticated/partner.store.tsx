@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { Save, MapPin, LocateFixed, Landmark } from "lucide-react";
+import { Save, MapPin, LocateFixed, Landmark, CalendarClock } from "lucide-react";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { VisibilityRadiusSelector } from "@/components/VisibilityRadiusSelector"
 import { isValidLatLng } from "@/lib/geo";
 import { useStoreBankAccount, upsertStoreBankAccount, isValidGeorgianIban, normalizeIban } from "@/lib/bank-account";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
+import { SETTLEMENT_CYCLES, type SettlementCycle } from "@/lib/contracts";
 
 type EntityType = "company" | "individual_entrepreneur";
 
@@ -48,6 +49,8 @@ type FormState = {
   company_name: string;
   company_id_number: string;
   contact_email: string;
+  settlement_cycle: SettlementCycle;
+  settlement_day: number | null;
 };
 
 function StoreSettings() {
@@ -72,6 +75,8 @@ function StoreSettings() {
     company_name: "",
     company_id_number: "",
     contact_email: "",
+    settlement_cycle: "weekly",
+    settlement_day: 1,
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ text: string; kind: "ok" | "err" } | null>(null);
@@ -103,6 +108,11 @@ function StoreSettings() {
         company_name: (anyStore.company_name as string | null) ?? "",
         company_id_number: (anyStore.company_id_number as string | null) ?? "",
         contact_email: (anyStore.contact_email as string | null) ?? "",
+        settlement_cycle: (SETTLEMENT_CYCLES as readonly string[]).includes(String(anyStore.settlement_cycle))
+          ? (anyStore.settlement_cycle as SettlementCycle)
+          : "weekly",
+        settlement_day:
+          typeof anyStore.settlement_day === "number" ? (anyStore.settlement_day as number) : 1,
       };
       setForm(next);
       initialFormRef.current = next;
@@ -171,6 +181,8 @@ function StoreSettings() {
       company_name: form.company_name.trim() || null,
       company_id_number: cid || null,
       contact_email: form.contact_email.trim() || null,
+      settlement_cycle: form.settlement_cycle,
+      settlement_day: form.settlement_cycle === "daily" ? null : (form.settlement_day ?? 1),
     } as never;
     const { error } = await supabase.from("stores").update(payload).eq("id", store.id);
     setSaving(false);
@@ -308,6 +320,71 @@ function StoreSettings() {
           value={form.visibility_radius_km}
           onChange={(v) => setForm((f) => ({ ...f, visibility_radius_km: v }))}
         />
+      </div>
+
+      {/* Settlement cycle */}
+      <div className="bg-card rounded-2xl border border-border p-5 space-y-3 mt-4">
+        <div className="flex items-center gap-2">
+          <CalendarClock className="w-4 h-4 text-primary" />
+          <h2 className="font-semibold">{t("partner.store.settlement.heading")}</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">{t("partner.store.settlement.hint")}</p>
+        <div className="grid grid-cols-3 gap-2">
+          {SETTLEMENT_CYCLES.map((c) => (
+            <button
+              type="button"
+              key={c}
+              onClick={() =>
+                setForm((f) => ({
+                  ...f,
+                  settlement_cycle: c,
+                  settlement_day: c === "daily" ? null : c === "weekly" ? 1 : 1,
+                }))
+              }
+              className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.settlement_cycle === c ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+            >
+              {t(`partner.store.settlement.${c}`)}
+            </button>
+          ))}
+        </div>
+
+        {form.settlement_cycle === "weekly" && (
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">
+              {t("partner.store.settlement.dayOfWeek")}
+            </span>
+            <select
+              value={form.settlement_day ?? 1}
+              onChange={(e) => setForm((f) => ({ ...f, settlement_day: Number(e.target.value) }))}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                <option key={d} value={d}>
+                  {t(`partner.store.settlement.weekday.${d}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        {form.settlement_cycle === "monthly" && (
+          <label className="block">
+            <span className="text-xs font-medium text-muted-foreground">
+              {t("partner.store.settlement.dayOfMonth")}
+            </span>
+            <select
+              value={form.settlement_day ?? 1}
+              onChange={(e) => setForm((f) => ({ ...f, settlement_day: Number(e.target.value) }))}
+              className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
       </div>
 
       <BankDetailsSection storeId={store.id} />

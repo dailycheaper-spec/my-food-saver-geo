@@ -5,7 +5,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, ShieldCheck, Download, Loader2 } from "lucide-react";
 import { getMyContract, signContract } from "@/lib/contracts.functions";
 import { CONTRACT_PRINT_CSS } from "@/lib/contracts/template";
-import { CONSENT_KEYS, contractStatusTone, type ConsentKey, type PartnerContract } from "@/lib/contracts";
+import {
+  ANNEX3_KEYS,
+  CHECKBOX_CHECKED,
+  CHECKBOX_UNCHECKED,
+  CONSENT_KEYS,
+  contractStatusTone,
+  type Annex3Key,
+  type ConsentKey,
+  type PartnerContract,
+} from "@/lib/contracts";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,12 +55,26 @@ function PartnerContractPage() {
     authorised: false,
     electronicSignature: false,
   });
+  const [annex3Checked, setAnnex3Checked] = useState<Record<Annex3Key, boolean>>(
+    () => Object.fromEntries(ANNEX3_KEYS.map((k) => [k, false])) as Record<Annex3Key, boolean>,
+  );
   const [signature, setSignature] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const allConsented = useMemo(() => CONSENT_KEYS.every((k) => consents[k]), [consents]);
-  const canSign = scrolledToEnd && allConsented && !!signature && !busy;
+  const allAnnex3Checked = useMemo(() => ANNEX3_KEYS.every((k) => annex3Checked[k]), [annex3Checked]);
+  const canSign = scrolledToEnd && allConsented && allAnnex3Checked && !!signature && !busy;
+
+  /**
+   * The Annex 3 glyph is the only ☐ in the whole document, so the signed render
+   * simply reflects what the partner ticked in this session.
+   */
+  const displayHtml = useMemo(
+    () => (allAnnex3Checked ? (html ?? "").split(CHECKBOX_UNCHECKED).join(CHECKBOX_CHECKED) : (html ?? "")),
+    [html, allAnnex3Checked],
+  );
+
 
   // A short contract may never scroll — treat "no overflow" as already read.
   useEffect(() => {
@@ -75,7 +98,7 @@ function PartnerContractPage() {
       `<!doctype html><html><head><meta charset="utf-8"><style>` +
         `html,body{margin:0;padding:16px;background:#ffffff;color:#111111;}` +
         CONTRACT_PRINT_CSS +
-        `</style></head><body>${html ?? ""}${
+        `</style></head><body>${displayHtml}${
           signature
             ? `<div style="margin-top:16px"><div style="font-size:12px;color:#444444">${
                 t("partner.contract.signatureLabel")
@@ -123,6 +146,7 @@ function PartnerContractPage() {
           pdfPath,
           signaturePath,
           consents: { readAll: true, authorised: true, electronicSignature: true },
+          annex3: Object.fromEntries(ANNEX3_KEYS.map((k) => [k, true])) as Record<Annex3Key, true>,
         },
       });
       await qc.invalidateQueries({ queryKey: ["partner-contract"] });
@@ -203,7 +227,7 @@ function PartnerContractPage() {
         className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-5"
       >
         <div className="bg-white p-2">
-          <div dangerouslySetInnerHTML={{ __html: html ?? "" }} />
+          <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
           {signature && (
             <div className="mt-4">
               <div className="text-xs text-[#444]">{t("partner.contract.signatureLabel")}</div>
@@ -241,6 +265,26 @@ function PartnerContractPage() {
                 />
                 <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
                   {t(`partner.contract.consent.${key}`)}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="space-y-2 pt-1 border-t border-border">
+            <p className="text-xs font-semibold text-muted-foreground pt-3">
+              {t("partner.contract.annex3.heading")}
+            </p>
+            {ANNEX3_KEYS.map((key) => (
+              <label key={key} className="flex items-start gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={annex3Checked[key]}
+                  disabled={!scrolledToEnd}
+                  onChange={(e) => setAnnex3Checked((c) => ({ ...c, [key]: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                />
+                <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
+                  {t(`partner.contract.annex3.${key}`)}
                 </span>
               </label>
             ))}
