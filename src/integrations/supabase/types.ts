@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
       deliveries: {
         Row: {
           courier_lat: number | null
@@ -115,6 +148,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       offers: {
         Row: {
@@ -223,6 +289,38 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          order_id: string
+          status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          order_id: string
+          status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount: number
@@ -326,6 +424,47 @@ export type Database = {
           },
           {
             foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_verification_events: {
+        Row: {
+          actor_email: string | null
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          store_id: string
+        }
+        Insert: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          store_id: string
+        }
+        Update: {
+          actor_email?: string | null
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_verification_events_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -708,6 +847,7 @@ export type Database = {
       stores: {
         Row: {
           address: string | null
+          admin_notes: string | null
           category: string
           city: string
           company_id_number: string | null
@@ -733,12 +873,16 @@ export type Database = {
           name_ru: string | null
           owner_id: string | null
           phone: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
           status: Database["public"]["Enums"]["store_status"]
           updated_at: string
+          verification_checklist: Json
           visibility_radius_km: number | null
         }
         Insert: {
           address?: string | null
+          admin_notes?: string | null
           category?: string
           city?: string
           company_id_number?: string | null
@@ -764,12 +908,16 @@ export type Database = {
           name_ru?: string | null
           owner_id?: string | null
           phone?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
+          verification_checklist?: Json
           visibility_radius_km?: number | null
         }
         Update: {
           address?: string | null
+          admin_notes?: string | null
           category?: string
           city?: string
           company_id_number?: string | null
@@ -795,8 +943,11 @@ export type Database = {
           name_ru?: string | null
           owner_id?: string | null
           phone?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
           status?: Database["public"]["Enums"]["store_status"]
           updated_at?: string
+          verification_checklist?: Json
           visibility_radius_km?: number | null
         }
         Relationships: []
@@ -965,7 +1116,13 @@ export type Database = {
         | "collected"
         | "cancelled"
         | "gifted"
-      store_status: "pending" | "active" | "suspended"
+      store_status:
+        | "pending_verification"
+        | "active"
+        | "suspended"
+        | "pending_documents"
+        | "rejected"
+        | "inactive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1122,7 +1279,14 @@ export const Constants = {
         "cancelled",
         "gifted",
       ],
-      store_status: ["pending", "active", "suspended"],
+      store_status: [
+        "pending_verification",
+        "active",
+        "suspended",
+        "pending_documents",
+        "rejected",
+        "inactive",
+      ],
     },
   },
 } as const

@@ -31,7 +31,7 @@ function AdminOverview() {
   const commission = todayRevenue * (settings.commissionPct / 100);
   const totalOrders = orders.length;
   const activeStores = stores.filter((s) => s.status === "active").length;
-  const pendingStores = stores.filter((s) => s.status === "pending");
+  const pendingStores = stores.filter((s) => s.status === "pending_verification" || s.status === "pending_documents");
   const customerSavings = orders
     .filter((o) => o.status !== "cancelled")
     .reduce((s, o) => {
