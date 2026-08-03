@@ -94,6 +94,66 @@ function AdminSettingsPage() {
   );
 }
 
+/** Contract constants live in the database because the contract text quotes them. */
+function ContractSettingsSection() {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const load = useServerFn(getPlatformSettings);
+  const update = useServerFn(updatePlatformSettings);
+  const { data } = useQuery({ queryKey: ["platform-settings"], queryFn: () => load() });
+  const [draft, setDraft] = useState<PlatformSettings | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const value = draft ?? data ?? DEFAULT_PLATFORM_SETTINGS;
+
+  async function save() {
+    setBusy(true);
+    try {
+      await update({ data: value });
+      await qc.invalidateQueries({ queryKey: ["platform-settings"] });
+      setDone(true);
+      setTimeout(() => setDone(false), 1800);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fields: Array<[keyof PlatformSettings, string, number]> = [
+    ["commission_percentage", t("admin.settings.contractCommission"), 0.5],
+    ["liability_cap_multiplier", t("admin.settings.contractLiabilityCap"), 0.1],
+    ["termination_notice_days", t("admin.settings.contractNoticeDays"), 1],
+    ["cure_period_days", t("admin.settings.contractCureDays"), 1],
+  ];
+
+  return (
+    <Section icon={FileSignature} title={t("admin.settings.contractSection")}>
+      <p className="text-xs text-muted-foreground mb-3">{t("admin.settings.contractHint")}</p>
+      <div className="grid grid-cols-2 gap-3">
+        {fields.map(([key, label, step]) => (
+          <label key={key} className="block text-sm">
+            <span className="text-muted-foreground text-xs">{label}</span>
+            <input
+              type="number"
+              min={0}
+              step={step}
+              value={value[key]}
+              onChange={(e) => setDraft({ ...value, [key]: Number(e.target.value) })}
+              className="mt-1 w-full px-4 py-2.5 rounded-2xl bg-muted/50 border border-border font-mono"
+            />
+          </label>
+        ))}
+      </div>
+      <button
+        onClick={save}
+        disabled={busy}
+        className="mt-4 px-5 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+      >
+        {done ? t("admin.settings.saved") : t("admin.settings.save")}
+      </button>
+    </Section>
+  );
+}
+
 function Section({ icon: Icon, title, children }: { icon?: React.ElementType; title: string; children: React.ReactNode }) {
   return (
     <div className="bg-card rounded-3xl border border-border p-5 lg:p-6 shadow-sm">
