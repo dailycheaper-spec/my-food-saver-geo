@@ -2,7 +2,7 @@
 // Kept out of *.functions.ts so those files stay thin wrappers.
 
 import type { ContractEventType, PlatformSettings } from "@/lib/contracts";
-import { DEFAULT_PLATFORM_SETTINGS } from "@/lib/contracts";
+import { DEFAULT_PLATFORM_SETTINGS, annex3TokenValues } from "@/lib/contracts";
 import { PARTNER_AGREEMENT_TEMPLATE_HTML } from "@/lib/contracts/template";
 
 type AnyClient = {
