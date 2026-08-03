@@ -233,6 +233,7 @@ function PartnerApply() {
                 phone: String(st.phone ?? ""),
                 contact_email: String(st.contact_email ?? f.contact_email),
                 company_name: String(st.company_name ?? ""),
+                representative_name: String(st.representative_name ?? ""),
                 company_id_number: String(st.company_id_number ?? ""),
                 description: String(st.description ?? ""),
                 lat: typeof st.lat === "number" ? st.lat : null,
