@@ -269,6 +269,8 @@ export type Database = {
           title_fa: string | null
           title_ru: string | null
           title_tr: string | null
+          unit_type: string
+          unit_weight_grams: number | null
           updated_at: string
         }
         Insert: {
@@ -301,6 +303,8 @@ export type Database = {
           title_fa?: string | null
           title_ru?: string | null
           title_tr?: string | null
+          unit_type?: string
+          unit_weight_grams?: number | null
           updated_at?: string
         }
         Update: {
@@ -333,6 +337,8 @@ export type Database = {
           title_fa?: string | null
           title_ru?: string | null
           title_tr?: string | null
+          unit_type?: string
+          unit_weight_grams?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -805,7 +811,9 @@ export type Database = {
       saved_products: {
         Row: {
           category: string | null
+          composition: string | null
           created_at: string
+          default_allergens: string[]
           default_discounted_price: number
           default_original_price: number
           id: string
@@ -813,11 +821,15 @@ export type Database = {
           is_active: boolean
           name: string
           store_id: string
+          unit_type: string
+          unit_weight_grams: number | null
           updated_at: string
         }
         Insert: {
           category?: string | null
+          composition?: string | null
           created_at?: string
+          default_allergens?: string[]
           default_discounted_price?: number
           default_original_price?: number
           id?: string
@@ -825,11 +837,15 @@ export type Database = {
           is_active?: boolean
           name: string
           store_id: string
+          unit_type?: string
+          unit_weight_grams?: number | null
           updated_at?: string
         }
         Update: {
           category?: string | null
+          composition?: string | null
           created_at?: string
+          default_allergens?: string[]
           default_discounted_price?: number
           default_original_price?: number
           id?: string
@@ -837,6 +853,8 @@ export type Database = {
           is_active?: boolean
           name?: string
           store_id?: string
+          unit_type?: string
+          unit_weight_grams?: number | null
           updated_at?: string
         }
         Relationships: [
