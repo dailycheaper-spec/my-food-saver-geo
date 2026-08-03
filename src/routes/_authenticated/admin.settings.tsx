@@ -134,6 +134,8 @@ function ContractSettingsSection() {
       <p className="text-xs text-muted-foreground mb-3">{t("admin.settings.contractHint")}</p>
       <div className="grid grid-cols-2 gap-3">
         {fields.map(([key, label, step]) => (
+          // eslint-disable-next-line react/jsx-key
+
           <label key={key} className="block text-sm">
             <span className="text-muted-foreground text-xs">{label}</span>
             <input
