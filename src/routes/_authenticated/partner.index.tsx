@@ -180,6 +180,7 @@ function PartnerHome() {
 
       {/* Quick shortcuts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Shortcut to="/partner/menu" icon={<UtensilsCrossed className="w-4 h-4" />} label={t("partner.menu.shortcut")} />
         <Shortcut to="/partner/ai" icon={<Sparkles className="w-4 h-4" />} label={t("aiMode")} />
         <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label={t("insights")} />
         <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />
