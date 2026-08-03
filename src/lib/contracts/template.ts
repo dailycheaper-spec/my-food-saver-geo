@@ -279,18 +279,18 @@ export const PARTNER_AGREEMENT_TEMPLATE_HTML = `
 </tbody>
 </table>
 <h2>დანართი №3 — პარტნიორის დოკუმენტებისა და მოთხოვნების სია</h2>
-<p><strong>☐</strong> იურიდიული რეგისტრაციის ამონაწერი და უფლებამოსილი წარმომადგენელი</p>
-<p><strong>☐</strong> საბანკო ანგარიშის დადასტურება</p>
-<p><strong>☐</strong> სურსათის ბიზნესოპერატორის რეგისტრაცია/აღიარება, თუ მოითხოვება</p>
-<p><strong>☐</strong> ობიექტის მისამართი და საკონტაქტო პირი</p>
-<p><strong>☐</strong> პროდუქტის კატეგორიები და ალერგენების პროცედურა</p>
-<p><strong>☐</strong> ტემპერატურული კონტროლის პროცედურა და ჩანაწერები</p>
-<p><strong>☐</strong> მიკვლევადობის/პარტიის აღრიცხვის პროცედურა</p>
-<p><strong>☐</strong> შეფუთვისა და ჩაბარების სტანდარტი</p>
-<p><strong>☐</strong> საჩივრისა და პროდუქტის გამოთხოვის საკონტაქტო პირი</p>
-<p><strong>☐</strong> პერსონალური მონაცემების წვდომის კონტროლი</p>
-<p><strong>☐</strong> თანამშრომელთა ჰიგიენისა და უსაფრთხოების ტრენინგი</p>
-<p><strong>☐</strong> საჭიროების შემთხვევაში პასუხისმგებლობის დაზღვევა</p>
+<p><strong>{{annex3_doc_registration}}</strong> იურიდიული რეგისტრაციის ამონაწერი და უფლებამოსილი წარმომადგენელი</p>
+<p><strong>{{annex3_bank_confirmation}}</strong> საბანკო ანგარიშის დადასტურება</p>
+<p><strong>{{annex3_food_registration}}</strong> სურსათის ბიზნესოპერატორის რეგისტრაცია/აღიარება, თუ მოითხოვება</p>
+<p><strong>{{annex3_address_contact}}</strong> ობიექტის მისამართი და საკონტაქტო პირი</p>
+<p><strong>{{annex3_categories_allergens}}</strong> პროდუქტის კატეგორიები და ალერგენების პროცედურა</p>
+<p><strong>{{annex3_temperature_control}}</strong> ტემპერატურული კონტროლის პროცედურა და ჩანაწერები</p>
+<p><strong>{{annex3_traceability}}</strong> მიკვლევადობის/პარტიის აღრიცხვის პროცედურა</p>
+<p><strong>{{annex3_packaging_handover}}</strong> შეფუთვისა და ჩაბარების სტანდარტი</p>
+<p><strong>{{annex3_complaints_contact}}</strong> საჩივრისა და პროდუქტის გამოთხოვის საკონტაქტო პირი</p>
+<p><strong>{{annex3_data_access}}</strong> პერსონალური მონაცემების წვდომის კონტროლი</p>
+<p><strong>{{annex3_staff_training}}</strong> თანამშრომელთა ჰიგიენისა და უსაფრთხოების ტრენინგი</p>
+<p><strong>{{annex3_liability_insurance}}</strong> საჭიროების შემთხვევაში პასუხისმგებლობის დაზღვევა</p>
 <h2>მხარეთა რეკვიზიტები და ხელმოწერები</h2>
 <table>
 <colgroup>
