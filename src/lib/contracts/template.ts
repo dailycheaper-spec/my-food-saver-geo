@@ -341,6 +341,8 @@ export const CONTRACT_PRINT_CSS = `
 .contract p { margin: 0 0 8px; }
 .contract .meta { text-align: center; color: #444; font-size: 13px; }
 .contract ul { margin: 0 0 8px 18px; }
+.contract table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 13px; }
+.contract table th, .contract table td { border: 1px solid #ddd; padding: 6px 8px; vertical-align: top; text-align: start; }
 .contract table.signatures { width: 100%; margin-top: 18px; border-collapse: collapse; }
 .contract table.signatures td { vertical-align: top; width: 50%; padding: 8px; border: 1px solid #ddd; font-size: 13px; }
 `;
