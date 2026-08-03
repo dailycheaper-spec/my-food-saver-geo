@@ -17,9 +17,6 @@ type AnyClient = {
 export const CONTRACT_FIXED_VALUES = {
   /** Mirrors MIN_DISCOUNT_PCT in src/components/DiscountFields.tsx. */
   min_discount_pct: "35",
-  /** Matches the live weekly payout cron ('0 3 * * 1'). */
-  settlement_cycle: "ყოველკვირეულად",
-  settlement_day: "ორშაბათი",
   /** The value the live schedule passes to generate_pending_payouts. */
   min_payout_amount: "5",
   delivery_fee_payer: "მომხმარებელი",
@@ -38,6 +35,30 @@ const ENTITY_TYPE_LABEL: Record<string, string> = {
   company: "იურიდიული პირი",
   individual_entrepreneur: "ინდივიდუალური მეწარმე",
 };
+
+const SETTLEMENT_CYCLE_LABEL: Record<string, string> = {
+  daily: "ყოველდღიურად",
+  weekly: "ყოველკვირეულად",
+  monthly: "ყოველთვიურად",
+};
+
+const WEEKDAY_LABEL: Record<number, string> = {
+  1: "ორშაბათი",
+  2: "სამშაბათი",
+  3: "ოთხშაბათი",
+  4: "ხუთშაბათი",
+  5: "პარასკევი",
+  6: "შაბათი",
+  7: "კვირა",
+};
+
+/** Human-readable settlement day for the contract text, per the store's own cycle. */
+function settlementDayLabel(cycle: string, day: number | null): string {
+  if (cycle === "daily") return "ყოველი დღე";
+  if (cycle === "monthly") return `თვის ${day ?? 1}-ე რიცხვი`;
+  return WEEKDAY_LABEL[day ?? 1] ?? WEEKDAY_LABEL[1]!;
+}
+
 
 function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
