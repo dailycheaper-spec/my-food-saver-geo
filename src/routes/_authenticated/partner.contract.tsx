@@ -1,0 +1,223 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { getMyContract, signContract } from "@/lib/contracts.functions";
+import { CONTRACT_PRINT_CSS } from "@/lib/contracts/template";
+import { CONSENT_KEYS, contractStatusTone, type ConsentKey, type PartnerContract } from "@/lib/contracts";
+import { SignaturePad } from "@/components/contracts/SignaturePad";
+import { useI18n } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
+
+export const Route = createFileRoute("/_authenticated/partner/contract")({
+  head: () => ({
+    meta: [
+      { title: "პარტნიორობის ხელშეკრულება — Cheaper" },
+      { name: "description", content: "გაეცანით და ხელი მოაწერეთ Cheaper-ის პარტნიორობის ხელშეკრულებას." },
+      { property: "og:title", content: "პარტნიორობის ხელშეკრულება — Cheaper" },
+      { property: "og:description", content: "Cheaper-ის პარტნიორობის ხელშეკრულების გაცნობა და ელექტრონული ხელმოწერა." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: PartnerContractPage,
+});
+
+function PartnerContractPage() {
+  const { t } = useI18n();
+  const qc = useQueryClient();
+  const fetchContract = useServerFn(getMyContract);
+  const sign = useServerFn(signContract);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["partner-contract"],
+    queryFn: () => fetchContract(),
+  });
+
+  const contract = (data?.contract ?? null) as PartnerContract | null;
+  const html = data?.html ?? null;
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const printRef = useRef<HTMLDivElement | null>(null);
+  const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const [consents, setConsents] = useState<Record<ConsentKey, boolean>>({
+    readAll: false,
+    authorised: false,
+    electronicSignature: false,
+  });
+  const [signature, setSignature] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const allConsented = useMemo(() => CONSENT_KEYS.every((k) => consents[k]), [consents]);
+  const canSign = scrolledToEnd && allConsented && !!signature && !busy;
+
+  // A short contract may never scroll — treat "no overflow" as already read.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || !html) return;
+    if (el.scrollHeight <= el.clientHeight + 8) setScrolledToEnd(true);
+  }, [html]);
+
+  async function handleSign() {
+    if (!contract || !signature || !printRef.current) return;
+    setBusy(true);
+    setError("");
+    try {
+      const { contractHtmlToPdfBlob, dataUrlToBlob } = await import("@/lib/contract-pdf");
+      const pdfBlob = await contractHtmlToPdfBlob(printRef.current);
+      const stamp = Date.now();
+      const pdfPath = `${contract.id}/contract-${stamp}.pdf`;
+      const signaturePath = `${contract.id}/signature-${stamp}.png`;
+
+      const up1 = await supabase.storage
+        .from("partner-contracts")
+        .upload(pdfPath, pdfBlob, { contentType: "application/pdf", upsert: true });
+      if (up1.error) throw new Error(up1.error.message);
+      const up2 = await supabase.storage
+        .from("partner-contracts")
+        .upload(signaturePath, dataUrlToBlob(signature), { contentType: "image/png", upsert: true });
+      if (up2.error) throw new Error(up2.error.message);
+
+      await sign({
+        data: {
+          contractId: contract.id,
+          pdfPath,
+          signaturePath,
+          consents: { readAll: true, authorised: true, electronicSignature: true },
+        },
+      });
+      await qc.invalidateQueries({ queryKey: ["partner-contract"] });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10 text-center text-sm text-muted-foreground">
+        <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2" />
+        {t("partner.contract.loading")}
+      </div>
+    );
+  }
+
+  if (!contract) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-10">
+        <div className="rounded-2xl border border-border bg-card p-6 text-center">
+          <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <h1 className="font-display text-xl font-bold">{t("partner.contract.noneTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-2">{t("partner.contract.noneBody")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const signed = contract.status === "signed";
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-6 space-y-4">
+      <style>{CONTRACT_PRINT_CSS}</style>
+
+      <header className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h1 className="font-display text-xl font-bold">{t("partner.contract.title")}</h1>
+          <p className="text-xs text-muted-foreground">
+            {contract.contract_number} · v{contract.version}
+          </p>
+        </div>
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${contractStatusTone(contract.status)}`}>
+          {t(`contract.status.${contract.status}`)}
+        </span>
+      </header>
+
+      {signed && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+          <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
+          <div className="text-sm flex-1">
+            <div className="font-semibold">{t("partner.contract.signedTitle")}</div>
+            <div className="text-xs text-muted-foreground">
+              {contract.signed_at ? new Date(contract.signed_at).toLocaleString() : ""}
+            </div>
+          </div>
+          {data?.pdfUrl && (
+            <a
+              href={data.pdfUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold"
+            >
+              <Download className="w-4 h-4" /> {t("partner.contract.downloadPdf")}
+            </a>
+          )}
+        </div>
+      )}
+
+      <div
+        ref={scrollRef}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setScrolledToEnd(true);
+        }}
+        className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-5"
+      >
+        <div ref={printRef} className="bg-white p-2">
+          <div dangerouslySetInnerHTML={{ __html: html ?? "" }} />
+          {signature && (
+            <div className="mt-4">
+              <div className="text-xs text-[#444]">{t("partner.contract.signatureLabel")}</div>
+              <img src={signature} alt={t("partner.contract.signatureLabel")} className="h-20" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {!signed && (
+        <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+          {!scrolledToEnd && (
+            <p className="text-xs text-amber-600 font-medium">{t("partner.contract.scrollHint")}</p>
+          )}
+
+          <div className="space-y-2">
+            {CONSENT_KEYS.map((key) => (
+              <label key={key} className="flex items-start gap-2.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={consents[key]}
+                  disabled={!scrolledToEnd}
+                  onChange={(e) => setConsents((c) => ({ ...c, [key]: e.target.checked }))}
+                  className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                />
+                <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
+                  {t(`partner.contract.consent.${key}`)}
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <SignaturePad
+            onChange={setSignature}
+            clearLabel={t("partner.contract.clearSignature")}
+            hint={t("partner.contract.signatureHint")}
+          />
+
+          {error && <p className="text-xs text-destructive">{error}</p>}
+
+          <button
+            type="button"
+            onClick={handleSign}
+            disabled={!canSign}
+            className="w-full h-12 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm disabled:opacity-50 inline-flex items-center justify-center gap-2"
+          >
+            {busy && <Loader2 className="w-4 h-4 animate-spin" />}
+            {busy ? t("partner.contract.signing") : t("partner.contract.signButton")}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
