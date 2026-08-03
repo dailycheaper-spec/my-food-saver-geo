@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { applicationPatchSchema } from "@/lib/partner-application";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
 import { ensurePartnerStoreAccess, linkActiveStoreToOwner } from "@/lib/store-linking";
@@ -14,7 +16,14 @@ export const getMyPartnerAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const sortPartnerStores = <T extends { status: string | null; created_at: string | null }>(stores: T[]) => {
-      const statusRank: Record<string, number> = { active: 0, pending: 1, suspended: 2 };
+      const statusRank: Record<string, number> = {
+        active: 0,
+        pending_verification: 1,
+        pending_documents: 2,
+        rejected: 3,
+        suspended: 4,
+        inactive: 5,
+      };
       return stores.sort((a, b) => {
         const byStatus = (statusRank[a.status ?? ""] ?? 9) - (statusRank[b.status ?? ""] ?? 9);
         if (byStatus !== 0) return byStatus;
@@ -93,4 +102,64 @@ export const listMyPartnerStores = createServerFn({ method: "GET" })
 
     if (error) throw new Error(error.message);
     return (owned ?? []).sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime());
+  });
+
+/** Logs that a partner completed the initial registration form. */
+export const logApplicationSubmitted = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ storeId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: store } = await supabaseAdmin
+      .from("stores").select("id, owner_id").eq("id", data.storeId).maybeSingle();
+    if (!store || store.owner_id !== context.userId) throw new Error("Forbidden");
+
+    const { logVerificationEvent } = await import("@/lib/verification.server");
+    await logVerificationEvent(supabaseAdmin as never, {
+      storeId: data.storeId,
+      eventType: "registration_completed",
+      actorUserId: context.userId,
+    });
+    return { ok: true };
+  });
+
+/** A rejected application can be corrected and sent back for review. */
+export const resubmitStoreApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    storeId: z.string().uuid(),
+    patch: applicationPatchSchema,
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const digits = data.patch.entity_type === "individual_entrepreneur" ? 11 : 9;
+    if (!new RegExp(`^\\d{${digits}}$`).test(data.patch.company_id_number)) {
+      throw new Error(digits === 11 ? "Personal ID must be 11 digits" : "Company ID must be 9 digits");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: existing } = await supabaseAdmin
+      .from("stores").select("id, owner_id, status").eq("id", data.storeId).maybeSingle();
+    if (!existing || existing.owner_id !== context.userId) throw new Error("Forbidden");
+    if (existing.status !== "rejected") throw new Error("Only a rejected application can be resubmitted");
+
+    const { data: store, error } = await supabaseAdmin
+      .from("stores")
+      .update({
+        ...data.patch,
+        status: "pending_verification" as const,
+        rejection_reason: null,
+        rejected_at: null,
+      })
+      .eq("id", data.storeId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+
+    const { logVerificationEvent } = await import("@/lib/verification.server");
+    await logVerificationEvent(supabaseAdmin as never, {
+      storeId: data.storeId,
+      eventType: "resubmitted",
+      actorUserId: context.userId,
+    });
+    return store;
   });

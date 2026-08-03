@@ -10,6 +10,9 @@ import { usePartnerAccount } from "@/lib/db";
 import { StoreLogoPicker } from "@/components/StoreLogoPicker";
 import { StoreLogo } from "@/components/StoreLogo";
 import { isValidLatLng } from "@/lib/geo";
+import { useServerFn } from "@tanstack/react-start";
+import { logApplicationSubmitted, resubmitStoreApplication } from "@/lib/partner-store.functions";
+import { AlertTriangle } from "lucide-react";
 
 import MapAddressField from "@/components/address/MapAddressField";
 
@@ -42,6 +45,9 @@ function PartnerApply() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
   const [locBusy, setLocBusy] = useState(false);
+  const [editingRejected, setEditingRejected] = useState(false);
+  const resubmitFn = useServerFn(resubmitStoreApplication);
+  const logSubmittedFn = useServerFn(logApplicationSubmitted);
 
   function useCurrentLocation() {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -70,7 +76,11 @@ function PartnerApply() {
     if (user?.email && !form.contact_email) setForm((prev) => ({ ...prev, contact_email: user.email ?? "" }));
   }, [form.contact_email, user?.email]);
 
-  const pendingStore = useMemo(() => stores.find((s) => s.status === "pending"), [stores]);
+  const pendingStore = useMemo(
+    () => stores.find((s) => s.status === "pending_verification" || s.status === "pending_documents"),
+    [stores],
+  );
+  const rejectedStore = useMemo(() => stores.find((s) => s.status === "rejected"), [stores]);
   const hasActive = useMemo(() => stores.some((s) => s.status === "active"), [stores]);
 
   useEffect(() => {
@@ -92,8 +102,44 @@ function PartnerApply() {
       return;
     }
     const ibanNormalized = form.bank_iban.replace(/\s+/g, "").toUpperCase();
-    if (!/^GE\d{2}[A-Z]{2}\d{16}$/.test(ibanNormalized)) {
+    if (!editingRejected && !/^GE\d{2}[A-Z]{2}\d{16}$/.test(ibanNormalized)) {
       setMsg(t("validation.ibanFormat"));
+      return;
+    }
+
+    // Correcting a rejected application: update in place and send back for review.
+    if (editingRejected && rejectedStore) {
+      setSubmitting(true);
+      setMsg("");
+      try {
+        await resubmitFn({
+          data: {
+            storeId: rejectedStore.id,
+            patch: {
+              name: form.name,
+              logo: form.logo,
+              entity_type: form.entity_type,
+              category: form.category,
+              city: form.city,
+              district: form.district,
+              address: form.address,
+              phone: form.phone || null,
+              contact_email: form.contact_email,
+              company_name: form.company_name || null,
+              company_id_number: form.company_id_number,
+              description: form.description || null,
+              lat: form.lat as number,
+              lng: form.lng as number,
+            },
+          },
+        });
+        setMsg(t("applicationSent"));
+        setTimeout(() => navigate({ to: "/partner" }), 1000);
+      } catch (err) {
+        setMsg(t("partner.apply.errorPrefix") + (err instanceof Error ? err.message : String(err)));
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
     setSubmitting(true);
@@ -102,7 +148,7 @@ function PartnerApply() {
       .from("stores")
       .select("id")
       .eq("owner_id", user.id)
-      .eq("status", "pending")
+      .in("status", ["pending_verification", "pending_documents"])
       .maybeSingle();
     if (existingPending) {
       setSubmitting(false);
@@ -114,13 +160,16 @@ function PartnerApply() {
     const { data: newStore, error } = await supabase.from("stores").insert({
       ...storePayload,
       owner_id: user.id,
-      status: "pending",
+      status: "pending_verification",
     }).select("id").single();
     if (error || !newStore) {
       setSubmitting(false);
       setMsg(t("partner.apply.errorPrefix") + (error?.message ?? ""));
       return;
     }
+    try {
+      await logSubmittedFn({ data: { storeId: newStore.id } });
+    } catch (err) { console.error("verification log failed", err); }
     // Upload logo image if one was selected during the form.
     if (logoFile) {
       try {
@@ -148,6 +197,56 @@ function PartnerApply() {
       setMsg(t("applicationSent"));
       setTimeout(() => navigate({ to: "/partner" }), 1000);
     }
+  }
+
+  if (!partnerLoading && rejectedStore && !editingRejected) {
+    const raw = rejectedStore as unknown as { rejection_reason?: string | null; rejected_at?: string | null; admin_notes?: string | null };
+    return (
+      <div className="mx-auto max-w-xl px-4 py-6">
+        <div className="flex justify-end mb-3"><LanguageSwitcher /></div>
+        <div className="bg-card rounded-2xl border border-border p-6 text-center">
+          <div className="inline-grid place-items-center w-16 h-16 rounded-3xl bg-destructive/10 mb-3">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+          </div>
+          <h1 className="font-display text-2xl font-bold">{t("partner.apply.rejectedTitle")}</h1>
+          <p className="text-sm text-muted-foreground mt-2">{t("partner.apply.rejectedBody")}</p>
+          {raw.rejection_reason && (
+            <div className="mt-4 rounded-xl bg-destructive/5 border border-destructive/30 p-3 text-left text-sm">
+              <div className="text-xs text-muted-foreground">{t("partner.apply.rejectedReason")}</div>
+              <div className="font-semibold text-destructive">{t(`admin.partners.reason.${raw.rejection_reason}`)}</div>
+              {raw.admin_notes && <p className="text-xs text-muted-foreground mt-1">{raw.admin_notes}</p>}
+            </div>
+          )}
+          <button
+            onClick={() => {
+              const st = rejectedStore as unknown as Record<string, unknown>;
+              setForm((f) => ({
+                ...f,
+                name: String(st.name ?? ""),
+                logo: String(st.logo ?? "🏪"),
+                entity_type: (st.entity_type as EntityType) ?? "company",
+                category: String(st.category ?? "restaurant"),
+                city: (st.city as City) ?? f.city,
+                district: String(st.district ?? f.district),
+                address: String(st.address ?? ""),
+                phone: String(st.phone ?? ""),
+                contact_email: String(st.contact_email ?? f.contact_email),
+                company_name: String(st.company_name ?? ""),
+                company_id_number: String(st.company_id_number ?? ""),
+                description: String(st.description ?? ""),
+                lat: typeof st.lat === "number" ? st.lat : null,
+                lng: typeof st.lng === "number" ? st.lng : null,
+              }));
+              setEditingRejected(true);
+            }}
+            className="mt-5 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm"
+          >
+            {t("partner.apply.fixAndResubmit")}
+          </button>
+          <div className="text-xs text-muted-foreground mt-4">{t("partner.apply.supportLine")} <a href="mailto:dailycheaper@gmail.com" className="underline">dailycheaper@gmail.com</a></div>
+        </div>
+      </div>
+    );
   }
 
   if (!partnerLoading && pendingStore) {

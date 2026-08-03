@@ -8,7 +8,8 @@ import { loadAdminSettings } from "@/lib/admin-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
-import { approveAdminStore, createAdminStore, deleteAdminStore, setAdminStoreStatus, updateAdminStore } from "@/lib/admin-store.functions";
+import { approveAdminStore, createAdminStore, deleteAdminStore, listVerificationEvents, rejectAdminStore, setAdminStoreStatus, updateAdminStore, updateVerificationChecklist } from "@/lib/admin-store.functions";
+import { CHECKLIST_ITEMS, REJECTION_REASONS, parseChecklist, type ChecklistItem, type ChecklistValue, type RejectionReason, type VerificationEvent } from "@/lib/verification";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { toast } from "sonner";
 import { StoreLocationPreview } from "@/components/StoreLocationPreview";
@@ -72,7 +73,7 @@ function AdminPartners() {
 
   const { stores, reload, loading, error } = useAllStores();
   const { orders } = useAllOrders();
-  const [filter, setFilter] = useState<"all" | "pending" | "active" | "suspended" | "flagged">("pending");
+  const [filter, setFilter] = useState<"all" | "pending_verification" | "active" | "rejected" | "suspended" | "flagged">("pending_verification");
   const [locFilters, setLocFilters] = useState<Set<LocFilterKey>>(new Set());
   const [q, setQ] = useState("");
   const [addOpen, setAddOpen] = useState(false);
@@ -125,12 +126,13 @@ function AdminPartners() {
     .filter(passesLocFilters);
 
   const flaggedCount = stores.filter((s) => (reportCounts.get(s.id) ?? 0) >= FLAG_THRESHOLD).length;
-  const pendingCount = stores.filter((s) => s.status === "pending").length;
+  const pendingCount = stores.filter((s) => s.status === "pending_verification").length;
 
   const tabs = [
     { key: "all", label: t("admin.partners.tabAll") },
-    { key: "pending", label: t("admin.partners.tabPending") },
+    { key: "pending_verification", label: t("admin.partners.tabPending") },
     { key: "active", label: t("admin.partners.tabActive") },
+    { key: "rejected", label: t("admin.partners.tabRejected") },
     { key: "suspended", label: t("admin.partners.tabSuspended") },
     { key: "flagged", label: "🚩 " + t("admin.partners.tabFlagged") },
   ] as const;
@@ -261,6 +263,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
   const { t } = useI18n();
 
   const [busy, setBusy] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
   const approveStoreFn = useServerFn(approveAdminStore);
   const setStatusFn = useServerFn(setAdminStoreStatus);
   const deleteStoreFn = useServerFn(deleteAdminStore);
@@ -356,7 +359,7 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
             {" · "}
             {t("admin.partners.activeOffers")}: <span className="font-semibold text-foreground">{activeOffers}</span>
           </div>
-          {store.status === "pending" && (locStatus !== "ok" || radiusMissing || farFromDistrict) && (
+          {store.status === "pending_verification" && (locStatus !== "ok" || radiusMissing || farFromDistrict) && (
             <div className="mt-2 text-[11px] rounded-lg bg-warm/40 border border-warm text-warm-foreground p-2 flex items-start gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
@@ -382,24 +385,25 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
         </div>
       </div>
 
+      {(store.status === "pending_verification" || store.status === "pending_documents" || store.status === "rejected") && (
+        <VerificationPanel store={store} onChange={onChange} />
+      )}
+
       <div className="mt-3 flex gap-2">
-        {store.status === "pending" && (
+        {(store.status === "pending_verification" || store.status === "pending_documents" || store.status === "rejected") && (
           <>
             <button onClick={() => act(async () => { await approveStoreFn({ data: { storeId: store.id, ownerId: store.owner_id } }); })} disabled={busy}
               className="flex-1 py-2.5 rounded-2xl bg-success text-success-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:opacity-90">
               <Check className="w-3.5 h-3.5" /> {t("admin.partners.approve")}
             </button>
-            <button
-              onClick={() => {
-                if (!confirm(t("admin.partners.confirmReject", { name: store.name }))) return;
-                act(async () => {
-                  await deleteStoreFn({ data: { storeId: store.id } });
-                });
-              }}
-              disabled={busy}
-              className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
-              <Ban className="w-3.5 h-3.5" /> {t("admin.partners.reject")}
-            </button>
+            {store.status !== "rejected" && (
+              <button
+                onClick={() => setRejectOpen(true)}
+                disabled={busy}
+                className="flex-1 py-2.5 rounded-2xl bg-destructive/10 text-destructive text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-destructive/20">
+                <Ban className="w-3.5 h-3.5" /> {t("admin.partners.reject")}
+              </button>
+            )}
           </>
         )}
         {store.status === "active" && (
@@ -428,6 +432,180 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
+
+      {rejectOpen && (
+        <RejectDialog
+          storeName={store.name}
+          storeId={store.id}
+          onClose={() => setRejectOpen(false)}
+          onDone={() => { setRejectOpen(false); onChange(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Reject an application with a structured reason — never deletes the store row. */
+function RejectDialog({ storeId, storeName, onClose, onDone }: { storeId: string; storeName: string; onClose: () => void; onDone: () => void }) {
+  const { t } = useI18n();
+  const rejectFn = useServerFn(rejectAdminStore);
+  const [reason, setReason] = useState<RejectionReason>("missing_documents");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await rejectFn({ data: { storeId, reason, note: note.trim() || null } });
+      toast.success(t("admin.partners.rejectDone"));
+      onDone();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[1200] grid place-items-center bg-black/50 p-4" role="dialog" aria-modal="true">
+      <form onSubmit={submit} className="w-full max-w-md bg-card rounded-3xl border border-border p-5 space-y-4 shadow-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display font-bold text-lg">{t("admin.partners.rejectTitle")}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">{storeName}</p>
+          </div>
+          <button type="button" onClick={onClose} className="w-8 h-8 grid place-items-center rounded-xl hover:bg-muted"><X className="w-4 h-4" /></button>
+        </div>
+
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.rejectReason")}</span>
+          <select value={reason} onChange={(e) => setReason(e.target.value as RejectionReason)}
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-card border border-border text-sm">
+            {REJECTION_REASONS.map((r) => (
+              <option key={r} value={r}>{t(`admin.partners.reason.${r}`)}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="block">
+          <span className="text-xs font-medium text-muted-foreground">{t("admin.partners.rejectNote")}</span>
+          <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={3}
+            className="mt-1 w-full px-3 py-2.5 rounded-xl bg-card border border-border text-sm" />
+        </label>
+
+        <div className="flex gap-2">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-2xl bg-muted text-sm font-semibold">{t("admin.partners.cancel")}</button>
+          <button type="submit" disabled={busy}
+            className="flex-1 py-2.5 rounded-2xl bg-destructive text-destructive-foreground text-sm font-semibold disabled:opacity-60">
+            {t("admin.partners.reject")}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/** Verification checklist + activity timeline for one application. */
+function VerificationPanel({ store, onChange }: { store: DbStore; onChange: () => void }) {
+  const { t } = useI18n();
+  const saveChecklistFn = useServerFn(updateVerificationChecklist);
+  const listEventsFn = useServerFn(listVerificationEvents);
+  const raw = store as unknown as { verification_checklist?: unknown; admin_notes?: string | null; rejection_reason?: string | null; rejected_at?: string | null };
+  const [checklist, setChecklist] = useState<Record<string, ChecklistValue>>(() => parseChecklist(raw.verification_checklist) as Record<string, ChecklistValue>);
+  const [notes, setNotes] = useState(raw.admin_notes ?? "");
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [events, setEvents] = useState<VerificationEvent[] | null>(null);
+
+  useEffect(() => {
+    if (!open || events) return;
+    listEventsFn({ data: { storeId: store.id } })
+      .then((rows) => setEvents(rows as unknown as VerificationEvent[]))
+      .catch(() => setEvents([]));
+  }, [open, events, listEventsFn, store.id]);
+
+  function cycle(item: ChecklistItem) {
+    setChecklist((prev) => {
+      const current = prev[item] ?? "pending";
+      const next: ChecklistValue = current === "pending" ? "ok" : current === "ok" ? "failed" : "pending";
+      return { ...prev, [item]: next };
+    });
+  }
+
+  async function save() {
+    setBusy(true);
+    try {
+      await saveChecklistFn({ data: { storeId: store.id, checklist, adminNotes: notes.trim() || null } });
+      toast.success(t("admin.partners.checklistSaved"));
+      setEvents(null);
+      onChange();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 rounded-2xl border border-border bg-muted/30 p-3 space-y-3">
+      {raw.rejection_reason && (
+        <div className="text-[11px] rounded-lg bg-destructive/10 border border-destructive/30 text-destructive p-2">
+          {t("admin.partners.rejectedWith")}: <span className="font-semibold">{t(`admin.partners.reason.${raw.rejection_reason}`)}</span>
+          {raw.rejected_at && <> · {new Date(raw.rejected_at).toLocaleString()}</>}
+        </div>
+      )}
+      <button type="button" onClick={() => setOpen((v) => !v)}
+        className="w-full text-left text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        {open ? "▾" : "▸"} {t("admin.partners.verification")}
+      </button>
+
+      {open && (
+        <>
+          <div className="grid gap-1">
+            {CHECKLIST_ITEMS.map((item) => {
+              const v = checklist[item] ?? "pending";
+              const cls = v === "ok" ? "bg-success/15 text-success" : v === "failed" ? "bg-destructive/10 text-destructive" : "bg-card text-muted-foreground";
+              return (
+                <button key={item} type="button" onClick={() => cycle(item)}
+                  className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg border border-border text-[11px] font-medium ${cls}`}>
+                  <span>{t(`admin.partners.check.${item}`)}</span>
+                  <span className="font-bold">{v === "ok" ? "✓" : v === "failed" ? "✗" : "—"}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="block">
+            <span className="text-[11px] font-medium text-muted-foreground">{t("admin.partners.adminNotes")}</span>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+              className="mt-1 w-full px-2.5 py-2 rounded-xl bg-card border border-border text-xs" />
+          </label>
+
+          <button type="button" onClick={save} disabled={busy}
+            className="w-full py-2 rounded-xl bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-60">
+            {t("admin.partners.saveChecklist")}
+          </button>
+
+          <div>
+            <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{t("admin.partners.timeline")}</div>
+            {events === null && <div className="text-[11px] text-muted-foreground">{t("common.loading")}</div>}
+            {events?.length === 0 && <div className="text-[11px] text-muted-foreground">{t("admin.partners.timelineEmpty")}</div>}
+            <ol className="space-y-1">
+              {(events ?? []).map((ev) => (
+                <li key={ev.id} className="text-[11px] flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                  <span>
+                    <span className="font-semibold">{t(`admin.partners.event.${ev.event_type}`)}</span>
+                    {ev.actor_email && <> · {ev.actor_email}</>}
+                    <span className="block text-muted-foreground">{new Date(ev.created_at).toLocaleString()}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </>
+      )}
     </div>
   );
 }

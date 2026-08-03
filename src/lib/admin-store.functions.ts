@@ -74,7 +74,9 @@ export const approveAdminStore = createServerFn({ method: "POST" })
     if (roleError || !adminRole) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch = data.ownerId ? { status: "active" as const, owner_id: data.ownerId } : { status: "active" as const };
+    const patch = data.ownerId
+      ? { status: "active" as const, owner_id: data.ownerId, rejection_reason: null, rejected_at: null }
+      : { status: "active" as const, rejection_reason: null, rejected_at: null };
     const { data: store, error } = await supabaseAdmin
       .from("stores")
       .update(patch)
@@ -83,6 +85,20 @@ export const approveAdminStore = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
+
+    const { logVerificationEvent, notifyUser } = await import("@/lib/verification.server");
+    await logVerificationEvent(supabaseAdmin as never, {
+      storeId: data.storeId,
+      eventType: "approved",
+      actorUserId: context.userId,
+    });
+    await notifyUser(supabaseAdmin as never, store.owner_id, {
+      type: "partner_application_approved",
+      title: "განაცხადი დამტკიცდა / Application approved",
+      body: "თქვენი ობიექტი აქტიურია. / Your store is now active.",
+      link: "/partner",
+    });
+
     return linkActiveStoreToOwner(supabaseAdmin, store);
   });
 
@@ -216,4 +232,101 @@ export const updateAdminStore = createServerFn({ method: "POST" })
 
     if (error) throw new Error(error.message);
     return store;
+  });
+export const rejectAdminStore = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    storeId: z.string().uuid(),
+    reason: z.enum(["missing_documents", "wrong_identification_number", "duplicate_business", "verification_failed"]),
+    note: z.string().trim().max(1000).optional().nullable(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin, logVerificationEvent, notifyUser, rejectionNotificationBody } =
+      await import("@/lib/verification.server");
+    await assertAdmin(context.supabase, context.userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: store, error } = await supabaseAdmin
+      .from("stores")
+      .update({
+        status: "rejected",
+        rejection_reason: data.reason,
+        rejected_at: new Date().toISOString(),
+        admin_notes: data.note ?? null,
+      })
+      .eq("id", data.storeId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await logVerificationEvent(supabaseAdmin as never, {
+      storeId: data.storeId,
+      eventType: "rejected",
+      actorUserId: context.userId,
+      metadata: { reason: data.reason, note: data.note ?? null },
+    });
+    await notifyUser(supabaseAdmin as never, store.owner_id, {
+      type: "partner_application_rejected",
+      title: "განაცხადი უარყოფილია / Application rejected",
+      body: rejectionNotificationBody(data.reason, data.note),
+      link: "/partner-apply",
+    });
+
+    return store;
+  });
+
+export const updateVerificationChecklist = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    storeId: z.string().uuid(),
+    checklist: z.record(
+      z.enum([
+        "business_registration", "identification_number", "company_name", "address",
+        "bank_account", "phone", "email", "food_business_registration", "documents_uploaded",
+      ]),
+      z.enum(["pending", "ok", "failed"]),
+    ),
+    adminNotes: z.string().trim().max(2000).optional().nullable(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin, logVerificationEvent } = await import("@/lib/verification.server");
+    await assertAdmin(context.supabase, context.userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch = {
+      verification_checklist: data.checklist,
+      ...(data.adminNotes !== undefined ? { admin_notes: data.adminNotes } : {}),
+    };
+    const { data: store, error } = await supabaseAdmin
+      .from("stores")
+      .update(patch)
+      .eq("id", data.storeId)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await logVerificationEvent(supabaseAdmin as never, {
+      storeId: data.storeId,
+      eventType: "admin_reviewed",
+      actorUserId: context.userId,
+      metadata: { checklist: data.checklist },
+    });
+    return store;
+  });
+
+export const listVerificationEvents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ storeId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/verification.server");
+    await assertAdmin(context.supabase, context.userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("partner_verification_events")
+      .select("*")
+      .eq("store_id", data.storeId)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
   });
