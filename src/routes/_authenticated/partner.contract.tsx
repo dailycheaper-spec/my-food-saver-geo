@@ -55,12 +55,26 @@ function PartnerContractPage() {
     authorised: false,
     electronicSignature: false,
   });
+  const [annex3Checked, setAnnex3Checked] = useState<Record<Annex3Key, boolean>>(
+    () => Object.fromEntries(ANNEX3_KEYS.map((k) => [k, false])) as Record<Annex3Key, boolean>,
+  );
   const [signature, setSignature] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const allConsented = useMemo(() => CONSENT_KEYS.every((k) => consents[k]), [consents]);
-  const canSign = scrolledToEnd && allConsented && !!signature && !busy;
+  const allAnnex3Checked = useMemo(() => ANNEX3_KEYS.every((k) => annex3Checked[k]), [annex3Checked]);
+  const canSign = scrolledToEnd && allConsented && allAnnex3Checked && !!signature && !busy;
+
+  /**
+   * The Annex 3 glyph is the only ☐ in the whole document, so the signed render
+   * simply reflects what the partner ticked in this session.
+   */
+  const displayHtml = useMemo(
+    () => (allAnnex3Checked ? (html ?? "").split(CHECKBOX_UNCHECKED).join(CHECKBOX_CHECKED) : (html ?? "")),
+    [html, allAnnex3Checked],
+  );
+
 
   // A short contract may never scroll — treat "no overflow" as already read.
   useEffect(() => {
