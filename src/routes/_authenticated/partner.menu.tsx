@@ -1,0 +1,295 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Plus, Pencil, Trash2, Loader2, UtensilsCrossed } from "lucide-react";
+import { useMyStores } from "@/lib/db";
+import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
+import { AllergenPicker } from "@/components/AllergenPicker";
+import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
+import { allergenLabel } from "@/lib/allergens";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/partner/menu")({
+  head: () => ({
+    meta: [
+      { title: "ჩემი მენიუ — Cheaper პარტნიორი" },
+      { name: "description", content: "შეინახეთ თქვენი მუდმივი პროდუქტები ერთხელ და გამოაქვეყნეთ ფასდაკლებული შეთავაზება ერთ შეხებაში." },
+      { property: "og:title", content: "ჩემი მენიუ — Cheaper პარტნიორი" },
+      { property: "og:description", content: "პარტნიორის მუდმივი მენიუს მართვა Cheaper-ზე." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: PartnerMenuPage,
+});
+
+export const UNIT_TYPES = ["piece", "weight", "portion"] as const;
+export type UnitType = (typeof UNIT_TYPES)[number];
+
+type MenuItem = {
+  id: string;
+  store_id: string;
+  name: string;
+  category: string | null;
+  default_original_price: number;
+  default_discounted_price: number;
+  image_url: string | null;
+  is_active: boolean;
+  unit_type: string;
+  unit_weight_grams: number | null;
+  composition: string | null;
+  default_allergens: string[] | null;
+};
+
+const EMPTY = {
+  name: "",
+  default_original_price: "20",
+  default_discounted_price: "9",
+  image_url: "",
+  unit_type: "piece" as UnitType,
+  unit_weight_grams: "",
+  composition: "",
+  default_allergens: [] as string[],
+};
+
+function PartnerMenuPage() {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const { stores, loading } = useMyStores();
+  const store = useMemo(() => stores.find((s) => s.status === "active") ?? null, [stores]);
+
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ ...EMPTY });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      if (!store) { setBusy(false); return; }
+      setBusy(true);
+      const { data, error } = await supabase
+        .from("saved_products")
+        .select("*")
+        .eq("store_id", store.id)
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      if (error) toast.error(error.message);
+      setItems(((data ?? []) as unknown as MenuItem[]));
+      setBusy(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [store]);
+
+  function openNew() {
+    setEditingId(null);
+    setForm({ ...EMPTY });
+    setShowForm(true);
+  }
+
+  function openEdit(it: MenuItem) {
+    setEditingId(it.id);
+    setForm({
+      name: it.name,
+      default_original_price: String(it.default_original_price ?? ""),
+      default_discounted_price: String(it.default_discounted_price ?? ""),
+      image_url: it.image_url ?? "",
+      unit_type: (UNIT_TYPES as readonly string[]).includes(it.unit_type) ? (it.unit_type as UnitType) : "piece",
+      unit_weight_grams: it.unit_weight_grams != null ? String(it.unit_weight_grams) : "",
+      composition: it.composition ?? "",
+      default_allergens: it.default_allergens ?? [],
+    });
+    setShowForm(true);
+  }
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!store || !form.name.trim()) return;
+    setSaving(true);
+    const payload = {
+      store_id: store.id,
+      name: form.name.trim(),
+      default_original_price: Number(form.default_original_price) || 0,
+      default_discounted_price: Number(form.default_discounted_price) || 0,
+      image_url: form.image_url.trim() || null,
+      unit_type: form.unit_type,
+      unit_weight_grams: form.unit_type === "weight" && form.unit_weight_grams ? Number(form.unit_weight_grams) : null,
+      composition: form.composition.trim() || null,
+      default_allergens: form.default_allergens,
+      is_active: true,
+    };
+    const res = editingId
+      ? await supabase.from("saved_products").update(payload).eq("id", editingId).select("*").single()
+      : await supabase.from("saved_products").insert(payload).select("*").single();
+    setSaving(false);
+    if (res.error) { toast.error(res.error.message); return; }
+    const row = res.data as unknown as MenuItem;
+    setItems((prev) => (editingId ? prev.map((p) => (p.id === row.id ? row : p)) : [row, ...prev]));
+    setShowForm(false);
+    setEditingId(null);
+    toast.success(t("partner.menu.saved"));
+  }
+
+  async function remove(id: string) {
+    if (!window.confirm(t("partner.menu.deleteConfirm"))) return;
+    const { error } = await supabase.from("saved_products").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setItems((prev) => prev.filter((p) => p.id !== id));
+    toast.success(t("partner.menu.deleted"));
+  }
+
+  if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
+  if (!store) return <div className="text-center py-12 text-muted-foreground">{t("noApprovedStore")}</div>;
+
+  return (
+    <div className="max-w-lg mx-auto pb-10">
+      <button onClick={() => navigate({ to: "/partner" })} className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
+        <ArrowLeft className="w-4 h-4" /> {t("back")}
+      </button>
+      <div className="flex items-start justify-between gap-3 mb-5">
+        <div>
+          <h1 className="font-display text-2xl font-bold mb-1">{t("partner.menu.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("partner.menu.subtitle")}</p>
+        </div>
+        {!showForm && (
+          <button onClick={openNew} className="shrink-0 px-3 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-bold shadow-sm flex items-center gap-1">
+            <Plus className="w-4 h-4" /> {t("partner.menu.add").replace("+ ", "")}
+          </button>
+        )}
+      </div>
+
+      {showForm && (
+        <form onSubmit={save} className="space-y-4 p-4 rounded-3xl border border-border bg-card/50 mb-6">
+          <div>
+            <Label>{t("partner.menu.photo")}</Label>
+            <OfferPhotoPicker value={form.image_url} onChange={(url) => setForm((f) => ({ ...f, image_url: url }))} compact />
+          </div>
+
+          <Field label={t("partner.menu.name")} value={form.name} onChange={(v) => setForm({ ...form, name: v })} required />
+
+          <div>
+            <Label>{t("partner.menu.unitType")}</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {UNIT_TYPES.map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => setForm({ ...form, unit_type: u })}
+                  className={`py-2.5 rounded-xl text-xs font-medium border ${form.unit_type === u ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                >
+                  {t(`partner.menu.unit${u.charAt(0).toUpperCase()}${u.slice(1)}`)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {form.unit_type === "weight" && (
+            <Field label={t("partner.menu.gramsPerUnit")} type="number" value={form.unit_weight_grams} onChange={(v) => setForm({ ...form, unit_weight_grams: v })} />
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t("partner.menu.originalPrice")} type="number" step="0.5" value={form.default_original_price} onChange={(v) => setForm({ ...form, default_original_price: v })} />
+            <Field label={t("partner.menu.discountedPrice")} type="number" step="0.5" value={form.default_discounted_price} onChange={(v) => setForm({ ...form, default_discounted_price: v })} />
+          </div>
+
+          <div>
+            <Label>{t("partner.menu.composition")}</Label>
+            <textarea
+              value={form.composition}
+              onChange={(e) => setForm({ ...form, composition: e.target.value })}
+              placeholder={t("partner.menu.compositionPh")}
+              rows={3}
+              className="w-full px-3 py-2.5 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm resize-none"
+            />
+          </div>
+
+          <div>
+            <Label>{t("allergensLbl")}</Label>
+            <p className="text-[11px] text-muted-foreground mb-2">{t("allergensHint")}</p>
+            <AllergenPicker value={form.default_allergens} onChange={(next) => setForm({ ...form, default_allergens: next })} />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 py-3 rounded-2xl border border-border text-sm font-semibold">
+              {t("partner.menu.cancel")}
+            </button>
+            <button type="submit" disabled={saving || !form.name.trim()} className="flex-1 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-50">
+              {saving ? t("partner.menu.saving") : t("partner.menu.save")}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {busy ? (
+        <div className="py-10 grid place-items-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin" /></div>
+      ) : items.length === 0 && !showForm ? (
+        <div className="text-center py-10 px-5 rounded-3xl border border-dashed border-border bg-card/30">
+          <UtensilsCrossed className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+          <div className="font-bold mb-1">{t("partner.menu.emptyTitle")}</div>
+          <p className="text-sm text-muted-foreground mb-4">{t("partner.menu.emptyBody")}</p>
+          <button onClick={openNew} className="px-4 py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-bold">
+            {t("partner.menu.add")}
+          </button>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {items.map((it) => (
+            <li key={it.id} className="flex gap-3 p-3 rounded-2xl border border-border bg-card">
+              <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0 grid place-items-center">
+                {it.image_url
+                  ? <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+                  : <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-sm truncate">{it.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  <span className="line-through">{it.default_original_price}₾</span>{" "}
+                  <span className="text-primary font-bold">{it.default_discounted_price}₾</span>
+                  {" · "}
+                  {t(`partner.menu.unit${it.unit_type.charAt(0).toUpperCase()}${it.unit_type.slice(1)}`)}
+                  {it.unit_type === "weight" && it.unit_weight_grams ? ` · ${it.unit_weight_grams}${t("offer.unitGram")}` : ""}
+                </div>
+                {it.default_allergens && it.default_allergens.length > 0 && (
+                  <div className="text-[11px] text-amber-600 mt-0.5 truncate">
+                    {it.default_allergens.map((a) => allergenLabel(a, "ka")).join(", ")}
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button onClick={() => openEdit(it)} aria-label={t("edit")} className="p-2 rounded-xl border border-border">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => remove(it.id)} aria-label={t("delete")} className="p-2 rounded-xl border border-border text-destructive">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <div className="text-xs font-medium text-muted-foreground mb-1.5">{children}</div>;
+}
+
+function Field({ label, value, onChange, type = "text", required, step }: { label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; step?: string }) {
+  return (
+    <label className="block">
+      <Label>{label}</Label>
+      <input
+        type={type}
+        step={step}
+        required={required}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-3 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
+      />
+    </label>
+  );
+}
