@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
 import { approveAdminStore, createAdminStore, deleteAdminStore, listVerificationEvents, rejectAdminStore, setAdminStoreStatus, updateAdminStore, updateVerificationChecklist } from "@/lib/admin-store.functions";
+import { ContractPanel } from "@/components/contracts/ContractPanel";
 import { CHECKLIST_ITEMS, REJECTION_REASONS, parseChecklist, type ChecklistItem, type ChecklistValue, type RejectionReason, type VerificationEvent } from "@/lib/verification";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { toast } from "sonner";
