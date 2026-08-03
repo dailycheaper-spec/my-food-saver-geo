@@ -202,7 +202,7 @@ function PartnerContractPage() {
         }}
         className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-5"
       >
-        <div ref={printRef} className="bg-white p-2">
+        <div className="bg-white p-2">
           <div dangerouslySetInnerHTML={{ __html: html ?? "" }} />
           {signature && (
             <div className="mt-4">
@@ -212,6 +212,16 @@ function PartnerContractPage() {
           )}
         </div>
       </div>
+
+      {/* Off-screen isolated document used only for PDF rasterisation. */}
+      <iframe
+        ref={pdfFrameRef}
+        title="contract-pdf-source"
+        aria-hidden
+        tabIndex={-1}
+        className="fixed left-[-10000px] top-0 w-[794px] h-[1123px] border-0 pointer-events-none"
+      />
+
 
       {!signed && (
         <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
