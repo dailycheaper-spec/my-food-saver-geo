@@ -18,7 +18,6 @@ import {
 } from "@/lib/contracts";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { useI18n } from "@/lib/i18n";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner/contract")({
   head: () => ({
