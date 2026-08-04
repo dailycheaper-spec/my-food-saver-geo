@@ -328,13 +328,16 @@ export const signContract = createServerFn({ method: "POST" })
           authorised: z.literal(true),
           electronicSignature: z.literal(true),
         }),
-        // Every Annex 3 item must be confirmed by the partner in this session.
+        // Mandatory Annex 3 items must be confirmed; two conditional ones are optional.
         annex3: z.object(
-          Object.fromEntries(ANNEX3_KEYS.map((k) => [k, z.literal(true)])) as Record<
-            (typeof ANNEX3_KEYS)[number],
-            z.ZodLiteral<true>
-          >,
+          Object.fromEntries(
+            ANNEX3_KEYS.map((k) => [
+              k,
+              (ANNEX3_OPTIONAL_KEYS as readonly string[]).includes(k) ? z.boolean() : z.literal(true),
+            ]),
+          ) as Record<(typeof ANNEX3_KEYS)[number], z.ZodTypeAny>,
         ),
+
       })
       .parse(input),
   )
