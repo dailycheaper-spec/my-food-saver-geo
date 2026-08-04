@@ -141,7 +141,13 @@ export function ContractPanel({ storeId }: { storeId: string }) {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() => act(() => newVersionFn({ data: { storeId } }))}
+                  onClick={() => {
+                    const msg = current.status === "signed"
+                      ? t("admin.contract.confirmNewVersionSigned")
+                      : t("admin.contract.confirmNewVersionUnsigned");
+                    if (!window.confirm(msg)) return;
+                    act(() => newVersionFn({ data: { storeId } }));
+                  }}
                   className="px-3 h-8 rounded-xl bg-secondary text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <Send className="w-3.5 h-3.5" /> {t("admin.contract.newVersion")}
