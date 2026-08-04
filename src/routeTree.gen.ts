@@ -56,7 +56,7 @@ import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
-import { Route as ApiPublicPaymentsTbcCallbackRouteImport } from './routes/api/public/payments/tbc-callback'
+import { Route as ApiPublicPaymentsFlittCallbackRouteImport } from './routes/api/public/payments/flitt-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
 import { Route as ApiPublicDeliveryGlovoRouteImport } from './routes/api/public/delivery/glovo'
@@ -316,10 +316,10 @@ const AuthenticatedAdminBannersRoute =
     path: '/banners',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const ApiPublicPaymentsTbcCallbackRoute =
-  ApiPublicPaymentsTbcCallbackRouteImport.update({
-    id: '/api/public/payments/tbc-callback',
-    path: '/api/public/payments/tbc-callback',
+const ApiPublicPaymentsFlittCallbackRoute =
+  ApiPublicPaymentsFlittCallbackRouteImport.update({
+    id: '/api/public/payments/flitt-callback',
+    path: '/api/public/payments/flitt-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsBogCallbackRoute =
@@ -395,7 +395,7 @@ export interface FileRoutesByFullPath {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -446,7 +446,7 @@ export interface FileRoutesByTo {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -501,7 +501,7 @@ export interface FileRoutesById {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -556,7 +556,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
-    | '/api/public/payments/tbc-callback'
+    | '/api/public/payments/flitt-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -607,7 +607,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
-    | '/api/public/payments/tbc-callback'
+    | '/api/public/payments/flitt-callback'
   id:
     | '__root__'
     | '/'
@@ -661,7 +661,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
-    | '/api/public/payments/tbc-callback'
+    | '/api/public/payments/flitt-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -690,7 +690,7 @@ export interface RootRouteChildren {
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
   ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
   ApiPublicPaymentsBogCallbackRoute: typeof ApiPublicPaymentsBogCallbackRoute
-  ApiPublicPaymentsTbcCallbackRoute: typeof ApiPublicPaymentsTbcCallbackRoute
+  ApiPublicPaymentsFlittCallbackRoute: typeof ApiPublicPaymentsFlittCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1024,11 +1024,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/payments/tbc-callback': {
-      id: '/api/public/payments/tbc-callback'
-      path: '/api/public/payments/tbc-callback'
-      fullPath: '/api/public/payments/tbc-callback'
-      preLoaderRoute: typeof ApiPublicPaymentsTbcCallbackRouteImport
+    '/api/public/payments/flitt-callback': {
+      id: '/api/public/payments/flitt-callback'
+      path: '/api/public/payments/flitt-callback'
+      fullPath: '/api/public/payments/flitt-callback'
+      preLoaderRoute: typeof ApiPublicPaymentsFlittCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/payments/bog-callback': {
@@ -1167,18 +1167,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
   ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
   ApiPublicPaymentsBogCallbackRoute: ApiPublicPaymentsBogCallbackRoute,
-  ApiPublicPaymentsTbcCallbackRoute: ApiPublicPaymentsTbcCallbackRoute,
+  ApiPublicPaymentsFlittCallbackRoute: ApiPublicPaymentsFlittCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -16,7 +16,7 @@ import { allergenLabels } from "@/lib/allergens";
 
 import { dispatchDelivery } from "@/lib/delivery/dispatch.functions";
 import { startBogCheckout, startBogGooglePayCheckout } from "@/lib/payments/bog.functions";
-import { startTbcCheckout } from "@/lib/payments/tbc.functions";
+import { startFlittCheckout } from "@/lib/payments/flitt.functions";
 import { isNative, openExternal } from "@/lib/native";
 import { ReviewSection } from "@/components/ReviewSection";
 import { OfferMiniMap } from "@/components/OfferMiniMap";
@@ -113,7 +113,7 @@ function OfferPage() {
   const { offer, realDb } = Route.useLoaderData();
   const dispatchDeliveryFn = useServerFn(dispatchDelivery);
   const startBogCheckoutFn = useServerFn(startBogCheckout);
-  const startTbcCheckoutFn = useServerFn(startTbcCheckout);
+  const startFlittCheckoutFn = useServerFn(startFlittCheckout);
   const startBogGooglePayFn = useServerFn(startBogGooglePayCheckout);
   const offerText = getOfferText(offer, language);
   const storeName = getStoreName(offer, language);
@@ -162,7 +162,7 @@ function OfferPage() {
   );
   const deliveryBlocked = method === "მიტანა" && !deliveryZone.allowed;
   const [customerNote, setCustomerNote] = useState("");
-  const [payment, setPayment] = useState<"TBC" | "BOG" | "GPAY">("BOG");
+  const [payment, setPayment] = useState<"FLITT" | "BOG" | "GPAY">("BOG");
   const [copied, setCopied] = useState(false);
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
@@ -248,8 +248,8 @@ function OfferPage() {
         nativeReturn: isNative(),
       };
       const { redirectUrl } =
-        payment === "TBC"
-          ? await startTbcCheckoutFn({ data: { ...checkoutInput, language } })
+        payment === "FLITT"
+          ? await startFlittCheckoutFn({ data: { ...checkoutInput, orderDesc: offerText.title } })
           : await startBogCheckoutFn({ data: checkoutInput });
       await openExternal(redirectUrl);
     } catch (e) {
@@ -591,7 +591,7 @@ function OfferPage() {
             {[
               { id: "BOG", label: `${t("offer.byCard")} (BOG)`, icon: "💳" },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "TBC", label: `${t("offer.byCard")} (TBC)`, icon: "🏦" },
+              { id: "FLITT", label: `${t("offer.byCard")} (Flitt)`, icon: "🏦" },
 
 
             ].map((p) => (

@@ -16,7 +16,7 @@ import {
 // Credentials live only in server env: BOG_CLIENT_ID / BOG_CLIENT_SECRET.
 // They must never be shipped to the browser bundle.
 //
-// Shared order creation / cancellation lives in ./orders-common so the TBC
+// Shared order creation / cancellation lives in ./orders-common so the Flitt
 // gateway inherits the exact same server-side amount computation.
 // ────────────────────────────────────────────────────────────
 
