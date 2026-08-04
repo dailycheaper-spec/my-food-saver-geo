@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
-import { ANNEX3_KEYS } from "@/lib/contracts";
+import { ANNEX3_KEYS, ANNEX3_OPTIONAL_KEYS, type Annex3Key } from "@/lib/contracts";
 
 /** Admin: platform-wide contract settings. */
 export const getPlatformSettings = createServerFn({ method: "GET" })
@@ -377,8 +377,9 @@ export const signContract = createServerFn({ method: "POST" })
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
     values.signing_date = signedAt.toISOString().slice(0, 10);
     values.effective_date = values.signing_date;
-    // Validation above guarantees the partner confirmed all 12 Annex 3 items.
-    Object.assign(values, annex3TokenValues(true));
+    // Mandatory items are guaranteed true by validation; optional ones reflect
+    // exactly what the partner ticked, so an unticked one stays ☐ in the PDF.
+    Object.assign(values, annex3TokenValues(data.annex3 as Record<Annex3Key, boolean>));
 
     const { data: updated, error: updateError } = await supabaseAdmin
       .from("partner_contracts")
