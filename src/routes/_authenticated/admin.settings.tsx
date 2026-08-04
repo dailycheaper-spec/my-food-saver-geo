@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Save, Percent, Bell, Truck, CreditCard, Languages, FileSignature } from "lucide-react";
+import { Save, Bell, Truck, CreditCard, Languages, FileSignature } from "lucide-react";
 import { loadAdminSettings, saveAdminSettings, type AdminSettings } from "@/lib/admin-settings";
 import { getPlatformSettings, updatePlatformSettings } from "@/lib/contracts.functions";
 import { DEFAULT_PLATFORM_SETTINGS, type PlatformSettings } from "@/lib/contracts";
@@ -34,15 +34,6 @@ function AdminSettingsPage() {
         <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.settings.title")}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t("admin.settings.subtitle")}</p>
       </div>
-
-      <Section icon={Percent} title={t("admin.settings.commission")}>
-        <label className="block text-sm">
-          <span className="text-muted-foreground text-xs">{t("admin.settings.commissionPercent")}</span>
-          <input type="number" min={0} max={50} step={0.5} value={s.commissionPct}
-            onChange={(e) => setS({ ...s, commissionPct: Number(e.target.value) })}
-            className="mt-1 w-full px-4 py-2.5 rounded-2xl bg-muted/50 border border-border font-mono text-lg font-bold" />
-        </label>
-      </Section>
 
       <Section icon={Bell} title={t("admin.settings.notifications")}>
         <label className="block text-sm">

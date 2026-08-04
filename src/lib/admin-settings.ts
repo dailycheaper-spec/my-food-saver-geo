@@ -4,7 +4,6 @@
 const KEY = "gemo.admin.settings.v1";
 
 export type AdminSettings = {
-  commissionPct: number;
   deliveryEnabled: boolean;
   notificationsRadiusKm: number;
   language: "ka" | "en";
@@ -13,7 +12,6 @@ export type AdminSettings = {
 };
 
 const defaults: AdminSettings = {
-  commissionPct: 10,
   deliveryEnabled: true,
   notificationsRadiusKm: 2,
   language: "ka",

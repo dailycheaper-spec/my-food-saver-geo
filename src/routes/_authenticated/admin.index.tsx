@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAllStores, useAllOrders, formatGel } from "@/lib/db";
 import { useAllOffers, useOnlinePresence, useRealtimeActivity } from "@/lib/admin-db";
-import { loadAdminSettings } from "@/lib/admin-settings";
+import { usePlatformCommissionPct } from "@/lib/platform-settings";
 import {
   Store, ShoppingBag, TrendingUp, Users, Leaf, Percent, Radio, Activity, Inbox, ArrowRight,
 } from "lucide-react";
@@ -20,7 +20,7 @@ function AdminOverview() {
   const { offers } = useAllOffers();
   const online = useOnlinePresence();
   const feed = useRealtimeActivity(orders, offers);
-  const settings = loadAdminSettings();
+  const commissionPct = usePlatformCommissionPct();
 
   const today = useMemo(() => {
     const start = new Date(); start.setHours(0, 0, 0, 0);
@@ -28,7 +28,7 @@ function AdminOverview() {
   }, [orders]);
 
   const todayRevenue = today.filter((o) => o.status !== "cancelled").reduce((s, o) => s + Number(o.amount), 0);
-  const commission = todayRevenue * (settings.commissionPct / 100);
+  const commission = todayRevenue * (commissionPct / 100);
   const totalOrders = orders.length;
   const activeStores = stores.filter((s) => s.status === "active").length;
   const pendingStores = stores.filter((s) => s.status === "pending_verification" || s.status === "pending_documents");
@@ -76,7 +76,7 @@ function AdminOverview() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
         <Kpi icon={ShoppingBag} label={t("admin.dashboard.todayOrders")} value={today.length.toString()} tint="primary" />
         <Kpi icon={TrendingUp} label={t("admin.dashboard.todayRevenue")} value={formatGel(todayRevenue)} tint="success" />
-        <Kpi icon={Percent} label={t("admin.dashboard.commission", { pct: settings.commissionPct })} value={formatGel(commission)} tint="warm" />
+        <Kpi icon={Percent} label={t("admin.dashboard.commission", { pct: commissionPct })} value={formatGel(commission)} tint="warm" />
         <Kpi icon={Leaf} label={t("admin.dashboard.savedKg")} value={formatGel(customerSavings)} tint="success" />
         <Kpi icon={Store} label={t("admin.dashboard.activePartners")} value={activeStores.toString()} tint="primary" />
         <Kpi icon={Radio} label={t("admin.dashboard.usersOnline")} value={online.toString()} tint="warm" />

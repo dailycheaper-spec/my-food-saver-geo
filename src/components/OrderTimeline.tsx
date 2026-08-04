@@ -11,7 +11,7 @@ const STATUS_KEYS: Record<string, string> = {
   cancelled: "orderStatus_cancelled",
 };
 
-export function OrderTimeline({ orderId }: { orderId: string }) {
+export function OrderTimeline({ orderId, method }: { orderId: string; method?: "pickup" | "delivery" }) {
   const { t, language } = useI18n();
   const { events, loading } = useOrderStatusHistory(orderId);
 
@@ -23,7 +23,9 @@ export function OrderTimeline({ orderId }: { orderId: string }) {
       <div className="space-y-0">
         {events.map((e, i) => {
           const isLast = i === events.length - 1;
-          const label = STATUS_KEYS[e.status] ? t(STATUS_KEYS[e.status]) : e.status;
+          const label = e.status === "ready" && method === "delivery"
+            ? t("orderStatus_ready_delivery")
+            : STATUS_KEYS[e.status] ? t(STATUS_KEYS[e.status]) : e.status;
           const time = new Date(e.changed_at).toLocaleString(
             language === "en" ? "en-GB" : language === "ru" ? "ru-RU" : "ka-GE",
             { dateStyle: "short", timeStyle: "short" },

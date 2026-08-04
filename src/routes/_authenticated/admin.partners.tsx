@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
 import { useStoresBankDetailsMap, type StoreBankInfo } from "@/lib/admin-db";
-import { loadAdminSettings } from "@/lib/admin-settings";
+import { usePlatformCommissionPct } from "@/lib/platform-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
@@ -83,7 +83,7 @@ function AdminPartners() {
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
   const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
   const bankMap = useStoresBankDetailsMap();
-  const settings = loadAdminSettings();
+  const commissionPct = usePlatformCommissionPct();
 
   async function loadReports() {
     const { data } = await supabase.from("store_reports").select("store_id");
@@ -102,7 +102,7 @@ function AdminPartners() {
   const balances = new Map<string, number>();
   orders.filter((o) => o.status !== "cancelled").forEach((o) => {
     const prev = balances.get(o.store_id) ?? 0;
-    balances.set(o.store_id, prev + Number(o.amount) * (1 - settings.commissionPct / 100));
+    balances.set(o.store_id, prev + Number(o.amount) * (1 - commissionPct / 100));
   });
 
   function passesLocFilters(s: DbStore): boolean {
@@ -228,7 +228,7 @@ function AdminPartners() {
         {filtered.map((s) => (
           <PartnerCard key={s.id} store={s}
             balance={balances.get(s.id) ?? 0}
-            commissionPct={settings.commissionPct}
+            commissionPct={commissionPct}
             reportCount={reportCounts.get(s.id) ?? 0}
             activeOffers={activeOffersCount.get(s.id) ?? 0}
             bank={bankMap.get(s.id) ?? null}

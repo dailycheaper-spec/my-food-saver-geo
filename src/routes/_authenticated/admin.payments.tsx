@@ -5,7 +5,7 @@ import { Wallet, Check, Clock, PlayCircle, Copy, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
 import { useAllPayouts } from "@/lib/admin-db";
-import { loadAdminSettings } from "@/lib/admin-settings";
+import { usePlatformCommissionPct } from "@/lib/platform-settings";
 import { markAdminPayoutPaid, runPayoutGeneration } from "@/lib/payouts.functions";
 import { useI18n } from "@/lib/i18n";
 
@@ -23,8 +23,8 @@ function AdminPayments() {
   const { orders } = useAllOrders();
   const { stores } = useAllStores();
   const { payouts, reload, error: payoutsError } = useAllPayouts();
-  const settings = loadAdminSettings();
-  const rate = settings.commissionPct / 100;
+  const commissionPct = usePlatformCommissionPct();
+  const rate = commissionPct / 100;
   const runPayouts = useServerFn(runPayoutGeneration);
   const markPaid = useServerFn(markAdminPayoutPaid);
   const [generating, setGenerating] = useState(false);
@@ -59,7 +59,7 @@ function AdminPayments() {
       <div className="head-row sm:flex sm:items-end sm:justify-between sm:flex-wrap sm:gap-3">
         <div className="min-w-0">
           <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">{t("admin.payments.title")}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t("admin.payments.commission")} {settings.commissionPct}% · {t("admin.payments.partnerBalances")}</p>
+          <p className="text-sm text-muted-foreground mt-1">{t("admin.payments.commission")} {commissionPct}% · {t("admin.payments.partnerBalances")}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -86,7 +86,7 @@ function AdminPayments() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <StatCard label={t("admin.payments.totalTurnover")} value={formatGel(stats.gross)} icon={Wallet} tint="primary" />
-        <StatCard label={`${t("admin.payments.commission")} (${settings.commissionPct}%)`} value={formatGel(stats.commission)} icon={Wallet} tint="warm" />
+        <StatCard label={`${t("admin.payments.commission")} (${commissionPct}%)`} value={formatGel(stats.commission)} icon={Wallet} tint="warm" />
         <StatCard label={t("admin.payments.partnerShare")} value={formatGel(stats.partnerNet)} icon={Check} tint="success" />
         <StatCard label={t("admin.payments.pending")} value={formatGel(stats.pendingPayouts)} icon={Clock} tint="muted" />
       </div>

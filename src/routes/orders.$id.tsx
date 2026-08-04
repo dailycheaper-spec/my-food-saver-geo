@@ -176,7 +176,7 @@ function OrderDetail() {
         </div>
       )}
 
-      <OrderTimeline orderId={order.id} />
+      <OrderTimeline orderId={order.id} method={order.method} />
 
       {order.code && !isCancelled && (
         <div className="mt-4 bg-card rounded-2xl border border-border shadow-card p-4 sm:p-5 text-center">
