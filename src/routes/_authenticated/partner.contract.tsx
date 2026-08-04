@@ -18,7 +18,6 @@ import {
 } from "@/lib/contracts";
 import { SignaturePad } from "@/components/contracts/SignaturePad";
 import { useI18n } from "@/lib/i18n";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/partner/contract")({
   head: () => ({
@@ -124,42 +123,55 @@ function PartnerContractPage() {
     return doc.body;
   }
 
+  /** Blob → bare base64 (no data: prefix), so it can travel in the JSON payload. */
+  function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result);
+        resolve(result.slice(result.indexOf(",") + 1));
+      };
+      reader.onerror = () => reject(new Error("file-read-failed"));
+      reader.readAsDataURL(blob);
+    });
+  }
+
   async function handleSign() {
     if (!contract || !signature) return;
     setBusy(true);
     setError("");
     try {
-      const { contractHtmlToPdfBlob, dataUrlToBlob } = await import("@/lib/contract-pdf");
+      const { contractHtmlToPdfBlob } = await import("@/lib/contract-pdf");
       const pdfBlob = await contractHtmlToPdfBlob(await renderPrintNode());
-      const stamp = Date.now();
-      const pdfPath = `${contract.id}/contract-${stamp}.pdf`;
-      const signaturePath = `${contract.id}/signature-${stamp}.png`;
 
-      const up1 = await supabase.storage
-        .from("partner-contracts")
-        .upload(pdfPath, pdfBlob, { contentType: "application/pdf", upsert: true });
-      if (up1.error) throw new Error(up1.error.message);
-      const up2 = await supabase.storage
-        .from("partner-contracts")
-        .upload(signaturePath, dataUrlToBlob(signature), { contentType: "image/png", upsert: true });
-      if (up2.error) throw new Error(up2.error.message);
-
+      // The server stores both files with its own credentials — the browser only renders them.
       await sign({
         data: {
           contractId: contract.id,
-          pdfPath,
-          signaturePath,
+          pdfBase64: await blobToBase64(pdfBlob),
+          signatureBase64: signature.slice(signature.indexOf(",") + 1),
           consents: { readAll: true, authorised: true, electronicSignature: true },
           annex3: annex3Checked,
         },
       });
       await qc.invalidateQueries({ queryKey: ["partner-contract"] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const raw = err instanceof Error ? err.message : String(err);
+      setError(
+        raw.includes("CONTRACT_FILE_UPLOAD_FAILED")
+          ? t("partner.contract.errorUpload")
+          : raw.includes("already signed")
+            ? t("partner.contract.errorAlreadySigned")
+            : raw.includes("Forbidden")
+              ? t("partner.contract.errorForbidden")
+              : t("partner.contract.errorGeneric"),
+      );
+      console.error("[contract sign] failed:", raw);
     } finally {
       setBusy(false);
     }
   }
+
 
   if (isLoading) {
     return (
