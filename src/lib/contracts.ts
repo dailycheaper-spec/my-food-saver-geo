@@ -121,11 +121,40 @@ export const ANNEX3_TOKENS: Record<Annex3Key, string> = {
 export const CHECKBOX_UNCHECKED = "☐";
 export const CHECKBOX_CHECKED = "☑";
 
-/** Token → glyph map for the Annex 3 checklist. */
-export function annex3TokenValues(checked: boolean): Record<string, string> {
-  const glyph = checked ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED;
-  return Object.fromEntries(ANNEX3_KEYS.map((k) => [ANNEX3_TOKENS[k], glyph]));
+/**
+ * Two checklist items are conditional in the source document ("თუ მოითხოვება" /
+ * "საჭიროების შემთხვევაში"), so they are never required to sign.
+ */
+export const ANNEX3_OPTIONAL_KEYS: readonly Annex3Key[] = ["foodRegistration", "liabilityInsurance"];
+
+export const ANNEX3_MANDATORY_KEYS: readonly Annex3Key[] = ANNEX3_KEYS.filter(
+  (k) => !ANNEX3_OPTIONAL_KEYS.includes(k),
+);
+
+export function annex3State(value: boolean): Record<Annex3Key, boolean> {
+  return Object.fromEntries(ANNEX3_KEYS.map((k) => [k, value])) as Record<Annex3Key, boolean>;
 }
+
+/** Token → glyph map for the Annex 3 checklist, per item. */
+export function annex3TokenValues(checked: Record<Annex3Key, boolean>): Record<string, string> {
+  return Object.fromEntries(
+    ANNEX3_KEYS.map((k) => [ANNEX3_TOKENS[k], checked[k] ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED]),
+  );
+}
+
+/**
+ * Rewrites the rendered HTML's Annex 3 glyphs to reflect per-item state.
+ * The ☐/☑ glyphs appear only in the Annex 3 list, in ANNEX3_KEYS order.
+ */
+export function applyAnnex3ToHtml(html: string, checked: Record<Annex3Key, boolean>): string {
+  let i = 0;
+  return html.replace(/☐|☑/g, () => {
+    const key = ANNEX3_KEYS[i++];
+    if (!key) return CHECKBOX_UNCHECKED;
+    return checked[key] ? CHECKBOX_CHECKED : CHECKBOX_UNCHECKED;
+  });
+}
+
 
 /** Settlement cycle the partner picks; drives both payouts and contract text. */
 export const SETTLEMENT_CYCLES = ["daily", "weekly", "monthly"] as const;
