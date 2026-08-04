@@ -324,6 +324,7 @@ export const signContract = createServerFn({ method: "POST" })
         // ~8 MB binary each, base64 is ~4/3 the size.
         pdfBase64: z.string().min(1).max(11_000_000),
         signatureBase64: z.string().min(1).max(11_000_000),
+        signingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         consents: z.object({
           readAll: z.literal(true),
           authorised: z.literal(true),
@@ -371,8 +372,19 @@ export const signContract = createServerFn({ method: "POST" })
 
     const ip = requestIp(getRequest());
     const signedAt = new Date();
+    const serverSigningDate = signedAt.toISOString().slice(0, 10);
+    if (data.signingDate !== serverSigningDate) throw new Error("CONTRACT_SIGNING_REJECTED");
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
-    values.signing_date = signedAt.toISOString().slice(0, 10);
+    const requiredRequisites = [
+      "partner_legal_name",
+      "partner_identification_code",
+      "partner_legal_address",
+      "partner_representative_name",
+    ];
+    if (requiredRequisites.some((key) => !String(values[key] ?? "").trim())) {
+      throw new Error("CONTRACT_REQUISITES_INCOMPLETE");
+    }
+    values.signing_date = data.signingDate;
     values.effective_date = values.signing_date;
     // Mandatory items are guaranteed true by validation; optional ones reflect
     // exactly what the partner ticked, so an unticked one stays ☐ in the PDF.

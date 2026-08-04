@@ -12,6 +12,7 @@ import {
   applyAnnex3ToHtml,
   CONSENT_KEYS,
   contractStatusTone,
+  finalizeContractHtml,
   type Annex3Key,
   type ConsentKey,
   type PartnerContract,
@@ -91,7 +92,7 @@ function PartnerContractPage() {
    * styles), so the PDF is rasterised from an isolated iframe that only ever loads
    * CONTRACT_PRINT_CSS.
    */
-  async function renderPrintNode(): Promise<HTMLElement> {
+  async function renderPrintNode(finalHtml: string): Promise<HTMLElement> {
     const frame = pdfFrameRef.current;
     if (!frame) throw new Error("print frame unavailable");
     const doc = frame.contentDocument;
@@ -101,13 +102,7 @@ function PartnerContractPage() {
       `<!doctype html><html><head><meta charset="utf-8"><style>` +
         `html,body{margin:0;padding:16px;background:#ffffff;color:#111111;}` +
         CONTRACT_PRINT_CSS +
-        `</style></head><body>${displayHtml}${
-          signature
-            ? `<div style="margin-top:16px"><div style="font-size:12px;color:#444444">${
-                t("partner.contract.signatureLabel")
-              }</div><img src="${signature}" style="height:80px" /></div>`
-            : ""
-        }</body></html>`,
+        `</style></head><body>${finalHtml}</body></html>`,
     );
     doc.close();
     // Let the iframe lay out (and decode the signature image) before rasterising.
@@ -142,7 +137,9 @@ function PartnerContractPage() {
     setError("");
     try {
       const { contractHtmlToPdfBlob } = await import("@/lib/contract-pdf");
-      const pdfBlob = await contractHtmlToPdfBlob(await renderPrintNode());
+      const signingDate = new Date().toISOString().slice(0, 10);
+      const finalHtml = finalizeContractHtml(html ?? "", annex3Checked, signature, signingDate);
+      const pdfBlob = await contractHtmlToPdfBlob(await renderPrintNode(finalHtml));
 
       // The server stores both files with its own credentials — the browser only renders them.
       await sign({
@@ -150,6 +147,7 @@ function PartnerContractPage() {
           contractId: contract.id,
           pdfBase64: await blobToBase64(pdfBlob),
           signatureBase64: signature.slice(signature.indexOf(",") + 1),
+          signingDate,
           consents: { readAll: true, authorised: true, electronicSignature: true },
           annex3: annex3Checked,
         },
@@ -160,6 +158,8 @@ function PartnerContractPage() {
       setError(
         raw.includes("CONTRACT_FILE_UPLOAD_FAILED")
           ? t("partner.contract.errorUpload")
+          : raw.includes("CONTRACT_REQUISITES_INCOMPLETE")
+            ? t("partner.contract.errorRequisites")
           : raw.includes("CONTRACT_SIGNING_REJECTED")
             ? t("partner.contract.errorValidation")
             : raw.includes("already signed")
