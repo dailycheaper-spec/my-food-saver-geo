@@ -158,6 +158,8 @@ function PartnerContractPage() {
       setError(
         raw.includes("CONTRACT_FILE_UPLOAD_FAILED")
           ? t("partner.contract.errorUpload")
+          : raw.includes("CONTRACT_REQUISITES_INCOMPLETE")
+            ? t("partner.contract.errorRequisites")
           : raw.includes("CONTRACT_SIGNING_REJECTED")
             ? t("partner.contract.errorValidation")
             : raw.includes("already signed")
