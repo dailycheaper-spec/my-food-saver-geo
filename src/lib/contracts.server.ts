@@ -2,7 +2,7 @@
 // Kept out of *.functions.ts so those files stay thin wrappers.
 
 import type { ContractEventType, PlatformSettings } from "@/lib/contracts";
-import { DEFAULT_PLATFORM_SETTINGS, annex3TokenValues } from "@/lib/contracts";
+import { DEFAULT_PLATFORM_SETTINGS, annex3State, annex3TokenValues } from "@/lib/contracts";
 import { PARTNER_AGREEMENT_TEMPLATE_HTML } from "@/lib/contracts/template";
 
 type AnyClient = {
@@ -94,7 +94,7 @@ export function buildPlaceholderValues(
     settlement_cycle: SETTLEMENT_CYCLE_LABEL[cycle] ?? SETTLEMENT_CYCLE_LABEL.weekly!,
     settlement_day: settlementDayLabel(cycle, cycleDay),
     // Unticked by default; the signed render flips every one of these to ☑.
-    ...annex3TokenValues(false),
+    ...annex3TokenValues(annex3State(false)),
     partner_legal_name: String(store.company_name || store.name || ""),
     partner_entity_type: ENTITY_TYPE_LABEL[String(store.entity_type)] ?? String(store.entity_type ?? ""),
     partner_identification_code: String(store.company_id_number ?? ""),
@@ -126,7 +126,7 @@ function escapeHtml(value: string): string {
 
 /** Fills {{token}} placeholders in the legal template. Unknown tokens stay visible. */
 export function renderContractHtml(values: Record<string, string>): string {
-  const fallback = annex3TokenValues(false);
+  const fallback = annex3TokenValues(annex3State(false));
   return PARTNER_AGREEMENT_TEMPLATE_HTML.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
     if (key in values) return escapeHtml(values[key] ?? "");
     // Contracts issued before the checklist existed have no annex3_* snapshot.
