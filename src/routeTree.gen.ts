@@ -57,6 +57,7 @@ import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
 import { Route as ApiPublicPaymentsTbcCallbackRouteImport } from './routes/api/public/payments/tbc-callback'
+import { Route as ApiPublicPaymentsFlittCallbackRouteImport } from './routes/api/public/payments/flitt-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
 import { Route as ApiPublicDeliveryGlovoRouteImport } from './routes/api/public/delivery/glovo'
@@ -322,6 +323,12 @@ const ApiPublicPaymentsTbcCallbackRoute =
     path: '/api/public/payments/tbc-callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPaymentsFlittCallbackRoute =
+  ApiPublicPaymentsFlittCallbackRouteImport.update({
+    id: '/api/public/payments/flitt-callback',
+    path: '/api/public/payments/flitt-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPaymentsBogCallbackRoute =
   ApiPublicPaymentsBogCallbackRouteImport.update({
     id: '/api/public/payments/bog-callback',
@@ -395,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
   '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesByTo {
@@ -446,6 +454,7 @@ export interface FileRoutesByTo {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
   '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesById {
@@ -501,6 +510,7 @@ export interface FileRoutesById {
   '/api/public/delivery/glovo': typeof ApiPublicDeliveryGlovoRoute
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
+  '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
   '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRouteTypes {
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/flitt-callback'
     | '/api/public/payments/tbc-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -607,6 +618,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/flitt-callback'
     | '/api/public/payments/tbc-callback'
   id:
     | '__root__'
@@ -661,6 +673,7 @@ export interface FileRouteTypes {
     | '/api/public/delivery/glovo'
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
+    | '/api/public/payments/flitt-callback'
     | '/api/public/payments/tbc-callback'
   fileRoutesById: FileRoutesById
 }
@@ -690,6 +703,7 @@ export interface RootRouteChildren {
   ApiPublicDeliveryGlovoRoute: typeof ApiPublicDeliveryGlovoRoute
   ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
   ApiPublicPaymentsBogCallbackRoute: typeof ApiPublicPaymentsBogCallbackRoute
+  ApiPublicPaymentsFlittCallbackRoute: typeof ApiPublicPaymentsFlittCallbackRoute
   ApiPublicPaymentsTbcCallbackRoute: typeof ApiPublicPaymentsTbcCallbackRoute
 }
 
@@ -1031,6 +1045,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsTbcCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/flitt-callback': {
+      id: '/api/public/payments/flitt-callback'
+      path: '/api/public/payments/flitt-callback'
+      fullPath: '/api/public/payments/flitt-callback'
+      preLoaderRoute: typeof ApiPublicPaymentsFlittCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/bog-callback': {
       id: '/api/public/payments/bog-callback'
       path: '/api/public/payments/bog-callback'
@@ -1167,18 +1188,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDeliveryGlovoRoute: ApiPublicDeliveryGlovoRoute,
   ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
   ApiPublicPaymentsBogCallbackRoute: ApiPublicPaymentsBogCallbackRoute,
+  ApiPublicPaymentsFlittCallbackRoute: ApiPublicPaymentsFlittCallbackRoute,
   ApiPublicPaymentsTbcCallbackRoute: ApiPublicPaymentsTbcCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

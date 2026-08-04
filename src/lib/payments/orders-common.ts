@@ -10,7 +10,7 @@ import type { Database } from "@/integrations/supabase/types";
 // enforces the same floor as an independent second check.
 // ────────────────────────────────────────────────────────────
 
-export type PaymentProvider = "bog" | "tbc";
+export type PaymentProvider = "bog" | "flitt";
 
 export interface OrderInput {
   offerId: string;
