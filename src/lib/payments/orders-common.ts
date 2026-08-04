@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 // ────────────────────────────────────────────────────────────
-// Shared checkout plumbing for every payment gateway (BOG, TBC).
+// Shared checkout plumbing for every payment gateway (BOG, Flitt).
 //
 // The amount is computed here from the offer's real price, never taken
 // from the client. The orders table's own validate_order_amount trigger

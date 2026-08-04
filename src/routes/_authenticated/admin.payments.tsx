@@ -42,12 +42,12 @@ function AdminPayments() {
     // Turnover split by the bank that processed the payment.
     const byProvider = valid.reduce(
       (acc, o) => {
-        const key = (o as { payment_provider?: string }).payment_provider === "tbc" ? "tbc" : "bog";
+        const key = (o as { payment_provider?: string }).payment_provider === "flitt" ? "flitt" : "bog";
         acc[key].count += 1;
         acc[key].amount += Number(o.amount);
         return acc;
       },
-      { bog: { count: 0, amount: 0 }, tbc: { count: 0, amount: 0 } },
+      { bog: { count: 0, amount: 0 }, flitt: { count: 0, amount: 0 } },
     );
     return { gross, commission, partnerNet, paidPayouts, pendingPayouts, byProvider };
   }, [orders, payouts, rate]);
@@ -96,7 +96,7 @@ function AdminPayments() {
         <div className="grid grid-cols-2 gap-3">
           {([
             ["bog", "Bank of Georgia"],
-            ["tbc", "TBC Bank"],
+            ["flitt", "Flitt"],
           ] as const).map(([key, name]) => (
             <div key={key} className="rounded-2xl border border-border p-4">
               <div className="flex items-center gap-2">
