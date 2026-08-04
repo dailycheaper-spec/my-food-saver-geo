@@ -155,6 +155,34 @@ export function applyAnnex3ToHtml(html: string, checked: Record<Annex3Key, boole
   });
 }
 
+/**
+ * Produces the exact browser-rendered legal snapshot used for the signed PDF.
+ * Only a locally generated PNG data URL and an ISO date can enter the HTML.
+ */
+export function finalizeContractHtml(
+  html: string,
+  checked: Record<Annex3Key, boolean>,
+  signatureDataUrl: string,
+  signingDate: string,
+): string {
+  if (!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signatureDataUrl)) {
+    throw new Error("INVALID_CONTRACT_SIGNATURE");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(signingDate)) {
+    throw new Error("INVALID_CONTRACT_SIGNING_DATE");
+  }
+
+  return applyAnnex3ToHtml(html, checked)
+    .replace(
+      '<span class="partner-signature" data-partner-signature></span>',
+      `<span class="partner-signature" data-partner-signature><img src="${signatureDataUrl}" alt="" /></span>`,
+    )
+    .replace(
+      /<span data-signing-date>[^<]*<\/span>/,
+      `<span data-signing-date>${signingDate}</span>`,
+    );
+}
+
 
 /** Settlement cycle the partner picks; drives both payouts and contract text. */
 export const SETTLEMENT_CYCLES = ["daily", "weekly", "monthly"] as const;

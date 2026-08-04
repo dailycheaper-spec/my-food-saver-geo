@@ -7,6 +7,21 @@ export async function contractHtmlToPdfBlob(node: HTMLElement): Promise<Blob> {
     import("jspdf"),
   ]);
 
+  // html2canvas creates one continuous image and jsPDF slices it into pages.
+  // Move the legal requisites block to the next page when it would cross a cut.
+  const requisites = node.querySelector<HTMLElement>(".contract-requisites");
+  if (requisites) {
+    requisites.style.marginTop = "0px";
+    const nodeRect = node.getBoundingClientRect();
+    const blockRect = requisites.getBoundingClientRect();
+    const sourcePageHeight = node.scrollWidth * (841.89 / 595.28);
+    const blockTop = blockRect.top - nodeRect.top;
+    const positionOnPage = blockTop % sourcePageHeight;
+    if (positionOnPage + blockRect.height > sourcePageHeight) {
+      requisites.style.marginTop = `${Math.ceil(sourcePageHeight - positionOnPage + 12)}px`;
+    }
+  }
+
   // The node may live in a sandboxed iframe document (isolated from the app's
   // oklch-based Tailwind tokens); size the capture from that document explicitly.
   const canvas = await html2canvas(node, {
