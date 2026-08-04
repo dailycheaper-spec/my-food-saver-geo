@@ -311,9 +311,9 @@ export const getMyContract = createServerFn({ method: "GET" })
   });
 
 /**
- * Partner: record the signature. The client has already uploaded the PDF and the
- * signature PNG under `{contractId}/...`; this call verifies ownership, stores the
- * paths, flips the status and logs the event together.
+ * Partner: record the signature. The browser only renders the PDF and the
+ * signature PNG and sends them here as base64 — storing them goes through the
+ * server so signing never depends on browser storage permissions.
  */
 export const signContract = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -321,8 +321,9 @@ export const signContract = createServerFn({ method: "POST" })
     z
       .object({
         contractId: z.string().uuid(),
-        pdfPath: z.string().min(1).max(500),
-        signaturePath: z.string().min(1).max(500),
+        // ~8 MB binary each, base64 is ~4/3 the size.
+        pdfBase64: z.string().min(1).max(11_000_000),
+        signatureBase64: z.string().min(1).max(11_000_000),
         consents: z.object({
           readAll: z.literal(true),
           authorised: z.literal(true),
@@ -368,10 +369,6 @@ export const signContract = createServerFn({ method: "POST" })
     if (contract.status === "signed") throw new Error("This contract is already signed");
     if (!["sent", "viewed"].includes(contract.status)) throw new Error("This contract cannot be signed");
 
-    if (!data.pdfPath.startsWith(`${data.contractId}/`) || !data.signaturePath.startsWith(`${data.contractId}/`)) {
-      throw new Error("Invalid file path");
-    }
-
     const ip = requestIp(getRequest());
     const signedAt = new Date();
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
@@ -381,13 +378,38 @@ export const signContract = createServerFn({ method: "POST" })
     // exactly what the partner ticked, so an unticked one stays ☐ in the PDF.
     Object.assign(values, annex3TokenValues(data.annex3 as Record<Annex3Key, boolean>));
 
+    // Store both artefacts with server credentials before touching the contract row,
+    // so a storage failure can never leave a "signed" contract without its PDF.
+    const decode = (b64: string) => {
+      const clean = b64.includes(",") ? b64.slice(b64.indexOf(",") + 1) : b64;
+      return Uint8Array.from(Buffer.from(clean, "base64"));
+    };
+    const stamp = signedAt.getTime();
+    const pdfPath = `${data.contractId}/contract-${stamp}.pdf`;
+    const signaturePath = `${data.contractId}/signature-${stamp}.png`;
+
+    const pdfUpload = await supabaseAdmin.storage
+      .from("partner-contracts")
+      .upload(pdfPath, decode(data.pdfBase64), { contentType: "application/pdf", upsert: true });
+    if (pdfUpload.error) {
+      console.error("[signContract] pdf upload failed:", pdfUpload.error);
+      throw new Error("CONTRACT_FILE_UPLOAD_FAILED");
+    }
+    const sigUpload = await supabaseAdmin.storage
+      .from("partner-contracts")
+      .upload(signaturePath, decode(data.signatureBase64), { contentType: "image/png", upsert: true });
+    if (sigUpload.error) {
+      console.error("[signContract] signature upload failed:", sigUpload.error);
+      throw new Error("CONTRACT_FILE_UPLOAD_FAILED");
+    }
+
     const { data: updated, error: updateError } = await supabaseAdmin
       .from("partner_contracts")
       .update({
         status: "signed",
         placeholder_values: values,
-        pdf_storage_path: data.pdfPath,
-        signature_image_path: data.signaturePath,
+        pdf_storage_path: pdfPath,
+        signature_image_path: signaturePath,
         signed_at: signedAt.toISOString(),
         signed_ip: ip,
       })
@@ -395,8 +417,12 @@ export const signContract = createServerFn({ method: "POST" })
       .in("status", ["sent", "viewed"])
       .select("*")
       .maybeSingle();
-    if (updateError) throw new Error(updateError.message);
+    if (updateError) {
+      console.error("[signContract] update failed:", updateError);
+      throw new Error(updateError.message);
+    }
     if (!updated) throw new Error("This contract cannot be signed");
+
 
     await logContractEvent(supabaseAdmin as never, {
       contractId: data.contractId,
