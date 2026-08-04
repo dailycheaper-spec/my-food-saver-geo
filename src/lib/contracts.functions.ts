@@ -387,6 +387,12 @@ export const signContract = createServerFn({ method: "POST" })
     const stamp = signedAt.getTime();
     const pdfPath = `${data.contractId}/contract-${stamp}.pdf`;
     const signaturePath = `${data.contractId}/signature-${stamp}.png`;
+    const removeUploadedFiles = async (paths: string[]) => {
+      const { error: cleanupError } = await supabaseAdmin.storage
+        .from("partner-contracts")
+        .remove(paths);
+      if (cleanupError) console.error("[signContract] upload cleanup failed:", cleanupError);
+    };
 
     const pdfUpload = await supabaseAdmin.storage
       .from("partner-contracts")
@@ -400,6 +406,7 @@ export const signContract = createServerFn({ method: "POST" })
       .upload(signaturePath, decode(data.signatureBase64), { contentType: "image/png", upsert: true });
     if (sigUpload.error) {
       console.error("[signContract] signature upload failed:", sigUpload.error);
+      await removeUploadedFiles([pdfPath]);
       throw new Error("CONTRACT_FILE_UPLOAD_FAILED");
     }
 
@@ -419,9 +426,17 @@ export const signContract = createServerFn({ method: "POST" })
       .maybeSingle();
     if (updateError) {
       console.error("[signContract] update failed:", updateError);
-      throw new Error(updateError.message);
+      await removeUploadedFiles([pdfPath, signaturePath]);
+      throw new Error(
+        updateError.message.includes("Contract content cannot be modified")
+          ? "CONTRACT_SIGNING_REJECTED"
+          : updateError.message,
+      );
     }
-    if (!updated) throw new Error("This contract cannot be signed");
+    if (!updated) {
+      await removeUploadedFiles([pdfPath, signaturePath]);
+      throw new Error("This contract cannot be signed");
+    }
 
 
     await logContractEvent(supabaseAdmin as never, {
