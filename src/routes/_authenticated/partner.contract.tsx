@@ -7,8 +7,9 @@ import { getMyContract, signContract } from "@/lib/contracts.functions";
 import { CONTRACT_PRINT_CSS } from "@/lib/contracts/template";
 import {
   ANNEX3_KEYS,
-  CHECKBOX_CHECKED,
-  CHECKBOX_UNCHECKED,
+  ANNEX3_MANDATORY_KEYS,
+  ANNEX3_OPTIONAL_KEYS,
+  applyAnnex3ToHtml,
   CONSENT_KEYS,
   contractStatusTone,
   type Annex3Key,
@@ -63,16 +64,19 @@ function PartnerContractPage() {
   const [error, setError] = useState("");
 
   const allConsented = useMemo(() => CONSENT_KEYS.every((k) => consents[k]), [consents]);
-  const allAnnex3Checked = useMemo(() => ANNEX3_KEYS.every((k) => annex3Checked[k]), [annex3Checked]);
+  const allAnnex3Checked = useMemo(
+    () => ANNEX3_MANDATORY_KEYS.every((k) => annex3Checked[k]),
+    [annex3Checked],
+  );
   const canSign = scrolledToEnd && allConsented && allAnnex3Checked && !!signature && !busy;
 
   /**
-   * The Annex 3 glyph is the only ☐ in the whole document, so the signed render
-   * simply reflects what the partner ticked in this session.
+   * The ☐/☑ glyphs appear only in the Annex 3 list, in ANNEX3_KEYS order, so the
+   * preview mirrors exactly which items the partner ticked in this session.
    */
   const displayHtml = useMemo(
-    () => (allAnnex3Checked ? (html ?? "").split(CHECKBOX_UNCHECKED).join(CHECKBOX_CHECKED) : (html ?? "")),
-    [html, allAnnex3Checked],
+    () => applyAnnex3ToHtml(html ?? "", annex3Checked),
+    [html, annex3Checked],
   );
 
 
@@ -146,7 +150,7 @@ function PartnerContractPage() {
           pdfPath,
           signaturePath,
           consents: { readAll: true, authorised: true, electronicSignature: true },
-          annex3: Object.fromEntries(ANNEX3_KEYS.map((k) => [k, true])) as Record<Annex3Key, true>,
+          annex3: annex3Checked,
         },
       });
       await qc.invalidateQueries({ queryKey: ["partner-contract"] });
@@ -274,20 +278,30 @@ function PartnerContractPage() {
             <p className="text-xs font-semibold text-muted-foreground pt-3">
               {t("partner.contract.annex3.heading")}
             </p>
-            {ANNEX3_KEYS.map((key) => (
-              <label key={key} className="flex items-start gap-2.5 text-sm">
-                <input
-                  type="checkbox"
-                  checked={annex3Checked[key]}
-                  disabled={!scrolledToEnd}
-                  onChange={(e) => setAnnex3Checked((c) => ({ ...c, [key]: e.target.checked }))}
-                  className="mt-0.5 w-4 h-4 accent-primary shrink-0"
-                />
-                <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
-                  {t(`partner.contract.annex3.${key}`)}
-                </span>
-              </label>
-            ))}
+            {ANNEX3_KEYS.map((key) => {
+              const optional = ANNEX3_OPTIONAL_KEYS.includes(key);
+              return (
+                <label key={key} className="flex items-start gap-2.5 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={annex3Checked[key]}
+                    disabled={!scrolledToEnd}
+                    onChange={(e) => setAnnex3Checked((c) => ({ ...c, [key]: e.target.checked }))}
+                    className="mt-0.5 w-4 h-4 accent-primary shrink-0"
+                  />
+                  <span className={scrolledToEnd ? "" : "text-muted-foreground"}>
+                    {t(`partner.contract.annex3.${key}`)}
+                    {optional ? (
+                      <span className="ml-1.5 text-[11px] text-muted-foreground">
+                        ({t("partner.contract.annex3.optionalTag")})
+                      </span>
+                    ) : (
+                      <span className="ml-1 text-destructive">*</span>
+                    )}
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           <SignaturePad
