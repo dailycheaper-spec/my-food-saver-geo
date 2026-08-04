@@ -102,22 +102,49 @@ export function AppTracker() {
       }
     };
 
-    const channel = supabase
-      .channel("app-new-offer-alerts")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "offers" }, async (payload) => {
-        const id = (payload.new as { id?: string }).id;
-        if (!id) return;
-        const { data } = await supabase
-          .from("offers")
-          .select("id,title,title_en,title_ru,discounted_price,category,store:stores(name,name_en,name_ru,lat,lng)")
-          .eq("id", id)
-          .maybeSingle();
-        if (data) shouldNotify(data as unknown as RealtimeOffer);
-      })
-      .subscribe();
+    // An always-open WebSocket keeps the page out of the browser's back/forward
+    // cache, so only open it when notifications are on, and close it while the
+    // tab is hidden (e.g. during an external payment redirect).
+    if (!notifs.enabled) return;
 
-    return () => { supabase.removeChannel(channel); };
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const subscribe = () => {
+      if (channel) return;
+      channel = supabase
+        .channel("app-new-offer-alerts")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "offers" }, async (payload) => {
+          const id = (payload.new as { id?: string }).id;
+          if (!id) return;
+          const { data } = await supabase
+            .from("offers")
+            .select("id,title,title_en,title_ru,discounted_price,category,store:stores(name,name_en,name_ru,lat,lng)")
+            .eq("id", id)
+            .maybeSingle();
+          if (data) shouldNotify(data as unknown as RealtimeOffer);
+        })
+        .subscribe();
+    };
+
+    const unsubscribe = () => {
+      if (!channel) return;
+      supabase.removeChannel(channel);
+      channel = null;
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") unsubscribe();
+      else subscribe();
+    };
+
+    subscribe();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      unsubscribe();
+    };
   }, [notifs.enabled, notifs.categories, notifs.radiusKm, t, language]);
+
 
   return null;
 }
