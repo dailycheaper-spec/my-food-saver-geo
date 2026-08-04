@@ -589,23 +589,43 @@ function OfferPage() {
           <div className="font-bold mb-3">{t("paymentMethod")}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
-              { id: "BOG", label: `${t("offer.byCard")} (BOG)`, icon: "💳" },
+              {
+                id: "BOG",
+                label: t("offer.byCard"),
+                logo: "/bog-logo.svg",
+                cardMarks: ["/visa-mark.svg", "/mastercard-mark.svg"],
+              },
               { id: "GPAY", label: "Google Pay", icon: "🟢" },
-              { id: "FLITT", label: `${t("offer.byCard")} (Flitt)`, icon: "🏦" },
-
-
+              {
+                id: "FLITT",
+                label: t("offer.byCard"),
+                logo: "/tbc-logo.webp",
+                cardMarks: ["/visa-mark.svg", "/mastercard-mark.svg"],
+              },
             ].map((p) => (
               <button
                 key={p.id}
                 onClick={() => setPayment(p.id as typeof payment)}
-                className={`flex items-center gap-2 p-3 rounded-2xl border-2 transition-all active:scale-[0.98] ${
+                className={`flex items-center gap-2.5 p-3 rounded-2xl border-2 transition-all active:scale-[0.98] ${
                   payment === p.id ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
-                <span className="text-lg">{p.icon}</span>
+                {p.logo ? (
+                  <span className="flex flex-col items-start gap-1 shrink-0">
+                    <img src={p.logo} alt={p.id} className="h-4 w-auto object-contain" loading="lazy" />
+                    <span className="flex items-center gap-1">
+                      {p.cardMarks?.map((src) => (
+                        <img key={src} src={src} alt="" className="h-3 w-auto object-contain" loading="lazy" />
+                      ))}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-lg">{p.icon}</span>
+                )}
                 <span className="font-medium text-left">{p.label}</span>
               </button>
             ))}
+
           </div>
 
           {payment === "GPAY" && (
