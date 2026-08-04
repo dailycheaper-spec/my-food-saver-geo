@@ -56,7 +56,6 @@ import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
-import { Route as ApiPublicPaymentsTbcCallbackRouteImport } from './routes/api/public/payments/tbc-callback'
 import { Route as ApiPublicPaymentsFlittCallbackRouteImport } from './routes/api/public/payments/flitt-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
@@ -317,12 +316,6 @@ const AuthenticatedAdminBannersRoute =
     path: '/banners',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const ApiPublicPaymentsTbcCallbackRoute =
-  ApiPublicPaymentsTbcCallbackRouteImport.update({
-    id: '/api/public/payments/tbc-callback',
-    path: '/api/public/payments/tbc-callback',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicPaymentsFlittCallbackRoute =
   ApiPublicPaymentsFlittCallbackRouteImport.update({
     id: '/api/public/payments/flitt-callback',
@@ -403,7 +396,6 @@ export interface FileRoutesByFullPath {
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
   '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -455,7 +447,6 @@ export interface FileRoutesByTo {
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
   '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -511,7 +502,6 @@ export interface FileRoutesById {
   '/api/public/delivery/wolt': typeof ApiPublicDeliveryWoltRoute
   '/api/public/payments/bog-callback': typeof ApiPublicPaymentsBogCallbackRoute
   '/api/public/payments/flitt-callback': typeof ApiPublicPaymentsFlittCallbackRoute
-  '/api/public/payments/tbc-callback': typeof ApiPublicPaymentsTbcCallbackRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -567,7 +557,6 @@ export interface FileRouteTypes {
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
     | '/api/public/payments/flitt-callback'
-    | '/api/public/payments/tbc-callback'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -619,7 +608,6 @@ export interface FileRouteTypes {
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
     | '/api/public/payments/flitt-callback'
-    | '/api/public/payments/tbc-callback'
   id:
     | '__root__'
     | '/'
@@ -674,7 +662,6 @@ export interface FileRouteTypes {
     | '/api/public/delivery/wolt'
     | '/api/public/payments/bog-callback'
     | '/api/public/payments/flitt-callback'
-    | '/api/public/payments/tbc-callback'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -704,7 +691,6 @@ export interface RootRouteChildren {
   ApiPublicDeliveryWoltRoute: typeof ApiPublicDeliveryWoltRoute
   ApiPublicPaymentsBogCallbackRoute: typeof ApiPublicPaymentsBogCallbackRoute
   ApiPublicPaymentsFlittCallbackRoute: typeof ApiPublicPaymentsFlittCallbackRoute
-  ApiPublicPaymentsTbcCallbackRoute: typeof ApiPublicPaymentsTbcCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1038,13 +1024,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/payments/tbc-callback': {
-      id: '/api/public/payments/tbc-callback'
-      path: '/api/public/payments/tbc-callback'
-      fullPath: '/api/public/payments/tbc-callback'
-      preLoaderRoute: typeof ApiPublicPaymentsTbcCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/payments/flitt-callback': {
       id: '/api/public/payments/flitt-callback'
       path: '/api/public/payments/flitt-callback'
@@ -1189,7 +1168,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDeliveryWoltRoute: ApiPublicDeliveryWoltRoute,
   ApiPublicPaymentsBogCallbackRoute: ApiPublicPaymentsBogCallbackRoute,
   ApiPublicPaymentsFlittCallbackRoute: ApiPublicPaymentsFlittCallbackRoute,
-  ApiPublicPaymentsTbcCallbackRoute: ApiPublicPaymentsTbcCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
