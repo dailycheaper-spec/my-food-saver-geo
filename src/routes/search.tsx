@@ -16,6 +16,7 @@ import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
 import { OfferCardSkeleton } from "@/components/Skeleton";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+import { Time24Input } from "@/components/Time24Input";
 
 
 const SEARCH_TITLE = "ძებნა — ფასდაკლებული საკვები შენს გარშემო | Cheaper";
@@ -392,11 +393,10 @@ function SearchPage() {
                 </button>
                 <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-semibold">
                   <Clock className="w-3 h-3" /> {pickupLabel}
-                  <input
-                    type="time"
+                  <Time24Input
                     value={pickupBefore}
-                    onChange={(e) => setPickupBefore(e.target.value)}
-                    className="bg-transparent outline-none text-foreground w-[70px]"
+                    onChange={setPickupBefore}
+                    className="bg-transparent outline-none text-foreground w-[50px]"
                   />
                   {pickupBefore && (
                     <button onClick={() => setPickupBefore("")} aria-label="clear time">
@@ -450,7 +450,7 @@ function SearchPage() {
                     onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-secondary text-left"
                   >
-                    <span className="w-6 h-6 grid place-items-center overflow-hidden text-xl"><StoreLogo value={s.logo} emojiClassName="text-xl" /></span>
+                    <span className="w-6 h-6 shrink-0 grid place-items-center overflow-hidden rounded-full text-xl"><StoreLogo value={s.logo} emojiClassName="text-xl" /></span>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-semibold truncate">{getStoreName(s, language)}</div>
                       <div className="text-[11px] text-muted-foreground">
@@ -566,7 +566,7 @@ function SearchPage() {
                       onClick={() => { setQ(getStoreName(s, language)); saveRecent(getStoreName(s, language)); }}
                       className="flex items-center gap-2 p-3 bg-card border border-border rounded-2xl text-left hover:bg-secondary transition-colors"
                     >
-                      <span className="w-7 h-7 grid place-items-center overflow-hidden text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></span>
+                      <span className="w-7 h-7 shrink-0 grid place-items-center overflow-hidden rounded-full text-2xl"><StoreLogo value={s.logo} emojiClassName="text-2xl" /></span>
                       <div className="min-w-0 flex-1">
                         <div className="text-xs font-bold truncate">{getStoreName(s, language)}</div>
                         {s.district && (

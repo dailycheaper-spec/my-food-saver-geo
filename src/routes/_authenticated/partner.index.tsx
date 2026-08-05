@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check, UtensilsCrossed } from "lucide-react";
+import { PlusCircle, PackageOpen, ShoppingBag, BarChart3, Sparkles, Coins, Store as StoreIcon, Copy, TrendingUp, Check, UtensilsCrossed, FileSignature } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
@@ -23,11 +23,14 @@ function PartnerHome() {
   const [dupBusy, setDupBusy] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [qtyOverrides, setQtyOverrides] = useState<Record<string, number>>({});
 
   const yesterdayOffers = useMemo(() => {
-    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    const y = yesterday.toDateString();
-    return offers.filter((o) => new Date(o.created_at).toDateString() === y);
+    const today = new Date().toDateString();
+    return offers
+      .filter((o) => new Date(o.created_at).toDateString() !== today && (!o.is_active || o.quantity_sold >= o.quantity_available))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 50);
   }, [offers]);
 
   const stats = useMemo(() => {
@@ -47,6 +50,7 @@ function PartnerHome() {
       return;
     }
     setSelected(new Set(yesterdayOffers.map((o) => o.id)));
+    setQtyOverrides(Object.fromEntries(yesterdayOffers.map((o) => [o.id, o.quantity_available])));
     setPickerOpen(true);
   }
 
@@ -70,7 +74,7 @@ function PartnerHome() {
       category: o.category,
       original_price: o.original_price,
       discounted_price: o.discounted_price,
-      quantity_available: o.quantity_available,
+      quantity_available: qtyOverrides[o.id] > 0 ? qtyOverrides[o.id] : o.quantity_available,
       pickup_from: o.pickup_from,
       pickup_to: o.pickup_to,
       delivery_available: o.delivery_available,
@@ -185,6 +189,7 @@ function PartnerHome() {
         <Shortcut to="/partner/insights" icon={<BarChart3 className="w-4 h-4" />} label={t("insights")} />
         <Shortcut to="/partner/balance" icon={<Coins className="w-4 h-4" />} label={t("balance")} />
         <Shortcut to="/partner/profile" icon={<StoreIcon className="w-4 h-4" />} label={t("profile")} />
+        <Shortcut to="/partner/contract" icon={<FileSignature className="w-4 h-4" />} label={t("partner.contract.navLabel")} />
       </div>
 
       {/* Recent orders */}
@@ -234,6 +239,17 @@ function PartnerHome() {
                     <span className="block text-sm font-medium truncate">{o.title}</span>
                     <span className="block text-xs text-muted-foreground">{formatGel(o.discounted_price)}</span>
                   </span>
+                  {checked && (
+                    <input
+                      type="number"
+                      min={1}
+                      value={qtyOverrides[o.id] ?? o.quantity_available}
+                      onClick={(e) => e.preventDefault()}
+                      onChange={(e) => setQtyOverrides((prev) => ({ ...prev, [o.id]: Number(e.target.value) }))}
+                      className="w-16 shrink-0 px-2 py-1.5 rounded-lg bg-background border border-border text-sm text-center"
+                      aria-label={t("qtyLbl")}
+                    />
+                  )}
                 </label>
               );
             })}

@@ -341,7 +341,7 @@ function StoreSettings() {
                   settlement_day: c === "daily" ? null : c === "weekly" ? 1 : 1,
                 }))
               }
-              className={`px-3 py-2.5 rounded-xl border text-xs font-medium ${form.settlement_cycle === c ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
+              className={`px-2 py-2.5 rounded-xl border text-xs font-medium leading-tight whitespace-normal break-words text-center ${form.settlement_cycle === c ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border"}`}
             >
               {t(`partner.store.settlement.${c}`)}
             </button>

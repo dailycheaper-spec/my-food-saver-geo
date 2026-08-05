@@ -6,6 +6,7 @@ import { parseOfferText } from "@/lib/ai-offer.functions";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
+import { Time24Input } from "@/components/Time24Input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/ai")({
@@ -148,10 +149,15 @@ function AiOfferPage() {
 }
 
 function Row({ k, v, onChange, type = "text" }: { k: string; v: string; onChange: (v: string) => void; type?: string }) {
+  const fieldClassName = "w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm";
   return (
     <label className="block">
       <div className="text-xs font-medium text-muted-foreground mb-1">{k}</div>
-      <input type={type} value={v} onChange={(e) => onChange(e.target.value)} className="w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border text-sm" />
+      {type === "time" ? (
+        <Time24Input value={v} onChange={onChange} className={fieldClassName} />
+      ) : (
+        <input type={type} value={v} onChange={(e) => onChange(e.target.value)} className={fieldClassName} />
+      )}
     </label>
   );
 }

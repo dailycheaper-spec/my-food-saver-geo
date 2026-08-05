@@ -8,6 +8,7 @@ import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/Disco
 import { useI18n } from "@/lib/i18n";
 import { AllergenPicker } from "@/components/AllergenPicker";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
+import { Time24Input } from "@/components/Time24Input";
 import { toast } from "sonner";
 
 const UNIT_TYPES = ["piece", "weight", "portion"] as const;
@@ -416,17 +417,22 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 
 function Field({ label, value, onChange, type = "text", required, step }: { label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean; step?: string }) {
+  const fieldClassName = "w-full px-3 py-3 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm";
   return (
     <label className="block">
       <Label>{label}</Label>
-      <input
-        type={type}
-        step={step}
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-3 rounded-2xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/40 text-sm"
-      />
+      {type === "time" ? (
+        <Time24Input value={value} onChange={onChange} className={fieldClassName} />
+      ) : (
+        <input
+          type={type}
+          step={step}
+          required={required}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={fieldClassName}
+        />
+      )}
     </label>
   );
 }

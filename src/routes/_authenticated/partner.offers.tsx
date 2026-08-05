@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { AuditLogButton } from "@/components/AuditLogPanel";
+import { Time24Input } from "@/components/Time24Input";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
@@ -308,17 +309,22 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
 }
 
 function Input({ label, value, onChange, type = "text", required, ...rest }: { label: string; value: string; onChange: (v: string) => void; type?: string; required?: boolean }) {
+  const fieldClassName = "mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm";
   return (
     <label className="block">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        required={required}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-        {...rest}
-      />
+      {type === "time" ? (
+        <Time24Input value={value} onChange={onChange} className={fieldClassName} />
+      ) : (
+        <input
+          type={type}
+          required={required}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={fieldClassName}
+          {...rest}
+        />
+      )}
     </label>
   );
 }
