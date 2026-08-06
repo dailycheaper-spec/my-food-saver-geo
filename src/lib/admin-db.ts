@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibility } from "@/lib/realtime-visibility";
 import type { Database } from "@/integrations/supabase/types";
 import { currencyLabel, type OfferWithStore, type OrderWithRelations } from "@/lib/db";
 import { listAdminPayouts, type AdminPayoutRow } from "@/lib/payouts.functions";
@@ -12,32 +13,6 @@ export type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
 // Static topic names can collide when the same hook mounts twice (StrictMode,
 // rapid route transitions) and cause silent duplicate-subscription bugs.
 let adminChannelCounter = 0;
-
-// An always-open WebSocket keeps the page out of the browser's back/forward
-// cache. Close the channel while the tab is hidden and reopen (plus refetch)
-// when it becomes visible again.
-function withVisibility(
-  create: () => ReturnType<typeof supabase.channel>,
-  onResume?: () => void,
-) {
-  let ch: ReturnType<typeof supabase.channel> | null = null;
-  const subscribe = () => { if (!ch) ch = create(); };
-  const unsubscribe = () => { if (ch) { supabase.removeChannel(ch); ch = null; } };
-  const onVisibility = () => {
-    if (document.visibilityState === "hidden") {
-      unsubscribe();
-    } else {
-      subscribe();
-      onResume?.();
-    }
-  };
-  subscribe();
-  document.addEventListener("visibilitychange", onVisibility);
-  return () => {
-    document.removeEventListener("visibilitychange", onVisibility);
-    unsubscribe();
-  };
-}
 
 // ────── ALL OFFERS (admin) ──────
 export function useAllOffers() {

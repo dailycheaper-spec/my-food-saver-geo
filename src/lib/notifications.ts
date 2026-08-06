@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibility } from "@/lib/realtime-visibility";
 
 export type AppNotification = {
   id: string;
@@ -31,11 +32,14 @@ export function useNotifications(userId: string | null) {
       if (alive) { setItems((data ?? []) as AppNotification[]); setLoading(false); }
     }
     load();
-    const channel = supabase
-      .channel(`notifications-${userId}-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; void supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`notifications-${userId}-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, [userId]);
 
   const unreadCount = items.filter((n) => !n.read_at).length;
