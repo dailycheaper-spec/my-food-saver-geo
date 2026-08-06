@@ -30,9 +30,9 @@ let partnerAccessInFlight: Promise<PartnerAccessPayload> | null = null;
 let partnerAccessAt = 0;
 let partnerAccessLast: PartnerAccessPayload = null;
 
-function sharedPartnerAccess(fetcher: () => Promise<PartnerAccessPayload>): Promise<PartnerAccessPayload> {
+function sharedPartnerAccess(fetcher: () => Promise<PartnerAccessPayload>, allowCached = true): Promise<PartnerAccessPayload> {
   if (partnerAccessInFlight) return partnerAccessInFlight;
-  if (partnerAccessLast && Date.now() - partnerAccessAt < 3000) {
+  if (allowCached && partnerAccessLast && Date.now() - partnerAccessAt < 3000) {
     return Promise.resolve(partnerAccessLast);
   }
   partnerAccessInFlight = (async () => {
