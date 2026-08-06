@@ -13,6 +13,32 @@ export type DbProfile = Database["public"]["Tables"]["profiles"]["Row"];
 // rapid route transitions) and cause silent duplicate-subscription bugs.
 let adminChannelCounter = 0;
 
+// An always-open WebSocket keeps the page out of the browser's back/forward
+// cache. Close the channel while the tab is hidden and reopen (plus refetch)
+// when it becomes visible again.
+function withVisibility(
+  create: () => ReturnType<typeof supabase.channel>,
+  onResume?: () => void,
+) {
+  let ch: ReturnType<typeof supabase.channel> | null = null;
+  const subscribe = () => { if (!ch) ch = create(); };
+  const unsubscribe = () => { if (ch) { supabase.removeChannel(ch); ch = null; } };
+  const onVisibility = () => {
+    if (document.visibilityState === "hidden") {
+      unsubscribe();
+    } else {
+      subscribe();
+      onResume?.();
+    }
+  };
+  subscribe();
+  document.addEventListener("visibilitychange", onVisibility);
+  return () => {
+    document.removeEventListener("visibilitychange", onVisibility);
+    unsubscribe();
+  };
+}
+
 // ────── ALL OFFERS (admin) ──────
 export function useAllOffers() {
   const [offers, setOffers] = useState<OfferWithStore[]>([]);
@@ -35,11 +61,14 @@ export function useAllOffers() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { load(); }, 400);
     };
-    const channel = supabase
-      .channel(`admin-all-offers-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, debounced)
-      .subscribe();
-    return () => { alive = false; if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-all-offers-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { alive = false; if (timer) clearTimeout(timer); stop(); };
   }, []);
 
   return { offers, loading };
@@ -83,11 +112,14 @@ export function useAllPayouts() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { load(); }, 400);
     };
-    const channel = supabase
-      .channel(`admin-payouts-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, debounced)
-      .subscribe();
-    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-payouts-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { if (timer) clearTimeout(timer); stop(); };
   }, [load]);
 
 
@@ -99,17 +131,18 @@ export function useStoresWithBank() {
   const [ids, setIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     let alive = true;
-    (async () => {
+    async function load() {
       const { data } = await supabase.from("store_bank_accounts").select("store_id");
       if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
-    })();
-    const ch = supabase.channel(`admin-bank-accounts-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, async () => {
-        const { data } = await supabase.from("store_bank_accounts").select("store_id");
-        if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
-      })
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    }
+    load();
+    const stop = withVisibility(
+      () => supabase.channel(`admin-bank-accounts-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return ids;
 }
@@ -129,10 +162,13 @@ export function useStoresBankDetailsMap() {
       setMap(m);
     }
     load();
-    const ch = supabase.channel(`admin-bank-details-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    const stop = withVisibility(
+      () => supabase.channel(`admin-bank-details-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return map;
 }
@@ -153,10 +189,13 @@ export function useContractStatusMap() {
       setMap(m);
     }
     load();
-    const ch = supabase.channel(`admin-contract-status-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "partner_contracts" }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    const stop = withVisibility(
+      () => supabase.channel(`admin-contract-status-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "partner_contracts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return map;
 }
@@ -216,18 +255,20 @@ export function useAllCustomers() {
 export function useOnlinePresence() {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    const channel = supabase.channel("presence:admin", {
-      config: { presence: { key: crypto.randomUUID() } },
-    });
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        setCount(Object.keys(state).length);
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") channel.track({ online_at: new Date().toISOString() });
+    return withVisibility(() => {
+      const channel = supabase.channel(`presence:admin`, {
+        config: { presence: { key: crypto.randomUUID() } },
       });
-    return () => { supabase.removeChannel(channel); };
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel.presenceState();
+          setCount(Object.keys(state).length);
+        })
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") channel.track({ online_at: new Date().toISOString() });
+        });
+      return channel;
+    });
   }, []);
   return count;
 }
