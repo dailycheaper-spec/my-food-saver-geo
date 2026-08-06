@@ -281,6 +281,7 @@ const labels: Record<Language, Record<string, string>> = {
     confectionery: "საკონდიტრო",
     homeKitchen: "საოჯახო სამზრეულო",
     pizza: "პიცა",
+    semiFinished: "ნახევარფაბრიკატები",
     sushi: "სუში",
     grocery: "პროდუქტი",
     produce: "ხილი/ბოსტნეული",
