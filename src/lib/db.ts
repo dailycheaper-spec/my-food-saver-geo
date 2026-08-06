@@ -410,7 +410,7 @@ export function useMyStores() {
         setError(null);
         return;
       }
-      const access = await sharedPartnerAccess(fetchPartnerAccess);
+      const access = await sharedPartnerAccess(fetchPartnerAccess, background);
       setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
@@ -469,7 +469,7 @@ export function usePartnerAccount() {
         setError(null);
         return;
       }
-      const access = await sharedPartnerAccess(fetchPartnerAccess);
+      const access = await sharedPartnerAccess(fetchPartnerAccess, background);
       setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
       setRoles(cachePartnerRoles((access?.roles ?? []) as AppRole[]));
       setError(null);
