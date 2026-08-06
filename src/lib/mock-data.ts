@@ -211,6 +211,7 @@ const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, s
   "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе", tr: "Kafe", fa: "کافه" },
   "სუში": { ka: "სუში", en: "Sushi", ru: "Суши", tr: "Suşi", fa: "سوشی" },
   "პიცა": { ka: "პიცა", en: "Pizza", ru: "Пицца", tr: "Pizza", fa: "پیتزا" },
+  "ნახევარფაბრიკატები": { ka: "ნახევარფაბრიკატები", en: "Semi-finished", ru: "Полуфабрикаты", tr: "Yarı mamul", fa: "نیمه‌آماده" },
 };
 
 const DISTRICT_LABELS: Record<string, Record<UiLanguage, string>> = {
