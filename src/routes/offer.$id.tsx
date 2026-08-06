@@ -606,13 +606,13 @@ function OfferPage() {
               <button
                 key={p.id}
                 onClick={() => setPayment(p.id as typeof payment)}
-                className={`flex items-center gap-2 min-w-0 p-3 rounded-2xl border-2 transition-all active:scale-[0.98] ${
+                className={`flex flex-col items-center justify-center gap-1.5 min-w-0 p-3 rounded-2xl border-2 transition-all active:scale-[0.98] ${
                   payment === p.id ? "border-primary bg-primary/5" : "border-border"
                 }`}
               >
                 {p.logo ? (
-                  <span className="flex flex-col items-start gap-1 shrink-0">
-                    <img src={p.logo} alt={p.id} className="h-auto max-h-4 w-auto max-w-[60px] object-contain" loading="lazy" />
+                  <span className="flex flex-col items-center gap-1">
+                    <img src={p.logo} alt={p.id} className="h-auto max-h-4 w-auto max-w-[90px] object-contain" loading="lazy" />
                     <span className="flex items-center gap-1">
                       {p.cardMarks?.map((src) => (
                         <img key={src} src={src} alt="" className="h-3 w-auto object-contain" loading="lazy" />
@@ -620,9 +620,9 @@ function OfferPage() {
                     </span>
                   </span>
                 ) : (
-                  <span className="text-lg shrink-0">{p.icon}</span>
+                  <span className="text-lg">{p.icon}</span>
                 )}
-                <span className="font-medium text-left truncate min-w-0">{p.label}</span>
+                <span className="font-medium text-center truncate max-w-full">{p.label}</span>
               </button>
             ))}
 
