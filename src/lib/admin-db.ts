@@ -125,17 +125,18 @@ export function useStoresWithBank() {
   const [ids, setIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     let alive = true;
-    (async () => {
+    async function load() {
       const { data } = await supabase.from("store_bank_accounts").select("store_id");
       if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
-    })();
-    const ch = supabase.channel(`admin-bank-accounts-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, async () => {
-        const { data } = await supabase.from("store_bank_accounts").select("store_id");
-        if (alive && data) setIds(new Set(data.map((r: any) => r.store_id as string)));
-      })
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    }
+    load();
+    const stop = withVisibility(
+      () => supabase.channel(`admin-bank-accounts-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return ids;
 }
