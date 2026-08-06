@@ -421,6 +421,10 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
   ],
+  "ნახევარფაბრიკატები": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца", tr: "Yumurta", fa: "تخم‌مرغ" },
+  ],
 };
 
 const INGREDIENTS_BY_OFFER: Record<string, Localized[]> = {
