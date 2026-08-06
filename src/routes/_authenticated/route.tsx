@@ -49,10 +49,30 @@ async function waitForUser() {
   // to the tab (when the token is most likely to need a refresh).
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.user) {
+    cachedUser = null;
     return { data: { user: null }, error };
   }
+  cachedUser = {
+    user: data.session.user,
+    expiresAt: data.session.expires_at ?? Math.floor(Date.now() / 1000) + 300,
+  };
   return { data: { user: data.session.user }, error: null };
 }
+
+// Keep the cached gate result honest when the session actually changes.
+if (typeof window !== "undefined") {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT" || !session?.user) {
+      cachedUser = null;
+      return;
+    }
+    cachedUser = {
+      user: session.user,
+      expiresAt: session.expires_at ?? Math.floor(Date.now() / 1000) + 300,
+    };
+  });
+}
+
 
 function AuthGateLoading() {
   const lang = typeof window !== "undefined" ? window.localStorage.getItem("cheaper-language") : null;
