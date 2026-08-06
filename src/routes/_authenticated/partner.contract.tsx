@@ -244,8 +244,8 @@ function PartnerContractPage() {
         </div>
       )}
 
-      <div ref={scrollRef} className="rounded-2xl border border-border bg-card p-5">
-        <div className="bg-white p-2">
+      <div ref={scrollRef} className="rounded-2xl border border-border bg-card p-5 overflow-x-auto">
+        <div className="bg-white p-2 min-w-[280px]">
           <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
           {signature && (
             <div className="mt-4">

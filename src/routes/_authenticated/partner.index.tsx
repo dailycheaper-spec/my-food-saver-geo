@@ -40,7 +40,8 @@ function PartnerHome() {
     const revenue = todaysOrders.reduce((s, o) => s + Number(o.amount), 0);
     const active = offers.filter((o) => o.is_active && o.quantity_sold < o.quantity_available).length;
     const pending = orders.filter((o) => o.status === "paid" || o.status === "ready").length;
-    return { revenue, active, pending, totalOrders: orders.length, todayCount: todaysOrders.length, soldToday };
+    const totalOrders = orders.filter((o) => o.status !== "cancelled").length;
+    return { revenue, active, pending, totalOrders, todayCount: todaysOrders.length, soldToday };
   }, [orders, offers]);
 
   function openPicker() {

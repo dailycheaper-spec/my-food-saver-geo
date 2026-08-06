@@ -347,8 +347,8 @@ export const CONTRACT_PRINT_CSS = `
 .contract table th, .contract table td { border: 1px solid #ddd; padding: 6px 8px; vertical-align: top; text-align: start; }
 .contract table.signatures { width: 100%; margin-top: 18px; border-collapse: collapse; }
 .contract table.signatures td { vertical-align: top; width: 50%; padding: 8px; border: 1px solid #ddd; font-size: 13px; }
-.contract-requisites { break-inside: avoid; page-break-inside: avoid; }
-.contract-requisites h2 { break-after: avoid; page-break-after: avoid; }
-.partner-signature { display: inline-flex; min-width: 160px; min-height: 58px; vertical-align: middle; align-items: center; }
-.partner-signature img { display: block; width: auto; max-width: 180px; height: 58px; object-fit: contain; }
+.contract .contract-requisites { break-inside: avoid; page-break-inside: avoid; }
+.contract .contract-requisites h2 { break-after: avoid; page-break-after: avoid; }
+.contract .partner-signature { display: inline-flex; min-width: 160px; min-height: 58px; vertical-align: middle; align-items: center; }
+.contract .partner-signature img { display: block; width: auto; max-width: 180px; height: 58px; object-fit: contain; }
 `;
