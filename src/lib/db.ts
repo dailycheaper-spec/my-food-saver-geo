@@ -18,7 +18,41 @@ export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
 
 let partnerStoresCache: DbStore[] = [];
+let partnerRolesCache: AppRole[] = [];
+let partnerAccessLoadedOnce = false;
 let realtimeChannelCounter = 0;
+
+// Both the partner layout (`usePartnerAccount`) and the partner dashboard
+// (`useMyStores`) need the same server-side partner access payload. Without
+// coalescing, every resume fires the server function 2-3 times in a burst.
+type PartnerAccessPayload = { stores?: unknown; roles?: unknown } | null | undefined;
+let partnerAccessInFlight: Promise<PartnerAccessPayload> | null = null;
+let partnerAccessAt = 0;
+let partnerAccessLast: PartnerAccessPayload = null;
+
+function sharedPartnerAccess(fetcher: () => Promise<PartnerAccessPayload>): Promise<PartnerAccessPayload> {
+  if (partnerAccessInFlight) return partnerAccessInFlight;
+  if (partnerAccessLast && Date.now() - partnerAccessAt < 3000) {
+    return Promise.resolve(partnerAccessLast);
+  }
+  partnerAccessInFlight = (async () => {
+    try {
+      const res = await fetcher();
+      partnerAccessLast = res;
+      partnerAccessAt = Date.now();
+      return res;
+    } finally {
+      partnerAccessInFlight = null;
+    }
+  })();
+  return partnerAccessInFlight;
+}
+
+function cachePartnerRoles(roles: AppRole[]) {
+  partnerRolesCache = roles;
+  return roles;
+}
+
 
 function generateOrderCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
