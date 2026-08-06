@@ -18,6 +18,7 @@ function mapCategory(raw: string | null | undefined, ...extra: (string | null | 
   if (c.includes("bak") || c.includes("საცხობი") || c.includes("bakery")) return "საცხობი";
   if (c.includes("market") || c.includes("super") || c.includes("grocery") || c.includes("produce") || c.includes("მარკეტ") || c.includes("სუპერ")) return "სუპერმარკეტი";
   if (c.includes("cafe") || c.includes("caf") || c.includes("dessert") || c.includes("კაფე")) return "კაფე";
+  if (c.includes("semi_finished") || c.includes("semi-finished") || c.includes("ნახევარფაბრიკატ")) return "ნახევარფაბრიკატები";
   return "რესტორანი";
 }
 
