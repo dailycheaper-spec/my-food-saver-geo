@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibilityMany } from "@/lib/realtime-visibility";
 
 const STORAGE_KEY = "cheaper.partner.soundAlerts"; // "on" | "off"
 const PROMPT_KEY = "cheaper.partner.soundAlerts.prompted"; // "1"
@@ -101,7 +102,7 @@ export function useNewOrderSound(storeIds: string[], enabled: boolean) {
     if (!ids) return;
     const idList = ids.split(",");
     const mountedAt = Date.now();
-    const channels = idList.map((sid) =>
+    const stop = withVisibilityMany(() => idList.map((sid) =>
       supabase
         .channel(`partner-sound-${sid}-${mountedAt}`)
         .on(
@@ -110,7 +111,7 @@ export function useNewOrderSound(storeIds: string[], enabled: boolean) {
           () => trigger(),
         )
         .subscribe(),
-    );
-    return () => { channels.forEach((c) => { void supabase.removeChannel(c); }); };
+    ));
+    return () => { stop(); };
   }, [ids, trigger]);
 }
