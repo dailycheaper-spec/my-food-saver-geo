@@ -155,10 +155,13 @@ export function useStoresBankDetailsMap() {
       setMap(m);
     }
     load();
-    const ch = supabase.channel(`admin-bank-details-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    const stop = withVisibility(
+      () => supabase.channel(`admin-bank-details-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_bank_accounts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return map;
 }
