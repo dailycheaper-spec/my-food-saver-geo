@@ -11,10 +11,16 @@ export type AllergenKey =
   | "soy"
   | "fish"
   | "shellfish"
-  | "sesame";
+  | "sesame"
+  | "celery"
+  | "mustard"
+  | "sulphites"
+  | "lupin"
+  | "molluscs";
 
 export const ALLERGEN_KEYS: AllergenKey[] = [
   "gluten", "dairy", "eggs", "nuts", "peanuts", "soy", "fish", "shellfish", "sesame",
+  "celery", "mustard", "sulphites", "lupin", "molluscs",
 ];
 
 const LABELS: Record<AllergenKey, Record<UiLanguage, string>> = {
@@ -27,6 +33,11 @@ const LABELS: Record<AllergenKey, Record<UiLanguage, string>> = {
   fish:      { ka: "თევზი",            en: "Fish",      ru: "Рыба",          tr: "Balık",        fa: "ماهی" },
   shellfish: { ka: "ზღვის პროდუქტები", en: "Shellfish", ru: "Морепродукты",  tr: "Kabuklu deniz ürünleri", fa: "صدف‌داران" },
   sesame:    { ka: "სეზამი",           en: "Sesame",    ru: "Кунжут",        tr: "Susam",        fa: "کنجد" },
+  celery:    { ka: "ნიახური",          en: "Celery",    ru: "Сельдерей",     tr: "Kereviz",      fa: "کرفس" },
+  mustard:   { ka: "მდოგვი",           en: "Mustard",   ru: "Горчица",       tr: "Hardal",       fa: "خردل" },
+  sulphites: { ka: "გოგირდის დიოქსიდი და სულფიტები", en: "Sulphur dioxide and sulphites", ru: "Диоксид серы и сульфиты", tr: "Kükürt dioksit ve sülfitler", fa: "دی‌اکسید گوگرد و سولفیت‌ها" },
+  lupin:     { ka: "ლუპინი",           en: "Lupin",     ru: "Люпин",         tr: "Acı bakla (lupin)", fa: "لوپین" },
+  molluscs:  { ka: "მოლუსკები",        en: "Molluscs",  ru: "Моллюски",      tr: "Yumuşakçalar", fa: "نرم‌تنان" },
 };
 
 export function allergenLabel(key: string, language: UiLanguage): string {
