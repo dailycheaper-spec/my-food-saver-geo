@@ -18,7 +18,41 @@ export type OfferWithStore = DbOffer & { store: DbStore | null };
 export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
 
 let partnerStoresCache: DbStore[] = [];
+let partnerRolesCache: AppRole[] = [];
+let partnerAccessLoadedOnce = false;
 let realtimeChannelCounter = 0;
+
+// Both the partner layout (`usePartnerAccount`) and the partner dashboard
+// (`useMyStores`) need the same server-side partner access payload. Without
+// coalescing, every resume fires the server function 2-3 times in a burst.
+type PartnerAccessPayload = { stores?: unknown; roles?: unknown } | null | undefined;
+let partnerAccessInFlight: Promise<PartnerAccessPayload> | null = null;
+let partnerAccessAt = 0;
+let partnerAccessLast: PartnerAccessPayload = null;
+
+function sharedPartnerAccess(fetcher: () => Promise<PartnerAccessPayload>, allowCached = true): Promise<PartnerAccessPayload> {
+  if (partnerAccessInFlight) return partnerAccessInFlight;
+  if (allowCached && partnerAccessLast && Date.now() - partnerAccessAt < 3000) {
+    return Promise.resolve(partnerAccessLast);
+  }
+  partnerAccessInFlight = (async () => {
+    try {
+      const res = await fetcher();
+      partnerAccessLast = res;
+      partnerAccessAt = Date.now();
+      return res;
+    } finally {
+      partnerAccessInFlight = null;
+    }
+  })();
+  return partnerAccessInFlight;
+}
+
+function cachePartnerRoles(roles: AppRole[]) {
+  partnerRolesCache = roles;
+  return roles;
+}
+
 
 function generateOrderCode() {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -362,12 +396,13 @@ export async function fetchMyStores(): Promise<DbStore[]> {
 
 export function useMyStores() {
   const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
-  const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
+  const [loading, setLoading] = useState(() => !partnerAccessLoadedOnce);
   const [error, setError] = useState<string | null>(null);
   const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
 
-  const reload = useCallback(async () => {
-    setLoading(true);
+  // background = keep whatever is on screen; no loading flash on tab resume.
+  const reload = useCallback(async (background = false) => {
+    if (!background && !partnerAccessLoadedOnce) setLoading(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
@@ -375,7 +410,7 @@ export function useMyStores() {
         setError(null);
         return;
       }
-      const access = await fetchPartnerAccess();
+      const access = await sharedPartnerAccess(fetchPartnerAccess, background);
       setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
       setError(null);
     } catch (e) {
@@ -388,19 +423,29 @@ export function useMyStores() {
         setError(fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
       }
     } finally {
+      partnerAccessLoadedOnce = true;
       setLoading(false);
     }
   }, [fetchPartnerAccess]);
 
   useEffect(() => {
     let alive = true;
-    const load = async () => {
+    let lastUserId: string | null | undefined;
+    const load = async (background = false) => {
       if (!alive) return;
-      await reload();
+      await reload(background);
     };
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      const uid = session?.user?.id ?? null;
+      // Token refreshes surface as SIGNED_IN/USER_UPDATED for the same user
+      // when the tab regains focus — that's not a real identity change.
+      if (event === "SIGNED_OUT") { lastUserId = null; load(); return; }
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        if (lastUserId !== undefined && lastUserId === uid) return;
+        lastUserId = uid;
+        load(true);
+      }
     });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [reload]);
@@ -409,24 +454,24 @@ export function useMyStores() {
 
 export function usePartnerAccount() {
   const [stores, setStores] = useState<DbStore[]>(() => partnerStoresCache);
-  const [roles, setRoles] = useState<AppRole[]>([]);
-  const [loading, setLoading] = useState(() => partnerStoresCache.length === 0);
+  const [roles, setRoles] = useState<AppRole[]>(() => partnerRolesCache);
+  const [loading, setLoading] = useState(() => !partnerAccessLoadedOnce);
   const [error, setError] = useState<string | null>(null);
   const fetchPartnerAccess = useServerFn(getMyPartnerAccess);
 
-  const reload = useCallback(async () => {
-    setLoading(true);
+  const reload = useCallback(async (background = false) => {
+    if (!background && !partnerAccessLoadedOnce) setLoading(true);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
         setStores(cachePartnerStores([]));
-        setRoles([]);
+        setRoles(cachePartnerRoles([]));
         setError(null);
         return;
       }
-      const access = await fetchPartnerAccess();
+      const access = await sharedPartnerAccess(fetchPartnerAccess, background);
       setStores(cachePartnerStores((access?.stores ?? []) as DbStore[]));
-      setRoles((access?.roles ?? []) as AppRole[]);
+      setRoles(cachePartnerRoles((access?.roles ?? []) as AppRole[]));
       setError(null);
     } catch (e) {
       try {
@@ -438,30 +483,39 @@ export function usePartnerAccount() {
           directRoles = (data ?? []).map((row) => row.role as AppRole);
         }
         setStores(cachePartnerStores(directStores));
-        setRoles(directRoles);
+        setRoles(cachePartnerRoles(directRoles));
         setError(null);
       } catch (fallbackError) {
         setStores([]);
-        setRoles([]);
+        setRoles(cachePartnerRoles([]));
         setError(fallbackError instanceof Error ? fallbackError.message : String(fallbackError));
       }
     } finally {
+      partnerAccessLoadedOnce = true;
       setLoading(false);
     }
   }, [fetchPartnerAccess]);
 
   useEffect(() => {
     let alive = true;
-    const load = async () => {
+    let lastUserId: string | null | undefined;
+    const load = async (background = false) => {
       if (!alive) return;
-      await reload();
+      await reload(background);
     };
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      const uid = session?.user?.id ?? null;
+      if (event === "SIGNED_OUT") { lastUserId = null; load(); return; }
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        if (lastUserId !== undefined && lastUserId === uid) return;
+        lastUserId = uid;
+        load(true);
+      }
     });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [reload]);
+
 
   return {
     stores,
