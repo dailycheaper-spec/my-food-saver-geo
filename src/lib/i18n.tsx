@@ -1290,6 +1290,7 @@ const labels: Record<Language, Record<string, string>> = {
     confectionery: "Кондитерская",
     homeKitchen: "Домашняя кухня",
     pizza: "Пицца",
+    semiFinished: "Полуфабрикаты",
     sushi: "Суши",
     grocery: "Продукты",
     produce: "Фрукты/овощи",
