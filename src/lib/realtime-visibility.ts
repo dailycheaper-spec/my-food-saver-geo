@@ -38,14 +38,23 @@ export function withVisibility(create: () => Channel, onResume?: () => void) {
   };
 }
 
-/** Same as `withVisibility` but for a set of channels created together. */
+/** Same as `withVisibility` but for a group of channels created together. */
 export function withVisibilityMany(create: () => Channel[], onResume?: () => void) {
-  return withVisibility(
-    // The helper only tracks one channel handle, so wrap the group in a proxy
-    // channel-like object is unnecessary: instead manage the list here.
-    (() => {
-      throw new Error("unused");
-    }) as never,
-    onResume,
-  );
+  let chs: Channel[] = [];
+  const subscribe = () => { if (chs.length === 0) chs = create(); };
+  const unsubscribe = () => { chs.forEach((c) => { void supabase.removeChannel(c); }); chs = []; };
+  const onVisibility = () => {
+    if (document.visibilityState === "hidden") {
+      unsubscribe();
+    } else {
+      subscribe();
+      onResume?.();
+    }
+  };
+  if (typeof document === "undefined" || document.visibilityState !== "hidden") subscribe();
+  if (typeof document !== "undefined") document.addEventListener("visibilitychange", onVisibility);
+  return () => {
+    if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVisibility);
+    unsubscribe();
+  };
 }
