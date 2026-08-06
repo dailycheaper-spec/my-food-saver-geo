@@ -314,7 +314,7 @@ function Home() {
                 }`}
               >
                 <span className="text-2xl">{c.icon}</span>
-                <span className="max-w-full line-clamp-3 text-center text-[10px] leading-tight font-bold tracking-tight">
+                <span style={{ overflowWrap: "anywhere" }} className="max-w-full line-clamp-3 text-center text-[10px] leading-tight font-bold tracking-tight">
 
                   {getCategoryLabel(c.id, language)}
                 </span>
