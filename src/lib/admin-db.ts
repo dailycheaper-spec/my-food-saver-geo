@@ -109,11 +109,14 @@ export function useAllPayouts() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { load(); }, 400);
     };
-    const channel = supabase
-      .channel(`admin-payouts-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, debounced)
-      .subscribe();
-    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-payouts-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "payouts" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { if (timer) clearTimeout(timer); stop(); };
   }, [load]);
 
 
