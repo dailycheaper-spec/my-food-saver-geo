@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibility } from "@/lib/realtime-visibility";
 import { STORE_PUBLIC_COLUMNS } from "@/lib/store-columns";
 import { getStoreFollowerCount } from "@/lib/follows.functions";
 import type { DbStore } from "@/lib/db";
@@ -28,11 +29,14 @@ export function useFollowedStoreIds(): { ids: Set<string>; loading: boolean; ref
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (alive && (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED")) load();
     });
-    const channel = supabase
-      .channel(`store_follows-self-${Math.random().toString(36).slice(2)}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_follows" }, () => { if (alive) load(); })
-      .subscribe();
-    return () => { alive = false; sub.subscription.unsubscribe(); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`store_follows-self-${Math.random().toString(36).slice(2)}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_follows" }, () => { if (alive) load(); })
+        .subscribe(),
+      () => { if (alive) load(); },
+    );
+    return () => { alive = false; sub.subscription.unsubscribe(); stop(); };
   }, [load]);
 
   return { ids, loading, refresh: load };
@@ -96,11 +100,14 @@ export function useStoreFollowerCount(storeId: string | undefined): number | nul
       }
     };
     load();
-    const channel = supabase
-      .channel(`store_follows-count-${storeId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "store_follows", filter: `store_id=eq.${storeId}` }, () => { load(); })
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`store_follows-count-${storeId}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "store_follows", filter: `store_id=eq.${storeId}` }, () => { load(); })
+        .subscribe(),
+      () => { load(); },
+    );
+    return () => { alive = false; stop(); };
   }, [storeId]);
   return count;
 }

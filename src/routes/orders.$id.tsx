@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { ArrowLeft, Clock, MapPin, Gift, CheckCircle2, X, Truck, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibility } from "@/lib/realtime-visibility";
 import { fetchOrder, updateOrderStatus, formatGel, type OrderWithRelations } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
 import { localizedField } from "@/lib/localized";
@@ -44,11 +45,14 @@ function OrderDetail() {
       }
     }
     load();
-    const channel = supabase
-      .channel(`order-${id}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`order-${id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `id=eq.${id}` }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, [id]);
 
   if (loading) {

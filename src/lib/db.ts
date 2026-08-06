@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { supabase } from "@/integrations/supabase/client";
+import { withVisibility } from "@/lib/realtime-visibility";
 import type { Database } from "@/integrations/supabase/types";
 import { SUPPORTED_LANGUAGES, currencyWord, formatMoney, type Language } from "@/lib/i18n";
 import { listAdminStores } from "@/lib/admin-store.functions";
@@ -92,12 +93,15 @@ export function useLiveOffers() {
     }
     load();
 
-    const channel = supabase
-      .channel(`public:offers-and-stores-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`public:offers-and-stores-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, () => load())
+        .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, []);
 
   return { offers, loading, error };
@@ -135,15 +139,18 @@ export function useMyOrders() {
     }
     load();
 
-    const channel = supabase
-      .channel(`my-orders-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
-      .subscribe();
+    const stop = withVisibility(
+      () => supabase
+        .channel(`my-orders-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
+        .subscribe(),
+      () => load(),
+    );
 
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
     });
-    return () => { alive = false; supabase.removeChannel(channel); sub.subscription.unsubscribe(); };
+    return () => { alive = false; stop(); sub.subscription.unsubscribe(); };
   }, []);
   return { orders, loading, error };
 }
@@ -176,11 +183,14 @@ export function useOrderStatusHistory(orderId: string | null) {
       if (alive) { setEvents((data ?? []) as OrderStatusEvent[]); setLoading(false); }
     }
     load();
-    const channel = supabase
-      .channel(`order-status-history-${orderId}-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "order_status_history", filter: `order_id=eq.${orderId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; void supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`order-status-history-${orderId}-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "order_status_history", filter: `order_id=eq.${orderId}` }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, [orderId]);
   return { events, loading };
 }
@@ -213,11 +223,14 @@ export function useAuditLog(entityType: string, entityId: string | null) {
       if (alive) { setEntries((data ?? []) as AuditLogEntry[]); setLoading(false); }
     }
     load();
-    const channel = supabase
-      .channel(`audit-log-${entityType}-${entityId}-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "audit_log", filter: `entity_id=eq.${entityId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; void supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`audit-log-${entityType}-${entityId}-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "audit_log", filter: `entity_id=eq.${entityId}` }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, [entityType, entityId]);
   return { entries, loading };
 }
@@ -478,11 +491,14 @@ export function useStoreOffers(storeId: string | null) {
       }
     }
     load();
-    const channel = supabase
-      .channel(`store-offers-${storeId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "offers", filter: `store_id=eq.${storeId}` }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`store-offers-${storeId}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "offers", filter: `store_id=eq.${storeId}` }, () => load())
+        .subscribe(),
+      () => load(),
+    );
+    return () => { alive = false; stop(); };
   }, [storeId]);
   return { offers, loading, error };
 }
@@ -511,16 +527,19 @@ export function useStoreOrders(storeId: string | null) {
     }
     load();
     try {
-      const channel = supabase
-        .channel(channelTopic)
-        .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
-          setNewCount((n) => n + 1);
-          load();
-        })
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
-        .subscribe();
+      const stop = withVisibility(
+        () => supabase
+          .channel(channelTopic)
+          .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => {
+            setNewCount((n) => n + 1);
+            load();
+          })
+          .on("postgres_changes", { event: "UPDATE", schema: "public", table: "orders", filter: `store_id=eq.${storeId}` }, () => load())
+          .subscribe(),
+        () => load(),
+      );
 
-      return () => { alive = false; void supabase.removeChannel(channel); };
+      return () => { alive = false; stop(); };
     } catch (error) {
       console.warn("Partner orders realtime disabled", error);
       return () => { alive = false; };
@@ -556,11 +575,14 @@ export function useAllStores() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { reload(); }, 400);
     };
-    const ch = supabase
-      .channel(`admin-stores-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, debounced)
-      .subscribe();
-    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-stores-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "stores" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { if (timer) clearTimeout(timer); stop(); };
   }, [reload]);
   return { stores, loading, error, reload };
 }
@@ -589,11 +611,14 @@ export function useAllOrders() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { load(); }, 400);
     };
-    const channel = supabase
-      .channel(`admin-orders-${++realtimeChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, debounced)
-      .subscribe();
-    return () => { alive = false; if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-orders-${++realtimeChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { alive = false; if (timer) clearTimeout(timer); stop(); };
   }, []);
   return { orders, loading, error };
 }
