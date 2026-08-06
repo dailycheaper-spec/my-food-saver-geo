@@ -5,7 +5,7 @@ import bagSushi from "@/assets/bag-sushi.jpg";
 import bagProduce from "@/assets/bag-produce.jpg";
 import bagSweets from "@/assets/bag-sweets.jpg";
 
-export type Category = "საცხობი" | "საკონდიტრო" | "საოჯახო სამზრეულო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა";
+export type Category = "საცხობი" | "საკონდიტრო" | "საოჯახო სამზრეულო" | "რესტორანი" | "სუპერმარკეტი" | "კაფე" | "სუში" | "პიცა" | "ნახევარფაბრიკატები";
 
 export interface Offer {
   id: string;
@@ -195,6 +195,7 @@ export const CATEGORIES: { id: Category | "ყველა"; label: string; icon
   { id: "კაფე", label: "კაფე", icon: "☕" },
   { id: "სუში", label: "სუში", icon: "🍣" },
   { id: "პიცა", label: "პიცა", icon: "🍕" },
+  { id: "ნახევარფაბრიკატები", label: "ნახევარფაბრიკატები", icon: "🥟" },
 ];
 
 export const DISTRICTS = ["ყველა უბანი", "ვაკე", "საბურთალო", "ვერა", "ისანი", "დიღომი", "მთაწმინდა", "ჩუღურეთი", "ნაძალადევი", "სამგორი"];
@@ -211,6 +212,7 @@ const CATEGORY_LABELS: Record<Category | "ყველა", Record<UiLanguage, s
   "კაფე": { ka: "კაფე", en: "Cafe", ru: "Кафе", tr: "Kafe", fa: "کافه" },
   "სუში": { ka: "სუში", en: "Sushi", ru: "Суши", tr: "Suşi", fa: "سوشی" },
   "პიცა": { ka: "პიცა", en: "Pizza", ru: "Пицца", tr: "Pizza", fa: "پیتزا" },
+  "ნახევარფაბრიკატები": { ka: "ნახევარფაბრიკატები", en: "Semi-finished", ru: "Полуфабрикаты", tr: "Yarı mamul", fa: "نیمه‌آماده" },
 };
 
 const DISTRICT_LABELS: Record<string, Record<UiLanguage, string>> = {
@@ -420,6 +422,10 @@ const ALLERGENS_BY_CATEGORY: Record<Category, Localized[]> = {
   "პიცა": [
     { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
     { ka: "რძის პროდუქტი", en: "Dairy", ru: "Молочные", tr: "Süt ürünü", fa: "لبنیات" },
+  ],
+  "ნახევარფაბრიკატები": [
+    { ka: "გლუტენი", en: "Gluten", ru: "Глютен", tr: "Gluten", fa: "گلوتن" },
+    { ka: "კვერცხი", en: "Eggs", ru: "Яйца", tr: "Yumurta", fa: "تخم‌مرغ" },
   ],
 };
 
