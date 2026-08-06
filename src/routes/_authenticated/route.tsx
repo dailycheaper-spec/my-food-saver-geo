@@ -1,22 +1,38 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
+// Remembered across navigations so returning to an authenticated route
+// (e.g. browser Back from an external payment page) resolves synchronously
+// instead of awaiting getSession() and painting the full-screen loader.
+let cachedUser: { user: unknown; expiresAt: number } | null = null;
+
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  pendingMs: 0,
+  // Only show the loader if the gate is genuinely slow. The common case
+  // (session already in localStorage) resolves in a few ms, and a loader
+  // painted at 0ms reads as a full page reload.
+  pendingMs: 1500,
+  pendingMinMs: 0,
   pendingComponent: AuthGateLoading,
-  beforeLoad: async ({ location }) => {
-    const { data, error } = await waitForUser();
-    if (error || !data.user) {
-      throw redirect({
-        to: "/auth",
-        search: { redirect: location.href },
-      });
+  beforeLoad: ({ location }) => {
+    if (cachedUser && cachedUser.expiresAt > Date.now() / 1000 + 30) {
+      return { user: cachedUser.user as NonNullable<unknown> };
     }
-    return { user: data.user };
+    return (async () => {
+      const { data, error } = await waitForUser();
+      if (error || !data.user) {
+        cachedUser = null;
+        throw redirect({
+          to: "/auth",
+          search: { redirect: location.href },
+        });
+      }
+      return { user: data.user };
+    })();
   },
   component: () => <Outlet />,
 });
+
 
 async function waitForUser() {
   // getSession() reads the persisted session from localStorage (refreshing it
