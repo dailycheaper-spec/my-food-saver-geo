@@ -179,10 +179,13 @@ export function useContractStatusMap() {
       setMap(m);
     }
     load();
-    const ch = supabase.channel(`admin-contract-status-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "partner_contracts" }, () => load())
-      .subscribe();
-    return () => { alive = false; supabase.removeChannel(ch); };
+    const stop = withVisibility(
+      () => supabase.channel(`admin-contract-status-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "partner_contracts" }, () => load())
+        .subscribe(),
+      load,
+    );
+    return () => { alive = false; stop(); };
   }, []);
   return map;
 }
