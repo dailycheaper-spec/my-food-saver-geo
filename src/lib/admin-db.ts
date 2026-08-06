@@ -242,18 +242,20 @@ export function useAllCustomers() {
 export function useOnlinePresence() {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    const channel = supabase.channel("presence:admin", {
-      config: { presence: { key: crypto.randomUUID() } },
-    });
-    channel
-      .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState();
-        setCount(Object.keys(state).length);
-      })
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") channel.track({ online_at: new Date().toISOString() });
+    return withVisibility(() => {
+      const channel = supabase.channel(`presence:admin`, {
+        config: { presence: { key: crypto.randomUUID() } },
       });
-    return () => { supabase.removeChannel(channel); };
+      channel
+        .on("presence", { event: "sync" }, () => {
+          const state = channel.presenceState();
+          setCount(Object.keys(state).length);
+        })
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") channel.track({ online_at: new Date().toISOString() });
+        });
+      return channel;
+    });
   }, []);
   return count;
 }
