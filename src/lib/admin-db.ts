@@ -61,11 +61,14 @@ export function useAllOffers() {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => { load(); }, 400);
     };
-    const channel = supabase
-      .channel(`admin-all-offers-${++adminChannelCounter}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, debounced)
-      .subscribe();
-    return () => { alive = false; if (timer) clearTimeout(timer); supabase.removeChannel(channel); };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-all-offers-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "offers" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { alive = false; if (timer) clearTimeout(timer); stop(); };
   }, []);
 
   return { offers, loading };
