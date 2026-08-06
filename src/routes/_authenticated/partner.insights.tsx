@@ -164,10 +164,11 @@ function PartnerInsights() {
 }
 
 function Kpi({ icon, label, value, note }: { icon: React.ReactNode; label: string; value: string; note?: string }) {
+  const sizeClass = value.length > 12 ? "text-base" : value.length > 8 ? "text-lg" : "text-2xl";
   return (
-    <div className="bg-card rounded-3xl border border-border p-4">
+    <div className="bg-card rounded-3xl border border-border p-4 overflow-hidden">
       <div className="w-9 h-9 rounded-2xl bg-primary/10 text-primary grid place-items-center">{icon}</div>
-      <div className="text-2xl font-bold mt-2">{value}</div>
+      <div className={`${sizeClass} font-bold mt-2 leading-tight break-words`}>{value}</div>
       <div className="text-[11px] text-muted-foreground uppercase tracking-wide">{label}</div>
       {note && <div className="text-[11px] text-muted-foreground mt-1">{note}</div>}
     </div>

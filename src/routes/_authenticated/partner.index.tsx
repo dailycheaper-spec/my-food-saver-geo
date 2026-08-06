@@ -154,8 +154,8 @@ function PartnerHome() {
         <BigTile
           to="/partner/new"
           icon={<PlusCircle className="w-9 h-9" />}
-          title={t("newOffer")}
-          subtitle={t("fullForm")}
+          title={t("newOfferTile")}
+          subtitle=""
           gradient="from-primary via-primary to-primary/70"
         />
         <BigTile
@@ -304,9 +304,10 @@ function Shortcut({ to, icon, label }: { to: string; icon: React.ReactNode; labe
 }
 
 function SumCell({ label, value }: { label: string; value: string }) {
+  const sizeClass = value.length > 10 ? "text-sm" : value.length > 7 ? "text-base" : "text-lg";
   return (
-    <div className="bg-card rounded-2xl border border-border/60 p-3 text-center">
-      <div className="text-lg font-bold text-primary">{value}</div>
+    <div className="bg-card rounded-2xl border border-border/60 p-3 text-center overflow-hidden">
+      <div className={`${sizeClass} font-bold text-primary leading-tight break-words`}>{value}</div>
       <div className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">{label}</div>
     </div>
   );

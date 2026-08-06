@@ -25,7 +25,9 @@ export function useFollowedStoreIds(): { ids: Set<string>; loading: boolean; ref
   useEffect(() => {
     let alive = true;
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => { if (alive) load(); });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (alive && (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED")) load();
+    });
     const channel = supabase
       .channel(`store_follows-self-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "store_follows" }, () => { if (alive) load(); })

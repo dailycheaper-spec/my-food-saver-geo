@@ -140,7 +140,9 @@ export function useMyOrders() {
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => load())
       .subscribe();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    });
     return () => { alive = false; supabase.removeChannel(channel); sub.subscription.unsubscribe(); };
   }, []);
   return { orders, loading, error };
@@ -311,7 +313,9 @@ export function useMyRole() {
       }
     }
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, []);
 
@@ -382,7 +386,9 @@ export function useMyStores() {
       await reload();
     };
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [reload]);
   return { stores, loading, error, reload };
@@ -438,7 +444,9 @@ export function usePartnerAccount() {
       await reload();
     };
     load();
-    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") load();
+    });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [reload]);
 

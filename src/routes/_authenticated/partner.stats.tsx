@@ -75,10 +75,11 @@ function StatsPage() {
 }
 
 function Kpi({ color, icon, label, value }: { color: string; icon: React.ReactNode; label: string; value: string }) {
+  const sizeClass = value.length > 12 ? "text-base" : value.length > 8 ? "text-lg" : "text-2xl";
   return (
-    <div className={`rounded-3xl p-4 bg-gradient-to-br ${color} text-white shadow-lg`}>
+    <div className={`rounded-3xl p-4 bg-gradient-to-br ${color} text-white shadow-lg overflow-hidden`}>
       <div className="w-10 h-10 rounded-full bg-white/20 grid place-items-center">{icon}</div>
-      <div className="text-2xl font-bold mt-2">{value}</div>
+      <div className={`${sizeClass} font-bold mt-2 leading-tight break-words`}>{value}</div>
       <div className="text-xs opacity-90">{label}</div>
     </div>
   );

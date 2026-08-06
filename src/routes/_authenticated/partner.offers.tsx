@@ -81,11 +81,6 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
   }
   return (
     <div className={`bg-card rounded-2xl border p-4 relative ${offer.is_active && !soldOut ? "border-border" : "border-border/40 opacity-70"}`}>
-      {soldOut && (
-        <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
-          {t("soldOut") || "Sold out"}
-        </span>
-      )}
       <div className="flex items-start gap-3">
         {offer.image_url ? (
           <img src={offer.image_url} alt={offer.title} width={64} height={64} loading="lazy" decoding="async" className={`w-16 h-16 rounded-xl object-cover ${soldOut ? "grayscale" : ""}`} />
@@ -93,7 +88,14 @@ function OfferRow({ offer, onEdit }: { offer: DbOffer; onEdit: () => void }) {
           <div className="w-16 h-16 rounded-xl bg-muted grid place-items-center text-2xl">🍽</div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold truncate">{offer.title}</div>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <div className="font-semibold truncate min-w-0">{offer.title}</div>
+            {soldOut && (
+              <span className="shrink-0 px-2 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider">
+                {t("offer.soldOut")}
+              </span>
+            )}
+          </div>
           <div className="mt-1 flex items-center gap-2 text-sm">
             <span className="font-bold text-primary">{formatGel(Number(offer.discounted_price))}</span>
             <span className="line-through text-muted-foreground text-xs">{formatGel(Number(offer.original_price))}</span>

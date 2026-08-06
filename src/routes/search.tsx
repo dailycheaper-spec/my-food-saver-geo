@@ -16,7 +16,6 @@ import { useI18n } from "@/lib/i18n";
 import { useLiveDbData } from "@/lib/db-adapter";
 import { OfferCardSkeleton } from "@/components/Skeleton";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
-import { Time24Input } from "@/components/Time24Input";
 
 
 const SEARCH_TITLE = "ძებნა — ფასდაკლებული საკვები შენს გარშემო | Cheaper";
@@ -391,19 +390,44 @@ function SearchPage() {
                 >
                   <Clock className="w-3.5 h-3.5" /> {openNowLabel}
                 </button>
-                <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary text-xs font-semibold">
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-xs font-semibold">
                   <Clock className="w-3 h-3" /> {pickupLabel}
-                  <Time24Input
-                    value={pickupBefore}
-                    onChange={setPickupBefore}
-                    className="bg-transparent outline-none text-foreground w-[50px]"
-                  />
+                  <select
+                    value={pickupBefore.split(":")[0] || ""}
+                    onChange={(e) => {
+                      const h = e.target.value;
+                      if (!h) { setPickupBefore(""); return; }
+                      const m = pickupBefore.split(":")[1] || "00";
+                      setPickupBefore(`${h}:${m}`);
+                    }}
+                    className="bg-transparent outline-none text-foreground"
+                    aria-label={pickupLabel}
+                  >
+                    <option value="">--</option>
+                    {Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0")).map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  :
+                  <select
+                    value={pickupBefore.split(":")[1] || "00"}
+                    disabled={!pickupBefore}
+                    onChange={(e) => {
+                      const h = pickupBefore.split(":")[0] || "00";
+                      setPickupBefore(`${h}:${e.target.value}`);
+                    }}
+                    className="bg-transparent outline-none text-foreground disabled:opacity-40"
+                  >
+                    {["00", "15", "30", "45"].map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
                   {pickupBefore && (
                     <button onClick={() => setPickupBefore("")} aria-label="clear time">
                       <X className="w-3 h-3" />
                     </button>
                   )}
-                </label>
+                </div>
               </div>
 
               {/* Diet */}

@@ -90,10 +90,11 @@ function BalancePage() {
 }
 
 function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  const sizeClass = value.length > 12 ? "text-sm" : value.length > 8 ? "text-base" : "text-lg";
   return (
-    <div className="bg-card rounded-2xl border border-border p-4">
+    <div className="bg-card rounded-2xl border border-border p-4 overflow-hidden">
       <div className="w-8 h-8 rounded-full bg-primary/10 text-primary grid place-items-center">{icon}</div>
-      <div className="text-lg font-bold mt-2">{value}</div>
+      <div className={`${sizeClass} font-bold mt-2 leading-tight break-words`}>{value}</div>
       <div className="text-[11px] text-muted-foreground uppercase tracking-wide">{label}</div>
     </div>
   );
