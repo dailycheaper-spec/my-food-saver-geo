@@ -3,13 +3,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Ban, RefreshCcw, MapPin, Search, Plus, X, Trash2, AlertTriangle, Pencil } from "lucide-react";
 import { useAllStores, formatGel, useAllOrders, type DbStore } from "@/lib/db";
-import { useStoresBankDetailsMap, type StoreBankInfo } from "@/lib/admin-db";
+import { useStoresBankDetailsMap, useContractStatusMap, type StoreBankInfo } from "@/lib/admin-db";
 import { usePlatformCommissionPct } from "@/lib/platform-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { DISTRICTS, DISTRICT_COORDS } from "@/lib/mock-data";
 import { CITIES, type City } from "@/lib/city";
 import { approveAdminStore, createAdminStore, deleteAdminStore, listVerificationEvents, rejectAdminStore, setAdminStoreStatus, updateAdminStore, updateVerificationChecklist } from "@/lib/admin-store.functions";
 import { ContractPanel } from "@/components/contracts/ContractPanel";
+import { contractStatusTone } from "@/lib/contracts";
 import { CHECKLIST_ITEMS, REJECTION_REASONS, parseChecklist, type ChecklistItem, type ChecklistValue, type RejectionReason, type VerificationEvent } from "@/lib/verification";
 import { evaluateStoreLocation, calculateDistanceKm, type StoreLocationStatus } from "@/lib/geo";
 import { toast } from "sonner";
@@ -83,6 +84,7 @@ function AdminPartners() {
   const [reportCounts, setReportCounts] = useState<Map<string, number>>(new Map());
   const [activeOffersCount, setActiveOffersCount] = useState<Map<string, number>>(new Map());
   const bankMap = useStoresBankDetailsMap();
+  const contractStatusMap = useContractStatusMap();
   const commissionPct = usePlatformCommissionPct();
 
   async function loadReports() {
@@ -232,6 +234,7 @@ function AdminPartners() {
             reportCount={reportCounts.get(s.id) ?? 0}
             activeOffers={activeOffersCount.get(s.id) ?? 0}
             bank={bankMap.get(s.id) ?? null}
+            contractStatus={contractStatusMap.get(s.id) ?? null}
             onEditLocation={() => setEditingLocation(s)}
             onEdit={() => setEditingStore(s)}
             onChange={() => { reload(); loadReports(); loadActiveOffers(); }} />
@@ -260,7 +263,7 @@ function AdminPartners() {
 
 }
 
-function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, bank, onEditLocation, onEdit, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; bank: StoreBankInfo | null; onEditLocation: () => void; onEdit: () => void; onChange: () => void }) {
+function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers, bank, contractStatus, onEditLocation, onEdit, onChange }: { store: DbStore; balance: number; commissionPct: number; reportCount: number; activeOffers: number; bank: StoreBankInfo | null; contractStatus: string | null; onEditLocation: () => void; onEdit: () => void; onChange: () => void }) {
   const { t } = useI18n();
 
   const [busy, setBusy] = useState(false);
@@ -291,6 +294,9 @@ function PartnerCard({ store, balance, commissionPct, reportCount, activeOffers,
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className="font-display font-bold truncate">{store.name}</h3>
             <StatusBadge status={store.status} />
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${contractStatusTone((contractStatus ?? "none") as never)}`}>
+              {t(contractStatus ? `contract.status.${contractStatus}` : "contract.status.none")}
+            </span>
             {ibanValid ? (
               <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 bg-success/15 text-success" title={`${bank!.iban}${bank!.account_holder ? " · " + bank!.account_holder : ""}`}>
                 <Check className="w-3 h-3" /> {t("admin.partners.ibanProvided")}{bank?.account_holder ? ` · ${bank.account_holder}` : ""}

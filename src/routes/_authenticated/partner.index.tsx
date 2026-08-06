@@ -40,7 +40,7 @@ function PartnerHome() {
     const revenue = todaysOrders.reduce((s, o) => s + Number(o.amount), 0);
     const active = offers.filter((o) => o.is_active && o.quantity_sold < o.quantity_available).length;
     const pending = orders.filter((o) => o.status === "paid" || o.status === "ready").length;
-    return { revenue, active, pending, todayCount: todaysOrders.length, soldToday };
+    return { revenue, active, pending, totalOrders: orders.length, todayCount: todaysOrders.length, soldToday };
   }, [orders, offers]);
 
   function openPicker() {
@@ -154,8 +154,8 @@ function PartnerHome() {
         <BigTile
           to="/partner/new"
           icon={<PlusCircle className="w-9 h-9" />}
-          title={t("newOfferTile")}
-          subtitle=""
+          title={t("newShort")}
+          subtitle={t("fullForm")}
           gradient="from-primary via-primary to-primary/70"
         />
         <BigTile
@@ -169,7 +169,7 @@ function PartnerHome() {
           to="/partner/orders"
           icon={<ShoppingBag className="w-9 h-9" />}
           title={t("navOrders")}
-          subtitle={`${stats.pending}`}
+          subtitle={`${stats.totalOrders}`}
           gradient="from-orange-500 via-orange-500 to-amber-400"
           badge={stats.pending}
         />

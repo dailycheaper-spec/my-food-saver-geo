@@ -137,6 +137,30 @@ export function useStoresBankDetailsMap() {
   return map;
 }
 
+// Latest contract status per store_id (admin partner list — who's been sent one, who hasn't).
+export function useContractStatusMap() {
+  const [map, setMap] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      const { data } = await supabase
+        .from("partner_contracts")
+        .select("store_id, status, version")
+        .order("version", { ascending: true });
+      if (!alive) return;
+      const m = new Map<string, string>();
+      (data ?? []).forEach((r: any) => m.set(r.store_id, r.status));
+      setMap(m);
+    }
+    load();
+    const ch = supabase.channel(`admin-contract-status-${++adminChannelCounter}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "partner_contracts" }, () => load())
+      .subscribe();
+    return () => { alive = false; supabase.removeChannel(ch); };
+  }, []);
+  return map;
+}
+
 // ────── CUSTOMERS ──────
 export type CustomerRow = DbProfile & {
   order_count: number;

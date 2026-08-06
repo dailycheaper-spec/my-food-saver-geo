@@ -46,7 +46,7 @@ import {
   type AdminUserRow,
 } from "@/lib/admin-users.functions";
 import { formatGel } from "@/lib/db";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, formatDate } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({ meta: [{ title: "Users — Admin" }] }),
@@ -73,7 +73,7 @@ function fullName(u: AdminUserRow) {
 }
 
 function AdminUsers() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const load = useServerFn(listAdminUsers);
   const saveUser = useServerFn(updateAdminUser);
   const changeRole = useServerFn(setUserRole);
@@ -368,7 +368,7 @@ function AdminUsers() {
                         </div>
                       </td>
                       <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(r.created_at).toLocaleDateString("ka-GE")}
+                        {formatDate(r.created_at, language, { day: "2-digit", month: "2-digit", year: "numeric" })}
                       </td>
                       <td className="p-3 text-right">
                         <DropdownMenu>

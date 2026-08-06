@@ -49,6 +49,7 @@ function PartnerContractPage() {
   const html = data?.html ?? null;
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const pdfFrameRef = useRef<HTMLIFrameElement | null>(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
   const [consents, setConsents] = useState<Record<ConsentKey, boolean>>({
@@ -80,11 +81,18 @@ function PartnerContractPage() {
   );
 
 
-  // A short contract may never scroll — treat "no overflow" as already read.
+  // The contract flows with the page (not a boxed-in nested scroll area, which
+  // is fiddly to scroll on mobile) — "read to the end" is detected once the
+  // sentinel right after the contract text scrolls into view.
   useEffect(() => {
-    const el = scrollRef.current;
+    const el = sentinelRef.current;
     if (!el || !html) return;
-    if (el.scrollHeight <= el.clientHeight + 8) setScrolledToEnd(true);
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setScrolledToEnd(true); },
+      { threshold: 0 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [html]);
 
   /**
@@ -236,14 +244,7 @@ function PartnerContractPage() {
         </div>
       )}
 
-      <div
-        ref={scrollRef}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setScrolledToEnd(true);
-        }}
-        className="max-h-[60vh] overflow-y-auto rounded-2xl border border-border bg-card p-5"
-      >
+      <div ref={scrollRef} className="rounded-2xl border border-border bg-card p-5">
         <div className="bg-white p-2">
           <div dangerouslySetInnerHTML={{ __html: displayHtml }} />
           {signature && (
@@ -253,6 +254,7 @@ function PartnerContractPage() {
             </div>
           )}
         </div>
+        <div ref={sentinelRef} aria-hidden />
       </div>
 
       {/* Off-screen isolated document used only for PDF rasterisation. */}

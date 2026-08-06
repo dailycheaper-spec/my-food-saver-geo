@@ -91,7 +91,6 @@ export const trLabels: Record<string, string> = {
   "close": "Kapat",
   "newOffer": "Yeni fırsat",
   "fullForm": "Tam form",
-  "newOfferTile": "Yeni - Tam form",
   "active": "Aktif",
   "daily": "Günlük",
   "quickOffer": "Hızlı fırsat",

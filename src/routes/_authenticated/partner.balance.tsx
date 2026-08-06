@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { ArrowLeft, Coins, Clock, CheckCircle2, Wallet } from "lucide-react";
 import { useMyStores, useStoreOrders, formatGel } from "@/lib/db";
 import { PLATFORM_COMMISSION, usePayouts } from "@/lib/partner-db";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, formatDate } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/partner/balance")({
   head: () => ({ meta: [{ title: "ბალანსი — Cheaper" }] }),
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/partner/balance")({
 });
 
 function BalancePage() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { stores, loading } = useMyStores();
   const store = stores.find((s) => s.status === "active") ?? null;
   const { orders } = useStoreOrders(store?.id ?? null);
@@ -62,7 +62,7 @@ function BalancePage() {
         <Row icon={<Coins className="w-4 h-4" />} label={t("todayNet")} value={formatGel(s.todayNet)} />
         <Row icon={<Clock className="w-4 h-4" />} label={t("sevenDays")} value={formatGel(s.weekNet)} />
         <Row icon={<Wallet className="w-4 h-4" />} label={t("lastPayout")} value={s.lastPayoutAmount ? formatGel(s.lastPayoutAmount) : "—"} />
-        <Row icon={<CheckCircle2 className="w-4 h-4" />} label={t("lastDate")} value={s.lastPayoutDate ? new Date(s.lastPayoutDate).toLocaleDateString("ka-GE") : "—"} />
+        <Row icon={<CheckCircle2 className="w-4 h-4" />} label={t("lastDate")} value={s.lastPayoutDate ? formatDate(s.lastPayoutDate, language, { day: "2-digit", month: "2-digit", year: "numeric" }) : "—"} />
       </div>
 
       <div className="mt-6 bg-card rounded-3xl border border-border p-5">
@@ -75,7 +75,7 @@ function BalancePage() {
               <div key={p.id} className="flex items-center justify-between text-sm py-2 border-b border-border/40 last:border-0">
                 <div>
                   <div className="font-semibold">{formatGel(Number(p.amount))}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("ka-GE")}</div>
+                  <div className="text-xs text-muted-foreground">{formatDate(p.created_at, language, { day: "2-digit", month: "2-digit", year: "numeric" })}</div>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${p.status === "paid" ? "bg-primary/10 text-primary" : "bg-warm text-warm-foreground"}`}>
                   {p.status === "paid" ? t("paid") : t("pending")}

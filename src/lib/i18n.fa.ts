@@ -91,7 +91,6 @@ export const faLabels: Record<string, string> = {
   close: "بستن",
   newOffer: "پیشنهاد جدید",
   fullForm: "فرم کامل",
-  newOfferTile: "جدید - فرم کامل",
   active: "فعال",
   daily: "روزانه",
   quickOffer: "پیشنهاد سریع",

@@ -36,7 +36,7 @@ export function NotificationBell({ userId, buttonClassName, iconClassName, onOpe
       >
         <Bell className={iconClassName ?? "w-[18px] h-[18px]"} aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold grid place-items-center">
+          <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold grid place-items-center leading-none">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

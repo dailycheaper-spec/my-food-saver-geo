@@ -48,6 +48,7 @@ type FormState = {
   visibility_radius_km: number;
   company_name: string;
   company_id_number: string;
+  representative_name: string;
   contact_email: string;
   settlement_cycle: SettlementCycle;
   settlement_day: number | null;
@@ -74,6 +75,7 @@ function StoreSettings() {
     visibility_radius_km: 3,
     company_name: "",
     company_id_number: "",
+    representative_name: "",
     contact_email: "",
     settlement_cycle: "weekly",
     settlement_day: 1,
@@ -107,6 +109,7 @@ function StoreSettings() {
             : 3,
         company_name: (anyStore.company_name as string | null) ?? "",
         company_id_number: (anyStore.company_id_number as string | null) ?? "",
+        representative_name: (anyStore.representative_name as string | null) ?? "",
         contact_email: (anyStore.contact_email as string | null) ?? "",
         settlement_cycle: (SETTLEMENT_CYCLES as readonly string[]).includes(String(anyStore.settlement_cycle))
           ? (anyStore.settlement_cycle as SettlementCycle)
@@ -180,6 +183,7 @@ function StoreSettings() {
       visibility_radius_km: form.visibility_radius_km,
       company_name: form.company_name.trim() || null,
       company_id_number: cid || null,
+      representative_name: form.representative_name.trim() || null,
       contact_email: form.contact_email.trim() || null,
       settlement_cycle: form.settlement_cycle,
       settlement_day: form.settlement_cycle === "daily" ? null : (form.settlement_day ?? 1),
@@ -266,6 +270,12 @@ function StoreSettings() {
             className="mt-1 w-full px-3 py-2.5 rounded-xl bg-muted/40 border border-border focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
           />
         </label>
+        <Field
+          label={t("partner.apply.representativeLabel")}
+          value={form.representative_name}
+          onChange={(v) => setForm({ ...form, representative_name: v })}
+          placeholder={t("partner.apply.representativePlaceholder")}
+        />
         <label className="block">
           <span className="text-xs font-medium text-muted-foreground">{t("partner.store.emailLabel")}</span>
           <input

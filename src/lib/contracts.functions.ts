@@ -375,6 +375,22 @@ export const signContract = createServerFn({ method: "POST" })
     const serverSigningDate = signedAt.toISOString().slice(0, 10);
     if (data.signingDate !== serverSigningDate) throw new Error("CONTRACT_SIGNING_REJECTED");
     const values = { ...((contract.placeholder_values ?? {}) as Record<string, string>) };
+    // The contract's placeholder_values were snapshotted when it was generated —
+    // re-sync the partner-supplied requisites from the live store row so that a
+    // partner who completes their profile *after* the contract was sent isn't
+    // permanently blocked from signing by a stale, empty snapshot.
+    const { data: liveStore } = await supabaseAdmin
+      .from("stores")
+      .select("name,company_name,company_id_number,address,representative_name")
+      .eq("id", contract.store_id)
+      .maybeSingle();
+    if (liveStore) {
+      const live = liveStore as Record<string, string | null>;
+      if (String(live.company_name || live.name || "").trim()) values.partner_legal_name = String(live.company_name || live.name);
+      if (String(live.company_id_number ?? "").trim()) values.partner_identification_code = String(live.company_id_number);
+      if (String(live.address ?? "").trim()) values.partner_legal_address = String(live.address);
+      if (String(live.representative_name ?? "").trim()) values.partner_representative_name = String(live.representative_name);
+    }
     const requiredRequisites = [
       "partner_legal_name",
       "partner_identification_code",
@@ -458,5 +474,19 @@ export const signContract = createServerFn({ method: "POST" })
       ip,
       metadata: { consents: data.consents, annex3: data.annex3 },
     });
+
+    const { data: admins } = await supabaseAdmin.from("user_roles").select("user_id").eq("role", "admin");
+    if (admins && admins.length) {
+      await supabaseAdmin.from("notifications").insert(
+        admins.map((a) => ({
+          user_id: a.user_id,
+          type: "partner_contract_signed",
+          title: "ხელშეკრულებას მოეწერა ხელი",
+          body: String(values.partner_legal_name ?? ""),
+          link: "/admin/partners",
+        })),
+      );
+    }
+
     return updated;
   });

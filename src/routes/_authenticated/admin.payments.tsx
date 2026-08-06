@@ -7,7 +7,7 @@ import { useAllOrders, useAllStores, formatGel } from "@/lib/db";
 import { useAllPayouts } from "@/lib/admin-db";
 import { usePlatformCommissionPct } from "@/lib/platform-settings";
 import { markAdminPayoutPaid, runPayoutGeneration } from "@/lib/payouts.functions";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, formatDate } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/admin/payments")({
   head: () => {
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/payments")({
 });
 
 function AdminPayments() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { orders } = useAllOrders();
   const { stores } = useAllStores();
   const { payouts, reload, error: payoutsError } = useAllPayouts();
@@ -178,7 +178,7 @@ function AdminPayments() {
               <div key={p.id} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-muted/30 flex-wrap">
                 <div className="min-w-0">
                   <div className="text-sm font-medium">{p.store_name ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString("ka-GE")}</div>
+                  <div className="text-xs text-muted-foreground">{formatDate(p.created_at, language, { day: "2-digit", month: "2-digit", year: "numeric" })}</div>
                   {p.bank_iban ? (
                     <div className="text-xs mt-1 font-mono text-foreground">IBAN: {p.bank_iban}{p.account_holder ? ` · ${p.account_holder}` : ""}</div>
                   ) : (
