@@ -24,6 +24,19 @@ export function wasPrompted(): boolean {
 }
 
 let sharedCtx: AudioContext | null = null;
+
+// An open AudioContext keeps the page out of bfcache — suspend it while hidden.
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (!sharedCtx) return;
+    if (document.visibilityState === "hidden") {
+      void sharedCtx.suspend();
+    } else if (sharedCtx.state === "suspended") {
+      void sharedCtx.resume();
+    }
+  });
+}
+
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
   try {
