@@ -8,10 +8,12 @@ let cachedUser: { user: unknown; expiresAt: number } | null = null;
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  // Only show the loader if the gate is genuinely slow. The common case
-  // (session already in localStorage) resolves in a few ms, and a loader
-  // painted at 0ms reads as a full page reload.
-  pendingMs: 1500,
+  // The common case (session already cached or in localStorage) resolves in a
+  // few ms and never paints the loader. Anything slower than 200ms does get
+  // visible feedback — a longer delay would read as a frozen app on a slow
+  // connection.
+  pendingMs: 200,
+
   pendingMinMs: 0,
   pendingComponent: AuthGateLoading,
   beforeLoad: ({ location }) => {
