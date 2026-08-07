@@ -30,6 +30,7 @@ import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-addres
 import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+import { useOfferAddons } from "@/lib/offer-addons";
 
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
@@ -165,8 +166,16 @@ function OfferPage() {
   const [payment, setPayment] = useState<"FLITT" | "BOG" | "GPAY">("BOG");
   const [copied, setCopied] = useState(false);
 
+  const addons = useOfferAddons(offer.id, realDb);
+  // Local-only selection: this page is the whole checkout, there is no cart.
+  const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  const addonTotal = addons.reduce((sum, a) => sum + a.price * (addonQty[a.id] ?? 0), 0);
+  const selectedAddons = addons
+    .filter((a) => (addonQty[a.id] ?? 0) > 0)
+    .map((a) => ({ savedProductId: a.id, quantity: addonQty[a.id]! }));
+
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
-  const total = offer.price * quantity + deliveryFee;
+  const total = offer.price * quantity + deliveryFee + addonTotal;
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const soldOut = offer.itemsLeft <= 0;
 
@@ -245,6 +254,7 @@ function OfferPage() {
         deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
         deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
         customerNote: customerNote.trim() || undefined,
+        addons: selectedAddons,
         nativeReturn: isNative(),
       };
       const { redirectUrl } =
@@ -582,6 +592,92 @@ function OfferPage() {
           </div>
         </div>
 
+        {/* ---- ხელს გააყოლე (add-ons) ---- */}
+        {addons.length > 0 && (
+          <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
+            <div className="font-bold mb-3">{t("offer.addons.title")}</div>
+            <div className="space-y-2">
+              {addons.map((a) => {
+                const qty = addonQty[a.id] ?? 0;
+                const soldOutAddon = a.remaining !== null && a.remaining <= 0;
+                const cap = Math.min(a.maxQuantity, a.remaining ?? a.maxQuantity);
+                const pct = a.originalPrice
+                  ? Math.round((1 - a.price / a.originalPrice) * 100)
+                  : 0;
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center gap-3 p-2 rounded-2xl bg-secondary/60 border border-border"
+                  >
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted shrink-0">
+                      {a.imageUrl && (
+                        <ImageWithSkeleton
+                          src={a.imageUrl}
+                          alt={a.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold truncate">{a.name}</div>
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <span className="font-bold text-primary">{formatPrice(a.price)}</span>
+                        {a.originalPrice && (
+                          <>
+                            <span className="text-xs text-muted-foreground line-through">
+                              {formatPrice(a.originalPrice)}
+                            </span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                              -{pct}%
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      {soldOutAddon && (
+                        <div className="text-[11px] text-muted-foreground">
+                          {t("offer.addons.outOfStock")}
+                        </div>
+                      )}
+                    </div>
+                    {soldOutAddon ? null : qty === 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => setAddonQty((s) => ({ ...s, [a.id]: 1 }))}
+                        className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold press shrink-0"
+                      >
+                        {t("offer.addons.add")}
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          aria-label="-"
+                          onClick={() => setAddonQty((s) => ({ ...s, [a.id]: qty - 1 }))}
+                          className="w-8 h-8 rounded-full bg-background border border-border font-bold press"
+                        >
+                          −
+                        </button>
+                        <span className="w-5 text-center text-sm font-bold tabular-nums">{qty}</span>
+                        <button
+                          type="button"
+                          aria-label="+"
+                          disabled={qty >= cap}
+                          onClick={() => setAddonQty((s) => ({ ...s, [a.id]: qty + 1 }))}
+                          className="w-8 h-8 rounded-full bg-background border border-border font-bold press disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+
+
 
 
         {/* ---- Payment ---- */}
@@ -655,6 +751,7 @@ function OfferPage() {
                         method: isDelivery ? "delivery" : "pickup",
                         deliveryAddress: isDelivery ? address : undefined,
                         customerNote: customerNote.trim() || undefined,
+                        addons: selectedAddons,
                         googlePayToken,
                         nativeReturn: isNative(),
                       },
