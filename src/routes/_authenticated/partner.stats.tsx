@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeft, TrendingUp, ShoppingBag, Wallet, Trophy } from "lucide-react";
+import { ArrowLeft, TrendingUp, ShoppingBag, Wallet, Trophy, PlusCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
 
