@@ -72,6 +72,7 @@ export function useOfferAddons(offerId: string, enabled = true) {
               p.addon_stock_quantity == null
                 ? null
                 : Math.max(0, Number(p.addon_stock_quantity) - Number(p.addon_stock_sold)),
+            category: p.addon_category ?? null,
           };
         });
       setAddons(mapped);
