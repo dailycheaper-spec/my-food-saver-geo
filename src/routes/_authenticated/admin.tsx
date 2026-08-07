@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, redirect, useRouterState } from "@tansta
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Store, ShoppingBag, Users, LogOut, Package,
-  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield, Image as ImageIcon,
+  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield, Image as ImageIcon, PlusCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CitySelector } from "@/components/CitySelector";
