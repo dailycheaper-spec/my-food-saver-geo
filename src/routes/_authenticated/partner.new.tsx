@@ -213,9 +213,22 @@ function NewOfferPage() {
 
 
 
-    const { error } = await supabase.from("offers").insert(payload);
+    const { data: created, error } = await supabase.from("offers").insert(payload).select("id").single();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+
+    if (created?.id && pickedAddonIds.length > 0) {
+      const { error: addonError } = await supabase.from("offer_addons").insert(
+        pickedAddonIds.map((saved_product_id, i) => ({
+          offer_id: created.id,
+          saved_product_id,
+          sort_order: i,
+          is_active: true,
+        })),
+      );
+      if (addonError) toast.error(addonError.message);
+    }
+
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     navigate({ to: "/partner/offers" });
   }
 
