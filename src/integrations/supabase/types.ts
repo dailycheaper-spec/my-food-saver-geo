@@ -238,6 +238,48 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_addons: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          offer_id: string
+          saved_product_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          offer_id: string
+          saved_product_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          offer_id?: string
+          saved_product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_addons_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_addons_saved_product_id_fkey"
+            columns: ["saved_product_id"]
+            isOneToOne: false
+            referencedRelation: "saved_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           allergens: string[] | null
@@ -347,6 +389,48 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_addons: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          quantity: number
+          saved_product_id: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          quantity: number
+          saved_product_id: string
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          quantity?: number
+          saved_product_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_addons_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_addons_saved_product_id_fkey"
+            columns: ["saved_product_id"]
+            isOneToOne: false
+            referencedRelation: "saved_products"
             referencedColumns: ["id"]
           },
         ]
@@ -810,6 +894,10 @@ export type Database = {
       }
       saved_products: {
         Row: {
+          addon_active: boolean
+          addon_category: string | null
+          addon_discounted_price: number | null
+          addon_max_quantity: number
           category: string | null
           composition: string | null
           created_at: string
@@ -819,6 +907,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          is_addon: boolean
           name: string
           store_id: string
           unit_type: string
@@ -826,6 +915,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          addon_active?: boolean
+          addon_category?: string | null
+          addon_discounted_price?: number | null
+          addon_max_quantity?: number
           category?: string | null
           composition?: string | null
           created_at?: string
@@ -835,6 +928,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_addon?: boolean
           name: string
           store_id: string
           unit_type?: string
@@ -842,6 +936,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          addon_active?: boolean
+          addon_category?: string | null
+          addon_discounted_price?: number | null
+          addon_max_quantity?: number
           category?: string | null
           composition?: string | null
           created_at?: string
@@ -851,6 +949,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_addon?: boolean
           name?: string
           store_id?: string
           unit_type?: string
