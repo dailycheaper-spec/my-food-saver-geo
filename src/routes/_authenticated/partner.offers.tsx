@@ -1,13 +1,14 @@
 import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle, PlusCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { addonCategoryKey } from "@/lib/addons";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { AuditLogButton } from "@/components/AuditLogPanel";
 import { Time24Input } from "@/components/Time24Input";
