@@ -17,6 +17,23 @@ Execute permission is revoked from PUBLIC and re-granted only to the anon and au
 
 The link-table rules are left untouched — only how the products rule reaches them changes.
 
+## Full audit of the other add-on rules (already done)
+
+I read every access rule on the three tables added across the four phases and mapped which other table each one reads:
+
+```text
+offer_addons   -> offers, saved_products
+saved_products -> offer_addons          <-- the loop
+order_addons   -> orders, offers
+orders         -> stores
+offers         -> (none)
+```
+
+Result: the products <-> link-table pair is the only cycle. The order-line rules read orders and offers, and neither of those reads back into the order-line table, so that chain terminates. The offers rules reference no other table at all. Everything else on these tables uses the privileged `is_store_member` / `has_role` helpers, which are cycle-proof by construction.
+
+No extra changes needed beyond the one fix above — but after the migration I will re-run the same mapping to confirm the new helper leaves no remaining loop.
+
+
 ## Verification
 
 - Query the products table as anon and as authenticated after the change and confirm the recursion error is gone. If `SECURITY DEFINER` alone does not stop it, add `set local row_security = off` inside the function body (safe here because the function's own logic fully replaces what row security would check) — try the simpler form first.
