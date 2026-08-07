@@ -170,6 +170,9 @@ function OfferPage() {
   // Local-only selection: this page is the whole checkout, there is no cart.
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
   const addonTotal = addons.reduce((sum, a) => sum + a.price * (addonQty[a.id] ?? 0), 0);
+  const selectedAddons = addons
+    .filter((a) => (addonQty[a.id] ?? 0) > 0)
+    .map((a) => ({ savedProductId: a.id, quantity: addonQty[a.id]! }));
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
   const total = offer.price * quantity + deliveryFee + addonTotal;
@@ -251,6 +254,7 @@ function OfferPage() {
         deliveryLng: isDelivery ? selectedAddr?.lng ?? null : null,
         deliveryPlaceId: isDelivery ? selectedAddr?.placeId ?? null : null,
         customerNote: customerNote.trim() || undefined,
+        addons: selectedAddons,
         nativeReturn: isNative(),
       };
       const { redirectUrl } =
@@ -747,6 +751,7 @@ function OfferPage() {
                         method: isDelivery ? "delivery" : "pickup",
                         deliveryAddress: isDelivery ? address : undefined,
                         customerNote: customerNote.trim() || undefined,
+                        addons: selectedAddons,
                         googlePayToken,
                         nativeReturn: isNative(),
                       },
