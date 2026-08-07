@@ -1,17 +1,27 @@
 import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Plus, Edit2, Trash2, X, ToggleLeft, ToggleRight, Minus, StopCircle, PlusCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, formatGel, type DbOffer } from "@/lib/db";
 import { bumpOfferQty, finishOffer } from "@/lib/partner-db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
 import { useI18n } from "@/lib/i18n";
 import { ALLERGEN_KEYS, allergenLabel } from "@/lib/allergens";
+import { addonCategoryKey } from "@/lib/addons";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { AuditLogButton } from "@/components/AuditLogPanel";
 import { Time24Input } from "@/components/Time24Input";
 import { toast } from "sonner";
+
+/** One "ხელს გააყოლე" add-on the partner can attach to an offer. */
+type AddonOption = {
+  id: string;
+  name: string;
+  addon_category: string | null;
+  addon_discounted_price: number | null;
+  default_discounted_price: number;
+};
 
 export const Route = createFileRoute("/_authenticated/partner/offers")({
   head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
@@ -173,7 +183,83 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
   const [saving, setSaving] = useState(false);
   const [imgInvalid, setImgInvalid] = useState(false);
   const initialFormRef = useRef(form);
-  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
+
+  // "ხელს გააყოლე" add-ons that can be offered alongside this deal.
+  const [addons, setAddons] = useState<AddonOption[]>([]);
+  const [pickedAddonIds, setPickedAddonIds] = useState<string[]>([]);
+  // Snapshot of what was linked when the modal opened — the save diffs against it.
+  const linkedAtOpenRef = useRef<string[]>([]);
+
+  const addonsDirty =
+    JSON.stringify([...pickedAddonIds].sort()) !== JSON.stringify([...linkedAtOpenRef.current].sort());
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current) || addonsDirty;
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("saved_products")
+        .select("id,name,addon_category,addon_discounted_price,default_discounted_price")
+        .eq("store_id", storeId)
+        .eq("is_addon", true)
+        .eq("addon_active", true)
+        .eq("is_active", true)
+        .order("name");
+      if (!cancelled) setAddons((data ?? []) as AddonOption[]);
+    })();
+    return () => { cancelled = true; };
+  }, [storeId]);
+
+  useEffect(() => {
+    if (!offer) {
+      linkedAtOpenRef.current = [];
+      setPickedAddonIds([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("offer_addons")
+        .select("saved_product_id")
+        .eq("offer_id", offer.id)
+        .eq("is_active", true)
+        .order("sort_order");
+      if (cancelled) return;
+      const ids = (data ?? []).map((r) => r.saved_product_id);
+      linkedAtOpenRef.current = ids;
+      setPickedAddonIds(ids);
+    })();
+    return () => { cancelled = true; };
+  }, [offer]);
+
+  /** Insert only newly checked links, delete only ones that were unchecked. */
+  async function syncAddonLinks(offerId: string, previous: string[]) {
+    const added = pickedAddonIds.filter((id) => !previous.includes(id));
+    const removed = previous.filter((id) => !pickedAddonIds.includes(id));
+
+    if (removed.length > 0) {
+      const { error } = await supabase
+        .from("offer_addons")
+        .delete()
+        .eq("offer_id", offerId)
+        .in("saved_product_id", removed);
+      if (error) toast.error(error.message);
+    }
+    if (added.length > 0) {
+      const base = pickedAddonIds.length - added.length;
+      const { error } = await supabase.from("offer_addons").insert(
+        added.map((saved_product_id, i) => ({
+          offer_id: offerId,
+          saved_product_id,
+          sort_order: base + i,
+          is_active: true,
+        })),
+      );
+      if (error) toast.error(error.message);
+    }
+  }
+
+
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -211,9 +297,13 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       allergens: form.allergens.length ? form.allergens : null,
     };
     if (offer) {
-      await supabase.from("offers").update(payload).eq("id", offer.id);
+      const { error } = await supabase.from("offers").update(payload).eq("id", offer.id);
+      if (error) { setSaving(false); toast.error(error.message); return; }
+      await syncAddonLinks(offer.id, linkedAtOpenRef.current);
     } else {
-      await supabase.from("offers").insert(payload);
+      const { data: created, error } = await supabase.from("offers").insert(payload).select("id").single();
+      if (error || !created) { setSaving(false); toast.error(error?.message ?? ""); return; }
+      await syncAddonLinks(created.id, []);
     }
     setSaving(false);
     onClose();
@@ -292,6 +382,32 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
                 );
               })}
             </div>
+          </div>
+          <div className="p-3 rounded-2xl border border-border bg-card/50">
+            <div className="text-sm font-bold flex items-center gap-1.5 mb-2">
+              <PlusCircle className="w-4 h-4 text-primary" /> {t("partner.addons.offerPickTitle")}
+            </div>
+            {addons.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t("partner.addons.offerPickEmpty")}</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {addons.map((a) => {
+                  const picked = pickedAddonIds.includes(a.id);
+                  return (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => setPickedAddonIds((prev) => (picked ? prev.filter((id) => id !== a.id) : [...prev, a.id]))}
+                      className={`px-3 py-2 rounded-2xl text-xs font-medium border ${picked ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                    >
+                      {picked ? "✓ " : ""}{a.name}
+                      {a.addon_category ? ` · ${t(addonCategoryKey(a.addon_category))}` : ""}
+                      {" · "}{a.addon_discounted_price ?? a.default_discounted_price}₾
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={form.delivery_available} onChange={(e) => setForm({ ...form, delivery_available: e.target.checked })} />
