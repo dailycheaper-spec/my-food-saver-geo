@@ -11,6 +11,7 @@ export type OfferAddon = {
   maxQuantity: number;
   /** null = unlimited */
   remaining: number | null;
+  category: string | null;
 };
 
 type Row = {
@@ -25,10 +26,12 @@ type Row = {
     addon_max_quantity: number;
     addon_stock_quantity: number | null;
     addon_stock_sold: number;
+    addon_category: string | null;
     is_addon: boolean;
     addon_active: boolean;
   } | null;
 };
+
 
 /**
  * Active "ხელს გააყოლე" add-ons linked to one offer. Read-only; the charged
