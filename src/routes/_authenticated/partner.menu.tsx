@@ -75,6 +75,8 @@ function PartnerMenuPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
+  const regularItems = useMemo(() => items.filter((i) => !i.is_addon), [items]);
+  const addonItems = useMemo(() => items.filter((i) => i.is_addon), [items]);
 
   useEffect(() => {
     let cancelled = false;
