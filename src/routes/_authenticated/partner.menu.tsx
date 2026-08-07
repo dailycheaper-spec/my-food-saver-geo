@@ -335,6 +335,49 @@ function PartnerMenuPage() {
   );
 }
 
+function MenuRow({ it, t, onEdit, onRemove }: { it: MenuItem; t: (k: string) => string; onEdit: (it: MenuItem) => void; onRemove: (id: string) => void }) {
+  return (
+    <li className="flex gap-3 p-3 rounded-2xl border border-border bg-card">
+      <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0 grid place-items-center">
+        {it.image_url
+          ? <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+          : <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold text-sm truncate">{it.name}</div>
+        <div className="text-xs text-muted-foreground">
+          <span className="line-through">{it.default_original_price}₾</span>{" "}
+          <span className="text-primary font-bold">{it.default_discounted_price}₾</span>
+          {" · "}
+          {t(`partner.menu.unit${it.unit_type.charAt(0).toUpperCase()}${it.unit_type.slice(1)}`)}
+          {it.unit_type === "weight" && it.unit_weight_grams ? ` · ${it.unit_weight_grams}${t("offer.unitGram")}` : ""}
+        </div>
+        {it.is_addon && (
+          <div className="text-[11px] text-primary mt-0.5 truncate">
+            {t("partner.addons.badge")}
+            {it.addon_category ? ` · ${t(addonCategoryKey(it.addon_category))}` : ""}
+            {it.addon_discounted_price != null ? ` · ${it.addon_discounted_price}₾` : ""}
+            {!it.addon_active ? " · —" : ""}
+          </div>
+        )}
+        {it.default_allergens && it.default_allergens.length > 0 && (
+          <div className="text-[11px] text-amber-600 mt-0.5 truncate">
+            {it.default_allergens.map((a) => allergenLabel(a, "ka")).join(", ")}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5 shrink-0">
+        <button onClick={() => onEdit(it)} aria-label={t("partner.menu.edit")} className="p-2 rounded-xl border border-border">
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button onClick={() => onRemove(it.id)} aria-label={t("partner.menu.delete")} className="p-2 rounded-xl border border-border text-destructive">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </li>
+  );
+}
+
 function Label({ children }: { children: React.ReactNode }) {
   return <div className="text-xs font-medium text-muted-foreground mb-1.5">{children}</div>;
 }
