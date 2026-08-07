@@ -61,6 +61,53 @@ export function buildRedirectUrls(origin: string, orderId: string, nativeReturn?
   };
 }
 
+/**
+ * Validates the requested add-ons against the offer they were shown with and
+ * prices every line from the database. A client-supplied price is never used.
+ */
+async function resolveAddonLines(
+  supabase: SupabaseClient<Database>,
+  data: OrderInput,
+): Promise<{ saved_product_id: string; quantity: number; unit_price: number }[]> {
+  const requested = (data.addons ?? []).filter((a) => a && a.quantity > 0);
+  if (requested.length === 0) return [];
+
+  const ids = [...new Set(requested.map((a) => a.savedProductId))];
+
+  // Only add-ons actually linked to *this* offer may be bought with it.
+  const { data: links, error: linkError } = await supabase
+    .from("offer_addons")
+    .select("saved_product_id")
+    .eq("offer_id", data.offerId)
+    .eq("is_active", true)
+    .in("saved_product_id", ids);
+  if (linkError) throw new Error(linkError.message);
+  const linked = new Set((links ?? []).map((l) => l.saved_product_id));
+
+  const { data: products, error: productError } = await supabase
+    .from("saved_products")
+    .select(
+      "id, store_id, is_addon, addon_active, addon_discounted_price, default_original_price, addon_max_quantity",
+    )
+    .in("id", ids);
+  if (productError) throw new Error(productError.message);
+  const byId = new Map((products ?? []).map((p) => [p.id, p]));
+
+  return requested.map((a) => {
+    const p = byId.get(a.savedProductId);
+    if (!p) throw new Error("Add-on not found");
+    if (!p.is_addon || !p.addon_active) throw new Error("Add-on is not available");
+    if (p.store_id !== data.storeId) throw new Error("Add-on belongs to a different store");
+    if (!linked.has(p.id)) throw new Error("Add-on is not offered with this deal");
+    const max = Math.max(1, Number(p.addon_max_quantity) || 1);
+    const qty = Math.floor(a.quantity);
+    if (qty < 1 || qty > max) throw new Error("Add-on quantity is not allowed");
+    const unitPrice = Number(p.addon_discounted_price ?? p.default_original_price);
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("Add-on price is invalid");
+    return { saved_product_id: p.id, quantity: qty, unit_price: unitPrice };
+  });
+}
+
 // Create the pending order under the caller's RLS session so the
 // offer-price / minimum-amount triggers still apply. Returns the row.
 export async function createPendingOrder(
@@ -79,7 +126,14 @@ export async function createPendingOrder(
   // Matches the client's own total calculation (offer.$id.tsx: price * qty +
   // deliveryFee) — flat per-store fee, not distance-based.
   const deliveryFee = data.method === "delivery" ? Number(offer.store?.delivery_fee_base ?? 0) : 0;
-  const realAmount = Number(offer.discounted_price) * data.quantity + deliveryFee;
+
+  // Any add-on problem aborts before the order exists — never a main order
+  // with an add-on silently dropped.
+  const addonLines = await resolveAddonLines(supabase, data);
+  const addonTotal = addonLines.reduce((sum, l) => sum + l.unit_price * l.quantity, 0);
+
+  const realAmount =
+    Math.round((Number(offer.discounted_price) * data.quantity + deliveryFee + addonTotal) * 100) / 100;
 
   const note = data.customerNote?.trim();
   const { data: order, error } = await supabase
@@ -102,6 +156,19 @@ export async function createPendingOrder(
     .select("id, amount, quantity")
     .single();
   if (error || !order) throw new Error(error?.message ?? "Failed to create order");
+
+  if (addonLines.length > 0) {
+    // order_addons has no client INSERT grant — the stock trigger runs here.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: addonError } = await supabaseAdmin
+      .from("order_addons")
+      .insert(addonLines.map((l) => ({ ...l, order_id: order.id })));
+    if (addonError) {
+      await cancelOrder(supabase, order.id);
+      throw new Error(addonError.message);
+    }
+  }
+
   return order;
 }
 
