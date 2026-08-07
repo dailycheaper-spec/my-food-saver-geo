@@ -125,7 +125,7 @@ export function useLiveOffers() {
     async function load() {
       const { data, error: err } = await supabase
         .from("offers")
-        .select("*, store:stores!inner(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
+        .select("*, store:stores!inner(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
         .eq("is_active", true)
         .eq("store.status", "active")
         .order("created_at", { ascending: false });
@@ -154,7 +154,7 @@ export function useLiveOffers() {
 export async function fetchOffer(id: string): Promise<OfferWithStore | null> {
   const { data } = await supabase
     .from("offers")
-    .select("*, store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
+    .select("*, store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
     .eq("id", id)
     .maybeSingle();
   return (data as OfferWithStore) ?? null;
