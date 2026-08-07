@@ -101,6 +101,43 @@ function StatsPage() {
           </div>
         )}
       </div>
+
+      <div className="bg-card rounded-3xl border border-border p-5 mt-4">
+        <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <PlusCircle className="w-4 h-4 text-primary" /> {t("partner.stats.addonsTitle")}
+        </h3>
+        <div className="flex items-center justify-between text-sm mb-3">
+          <span className="text-muted-foreground">{t("partner.stats.addonRevenue")}</span>
+          <span className="font-bold text-primary">{formatGel(s.addonRevenue)}</span>
+        </div>
+        {s.topAddons.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">{t("noData")}</p>
+        ) : (
+          <div className="space-y-2">
+            {s.topAddons.map(([name, count], i) => (
+              <div key={name} className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full grid place-items-center text-sm font-bold ${i === 0 ? "bg-yellow-100 text-yellow-700" : i === 1 ? "bg-slate-100 text-slate-700" : "bg-orange-100 text-orange-700"}`}>{i + 1}</div>
+                <div className="flex-1 truncate">{name}</div>
+                <div className="font-bold text-primary">{count}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 grid grid-cols-2 gap-3 text-sm border-t border-border pt-3">
+          <div>
+            <div className="text-muted-foreground text-xs">{t("partner.stats.addonConversion")}</div>
+            <div className="font-bold">
+              {s.hasAddonSample ? `${s.addonConversionPct}%` : <span className="text-muted-foreground font-normal">{t("noData")}</span>}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs">{t("partner.stats.avgAddonsPerOrder")}</div>
+            <div className="font-bold">
+              {s.hasAddonSample ? s.avgAddonsPerOrder.toFixed(1) : <span className="text-muted-foreground font-normal">{t("noData")}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
