@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.consume_addon_stock() FROM PUBLIC, anon, authenticated;
