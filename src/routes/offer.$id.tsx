@@ -169,10 +169,20 @@ function OfferPage() {
   const addons = useOfferAddons(offer.id, realDb);
   // Local-only selection: this page is the whole checkout, there is no cart.
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  const [addonCat, setAddonCat] = useState<string>("all");
+  const addonCategories = useMemo(
+    () => Array.from(new Set(addons.map((a) => a.category).filter(Boolean) as string[])),
+    [addons],
+  );
+  const visibleAddons =
+    addonCategories.length > 1 && addonCat !== "all"
+      ? addons.filter((a) => a.category === addonCat)
+      : addons;
   const addonTotal = addons.reduce((sum, a) => sum + a.price * (addonQty[a.id] ?? 0), 0);
   const selectedAddons = addons
     .filter((a) => (addonQty[a.id] ?? 0) > 0)
     .map((a) => ({ savedProductId: a.id, quantity: addonQty[a.id]! }));
+
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
   const total = offer.price * quantity + deliveryFee + addonTotal;
