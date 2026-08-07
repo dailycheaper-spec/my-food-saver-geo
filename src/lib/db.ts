@@ -15,7 +15,17 @@ export type DbOrder = Database["public"]["Tables"]["orders"]["Row"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
 export type OfferWithStore = DbOffer & { store: DbStore | null };
-export type OrderWithRelations = DbOrder & { offer: DbOffer | null; store: DbStore | null };
+export type OrderAddonLine = {
+  quantity: number;
+  unit_price: number;
+  saved_products: { name: string } | null;
+};
+export type OrderWithRelations = DbOrder & {
+  offer: DbOffer | null;
+  store: DbStore | null;
+  /** "ხელს გააყოლე" lines bought with this order (display only). */
+  order_addons: OrderAddonLine[];
+};
 
 let partnerStoresCache: DbStore[] = [];
 let partnerRolesCache: AppRole[] = [];
@@ -115,7 +125,7 @@ export function useLiveOffers() {
     async function load() {
       const { data, error: err } = await supabase
         .from("offers")
-        .select("*, store:stores!inner(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+        .select("*, store:stores!inner(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
         .eq("is_active", true)
         .eq("store.status", "active")
         .order("created_at", { ascending: false });
@@ -144,7 +154,7 @@ export function useLiveOffers() {
 export async function fetchOffer(id: string): Promise<OfferWithStore | null> {
   const { data } = await supabase
     .from("offers")
-    .select("*, store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+    .select("*, store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
     .eq("id", id)
     .maybeSingle();
   return (data as OfferWithStore) ?? null;
@@ -163,7 +173,7 @@ export function useMyOrders() {
       if (!sess.session) { if (alive) { setOrders([]); setLoading(false); setError(null); } return; }
       const { data, error: err } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
         .order("created_at", { ascending: false });
       if (alive) {
         if (err) setError(err.message);
@@ -192,7 +202,7 @@ export function useMyOrders() {
 export async function fetchOrder(id: string): Promise<OrderWithRelations | null> {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+    .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -570,7 +580,7 @@ export function useStoreOrders(storeId: string | null) {
     async function load() {
       const { data, error: err } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
         .eq("store_id", storeId!)
         .order("created_at", { ascending: false });
       if (alive) {
@@ -650,7 +660,7 @@ export function useAllOrders() {
     async function load() {
       const { data, error: err } = await supabase
         .from("orders")
-        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone)")
+        .select("*, offer:offers(*), store:stores(id,name,name_en,name_ru,logo,logo_url,category,district,address,lat,lng,description,status,owner_id,created_at,updated_at,delivery_enabled,delivery_radius_km,delivery_fee_base,delivery_fee_per_km,min_order_for_delivery,delivery_providers,city,visibility_radius_km,phone), order_addons(quantity, unit_price, saved_products(name))")
         .order("created_at", { ascending: false })
         .limit(200);
       if (alive) {
