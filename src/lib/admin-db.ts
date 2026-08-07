@@ -59,6 +59,99 @@ export async function deleteOfferAdmin(id: string) {
   if (error) throw error;
 }
 
+// ────── ALL ADD-ONS ("ხელს გააყოლე", admin) ──────
+export type AdminAddonRow = Database["public"]["Tables"]["saved_products"]["Row"] & {
+  store: { id: string; name: string } | null;
+  /** Aggregated from order_addons. */
+  sold_quantity: number;
+  revenue: number;
+};
+
+export function useAllAddons() {
+  const [addons, setAddons] = useState<AdminAddonRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    async function load() {
+      const { data } = await supabase
+        .from("saved_products")
+        .select("*, store:stores(id,name)")
+        .eq("is_addon", true)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (!alive || !data) { if (alive) setLoading(false); return; }
+
+      const ids = data.map((p) => p.id);
+      const totals = new Map<string, { qty: number; revenue: number }>();
+      if (ids.length > 0) {
+        // Only the lines belonging to the listed add-ons, never the whole table.
+        const { data: lines } = await supabase
+          .from("order_addons")
+          .select("saved_product_id, quantity, unit_price")
+          .in("saved_product_id", ids);
+        for (const l of lines ?? []) {
+          const cur = totals.get(l.saved_product_id) ?? { qty: 0, revenue: 0 };
+          cur.qty += Number(l.quantity);
+          cur.revenue += Number(l.quantity) * Number(l.unit_price);
+          totals.set(l.saved_product_id, cur);
+        }
+      }
+
+      if (!alive) return;
+      setAddons(
+        (data as unknown as (AdminAddonRow & { store: { id: string; name: string } | null })[]).map((p) => ({
+          ...p,
+          sold_quantity: totals.get(p.id)?.qty ?? 0,
+          revenue: Math.round((totals.get(p.id)?.revenue ?? 0) * 100) / 100,
+        })),
+      );
+      setLoading(false);
+    }
+    load();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const debounced = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { load(); }, 400);
+    };
+    const stop = withVisibility(
+      () => supabase
+        .channel(`admin-all-addons-${++adminChannelCounter}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "saved_products" }, debounced)
+        .subscribe(),
+      debounced,
+    );
+    return () => { alive = false; if (timer) clearTimeout(timer); stop(); };
+  }, []);
+
+  return { addons, loading };
+}
+
+/** Moderation only — the admin UI never edits partner-owned fields (name, price, composition). */
+export async function updateAddonAdmin(
+  id: string,
+  patch: Partial<Database["public"]["Tables"]["saved_products"]["Update"]>,
+) {
+  const { error } = await supabase.from("saved_products").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+/** Records a moderation action so it shows up in the audit-log panel. */
+export async function logAddonAudit(addonId: string, oldValue: string, newValue: string) {
+  const { data } = await supabase.auth.getUser();
+  const actorId = data.user?.id;
+  if (!actorId) return;
+  await supabase.from("audit_log").insert({
+    actor_id: actorId,
+    entity_type: "addon",
+    entity_id: addonId,
+    action: "update",
+    old_value: oldValue,
+    new_value: newValue,
+  });
+}
+
+
 // ────── PAYOUTS ──────
 export function useAllPayouts() {
   const [payouts, setPayouts] = useState<AdminPayoutRow[]>([]);

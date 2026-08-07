@@ -56,6 +56,7 @@ import { Route as AuthenticatedAdminPartnersRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin.orders'
 import { Route as AuthenticatedAdminOffersRouteImport } from './routes/_authenticated/admin.offers'
 import { Route as AuthenticatedAdminBannersRouteImport } from './routes/_authenticated/admin.banners'
+import { Route as AuthenticatedAdminAddonsRouteImport } from './routes/_authenticated/admin.addons'
 import { Route as ApiPublicPaymentsFlittCallbackRouteImport } from './routes/api/public/payments/flitt-callback'
 import { Route as ApiPublicPaymentsBogCallbackRouteImport } from './routes/api/public/payments/bog-callback'
 import { Route as ApiPublicDeliveryWoltRouteImport } from './routes/api/public/delivery/wolt'
@@ -316,6 +317,12 @@ const AuthenticatedAdminBannersRoute =
     path: '/banners',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAddonsRoute =
+  AuthenticatedAdminAddonsRouteImport.update({
+    id: '/addons',
+    path: '/addons',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const ApiPublicPaymentsFlittCallbackRoute =
   ApiPublicPaymentsFlittCallbackRouteImport.update({
     id: '/api/public/payments/flitt-callback',
@@ -366,6 +373,7 @@ export interface FileRoutesByFullPath {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/admin/addons': typeof AuthenticatedAdminAddonsRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -417,6 +425,7 @@ export interface FileRoutesByTo {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders': typeof OrdersIndexRoute
+  '/admin/addons': typeof AuthenticatedAdminAddonsRoute
   '/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -472,6 +481,7 @@ export interface FileRoutesById {
   '/orders/native-return': typeof OrdersNativeReturnRoute
   '/store/$id': typeof StoreIdRoute
   '/orders/': typeof OrdersIndexRoute
+  '/_authenticated/admin/addons': typeof AuthenticatedAdminAddonsRoute
   '/_authenticated/admin/banners': typeof AuthenticatedAdminBannersRoute
   '/_authenticated/admin/offers': typeof AuthenticatedAdminOffersRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
@@ -527,6 +537,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/admin/addons'
     | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
@@ -578,6 +589,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders'
+    | '/admin/addons'
     | '/admin/banners'
     | '/admin/offers'
     | '/admin/orders'
@@ -632,6 +644,7 @@ export interface FileRouteTypes {
     | '/orders/native-return'
     | '/store/$id'
     | '/orders/'
+    | '/_authenticated/admin/addons'
     | '/_authenticated/admin/banners'
     | '/_authenticated/admin/offers'
     | '/_authenticated/admin/orders'
@@ -1024,6 +1037,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/addons': {
+      id: '/_authenticated/admin/addons'
+      path: '/addons'
+      fullPath: '/admin/addons'
+      preLoaderRoute: typeof AuthenticatedAdminAddonsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/api/public/payments/flitt-callback': {
       id: '/api/public/payments/flitt-callback'
       path: '/api/public/payments/flitt-callback'
@@ -1063,6 +1083,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAddonsRoute: typeof AuthenticatedAdminAddonsRoute
   AuthenticatedAdminBannersRoute: typeof AuthenticatedAdminBannersRoute
   AuthenticatedAdminOffersRoute: typeof AuthenticatedAdminOffersRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
@@ -1075,6 +1096,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAddonsRoute: AuthenticatedAdminAddonsRoute,
   AuthenticatedAdminBannersRoute: AuthenticatedAdminBannersRoute,
   AuthenticatedAdminOffersRoute: AuthenticatedAdminOffersRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
@@ -1172,13 +1194,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

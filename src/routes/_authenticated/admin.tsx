@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, redirect, useRouterState } from "@tansta
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Store, ShoppingBag, Users, LogOut, Package,
-  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield, Image as ImageIcon,
+  Wallet, BarChart3, Settings, Moon, Sun, Menu, X, Shield, Image as ImageIcon, PlusCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CitySelector } from "@/components/CitySelector";
@@ -45,6 +45,7 @@ function useNav(t: (key: string) => string): NavItem[] {
     { to: "/admin", label: t("admin.nav.home"), icon: LayoutDashboard, exact: true },
     { to: "/admin/partners", label: t("admin.nav.partners"), icon: Store },
     { to: "/admin/offers", label: t("admin.nav.offers"), icon: Package },
+    { to: "/admin/addons", label: t("admin.nav.addons"), icon: PlusCircle },
     { to: "/admin/banners", label: t("admin.nav.banners"), icon: ImageIcon },
     { to: "/admin/orders", label: t("admin.nav.orders"), icon: ShoppingBag },
     { to: "/admin/payments", label: t("admin.nav.payments"), icon: Wallet },
