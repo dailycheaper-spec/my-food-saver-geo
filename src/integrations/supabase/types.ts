@@ -898,6 +898,8 @@ export type Database = {
           addon_category: string | null
           addon_discounted_price: number | null
           addon_max_quantity: number
+          addon_stock_quantity: number | null
+          addon_stock_sold: number
           category: string | null
           composition: string | null
           created_at: string
@@ -919,6 +921,8 @@ export type Database = {
           addon_category?: string | null
           addon_discounted_price?: number | null
           addon_max_quantity?: number
+          addon_stock_quantity?: number | null
+          addon_stock_sold?: number
           category?: string | null
           composition?: string | null
           created_at?: string
@@ -940,6 +944,8 @@ export type Database = {
           addon_category?: string | null
           addon_discounted_price?: number | null
           addon_max_quantity?: number
+          addon_stock_quantity?: number | null
+          addon_stock_sold?: number
           category?: string | null
           composition?: string | null
           created_at?: string
