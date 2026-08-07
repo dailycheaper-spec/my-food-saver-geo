@@ -607,8 +607,28 @@ function OfferPage() {
         {addons.length > 0 && (
           <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
             <div className="font-bold mb-3">{t("offer.addons.title")}</div>
+            {addonCategories.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-3">
+                {[["all", t("offer.addons.allCategories")] as [string, string]].concat(
+                  addonCategories.map((c) => [c, t(addonCategoryKey(c))] as [string, string]),
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAddonCat(value)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border press ${
+                      addonCat === value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/60 text-foreground border-border"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="space-y-2">
-              {addons.map((a) => {
+              {visibleAddons.map((a) => {
                 const qty = addonQty[a.id] ?? 0;
                 const soldOutAddon = a.remaining !== null && a.remaining <= 0;
                 const cap = Math.min(a.maxQuantity, a.remaining ?? a.maxQuantity);
