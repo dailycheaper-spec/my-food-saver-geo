@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { ArrowLeft, TrendingUp, ShoppingBag, Wallet, Trophy } from "lucide-react";
+import { ArrowLeft, TrendingUp, ShoppingBag, Wallet, Trophy, PlusCircle } from "lucide-react";
 import { useMyStores, useStoreOffers, useStoreOrders, formatGel } from "@/lib/db";
 import { useI18n } from "@/lib/i18n";
 
@@ -34,7 +34,38 @@ function StatsPage() {
       const discounted = o.offer?.discounted_price ?? 0;
       return a + Math.max(0, original - discounted) * o.quantity;
     }, 0);
-    return { todayCount: todayPaid.length, revenue, top, saved, totalSold: paid.length, activeOffers: offers.filter((x) => x.is_active).length };
+    // ── "ხელს გააყოლე" add-on figures (same orders, no extra query) ──
+    const paidWithAddons = paid.filter((o) => (o.order_addons?.length ?? 0) > 0);
+    const addonRevenue = paid.reduce(
+      (a, o) => a + (o.order_addons ?? []).reduce((s, l) => s + Number(l.unit_price) * l.quantity, 0),
+      0,
+    );
+    const addonCounts = new Map<string, number>();
+    for (const o of paid)
+      for (const l of o.order_addons ?? []) {
+        const name = l.saved_products?.name ?? "—";
+        addonCounts.set(name, (addonCounts.get(name) ?? 0) + l.quantity);
+      }
+    const topAddons = Array.from(addonCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    // Rates off a handful of orders are noise — gate them behind a real sample.
+    const hasAddonSample = paid.length >= 10;
+    const addonConversionPct = hasAddonSample ? Math.round((paidWithAddons.length / paid.length) * 100) : 0;
+    const avgAddonsPerOrder = hasAddonSample
+      ? paid.reduce((a, o) => a + (o.order_addons ?? []).reduce((s, l) => s + l.quantity, 0), 0) / paid.length
+      : 0;
+    return {
+      todayCount: todayPaid.length,
+      revenue,
+      top,
+      saved,
+      totalSold: paid.length,
+      activeOffers: offers.filter((x) => x.is_active).length,
+      addonRevenue,
+      topAddons,
+      hasAddonSample,
+      addonConversionPct,
+      avgAddonsPerOrder,
+    };
   }, [orders, offers]);
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
@@ -69,6 +100,43 @@ function StatsPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="bg-card rounded-3xl border border-border p-5 mt-4">
+        <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <PlusCircle className="w-4 h-4 text-primary" /> {t("partner.stats.addonsTitle")}
+        </h3>
+        <div className="flex items-center justify-between text-sm mb-3">
+          <span className="text-muted-foreground">{t("partner.stats.addonRevenue")}</span>
+          <span className="font-bold text-primary">{formatGel(s.addonRevenue)}</span>
+        </div>
+        {s.topAddons.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">{t("noData")}</p>
+        ) : (
+          <div className="space-y-2">
+            {s.topAddons.map(([name, count], i) => (
+              <div key={name} className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-full grid place-items-center text-sm font-bold ${i === 0 ? "bg-yellow-100 text-yellow-700" : i === 1 ? "bg-slate-100 text-slate-700" : "bg-orange-100 text-orange-700"}`}>{i + 1}</div>
+                <div className="flex-1 truncate">{name}</div>
+                <div className="font-bold text-primary">{count}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 grid grid-cols-2 gap-3 text-sm border-t border-border pt-3">
+          <div>
+            <div className="text-muted-foreground text-xs">{t("partner.stats.addonConversion")}</div>
+            <div className="font-bold">
+              {s.hasAddonSample ? `${s.addonConversionPct}%` : <span className="text-muted-foreground font-normal">{t("noData")}</span>}
+            </div>
+          </div>
+          <div>
+            <div className="text-muted-foreground text-xs">{t("partner.stats.avgAddonsPerOrder")}</div>
+            <div className="font-bold">
+              {s.hasAddonSample ? s.avgAddonsPerOrder.toFixed(1) : <span className="text-muted-foreground font-normal">{t("noData")}</span>}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
