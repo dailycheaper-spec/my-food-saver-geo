@@ -31,6 +31,7 @@ import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zo
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
 import { useOfferAddons } from "@/lib/offer-addons";
+import { addonCategoryKey } from "@/lib/addons";
 
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
@@ -169,10 +170,20 @@ function OfferPage() {
   const addons = useOfferAddons(offer.id, realDb);
   // Local-only selection: this page is the whole checkout, there is no cart.
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  const [addonCat, setAddonCat] = useState<string>("all");
+  const addonCategories = useMemo(
+    () => Array.from(new Set(addons.map((a) => a.category).filter(Boolean) as string[])),
+    [addons],
+  );
+  const visibleAddons =
+    addonCategories.length > 1 && addonCat !== "all"
+      ? addons.filter((a) => a.category === addonCat)
+      : addons;
   const addonTotal = addons.reduce((sum, a) => sum + a.price * (addonQty[a.id] ?? 0), 0);
   const selectedAddons = addons
     .filter((a) => (addonQty[a.id] ?? 0) > 0)
     .map((a) => ({ savedProductId: a.id, quantity: addonQty[a.id]! }));
+
 
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
   const total = offer.price * quantity + deliveryFee + addonTotal;
@@ -596,8 +607,28 @@ function OfferPage() {
         {addons.length > 0 && (
           <div className="bg-card rounded-3xl shadow-card p-4 sm:p-5 border border-border">
             <div className="font-bold mb-3">{t("offer.addons.title")}</div>
+            {addonCategories.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-3">
+                {[["all", t("offer.addons.allCategories")] as [string, string]].concat(
+                  addonCategories.map((c) => [c, t(addonCategoryKey(c))] as [string, string]),
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAddonCat(value)}
+                    className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border press ${
+                      addonCat === value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/60 text-foreground border-border"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="space-y-2">
-              {addons.map((a) => {
+              {visibleAddons.map((a) => {
                 const qty = addonQty[a.id] ?? 0;
                 const soldOutAddon = a.remaining !== null && a.remaining <= 0;
                 const cap = Math.min(a.maxQuantity, a.remaining ?? a.maxQuantity);

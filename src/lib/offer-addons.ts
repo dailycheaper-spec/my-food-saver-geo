@@ -11,6 +11,7 @@ export type OfferAddon = {
   maxQuantity: number;
   /** null = unlimited */
   remaining: number | null;
+  category: string | null;
 };
 
 type Row = {
@@ -25,10 +26,12 @@ type Row = {
     addon_max_quantity: number;
     addon_stock_quantity: number | null;
     addon_stock_sold: number;
+    addon_category: string | null;
     is_addon: boolean;
     addon_active: boolean;
   } | null;
 };
+
 
 /**
  * Active "ხელს გააყოლე" add-ons linked to one offer. Read-only; the charged
@@ -44,7 +47,7 @@ export function useOfferAddons(offerId: string, enabled = true) {
       const { data, error } = await supabase
         .from("offer_addons")
         .select(
-          "saved_product_id, sort_order, saved_products!inner(id, name, image_url, default_original_price, addon_discounted_price, addon_max_quantity, addon_stock_quantity, addon_stock_sold, is_addon, addon_active)",
+          "saved_product_id, sort_order, saved_products!inner(id, name, image_url, default_original_price, addon_discounted_price, addon_max_quantity, addon_stock_quantity, addon_stock_sold, addon_category, is_addon, addon_active)",
         )
         .eq("offer_id", offerId)
         .eq("is_active", true)
@@ -69,6 +72,7 @@ export function useOfferAddons(offerId: string, enabled = true) {
               p.addon_stock_quantity == null
                 ? null
                 : Math.max(0, Number(p.addon_stock_quantity) - Number(p.addon_stock_sold)),
+            category: p.addon_category ?? null,
           };
         });
       setAddons(mapped);
