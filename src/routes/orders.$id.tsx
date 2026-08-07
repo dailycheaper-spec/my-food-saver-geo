@@ -144,7 +144,21 @@ function OrderDetail() {
             <div className="text-xs text-muted-foreground flex items-center gap-1">
               <span className="w-5 h-5 grid place-items-center overflow-hidden rounded"><StoreLogo value={storeLogo} emojiClassName="text-base" /></span> {storeName}
             </div>
-            <div className="font-semibold mt-1">{title}</div>
+            <div className="font-semibold mt-1">{title} ×{order.quantity}</div>
+            {order.order_addons?.length > 0 && (
+              <div className="mt-1">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t("offer.addons.title")}
+                </div>
+                <ul className="text-xs text-muted-foreground">
+                  {order.order_addons.map((l, i) => (
+                    <li key={i}>
+                      {l.saved_products?.name ?? "—"} ×{l.quantity}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="text-lg font-bold text-primary mt-1">{formatGel(Number(order.amount))}</div>
           </div>
         </div>
