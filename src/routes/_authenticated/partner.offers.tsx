@@ -285,9 +285,13 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
       allergens: form.allergens.length ? form.allergens : null,
     };
     if (offer) {
-      await supabase.from("offers").update(payload).eq("id", offer.id);
+      const { error } = await supabase.from("offers").update(payload).eq("id", offer.id);
+      if (error) { setSaving(false); toast.error(error.message); return; }
+      await syncAddonLinks(offer.id, linkedAtOpenRef.current);
     } else {
-      await supabase.from("offers").insert(payload);
+      const { data: created, error } = await supabase.from("offers").insert(payload).select("id").single();
+      if (error || !created) { setSaving(false); toast.error(error?.message ?? ""); return; }
+      await syncAddonLinks(created.id, []);
     }
     setSaving(false);
     onClose();
