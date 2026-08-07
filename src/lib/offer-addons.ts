@@ -47,7 +47,7 @@ export function useOfferAddons(offerId: string, enabled = true) {
       const { data, error } = await supabase
         .from("offer_addons")
         .select(
-          "saved_product_id, sort_order, saved_products!inner(id, name, image_url, default_original_price, addon_discounted_price, addon_max_quantity, addon_stock_quantity, addon_stock_sold, is_addon, addon_active)",
+          "saved_product_id, sort_order, saved_products!inner(id, name, image_url, default_original_price, addon_discounted_price, addon_max_quantity, addon_stock_quantity, addon_stock_sold, addon_category, is_addon, addon_active)",
         )
         .eq("offer_id", offerId)
         .eq("is_active", true)
