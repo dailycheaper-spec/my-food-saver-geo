@@ -1,36 +1,33 @@
-# "ხელს გააყოლე" — final acceptance pass, verified against current code
+# Close the add-on partials
 
-Every item below was re-checked against the real files and the live database this turn, not against the phase summaries.
+Three targeted changes. The untranslated add-on names caveat is explicitly left alone as an accepted simplification.
 
-## Results: 11 pass, 3 partial
+## 1. Release add-on stock when an order is cancelled
 
-| # | Criterion | Result | Where it actually lives |
-|---|---|---|---|
-| 1 | Partner can create / mark a product as an add-on | Pass | `partner.menu.tsx` — `is_addon` checkbox writes `is_addon`, `addon_category`, `addon_discounted_price`, `addon_max_quantity`, `addon_active` |
-| 2 | Add-on does not require a discount | Pass | `partner.menu.tsx` submit — `addon_discounted_price` is null when blank; the 35% floor is only applied to offers, never to `saved_products` |
-| 3 | Partner can link add-ons to main offers | **Partial** | `partner.new.tsx` inserts into `offer_addons` at creation only. The edit modal in `partner.offers.tsx` has no add-on section, so links cannot be changed afterwards |
-| 4 | Customer sees recommendations contextually | Pass | `offer.$id.tsx` renders the block only when `useOfferAddons(offer.id)` returns rows for that specific offer |
-| 5 | Non-discounted add-on shows only the real price | Pass | `offer-addons.ts` — `originalPrice` is null unless `addon_discounted_price < default_original_price` |
-| 6 | Discounted add-on shows correct old/new price | Pass | `offer.$id.tsx` lines 623-635 — struck-through original plus computed percent badge |
-| 7 | Add-ons attach to the order (this app has no separate cart) | Pass | `offer.$id.tsx` `selectedAddons` → `addons` on the checkout payload for both BOG and Flitt paths |
-| 8 | Add-on stock tracked correctly | **Partial** | DB trigger `consume_addon_stock` on `order_addons` correctly locks the row, refuses oversell and increments `addon_stock_sold`. Two gaps: no UI anywhere sets `addon_stock_quantity` (always null = unlimited), and `cancelOrder` only flips status, so stock consumed by an abandoned/failed payment is never released |
-| 9 | Add-ons stay linked to the main order | Pass | `order_addons.order_id` FK; inserted inside `createPendingOrder` and rolled back via `cancelOrder` if the insert fails |
-| 10 | Partner sees add-ons in order details | Pass | `partner.orders.tsx` lines 111-120, fed by the `order_addons(...)` join in `db.ts` |
-| 11 | Checkout total is correct | Pass | `orders-common.ts` `resolveAddonLines` re-prices every line from the DB and validates store, link, active flag and max quantity; `validate_order_amount` trigger is the second floor check |
-| 12 | Admin can review and manage add-ons | Pass | `admin.addons.tsx` + `useAllAddons` / `updateAddonAdmin` in `admin-db.ts`, backed by the `admins manage saved_products` policy |
-| 13 | Localization | Pass | `i18n-domains/addons.ts` — 24 keys present in all five languages, exact parity; `admin.addons.*` + `admin.nav.addons` = 9 keys in ka/en/ru and zero in tr/fa, per the standing rule. No used-but-undefined keys. Caveat: add-on **names** are single-column (`saved_products.name`), so partner-entered names are not translated the way offer titles are |
-| 14 | No regressions | Pass | Typecheck clean. Order queries only gained a nested select; the orders/offers/payments/map paths were not otherwise touched; `order_addons` has no client INSERT grant, so the admin path uses `supabaseAdmin` |
+Today `consume_addon_stock` increments `saved_products.addon_stock_sold` the moment `order_addons` rows are inserted — which happens while the order is still `pending`, before payment. Nothing ever reverses it, so every abandoned or failed payment permanently eats stock.
 
-## Direct answer on `audit_log`
+Migration adds `public.release_addon_stock_on_cancel()` plus an `AFTER UPDATE` trigger on `orders`, firing only on the `status → cancelled` transition and decrementing with `greatest(0, ...)` so a repeat fire cannot go negative. Function privileges revoked from `public`, `anon`, `authenticated`.
 
-Yes — the add-on toggle is still the only writer in the entire app. `logAddonAudit` in `admin-db.ts` is the sole insert; the only other reference (`db.ts`) reads and subscribes. No database trigger or function writes there either (checked `pg_proc` across `public` and `app_private`). The table is currently empty, and `entity_type` has only ever been intended to hold `'addon'`. So an `audit_log` entry is evidence of an add-on activation toggle and nothing else — do not read it as a general moderation trail yet.
+Confirmed against the code: `cancelOrder` in `orders-common.ts` is the only cancellation path and it sets `status = 'cancelled'`, so that single transition covers both the rollback-on-addon-insert-failure case and failed/abandoned payments. Successful orders never hit it.
 
-Note the RLS policy is `authenticated append audit log` (INSERT open to any authenticated user), which is fine while nothing else depends on the table but should tighten before the log is treated as authoritative.
+## 2. Add-on links editable on an existing offer
 
-## Proposed follow-up to close the three partials
+`partner.new.tsx` inserts `offer_addons` at creation; the edit modal `OfferForm` in `partner.offers.tsx` has no add-on section, so links are frozen after creation.
 
-1. **Add-on links on offer edit** — add the same add-on picker from `partner.new.tsx` to the edit modal in `partner.offers.tsx`, diffing against existing `offer_addons` rows (insert new, delete removed) instead of blind insert.
-2. **Add-on stock quantity field** — add an optional `addon_stock_quantity` input to the add-on section of `partner.menu.tsx`, blank meaning unlimited, plus a small "sold / remaining" readout.
-3. **Release stock on cancel** — a DB trigger that decrements `addon_stock_sold` when an order moves to `cancelled` (or when its `order_addons` rows are deleted), so abandoned payments stop permanently eating stock.
+Changes to `partner.offers.tsx`:
+- Load the store's active add-ons (`saved_products` where `is_addon` and `addon_active`) and, when editing, the offer's current `offer_addons` rows.
+- Render the same multi-select chips used in `partner.new.tsx`, reusing the existing `partner.addons.offerPickTitle` / `offerPickEmpty` keys and `addonCategoryKey` labels — no new translation keys needed.
+- On save, diff selection against the loaded set: insert only newly checked ids, delete only unchecked ids that previously existed. No blind re-insert (the table has `unique(offer_id, saved_product_id)`).
+- On create, insert the selection after the offer row comes back, matching the existing `partner.new.tsx` behaviour.
 
-Items 1 and 2 are frontend-only. Item 3 needs one migration.
+## 3. Tighten `audit_log` INSERT
+
+The current policy is literally named `authenticated append audit log` and lets any signed-in user insert. Migration drops it and adds an admin-only replacement checked through `app_private.has_role(auth.uid(), 'admin')`, which is the gate every other admin-only write in this project uses. Read policies (`admins read audit log`, `store members read own offer audit log`) are left untouched.
+
+Safe because the admin add-on toggle is the only writer in the app; nothing partner- or customer-side writes there.
+
+## Technical notes
+
+- One migration covers items 1 and 3.
+- Item 2 is frontend-only, in `partner.offers.tsx`.
+- Verification: cancel a pending order carrying a limited-stock add-on and confirm `addon_stock_sold` drops and the add-on is purchasable again, while a paid order leaves it consumed; edit an offer adding one add-on and removing another and confirm `offer_addons` matches the selection exactly and the customer offer page reflects it; confirm the admin toggle still writes an audit row.
