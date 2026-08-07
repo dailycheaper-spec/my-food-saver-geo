@@ -34,7 +34,38 @@ function StatsPage() {
       const discounted = o.offer?.discounted_price ?? 0;
       return a + Math.max(0, original - discounted) * o.quantity;
     }, 0);
-    return { todayCount: todayPaid.length, revenue, top, saved, totalSold: paid.length, activeOffers: offers.filter((x) => x.is_active).length };
+    // ── "ხელს გააყოლე" add-on figures (same orders, no extra query) ──
+    const paidWithAddons = paid.filter((o) => (o.order_addons?.length ?? 0) > 0);
+    const addonRevenue = paid.reduce(
+      (a, o) => a + (o.order_addons ?? []).reduce((s, l) => s + Number(l.unit_price) * l.quantity, 0),
+      0,
+    );
+    const addonCounts = new Map<string, number>();
+    for (const o of paid)
+      for (const l of o.order_addons ?? []) {
+        const name = l.saved_products?.name ?? "—";
+        addonCounts.set(name, (addonCounts.get(name) ?? 0) + l.quantity);
+      }
+    const topAddons = Array.from(addonCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    // Rates off a handful of orders are noise — gate them behind a real sample.
+    const hasAddonSample = paid.length >= 10;
+    const addonConversionPct = hasAddonSample ? Math.round((paidWithAddons.length / paid.length) * 100) : 0;
+    const avgAddonsPerOrder = hasAddonSample
+      ? paid.reduce((a, o) => a + (o.order_addons ?? []).reduce((s, l) => s + l.quantity, 0), 0) / paid.length
+      : 0;
+    return {
+      todayCount: todayPaid.length,
+      revenue,
+      top,
+      saved,
+      totalSold: paid.length,
+      activeOffers: offers.filter((x) => x.is_active).length,
+      addonRevenue,
+      topAddons,
+      hasAddonSample,
+      addonConversionPct,
+      avgAddonsPerOrder,
+    };
   }, [orders, offers]);
 
   if (loading) return <div className="text-center py-12 text-muted-foreground">{t("loading")}</div>;
