@@ -274,6 +274,34 @@ function NewOfferPage() {
           )}
         </div>
 
+        <div className="p-3 rounded-3xl border border-border bg-card/50">
+          <div className="text-sm font-bold flex items-center gap-1.5 mb-2">
+            <PlusCircle className="w-4 h-4 text-primary" /> {t("partner.addons.offerPickTitle")}
+          </div>
+          {addons.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("partner.addons.offerPickEmpty")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {addons.map((a) => {
+                const picked = pickedAddonIds.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setPickedAddonIds((prev) => (picked ? prev.filter((id) => id !== a.id) : [...prev, a.id]))}
+                    className={`px-3 py-2 rounded-2xl text-xs font-medium border ${picked ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                  >
+                    {picked ? "✓ " : ""}{a.name}
+                    {a.addon_category ? ` · ${t(addonCategoryKey(a.addon_category))}` : ""}
+                    {" · "}{a.addon_discounted_price ?? a.default_discounted_price}₾
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+
         <div>
 
           <Label>{t("photo")}</Label>
