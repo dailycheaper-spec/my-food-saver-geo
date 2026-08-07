@@ -165,8 +165,13 @@ function OfferPage() {
   const [payment, setPayment] = useState<"FLITT" | "BOG" | "GPAY">("BOG");
   const [copied, setCopied] = useState(false);
 
+  const addons = useOfferAddons(offer.id, realDb);
+  // Local-only selection: this page is the whole checkout, there is no cart.
+  const [addonQty, setAddonQty] = useState<Record<string, number>>({});
+  const addonTotal = addons.reduce((sum, a) => sum + a.price * (addonQty[a.id] ?? 0), 0);
+
   const deliveryFee = method === "მიტანა" ? offer.deliveryFee : 0;
-  const total = offer.price * quantity + deliveryFee;
+  const total = offer.price * quantity + deliveryFee + addonTotal;
   const discount = Math.round((1 - offer.price / offer.originalPrice) * 100);
   const soldOut = offer.itemsLeft <= 0;
 
