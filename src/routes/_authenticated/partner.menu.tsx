@@ -112,6 +112,11 @@ function PartnerMenuPage() {
       unit_weight_grams: it.unit_weight_grams != null ? String(it.unit_weight_grams) : "",
       composition: it.composition ?? "",
       default_allergens: it.default_allergens ?? [],
+      is_addon: !!it.is_addon,
+      addon_category: it.addon_category ?? "drinks",
+      addon_discounted_price: it.addon_discounted_price != null ? String(it.addon_discounted_price) : "",
+      addon_max_quantity: String(it.addon_max_quantity ?? 5),
+      addon_active: it.addon_active ?? true,
     });
     setShowForm(true);
   }
@@ -131,6 +136,12 @@ function PartnerMenuPage() {
       composition: form.composition.trim() || null,
       default_allergens: form.default_allergens,
       is_active: true,
+      is_addon: form.is_addon,
+      // A discount is never required on an add-on — blank stays blank.
+      addon_category: form.is_addon ? form.addon_category : null,
+      addon_discounted_price: form.is_addon && form.addon_discounted_price.trim() !== "" ? Number(form.addon_discounted_price) : null,
+      addon_max_quantity: form.is_addon ? Math.max(1, Number(form.addon_max_quantity) || 5) : 5,
+      addon_active: form.is_addon ? form.addon_active : true,
     };
     const res = editingId
       ? await supabase.from("saved_products").update(payload).eq("id", editingId).select("*").single()
