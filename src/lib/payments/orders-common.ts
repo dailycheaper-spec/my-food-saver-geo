@@ -12,6 +12,11 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type PaymentProvider = "bog" | "flitt";
 
+export interface OrderAddonInput {
+  savedProductId: string;
+  quantity: number;
+}
+
 export interface OrderInput {
   offerId: string;
   storeId: string;
@@ -23,6 +28,8 @@ export interface OrderInput {
   deliveryLng?: number | null;
   deliveryPlaceId?: string | null;
   customerNote?: string;
+  /** Optional "ხელს გააყოლე" add-ons. Prices are recomputed server-side. */
+  addons?: OrderAddonInput[];
   // When true, redirect_urls point at the /orders/native-return bounce page so
   // the Capacitor shell can pull the user back into the app via deep link.
   nativeReturn?: boolean;
