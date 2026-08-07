@@ -19,7 +19,7 @@ Same layout as the offers page (heading + count, filters card, table):
 - Toggling writes the change and records an audit entry.
 
 **4. Navigation + wording**
-New "დამატებები" entry in the admin sidebar next to Offers/Orders. New `admin.addons.*` labels in **all five languages** (ka/en/ru/tr/fa) — the project's language set is five, not three, so ka/en/ru alone would leave gaps.
+New "დამატებები" entry in the admin sidebar next to Offers/Orders. New `admin.addons.*` labels in ka/en/ru only, matching the project's standing rule that admin screens are not translated to tr/fa.
 
 ## Notes worth flagging
 
