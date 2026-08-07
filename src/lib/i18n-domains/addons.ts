@@ -3,6 +3,9 @@ import type { DomainPack } from "./types";
 /** Partner-side "ხელს გააყოლე" (add-ons / upsell) labels. All five languages required. */
 export const addonsPack: DomainPack = {
   ka: {
+    "offer.addons.title": "ხელს გააყოლე",
+    "offer.addons.add": "დამატება",
+    "offer.addons.outOfStock": "ამოიწურა",
     "partner.addons.markAsAddon": "ხელს გააყოლე პროდუქტად დამატება",
     "partner.addons.markHint": "ასეთი პროდუქტი შეიძლება შეთავაზებას თან დაერთოს — ფასდაკლება სავალდებულო არაა.",
     "partner.addons.category": "დამატების კატეგორია",
@@ -26,6 +29,9 @@ export const addonsPack: DomainPack = {
     "partner.addons.cat.other": "სხვა",
   },
   en: {
+    "offer.addons.title": "Add something extra",
+    "offer.addons.add": "Add",
+    "offer.addons.outOfStock": "Out of stock",
     "partner.addons.markAsAddon": "Offer this as an add-on",
     "partner.addons.markHint": "Add-ons can be attached to an offer — a discount is not required.",
     "partner.addons.category": "Add-on category",
@@ -49,6 +55,9 @@ export const addonsPack: DomainPack = {
     "partner.addons.cat.other": "Other",
   },
   ru: {
+    "offer.addons.title": "Добавьте что-нибудь",
+    "offer.addons.add": "Добавить",
+    "offer.addons.outOfStock": "Закончилось",
     "partner.addons.markAsAddon": "Предлагать как дополнение",
     "partner.addons.markHint": "Дополнение можно добавить к предложению — скидка не обязательна.",
     "partner.addons.category": "Категория дополнения",
@@ -72,6 +81,9 @@ export const addonsPack: DomainPack = {
     "partner.addons.cat.other": "Другое",
   },
   tr: {
+    "offer.addons.title": "Bir şeyler ekleyin",
+    "offer.addons.add": "Ekle",
+    "offer.addons.outOfStock": "Tükendi",
     "partner.addons.markAsAddon": "Ek ürün olarak sun",
     "partner.addons.markHint": "Ek ürünler bir teklife eklenebilir — indirim zorunlu değildir.",
     "partner.addons.category": "Ek ürün kategorisi",
@@ -95,6 +107,9 @@ export const addonsPack: DomainPack = {
     "partner.addons.cat.other": "Diğer",
   },
   fa: {
+    "offer.addons.title": "یک چیز اضافه کنید",
+    "offer.addons.add": "افزودن",
+    "offer.addons.outOfStock": "تمام شد",
     "partner.addons.markAsAddon": "ارائه به عنوان مکمل",
     "partner.addons.markHint": "مکمل‌ها را می‌توان به یک پیشنهاد افزود — تخفیف الزامی نیست.",
     "partner.addons.category": "دسته مکمل",
