@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { AllergenPicker } from "@/components/AllergenPicker";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { allergenLabel } from "@/lib/allergens";
+import { ADDON_CATEGORIES, addonCategoryKey } from "@/lib/addons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/menu")({
@@ -39,6 +40,11 @@ type MenuItem = {
   unit_weight_grams: number | null;
   composition: string | null;
   default_allergens: string[] | null;
+  is_addon: boolean;
+  addon_category: string | null;
+  addon_discounted_price: number | null;
+  addon_max_quantity: number;
+  addon_active: boolean;
 };
 
 const EMPTY = {
@@ -50,6 +56,11 @@ const EMPTY = {
   unit_weight_grams: "",
   composition: "",
   default_allergens: [] as string[],
+  is_addon: false,
+  addon_category: "drinks" as string,
+  addon_discounted_price: "",
+  addon_max_quantity: "5",
+  addon_active: true,
 };
 
 function PartnerMenuPage() {
