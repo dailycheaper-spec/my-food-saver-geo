@@ -30,6 +30,7 @@ import { useDeliveryAddress, formatDeliveryAddress } from "@/lib/delivery-addres
 import { validateDeliveryLocation, deliveryZoneMessage } from "@/lib/delivery/zones";
 import { useMyAddresses, formatAddressDetails, readLastAddressId } from "@/lib/addresses";
 import { ImageWithSkeleton } from "@/components/ImageWithSkeleton";
+import { useOfferAddons } from "@/lib/offer-addons";
 
 
 const AddressPicker = lazy(() => import("@/components/address/AddressPicker"));
