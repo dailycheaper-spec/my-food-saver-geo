@@ -7,6 +7,7 @@ import { mapsPack } from "./maps";
 import { systemPack } from "./system";
 import { contractsPack } from "./contracts";
 import { menuPack } from "./menu";
+import { addonsPack } from "./addons";
 
 export type { DomainPack };
 
@@ -20,5 +21,6 @@ export const domainLabels: DomainPack = mergePacks(
   systemPack,
   contractsPack,
   menuPack,
+  addonsPack,
 );
 

@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { AllergenPicker } from "@/components/AllergenPicker";
 import { OfferPhotoPicker } from "@/components/OfferPhotoPicker";
 import { allergenLabel } from "@/lib/allergens";
+import { ADDON_CATEGORIES, addonCategoryKey } from "@/lib/addons";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/partner/menu")({
@@ -39,6 +40,11 @@ type MenuItem = {
   unit_weight_grams: number | null;
   composition: string | null;
   default_allergens: string[] | null;
+  is_addon: boolean;
+  addon_category: string | null;
+  addon_discounted_price: number | null;
+  addon_max_quantity: number;
+  addon_active: boolean;
 };
 
 const EMPTY = {
@@ -50,6 +56,11 @@ const EMPTY = {
   unit_weight_grams: "",
   composition: "",
   default_allergens: [] as string[],
+  is_addon: false,
+  addon_category: "drinks" as string,
+  addon_discounted_price: "",
+  addon_max_quantity: "5",
+  addon_active: true,
 };
 
 function PartnerMenuPage() {
@@ -64,6 +75,8 @@ function PartnerMenuPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
+  const regularItems = useMemo(() => items.filter((i) => !i.is_addon), [items]);
+  const addonItems = useMemo(() => items.filter((i) => i.is_addon), [items]);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,6 +114,11 @@ function PartnerMenuPage() {
       unit_weight_grams: it.unit_weight_grams != null ? String(it.unit_weight_grams) : "",
       composition: it.composition ?? "",
       default_allergens: it.default_allergens ?? [],
+      is_addon: !!it.is_addon,
+      addon_category: it.addon_category ?? "drinks",
+      addon_discounted_price: it.addon_discounted_price != null ? String(it.addon_discounted_price) : "",
+      addon_max_quantity: String(it.addon_max_quantity ?? 5),
+      addon_active: it.addon_active ?? true,
     });
     setShowForm(true);
   }
@@ -120,6 +138,12 @@ function PartnerMenuPage() {
       composition: form.composition.trim() || null,
       default_allergens: form.default_allergens,
       is_active: true,
+      is_addon: form.is_addon,
+      // A discount is never required on an add-on — blank stays blank.
+      addon_category: form.is_addon ? form.addon_category : null,
+      addon_discounted_price: form.is_addon && form.addon_discounted_price.trim() !== "" ? Number(form.addon_discounted_price) : null,
+      addon_max_quantity: form.is_addon ? Math.max(1, Number(form.addon_max_quantity) || 5) : 5,
+      addon_active: form.is_addon ? form.addon_active : true,
     };
     const res = editingId
       ? await supabase.from("saved_products").update(payload).eq("id", editingId).select("*").single()
@@ -212,6 +236,57 @@ function PartnerMenuPage() {
             <AllergenPicker value={form.default_allergens} onChange={(next) => setForm({ ...form, default_allergens: next })} />
           </div>
 
+          <div className="rounded-2xl border border-border bg-muted/20 p-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.is_addon}
+                onChange={(e) => setForm({ ...form, is_addon: e.target.checked })}
+                className="mt-0.5 w-4 h-4 accent-[var(--color-primary)]"
+              />
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold">{t("partner.addons.markAsAddon")}</span>
+                <span className="block text-[11px] text-muted-foreground mt-0.5">{t("partner.addons.markHint")}</span>
+              </span>
+            </label>
+
+            {form.is_addon && (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <Label>{t("partner.addons.category")}</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ADDON_CATEGORIES.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setForm({ ...form, addon_category: c })}
+                        className={`px-2.5 py-1.5 rounded-xl text-[11px] font-medium border ${form.addon_category === c ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                      >
+                        {t(addonCategoryKey(c))}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label={t("partner.addons.discountedPrice")} type="number" step="0.5" value={form.addon_discounted_price} onChange={(v) => setForm({ ...form, addon_discounted_price: v })} />
+                  <Field label={t("partner.addons.maxQty")} type="number" value={form.addon_max_quantity} onChange={(v) => setForm({ ...form, addon_max_quantity: v })} />
+                </div>
+
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.addon_active}
+                    onChange={(e) => setForm({ ...form, addon_active: e.target.checked })}
+                    className="w-4 h-4 accent-[var(--color-primary)]"
+                  />
+                  {t("partner.addons.active")}
+                </label>
+              </div>
+            )}
+          </div>
+
+
           <div className="flex gap-2 pt-1">
             <button type="button" onClick={() => { setShowForm(false); setEditingId(null); }} className="flex-1 py-3 rounded-2xl border border-border text-sm font-semibold">
               {t("partner.menu.cancel")}
@@ -235,42 +310,71 @@ function PartnerMenuPage() {
           </button>
         </div>
       ) : (
-        <ul className="space-y-3">
-          {items.map((it) => (
-            <li key={it.id} className="flex gap-3 p-3 rounded-2xl border border-border bg-card">
-              <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0 grid place-items-center">
-                {it.image_url
-                  ? <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
-                  : <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="font-semibold text-sm truncate">{it.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  <span className="line-through">{it.default_original_price}₾</span>{" "}
-                  <span className="text-primary font-bold">{it.default_discounted_price}₾</span>
-                  {" · "}
-                  {t(`partner.menu.unit${it.unit_type.charAt(0).toUpperCase()}${it.unit_type.slice(1)}`)}
-                  {it.unit_type === "weight" && it.unit_weight_grams ? ` · ${it.unit_weight_grams}${t("offer.unitGram")}` : ""}
-                </div>
-                {it.default_allergens && it.default_allergens.length > 0 && (
-                  <div className="text-[11px] text-amber-600 mt-0.5 truncate">
-                    {it.default_allergens.map((a) => allergenLabel(a, "ka")).join(", ")}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5 shrink-0">
-                <button onClick={() => openEdit(it)} aria-label={t("partner.menu.edit")} className="p-2 rounded-xl border border-border">
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button onClick={() => remove(it.id)} aria-label={t("partner.menu.delete")} className="p-2 rounded-xl border border-border text-destructive">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="space-y-3">
+            {regularItems.map((it) => (
+              <MenuRow key={it.id} it={it} t={t} onEdit={openEdit} onRemove={remove} />
+            ))}
+          </ul>
+
+          <div className="mt-8">
+            <h2 className="font-display text-lg font-bold mb-3">{t("partner.addons.sectionTitle")}</h2>
+            {addonItems.length === 0 ? (
+              <p className="text-sm text-muted-foreground px-1">{t("partner.addons.empty")}</p>
+            ) : (
+              <ul className="space-y-3">
+                {addonItems.map((it) => (
+                  <MenuRow key={it.id} it={it} t={t} onEdit={openEdit} onRemove={remove} />
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
       )}
     </div>
+  );
+}
+
+function MenuRow({ it, t, onEdit, onRemove }: { it: MenuItem; t: (k: string) => string; onEdit: (it: MenuItem) => void; onRemove: (id: string) => void }) {
+  return (
+    <li className="flex gap-3 p-3 rounded-2xl border border-border bg-card">
+      <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0 grid place-items-center">
+        {it.image_url
+          ? <img src={it.image_url} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+          : <UtensilsCrossed className="w-5 h-5 text-muted-foreground" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="font-semibold text-sm truncate">{it.name}</div>
+        <div className="text-xs text-muted-foreground">
+          <span className="line-through">{it.default_original_price}₾</span>{" "}
+          <span className="text-primary font-bold">{it.default_discounted_price}₾</span>
+          {" · "}
+          {t(`partner.menu.unit${it.unit_type.charAt(0).toUpperCase()}${it.unit_type.slice(1)}`)}
+          {it.unit_type === "weight" && it.unit_weight_grams ? ` · ${it.unit_weight_grams}${t("offer.unitGram")}` : ""}
+        </div>
+        {it.is_addon && (
+          <div className="text-[11px] text-primary mt-0.5 truncate">
+            {t("partner.addons.badge")}
+            {it.addon_category ? ` · ${t(addonCategoryKey(it.addon_category))}` : ""}
+            {it.addon_discounted_price != null ? ` · ${it.addon_discounted_price}₾` : ""}
+            {!it.addon_active ? " · —" : ""}
+          </div>
+        )}
+        {it.default_allergens && it.default_allergens.length > 0 && (
+          <div className="text-[11px] text-amber-600 mt-0.5 truncate">
+            {it.default_allergens.map((a) => allergenLabel(a, "ka")).join(", ")}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-1.5 shrink-0">
+        <button onClick={() => onEdit(it)} aria-label={t("partner.menu.edit")} className="p-2 rounded-xl border border-border">
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button onClick={() => onRemove(it.id)} aria-label={t("partner.menu.delete")} className="p-2 rounded-xl border border-border text-destructive">
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </li>
   );
 }
 

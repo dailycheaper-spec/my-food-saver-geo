@@ -1,7 +1,8 @@
 import { resolveOfferTranslations } from "@/lib/offer-translate";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, UtensilsCrossed, PlusCircle } from "lucide-react";
+import { addonCategoryKey } from "@/lib/addons";
 import { useMyStores } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
 import { DiscountFields, computePct, MIN_DISCOUNT_PCT } from "@/components/DiscountFields";
@@ -24,6 +25,14 @@ type MenuItem = {
   unit_weight_grams: number | null;
   composition: string | null;
   default_allergens: string[] | null;
+};
+
+type AddonItem = {
+  id: string;
+  name: string;
+  default_discounted_price: number;
+  addon_category: string | null;
+  addon_discounted_price: number | null;
 };
 
 
@@ -113,21 +122,27 @@ function NewOfferPage() {
 
   // Standing menu (saved products) — lets the partner publish in one tap.
   const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [addons, setAddons] = useState<AddonItem[]>([]);
+  const [pickedAddonIds, setPickedAddonIds] = useState<string[]>([]);
   const [pickedId, setPickedId] = useState<string | null>(null);
   useEffect(() => {
     if (!store) return;
     let cancelled = false;
     supabase
       .from("saved_products")
-      .select("id,name,default_original_price,default_discounted_price,image_url,unit_type,unit_weight_grams,composition,default_allergens")
+      .select("id,name,default_original_price,default_discounted_price,image_url,unit_type,unit_weight_grams,composition,default_allergens,is_addon,addon_category,addon_discounted_price")
       .eq("store_id", store.id)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        if (!cancelled) setMenu(((data ?? []) as unknown as MenuItem[]));
+        if (cancelled) return;
+        const rows = (data ?? []) as unknown as (MenuItem & AddonItem & { is_addon: boolean })[];
+        setMenu(rows.filter((r) => !r.is_addon));
+        setAddons(rows.filter((r) => r.is_addon));
       });
     return () => { cancelled = true; };
   }, [store]);
+
 
   function applyMenuItem(it: MenuItem) {
     setPickedId(it.id);
@@ -198,9 +213,22 @@ function NewOfferPage() {
 
 
 
-    const { error } = await supabase.from("offers").insert(payload);
+    const { data: created, error } = await supabase.from("offers").insert(payload).select("id").single();
+    if (error) { setSaving(false); toast.error(error.message); return; }
+
+    if (created?.id && pickedAddonIds.length > 0) {
+      const { error: addonError } = await supabase.from("offer_addons").insert(
+        pickedAddonIds.map((saved_product_id, i) => ({
+          offer_id: created.id,
+          saved_product_id,
+          sort_order: i,
+          is_active: true,
+        })),
+      );
+      if (addonError) toast.error(addonError.message);
+    }
+
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
     navigate({ to: "/partner/offers" });
   }
 
@@ -245,6 +273,34 @@ function NewOfferPage() {
             </>
           )}
         </div>
+
+        <div className="p-3 rounded-3xl border border-border bg-card/50">
+          <div className="text-sm font-bold flex items-center gap-1.5 mb-2">
+            <PlusCircle className="w-4 h-4 text-primary" /> {t("partner.addons.offerPickTitle")}
+          </div>
+          {addons.length === 0 ? (
+            <p className="text-xs text-muted-foreground">{t("partner.addons.offerPickEmpty")}</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {addons.map((a) => {
+                const picked = pickedAddonIds.includes(a.id);
+                return (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setPickedAddonIds((prev) => (picked ? prev.filter((id) => id !== a.id) : [...prev, a.id]))}
+                    className={`px-3 py-2 rounded-2xl text-xs font-medium border ${picked ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground"}`}
+                  >
+                    {picked ? "✓ " : ""}{a.name}
+                    {a.addon_category ? ` · ${t(addonCategoryKey(a.addon_category))}` : ""}
+                    {" · "}{a.addon_discounted_price ?? a.default_discounted_price}₾
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
 
         <div>
 
