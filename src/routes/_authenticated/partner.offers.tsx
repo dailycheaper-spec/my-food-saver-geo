@@ -183,13 +183,16 @@ function OfferForm({ storeId, offer, onClose }: { storeId: string; offer: DbOffe
   const [saving, setSaving] = useState(false);
   const [imgInvalid, setImgInvalid] = useState(false);
   const initialFormRef = useRef(form);
-  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current);
 
   // "ხელს გააყოლე" add-ons that can be offered alongside this deal.
   const [addons, setAddons] = useState<AddonOption[]>([]);
   const [pickedAddonIds, setPickedAddonIds] = useState<string[]>([]);
   // Snapshot of what was linked when the modal opened — the save diffs against it.
   const linkedAtOpenRef = useRef<string[]>([]);
+
+  const addonsDirty =
+    JSON.stringify([...pickedAddonIds].sort()) !== JSON.stringify([...linkedAtOpenRef.current].sort());
+  const isDirty = JSON.stringify(form) !== JSON.stringify(initialFormRef.current) || addonsDirty;
 
   useEffect(() => {
     let cancelled = false;
