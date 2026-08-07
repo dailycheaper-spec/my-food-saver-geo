@@ -14,6 +14,15 @@ import { AuditLogButton } from "@/components/AuditLogPanel";
 import { Time24Input } from "@/components/Time24Input";
 import { toast } from "sonner";
 
+/** One "ხელს გააყოლე" add-on the partner can attach to an offer. */
+type AddonOption = {
+  id: string;
+  name: string;
+  addon_category: string | null;
+  addon_discounted_price: number | null;
+  default_discounted_price: number;
+};
+
 export const Route = createFileRoute("/_authenticated/partner/offers")({
   head: () => ({ meta: [{ title: "Offers — Cheaper" }] }),
   component: OffersPage,
