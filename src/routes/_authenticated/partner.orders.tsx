@@ -102,7 +102,26 @@ function OrderCard({ order, showActions }: { order: OrderWithRelations; showActi
             <span className="font-mono font-bold text-lg">#{order.code}</span>
             <StatusBadge status={order.status} />
           </div>
-          <div className="text-sm mt-1">{order.offer?.title ?? "—"}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-2">
+            {t("partner.orders.mainItem")}
+          </div>
+          <div className="text-sm">
+            {order.offer?.title ?? "—"} ×{order.quantity}
+          </div>
+          {order.order_addons?.length > 0 && (
+            <>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-2">
+                {t("partner.orders.addonsItem")}
+              </div>
+              <ul className="text-xs text-muted-foreground">
+                {order.order_addons.map((l, i) => (
+                  <li key={i}>
+                    {l.saved_products?.name ?? "—"} ×{l.quantity}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </div>
         <div className="text-right">
           <div className="font-bold text-primary">{formatGel(Number(order.amount))}</div>
